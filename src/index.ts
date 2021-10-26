@@ -1,4 +1,11 @@
-/** test */
-class TestElement extends HTMLElement {}
+import {ModelViewerElement} from '@google/model-viewer';
 
-customElements.define('test-element', TestElement);
+class PopupInfo extends HTMLElement {
+  constructor() {
+    super();
+
+    console.log(ModelViewerElement);
+  }
+}
+
+customElements.define('popup-info', PopupInfo);

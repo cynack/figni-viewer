@@ -1,5 +1,4 @@
-const hello = (message: string): void => {
-  console.log('message is ' + message);
-};
+/** test */
+class TestElement extends HTMLElement {}
 
-hello('hoge');
+customElements.define('test-element', TestElement);

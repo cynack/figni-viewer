@@ -11,6 +11,5 @@ module.exports = {
     'sourceType': 'module',
   },
   'rules': {
-    'require-jsdoc': 0,
   },
 };

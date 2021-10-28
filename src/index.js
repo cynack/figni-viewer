@@ -7,8 +7,6 @@ class FigniViewerElement extends ModelViewerElement {
   connectedCallback() {
     super.connectedCallback();
 
-    console.log(this.shadowRoot);
-
     // 値の取得
     const modelId = this.getAttribute('model_id');
     const accessId = this.getAttribute('access_id');
@@ -21,6 +19,12 @@ class FigniViewerElement extends ModelViewerElement {
     // 値の設定
     this.setAttribute('src', modelSrc);
     this.setAttribute('camera-controls', true);
+
+    // Properties へのアクセス
+    // console.log(this.loaded);
+
+    // CSS へのアクセス
+    // this.style.backgroundColor = '#00F';
   }
 }
 

@@ -1,10 +1,11 @@
 import {ModelViewerElement} from '@google/model-viewer';
+import axios from 'axios';
 
 class FigniViewerElement extends ModelViewerElement {
   constructor() {
     super();
   }
-  connectedCallback() {
+  async connectedCallback() {
     super.connectedCallback();
 
     // 値の取得
@@ -15,10 +16,18 @@ class FigniViewerElement extends ModelViewerElement {
 
     // TODO: figni-api からモデルの情報をとってくる
     const modelSrc = 'https://storage.googleapis.com/cynack-norma/sample/grill_b.glb';
+    const modelPosterSrc = 'https://storage.googleapis.com/cynack-norma/sample/grill_b2.png';
+    // axios のテスト
+    // const res = await axios.get('https://randomuser.me/api/');
+    // const modelPosterSrc = res.data.results[0].picture.large;
 
     // 値の設定
     this.setAttribute('src', modelSrc);
+    this.setAttribute('poster', modelPosterSrc);
+    this.setAttribute('loading', 'eager');
+    this.setAttribute('reveal', 'intaraction');
     this.setAttribute('camera-controls', true);
+    this.setAttribute('interaction-prompt', 'none');
 
     // Properties へのアクセス
     // console.log(this.loaded);

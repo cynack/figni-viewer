@@ -23,7 +23,7 @@ class FigniViewerElement extends ModelViewerElement {
     // const res = await axios.get('https://randomuser.me/api/');
     // const modelPosterSrc = res.data.results[0].picture.large;
 
-    // 値の設定
+    // Attribute
     this.setAttribute('src', modelSrc);
     this.setAttribute('poster', modelPosterSrc);
     this.setAttribute('loading', 'eager');
@@ -31,13 +31,34 @@ class FigniViewerElement extends ModelViewerElement {
     this.setAttribute('camera-controls', true);
     this.setAttribute('interaction-prompt', 'none');
 
+    // CSS
     this.style.setProperty('--poster-color', 'transparent');
 
-    // Properties へのアクセス
+    // Properties
     // console.log(this.loaded);
+  }
 
-    // CSS へのアクセス
-    // this.style.backgroundColor = '#00F';
+  static get observedAttributes() {
+    const attr = [
+      'item_id',
+      'access_id',
+      'model_index',
+    ];
+    return super.observedAttributes.concat(attr);
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    super.attributeChangedCallback(name, oldValue, newValue);
+    if (oldValue != newValue) {
+      console.log(`${name} changed: ${oldValue} -> ${newValue}`);
+      switch (name) {
+        case 'item_id': {
+          this.setAttribute('src', newValue=='red' ? 'https://storage.googleapis.com/cynack-norma/sample/grill_r.glb': 'https://storage.googleapis.com/cynack-norma/sample/grill_b.glb');
+          this.setAttribute('poster', newValue=='red' ? 'https://storage.googleapis.com/cynack-norma/sample/grill_r.png': 'https://storage.googleapis.com/cynack-norma/sample/grill_b2.png');
+          break;
+        }
+      }
+    }
   }
 }
 

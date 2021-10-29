@@ -16,16 +16,11 @@ class FigniViewerElement extends ModelViewerElement {
     console.log(token);
     console.log(modelIndex);
 
-    // TODO: figni-api からモデルの情報をとってくる
-    const modelSrc = 'https://storage.googleapis.com/cynack-norma/sample/grill_b.glb';
-    const modelPosterSrc = 'https://storage.googleapis.com/cynack-norma/sample/grill_b2.png';
     // axios のテスト
     // const res = await axios.get('https://randomuser.me/api/');
     // const modelPosterSrc = res.data.results[0].picture.large;
 
     // Attribute
-    this.setAttribute('src', modelSrc);
-    this.setAttribute('poster', modelPosterSrc);
     this.setAttribute('seamless-poster', true);
     this.setAttribute('loading', 'eager');
     this.setAttribute('reveal', 'intaraction');
@@ -34,6 +29,10 @@ class FigniViewerElement extends ModelViewerElement {
 
     // CSS
     this.style.setProperty('--poster-color', 'transparent');
+
+    // Parts
+    const pb = this.shadowRoot.querySelector('[part="default-progress-bar"]');
+    pb.style.backgroundColor = '#f00';
 
     // Properties
     // console.log(this.getDimensions());
@@ -54,8 +53,19 @@ class FigniViewerElement extends ModelViewerElement {
       console.log(`${name} changed: ${oldValue} -> ${newValue}`);
       switch (name) {
         case 'item_id': {
-          // this.setAttribute('src', newValue=='red' ? 'https://storage.googleapis.com/cynack-norma/sample/grill_r.glb': 'https://storage.googleapis.com/cynack-norma/sample/grill_b.glb');
-          // this.setAttribute('poster', newValue=='red' ? 'https://storage.googleapis.com/cynack-norma/sample/grill_r.png': 'https://storage.googleapis.com/cynack-norma/sample/grill_b2.png');
+          // TODO: figni-api からモデルの情報をとってくる
+          let m = '';
+          let p = '';
+          if (newValue == 'blue') {
+            m = 'https://storage.googleapis.com/cynack-norma/sample/grill_b.glb';
+            p = 'https://storage.googleapis.com/cynack-norma/sample/grill_b2.png';
+          } else if (newValue == 'red') {
+            m = 'https://storage.googleapis.com/cynack-norma/sample/grill_r.glb';
+            p = 'https://storage.googleapis.com/cynack-norma/sample/grill_r2.png';
+          }
+          this.setAttribute('src', m);
+          this.setAttribute('poster', p);
+          this.showPoster();
           break;
         }
       }

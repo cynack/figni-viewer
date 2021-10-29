@@ -26,6 +26,7 @@ class FigniViewerElement extends ModelViewerElement {
     // Attribute
     this.setAttribute('src', modelSrc);
     this.setAttribute('poster', modelPosterSrc);
+    this.setAttribute('seamless-poster', true);
     this.setAttribute('loading', 'eager');
     this.setAttribute('reveal', 'intaraction');
     this.setAttribute('camera-controls', true);
@@ -35,7 +36,7 @@ class FigniViewerElement extends ModelViewerElement {
     this.style.setProperty('--poster-color', 'transparent');
 
     // Properties
-    // console.log(this.loaded);
+    // console.log(this.getDimensions());
   }
 
   static get observedAttributes() {
@@ -53,12 +54,22 @@ class FigniViewerElement extends ModelViewerElement {
       console.log(`${name} changed: ${oldValue} -> ${newValue}`);
       switch (name) {
         case 'item_id': {
-          this.setAttribute('src', newValue=='red' ? 'https://storage.googleapis.com/cynack-norma/sample/grill_r.glb': 'https://storage.googleapis.com/cynack-norma/sample/grill_b.glb');
-          this.setAttribute('poster', newValue=='red' ? 'https://storage.googleapis.com/cynack-norma/sample/grill_r.png': 'https://storage.googleapis.com/cynack-norma/sample/grill_b2.png');
+          // this.setAttribute('src', newValue=='red' ? 'https://storage.googleapis.com/cynack-norma/sample/grill_r.glb': 'https://storage.googleapis.com/cynack-norma/sample/grill_b.glb');
+          // this.setAttribute('poster', newValue=='red' ? 'https://storage.googleapis.com/cynack-norma/sample/grill_r.png': 'https://storage.googleapis.com/cynack-norma/sample/grill_b2.png');
           break;
         }
       }
     }
+  }
+
+  async downloadScreenshot() {
+    const blob = await this.toBlob({idealAspect: true});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'model.png';
+    a.click();
+    URL.revokeObjectURL(url);
   }
 }
 

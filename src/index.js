@@ -10,10 +10,10 @@ class FigniViewerElement extends ModelViewerElement {
 
     // 値の取得
     const itemId = this.getAttribute('item_id');
-    const accessId = this.getAttribute('access_id');
+    const token = this.getAttribute('token');
     const modelIndex = Number(this.getAttribute('model_index')) || 0;
     console.log(itemId);
-    console.log(accessId);
+    console.log(token);
     console.log(modelIndex);
 
     // TODO: figni-api からモデルの情報をとってくる
@@ -41,7 +41,7 @@ class FigniViewerElement extends ModelViewerElement {
   static get observedAttributes() {
     const attr = [
       'item_id',
-      'access_id',
+      'token',
       'model_index',
     ];
     return super.observedAttributes.concat(attr);

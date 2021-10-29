@@ -26,13 +26,15 @@ class FigniViewerElement extends ModelViewerElement {
     this.setAttribute('reveal', 'intaraction');
     this.setAttribute('camera-controls', true);
     this.setAttribute('interaction-prompt', 'none');
+    this.setAttribute('ar', true);
+    this.setAttribute('ar-modes', 'webxr scene-viewer quick-look');
 
     // CSS
     this.style.setProperty('--poster-color', 'transparent');
 
     // Parts
     const pb = this.shadowRoot.querySelector('[part="default-progress-bar"]');
-    pb.style.backgroundColor = '#f00';
+    pb.style.backgroundColor = '#ff0';
 
     // Properties
     // console.log(this.getDimensions());
@@ -55,17 +57,21 @@ class FigniViewerElement extends ModelViewerElement {
         case 'item_id': {
           // TODO: figni-api からモデルの情報をとってくる
           let m = '';
+          // let i = '';
           let p = '';
           if (newValue == 'blue') {
             m = 'https://storage.googleapis.com/cynack-norma/sample/grill_b.glb';
+            // i = 'https://storage.googleapis.com/cynack-norma/sample/grill_b.usdz';
             p = 'https://storage.googleapis.com/cynack-norma/sample/grill_b2.png';
           } else if (newValue == 'red') {
             m = 'https://storage.googleapis.com/cynack-norma/sample/grill_r.glb';
+            // i = 'https://storage.googleapis.com/cynack-norma/sample/grill_r.usdz';
             p = 'https://storage.googleapis.com/cynack-norma/sample/grill_r2.png';
           }
           this.setAttribute('src', m);
+          // this.setAttribute('ios-src', i);
           this.setAttribute('poster', p);
-          this.showPoster();
+          // this.showPoster();
           break;
         }
       }

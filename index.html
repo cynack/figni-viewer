@@ -6,7 +6,8 @@
   </head>
   <body>
     <div style="background-color: bisque;">
-      <figni-viewer id="view" item_id="blue" token="d88eaf654d" model_index="2" />
+      <figni-viewer ar id="view" item_id="blue" token="d88eaf654d" model_index="2"></figni-viewer>
+      <model-viewer ar="true" camera-controls ar-modes="webxr scene-viewer quick-look" src="https://storage.googleapis.com/cynack-norma/sample/grill_b.glb"></model-viewer>
     </div>
     <button onclick="document.getElementById('view').setAttribute('item_id', 'red')">アイテム変更</button>
     <button onclick="document.getElementById('view').downloadScreenshot()">スクショ</button>

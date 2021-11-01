@@ -6,11 +6,11 @@
   </head>
   <body>
     <div style="background-color: bisque;">
-      <figni-viewer ar id="view" item_id="blue" token="d88eaf654d" model_index="2"></figni-viewer>
-      <model-viewer ar="true" camera-controls ar-modes="webxr scene-viewer quick-look" src="https://storage.googleapis.com/cynack-norma/sample/grill_b.glb"></model-viewer>
+      <figni-viewer ar id="view" item_id="9zsj5h47" token="5UTBSHOXODAj2QLo" model_index="0"></figni-viewer>
     </div>
-    <button onclick="document.getElementById('view').setAttribute('item_id', 'red')">アイテム変更</button>
     <button onclick="document.getElementById('view').downloadScreenshot()">スクショ</button>
+    <button onclick="document.getElementById('view').rotateTo(0, 75, 105)">クイッ！</button>
+    <button onclick="document.getElementById('view').rotateReset()">角度リセット</button>
     <style>
       figni-viewer {
         width: 100%;

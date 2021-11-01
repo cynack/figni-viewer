@@ -13,6 +13,7 @@ const config = {
   devServer: {
     open: true,
     host: 'localhost',
+    port: 9201,
   },
   plugins: [
     new HtmlWebpackPlugin({

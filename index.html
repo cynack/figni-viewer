@@ -6,7 +6,15 @@
   </head>
   <body>
     <div style="background-color: bisque;">
-      <figni-viewer ar id="view" item_id="9zsj5h47" token="5UTBSHOXODAj2QLo" model_index="0"></figni-viewer>
+      <figni-viewer ar id="view" item-id="9zsj5h47" token="5UTBSHOXODAj2QLo" model-index="0">
+        <button
+          slot="hotspot-anime"
+          anime-clip="openAction"
+          anime-length="2400"
+          data-position="-35 103 7"
+          data-normal="0 0 1"
+        ></button>
+      </figni-viewer>
     </div>
     <button onclick="document.getElementById('view').downloadScreenshot()">スクショ</button>
     <button onclick="document.getElementById('view').rotateTo(0, 75, 105)">クイッ！</button>

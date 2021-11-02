@@ -37,7 +37,7 @@ class FigniViewerElement extends ModelViewerElement {
     this.setAttribute('ar-scale', 'fixed');
     this.setAttribute('ar-placement', 'floor');
     this.setAttribute('interaction-prompt', 'none');
-    this.setAttribute('camera-orbit', '45deg 55deg 105%');
+    // this.setAttribute('camera-orbit', '45deg 55deg 105%');
 
     // CSS
     this.style.setProperty('--poster-color', 'transparent');
@@ -95,7 +95,6 @@ class FigniViewerElement extends ModelViewerElement {
     version.style.bottom = '0';
     this.shadowRoot.appendChild(version);
     /*
-    const self = this;a
     this.addEventListener('mousedown', (eve) => {
       const hit = self.positionAndNormalFromPoint(eve.clientX, eve.clientY);
       console.log(hit);

@@ -4,7 +4,7 @@ import axios from 'axios';
 const API_BASE = 'https://api.stg.figni.store/api';
 
 class FigniViewerElement extends ModelViewerElement {
-  static #OBSERVED_ATTRIBUTE = ['item_id', 'token', 'model_index'];
+  static #OBSERVED_ATTRIBUTE = ['item-id', 'token', 'model-index'];
 
   #itemId;
   #token;
@@ -16,10 +16,12 @@ class FigniViewerElement extends ModelViewerElement {
   async connectedCallback() {
     super.connectedCallback();
 
+    const self = this;
+
     // 値の取得
-    this.#itemId = this.getAttribute('item_id');
+    this.#itemId = this.getAttribute('item-id');
     this.#token = this.getAttribute('token');
-    this.#modelIndex = Number(this.getAttribute('model_index')) || 0;
+    this.#modelIndex = Number(this.getAttribute('model-index')) || 0;
 
     // axios のテスト
     // const res = await axios.get('https://randomuser.me/api/');
@@ -35,7 +37,7 @@ class FigniViewerElement extends ModelViewerElement {
     this.setAttribute('ar-scale', 'fixed');
     this.setAttribute('ar-placement', 'floor');
     this.setAttribute('interaction-prompt', 'none');
-    this.setAttribute('camera-orbit', '45deg 55deg 2.5m');
+    this.setAttribute('camera-orbit', '45deg 55deg 105%');
 
     // CSS
     this.style.setProperty('--poster-color', 'transparent');
@@ -55,14 +57,21 @@ class FigniViewerElement extends ModelViewerElement {
     //   console.log(eve.detail);
     // });
 
-    const hotspot = document.createElement('button');
-    hotspot.setAttribute('slot', 'hotspot-test');
-    hotspot.setAttribute('data-position', '0.16 0.1 0.17');
-    hotspot.setAttribute('data-normal', '0.07 0.97 0.23');
+    const hotspot = this.querySelector('button[slot="hotspot-anime"]');
     hotspot.onclick = () => {
-      console.log(window.getComputedStyle(hotspot).opacity);
+      if (window.getComputedStyle(hotspot).opacity == 1) {
+        const anime = hotspot.getAttribute('anime-clip');
+        const lenth = Number(hotspot.getAttribute('anime-length')) || 0;
+        if (self.availableAnimations.includes(anime)) {
+          self.setAttribute('animation-name', anime);
+          self.currentTime = 0;
+          self.play();
+          if (lenth > 0) {
+            setTimeout(() => self.pause(), lenth);
+          }
+        }
+      }
     };
-    this.appendChild(hotspot);
 
     const style = document.createElement('style');
     style.textContent = `
@@ -85,6 +94,13 @@ class FigniViewerElement extends ModelViewerElement {
     version.style.right = '0';
     version.style.bottom = '0';
     this.shadowRoot.appendChild(version);
+    /*
+    const self = this;
+    this.addEventListener('mousedown', (eve) => {
+      const hit = self.positionAndNormalFromPoint(eve.clientX, eve.clientY);
+      console.log(hit);
+    }, true);
+    */
   }
 
   static get observedAttributes() {
@@ -98,9 +114,9 @@ class FigniViewerElement extends ModelViewerElement {
     if (oldValue != newValue) {
       if (FigniViewerElement.#OBSERVED_ATTRIBUTE.includes(name)) {
         switch (name) {
-          case 'item_id': this.#itemId = newValue; break;
+          case 'item-id': this.#itemId = newValue; break;
           case 'token': this.#token = newValue; break;
-          case 'model_index': this.#modelIndex = newValue; break;
+          case 'model-index': this.#modelIndex = newValue; break;
         }
         await this.requestModel();
       }

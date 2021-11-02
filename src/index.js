@@ -33,7 +33,7 @@ class FigniViewerElement extends ModelViewerElement {
     // this.setAttribute('reveal', 'intaraction');
     this.setAttribute('camera-controls', '');
     this.setAttribute('ar', '');
-    this.setAttribute('ar-modes', 'quick-look scene-viewer webxr');
+    this.setAttribute('ar-modes', 'webxr scene-viewer quick-look');
     this.setAttribute('ar-scale', 'fixed');
     this.setAttribute('ar-placement', 'floor');
     this.setAttribute('interaction-prompt', 'none');
@@ -89,13 +89,13 @@ class FigniViewerElement extends ModelViewerElement {
 
     // * デバッグ用
     const version = document.createElement('span');
-    version.textContent = Math.random().toString(32).substring(2);
+    version.textContent = '2';
     version.style.position = 'absolute';
     version.style.right = '0';
     version.style.bottom = '0';
     this.shadowRoot.appendChild(version);
     /*
-    const self = this;
+    const self = this;a
     this.addEventListener('mousedown', (eve) => {
       const hit = self.positionAndNormalFromPoint(eve.clientX, eve.clientY);
       console.log(hit);
@@ -135,6 +135,7 @@ class FigniViewerElement extends ModelViewerElement {
         throw new Error('invalid model_index');
       }
       this.setAttribute('src', res.data[this.#modelIndex].url);
+      this.setAttribute('ios-src', res.data[this.#modelIndex].url);
     }
   }
 

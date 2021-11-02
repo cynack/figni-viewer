@@ -50,6 +50,34 @@ class FigniViewerElement extends ModelViewerElement {
     // Methods
     // console.log(this.getDimensions());
 
+    // Events
+    // this.addEventListener('camera-change', (eve) => {
+    //   console.log(eve.detail);
+    // });
+
+    const hotspot = document.createElement('button');
+    hotspot.setAttribute('slot', 'hotspot-test');
+    hotspot.setAttribute('data-position', '0.16 0.1 0.17');
+    hotspot.setAttribute('data-normal', '0.07 0.97 0.23');
+    hotspot.onclick = () => {
+      console.log(window.getComputedStyle(hotspot).opacity);
+    };
+    this.appendChild(hotspot);
+
+    const style = document.createElement('style');
+    style.textContent = `
+      figni-viewer > button {
+        display: block;
+        width: 20px;
+        height: 20px;
+        border-radius: 10px;
+        border: none;
+        background-color: blue;
+        box-sizing: border-box;
+      }
+    `;
+    this.appendChild(style);
+
     // * デバッグ用
     const version = document.createElement('span');
     version.textContent = Math.random().toString(32).substring(2);
@@ -91,7 +119,6 @@ class FigniViewerElement extends ModelViewerElement {
         throw new Error('invalid model_index');
       }
       this.setAttribute('src', res.data[this.#modelIndex].url);
-      console.log(res);
     }
   }
 

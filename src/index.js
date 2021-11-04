@@ -4,11 +4,11 @@ import axios from 'axios';
 const API_BASE = 'https://api.stg.figni.store/api';
 
 class FigniViewerElement extends ModelViewerElement {
-  static #OBSERVED_ATTRIBUTE = ['item-id', 'token', 'model-index'];
+  static #OBSERVED_ATTRIBUTE = ['item-id', 'token', 'model-tag'];
 
   #itemId;
   #token;
-  #modelIndex;
+  #modelTag;
 
   constructor() {
     super();
@@ -21,7 +21,7 @@ class FigniViewerElement extends ModelViewerElement {
     // 値の取得
     this.#itemId = this.getAttribute('item-id');
     this.#token = this.getAttribute('token');
-    this.#modelIndex = Number(this.getAttribute('model-index')) || 0;
+    this.#modelTag = this.getAttribute('model-tag') || '';
 
     // axios のテスト
     // const res = await axios.get('https://randomuser.me/api/');
@@ -115,7 +115,7 @@ class FigniViewerElement extends ModelViewerElement {
         switch (name) {
           case 'item-id': this.#itemId = newValue; break;
           case 'token': this.#token = newValue; break;
-          case 'model-index': this.#modelIndex = newValue; break;
+          case 'model-tag': this.#modelTag = newValue; break;
         }
         await this.requestModel();
       }
@@ -123,18 +123,24 @@ class FigniViewerElement extends ModelViewerElement {
   }
 
   async requestModel() {
-    if (this.#itemId && this.#token && this.#modelIndex) {
-      const res = await axios.get(`${API_BASE}/item/${this.#itemId}/model`, {
-        headers: {
-          'accept': 'application/json',
-          'X-Figni-Client-Token': this.#token,
-        },
-      });
-      if (res.data.length <= this.#modelIndex) {
-        throw new Error('invalid model_index');
+    if (this.#itemId && this.#token) {
+      const tag = this.#modelTag ? `?tag=${this.#modelTag}` : '';
+      const res = await axios.get(
+          `${API_BASE}/item/${this.#itemId}/model_search${tag}`,
+          {
+            headers: {
+              'accept': 'application/json',
+              'X-Figni-Client-Token': this.#token,
+            },
+          });
+      const glb = res.data.filter((item) => item.format=='glb');
+      if (glb.length > 0) {
+        this.setAttribute('src', glb[0].url);
       }
-      this.setAttribute('src', res.data[this.#modelIndex].url);
-      this.setAttribute('ios-src', res.data[this.#modelIndex].url);
+      const usdz = res.data.filter((item) => item.format=='usdz');
+      if (usdz.length > 0) {
+        this.setAttribute('ios-src', usdz[0].url);
+      }
     }
   }
 

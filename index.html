@@ -8,22 +8,37 @@
     <div style="background-color: bisque;">
       <figni-viewer ar id="view" item-id="9zsj5h47" token="5UTBSHOXODAj2QLo">
         <button
+          id="hotspot-open"
           slot="hotspot-anime"
           anime-clip="openAction"
           anime-length="2400"
           data-position="-20 105 35"
           data-normal="0 0 1"
-        ></button>
+        >開</button>
+        <button
+          slot="hotspot-anime"
+          anime-clip="[保留アクション]"
+          anime-length="2400"
+          data-position="-20 85 35"
+          data-normal="0 0 1"
+          style="background-color: red;"
+        >閉</button>
       </figni-viewer>
     </div>
     <button onclick="document.getElementById('view').downloadScreenshot()">スクショ</button>
     <button onclick="document.getElementById('view').rotateTo(0, 75, 105)">クイッ！</button>
     <button onclick="document.getElementById('view').rotateReset()">角度リセット</button>
+    <button onclick="aaa()">aaa</button>
     <style>
       figni-viewer {
         width: 100%;
         height: 500px;
       }
     </style>
+    <script>
+      function aaa() {
+        document.getElementById("hotspot-open").setAttribute('data-position', '-20 130 35');
+      }
+    </script>
   </body>
 </html>

@@ -57,21 +57,25 @@ class FigniViewerElement extends ModelViewerElement {
     //   console.log(eve.detail);
     // });
 
-    const hotspot = this.querySelector('button[slot="hotspot-anime"]');
-    hotspot.onclick = () => {
-      if (window.getComputedStyle(hotspot).opacity == 1) {
-        const anime = hotspot.getAttribute('anime-clip');
-        const lenth = Number(hotspot.getAttribute('anime-length')) || 0;
-        if (self.availableAnimations.includes(anime)) {
-          self.setAttribute('animation-name', anime);
-          self.currentTime = 0;
-          self.play();
-          if (lenth > 0) {
-            setTimeout(() => self.pause(), lenth);
+    const hotspots = this.querySelectorAll('button[slot="hotspot-anime"]');
+    this.setAttribute('animation-crossfade-duration', 0);
+    hotspots.forEach((hotspot) => {
+      hotspot.onclick = () => {
+        if (window.getComputedStyle(hotspot).opacity == 1 && self.paused) {
+          const anime = hotspot.getAttribute('anime-clip');
+          const lenth = Number(hotspot.getAttribute('anime-length')) || 0;
+          if (self.availableAnimations.includes(anime)) {
+            self.setAttribute('animation-name', anime);
+            self.currentTime = 0;
+            self.play();
+            if (lenth > 0) {
+              setTimeout(() => self.pause(), lenth);
+            }
           }
         }
-      }
-    };
+      };
+    });
+
 
     const style = document.createElement('style');
     style.textContent = `
@@ -83,18 +87,20 @@ class FigniViewerElement extends ModelViewerElement {
         border: none;
         background-color: blue;
         box-sizing: border-box;
+        font-size: 10px;
+        color: white;
       }
     `;
     this.appendChild(style);
 
     // * デバッグ用
+    /*
     const version = document.createElement('span');
     version.textContent = '2';
     version.style.position = 'absolute';
     version.style.right = '0';
     version.style.bottom = '0';
     this.shadowRoot.appendChild(version);
-    /*
     this.addEventListener('mousedown', (eve) => {
       const hit = self.positionAndNormalFromPoint(eve.clientX, eve.clientY);
       console.log(hit);

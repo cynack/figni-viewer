@@ -57,23 +57,55 @@ class FigniViewerElement extends ModelViewerElement {
     //   console.log(eve.detail);
     // });
 
-    const hotspots = this.querySelectorAll('button[slot="hotspot-anime"]');
     this.setAttribute('animation-crossfade-duration', 0);
+    const hotspots = this.querySelectorAll('button[slot^="hotspot"]');
     hotspots.forEach((hotspot) => {
-      hotspot.onclick = () => {
-        if (window.getComputedStyle(hotspot).opacity == 1 && self.paused) {
-          const anime = hotspot.getAttribute('anime-clip');
-          const lenth = Number(hotspot.getAttribute('anime-length')) || 0;
-          if (self.availableAnimations.includes(anime)) {
-            self.setAttribute('animation-name', anime);
-            self.currentTime = 0;
-            self.play();
-            if (lenth > 0) {
-              setTimeout(() => self.pause(), lenth);
+      self.updateHotspot({
+        name: hotspot.getAttribute('slot'),
+        position: hotspot.getAttribute('position'),
+        normal: hotspot.getAttribute('normal'),
+      });
+      if (hotspot.getAttribute('anime') == '') {
+        hotspot.onclick = () => {
+          if (window.getComputedStyle(hotspot).opacity == 1 && self.paused) {
+            const anime = hotspot.getAttribute('clip');
+            const lenth = Number(hotspot.getAttribute('length')) || 0;
+            if (self.availableAnimations.includes(anime)) {
+              self.setAttribute('animation-name', anime);
+              self.currentTime = 0;
+              self.play();
+              if (lenth > 0) {
+                setTimeout(() => self.pause(), lenth);
+              }
             }
           }
-        }
-      };
+        };
+      } else if (hotspot.getAttribute('anime-toggle') == '') {
+        hotspot.onclick = () => {
+          if (window.getComputedStyle(hotspot).opacity == 1) {
+            let anime;
+            let length;
+            console.log(hotspot.dataset.toggle);
+            if (hotspot.dataset.toggle) {
+              anime = hotspot.getAttribute('clip1');
+              length = Number(hotspot.getAttribute('length1')) || 0;
+            } else {
+              anime = hotspot.getAttribute('clip2');
+              length = Number(hotspot.getAttribute('length2')) || 0;
+            }
+            if (self.availableAnimations.includes(anime)) {
+              self.setAttribute('animation-name', anime);
+              self.currentTime = 0;
+              self.play();
+              if (length > 0) {
+                setTimeout(() => self.pause(), length);
+              }
+            }
+            hotspot.dataset.toggle = !(hotspot.dataset.toggle);
+            console.log(hotspot.dataset.toggle);
+          }
+        };
+      }
     });
 
 
@@ -81,14 +113,17 @@ class FigniViewerElement extends ModelViewerElement {
     style.textContent = `
       figni-viewer > button {
         display: block;
-        width: 20px;
-        height: 20px;
         border-radius: 10px;
         border: none;
         background-color: blue;
         box-sizing: border-box;
         font-size: 10px;
         color: white;
+      }
+      [slot^="hotspot"] {
+        display: block;
+        --min-hotspot-opacity: 0;
+        padding: 5px;
       }
     `;
     this.appendChild(style);

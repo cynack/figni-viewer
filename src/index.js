@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import {ModelViewerElement} from '@google/model-viewer';
 import axios from 'axios';
 
@@ -13,6 +14,7 @@ class FigniViewerElement extends ModelViewerElement {
   constructor() {
     super();
   }
+
   async connectedCallback() {
     super.connectedCallback();
 
@@ -28,16 +30,14 @@ class FigniViewerElement extends ModelViewerElement {
     // const modelPosterSrc = res.data.results[0].picture.large;
 
     // Attribute
-    this.setAttribute('seamless-poster', true);
-    this.setAttribute('loading', 'eager');
-    // this.setAttribute('reveal', 'intaraction');
-    this.setAttribute('camera-controls', '');
-    this.setAttribute('ar', '');
-    this.setAttribute('ar-modes', 'webxr scene-viewer quick-look');
-    this.setAttribute('ar-scale', 'fixed');
-    this.setAttribute('ar-placement', 'floor');
-    this.setAttribute('interaction-prompt', 'none');
-    // this.setAttribute('camera-orbit', '45deg 55deg 105%');
+    this.seamlessPoster = true;
+    this.loading = 'eager';
+    this.cameraControls = true;
+    this.ar = true;
+    this.arModes = 'webxr scene-viewer quick-look';
+    this.arScale = 'fixed';
+    this.arPlacement = 'floor';
+    this.interactionPrompt = 'none';
 
     // CSS
     this.style.setProperty('--poster-color', 'transparent');
@@ -57,7 +57,7 @@ class FigniViewerElement extends ModelViewerElement {
     //   console.log(eve.detail);
     // });
 
-    this.setAttribute('animation-crossfade-duration', 0);
+    this.animationCrossfadeDuration = 0;
     const hotspots = this.querySelectorAll('button[slot^="hotspot"]');
     hotspots.forEach((hotspot) => {
       self.updateHotspot({
@@ -66,20 +66,32 @@ class FigniViewerElement extends ModelViewerElement {
         normal: hotspot.getAttribute('normal'),
       });
       if (hotspot.getAttribute('anime') == '') {
-        hotspot.onclick = () => {
+        hotspot.addEventListener('click', () => {
           if (window.getComputedStyle(hotspot).opacity == 1 && self.paused) {
             const anime = hotspot.getAttribute('clip');
             const lenth = Number(hotspot.getAttribute('length')) || 0;
             if (self.availableAnimations.includes(anime)) {
-              self.setAttribute('animation-name', anime);
+              self.animationName = anime;
               self.currentTime = 0;
               self.play();
+              const f = hotspot.getAttribute('onstart');
+              if (f) {
+                const func = new Function(f);
+                func();
+              }
               if (lenth > 0) {
-                setTimeout(() => self.pause(), lenth);
+                setTimeout(() => {
+                  self.pause();
+                  const f = hotspot.getAttribute('onend');
+                  if (f) {
+                    const func = new Function(f);
+                    func();
+                  }
+                }, lenth);
               }
             }
           }
-        };
+        });
       } else if (hotspot.getAttribute('anime-toggle') == '') {
         hotspot.onclick = () => {
           if (window.getComputedStyle(hotspot).opacity == 1) {
@@ -94,7 +106,7 @@ class FigniViewerElement extends ModelViewerElement {
               length = Number(hotspot.getAttribute('length2')) || 0;
             }
             if (self.availableAnimations.includes(anime)) {
-              self.setAttribute('animation-name', anime);
+              self.animationName = anime;
               self.currentTime = 0;
               self.play();
               if (length > 0) {
@@ -111,36 +123,64 @@ class FigniViewerElement extends ModelViewerElement {
 
     const style = document.createElement('style');
     style.textContent = `
-      figni-viewer > button {
+      [slot^="hotspot"] {
         display: block;
         border-radius: 10px;
         border: none;
-        background-color: blue;
+        background-color: #FF733B;
         box-sizing: border-box;
-        font-size: 10px;
-        color: white;
-      }
-      [slot^="hotspot"] {
-        display: block;
         --min-hotspot-opacity: 0;
-        padding: 5px;
+        padding: 10px;
+      }
+      [slot="ar-button"] {
+        position: absolute;
+        padding: 0.5rem 1rem;
+        right: 0.5rem;
+        white-space: nowrap;
+        bottom: 0.5rem;
+        border: 1px solid #FF733B;
+        border-radius: 0.75rem;
+        background-color: white;
+      }
+      [slot="ar-button"]:active {
+        background-color: white;
+      }
+      [slot="ar-button"]:focus {
+        background-color: white;
+        outline: none;
+      }
+      [slot="ar-button"]:focus-visible {
+        background-color: white;
+        outline: 1px solid #30333E;
+      }
+      [slot="ar-button"] svg {
+        height: 1rem;
+        margin-right: 4px;
+        margin-bottom: 2px;
       }
     `;
     this.appendChild(style);
 
+    const arButton = document.createElement('button');
+    arButton.setAttribute('slot', 'ar-button');
+    arButton.innerHTML = `
+      <svg viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8.50002 8.62017C12.6692 8.62017 16.1338 9.74602 16.8614 11.2244L11.9069 1.12585C11.5836 0.45489 10.8906 0 10.0822 0C9.43548 0 8.86958 0.295679 8.50002 0.761941L0.358032 10.8946C1.40898 9.57544 4.65423 8.62017 8.50002 8.62017Z" fill="#FF733B" />
+        <path d="M8.5 14.9886C13.1944 14.9886 17 13.563 17 11.8044C17 10.0458 13.1944 8.62016 8.5 8.62016C3.80558 8.62016 0 10.0458 0 11.8044C0 13.563 3.80558 14.9886 8.5 14.9886Z" fill="#FFAB3B" />
+        <path d="M8.49995 12.9985C11.4084 12.9985 13.7663 12.4639 13.7663 11.8044C13.7663 11.1449 11.4084 10.6103 8.49995 10.6103C5.59145 10.6103 3.23364 11.1449 3.23364 11.8044C3.23364 12.4639 5.59145 12.9985 8.49995 12.9985Z" fill="#FF733B" />
+        <path d="M9.14678 11.8044C10.9327 11.8044 12.3805 10.3788 12.3805 8.62016C12.3805 6.86156 10.9327 5.43593 9.14678 5.43593C7.36086 5.43593 5.91309 6.86156 5.91309 8.62016C5.91309 10.3788 7.36086 11.8044 9.14678 11.8044Z" fill="#FFCE3B" />
+      </svg>
+      <span>目の前に置く</span>
+    `;
+    this.appendChild(arButton);
+
     // * デバッグ用
-    /*
-    const version = document.createElement('span');
-    version.textContent = '2';
-    version.style.position = 'absolute';
-    version.style.right = '0';
-    version.style.bottom = '0';
-    this.shadowRoot.appendChild(version);
-    this.addEventListener('mousedown', (eve) => {
-      const hit = self.positionAndNormalFromPoint(eve.clientX, eve.clientY);
-      console.log(hit);
-    }, true);
-    */
+    if (this.getAttribute('debug') == '') {
+      this.addEventListener('mousedown', (eve) => {
+        const hit = self.positionAndNormalFromPoint(eve.clientX, eve.clientY);
+        console.log(hit);
+      }, true);
+    }
   }
 
   static get observedAttributes() {
@@ -176,27 +216,13 @@ class FigniViewerElement extends ModelViewerElement {
           });
       const glb = res.data.filter((item) => item.format=='glb');
       if (glb.length > 0) {
-        this.setAttribute('src', glb[0].url);
+        this.src = glb[0].url;
       }
       const usdz = res.data.filter((item) => item.format=='usdz');
       if (usdz.length > 0) {
-        this.setAttribute('ios-src', usdz[0].url);
+        this.iosSrc = usdz[0].url;
       }
     }
-  }
-
-  /**
-   * モデルを指定した角度に回転する
-   * @param {number} theta - 方位角(度)
-   * @param {number} phi - 極角(度)
-   * @param {number} radius - 中心からの半径(%)
-   */
-  rotateTo(theta, phi, radius) {
-    this.setAttribute('camera-orbit', `${theta}deg ${phi}deg ${radius}%`);
-  }
-
-  rotateReset() {
-    this.setAttribute('camera-orbit', `auto auto auto`);
   }
 
   async downloadScreenshot() {

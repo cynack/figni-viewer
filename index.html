@@ -13,8 +13,8 @@
           anime
           clip="openAction"
           length="2450"
-          position="-0.2 1.1 0.35"
-          normal="0 0 1"
+          position="-0.2m 1.1m 0.35m"
+          normal="0m 0m 1m"
           onstart="openBtn.classList.add('hide')"
           onend="
             closeBtn.classList.remove('hide', 'first-hide');
@@ -27,8 +27,8 @@
           anime
           clip="closeAction"
           length="2450"
-          position="0.6 1.1 0.83"
-          normal="-0.8 0 0.5"
+          position="0.6m 1.1m 0.83m"
+          normal="-0.8m 0 0.5m"
           class="first-hide"
           onstart="closeBtn.classList.add('hide');closeupBtn.classList.add('hide')"
           onend="openBtn.classList.remove('hide')"
@@ -36,9 +36,11 @@
         <button
           id="closeup"
           slot="hotspot-closeup"
-          position="0.1 1.325 0.2"
-          normal="0 0 1"
+          position="0.1m 1.325m 0.2m"
+          normal="0m 0m 1m"
           class="first-hide"
+          closeup
+          orbit="auto auto 0.1m"
         ></button>
       </figni-viewer>
     </div>

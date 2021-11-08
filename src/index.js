@@ -65,6 +65,8 @@ class FigniViewerElement extends ModelViewerElement {
         position: hotspot.getAttribute('position'),
         normal: hotspot.getAttribute('normal'),
       });
+
+      // Animation
       if (hotspot.getAttribute('anime') == '') {
         hotspot.addEventListener('click', () => {
           if (window.getComputedStyle(hotspot).opacity == 1 && self.paused) {
@@ -92,31 +94,17 @@ class FigniViewerElement extends ModelViewerElement {
             }
           }
         });
-      } else if (hotspot.getAttribute('anime-toggle') == '') {
-        hotspot.onclick = () => {
+      }
+      // Closeup
+      if (hotspot.getAttribute('closeup') == '') {
+        hotspot.addEventListener('click', () => {
           if (window.getComputedStyle(hotspot).opacity == 1) {
-            let anime;
-            let length;
-            console.log(hotspot.dataset.toggle);
-            if (hotspot.dataset.toggle) {
-              anime = hotspot.getAttribute('clip1');
-              length = Number(hotspot.getAttribute('length1')) || 0;
-            } else {
-              anime = hotspot.getAttribute('clip2');
-              length = Number(hotspot.getAttribute('length2')) || 0;
-            }
-            if (self.availableAnimations.includes(anime)) {
-              self.animationName = anime;
-              self.currentTime = 0;
-              self.play();
-              if (length > 0) {
-                setTimeout(() => self.pause(), length);
-              }
-            }
-            hotspot.dataset.toggle = !(hotspot.dataset.toggle);
-            console.log(hotspot.dataset.toggle);
+            const target = hotspot.getAttribute('target') || hotspot.getAttribute('position') || 'auto auto auto';
+            self.cameraTarget = target;
+            const orbit = hotspot.getAttribute('orbit') || 'auto auto auto';
+            self.cameraOrbit = orbit;
           }
-        };
+        });
       }
     });
 

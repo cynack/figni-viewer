@@ -108,17 +108,40 @@ class FigniViewerElement extends ModelViewerElement {
       }
     });
 
+    const arButton = document.createElement('button');
+    arButton.setAttribute('slot', 'ar-button');
+    arButton.innerHTML = `
+      <svg viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8.50002 8.62017C12.6692 8.62017 16.1338 9.74602 16.8614 11.2244L11.9069 1.12585C11.5836 0.45489 10.8906 0 10.0822 0C9.43548 0 8.86958 0.295679 8.50002 0.761941L0.358032 10.8946C1.40898 9.57544 4.65423 8.62017 8.50002 8.62017Z" fill="#FF733B" />
+        <path d="M8.5 14.9886C13.1944 14.9886 17 13.563 17 11.8044C17 10.0458 13.1944 8.62016 8.5 8.62016C3.80558 8.62016 0 10.0458 0 11.8044C0 13.563 3.80558 14.9886 8.5 14.9886Z" fill="#FFAB3B" />
+        <path d="M8.49995 12.9985C11.4084 12.9985 13.7663 12.4639 13.7663 11.8044C13.7663 11.1449 11.4084 10.6103 8.49995 10.6103C5.59145 10.6103 3.23364 11.1449 3.23364 11.8044C3.23364 12.4639 5.59145 12.9985 8.49995 12.9985Z" fill="#FF733B" />
+        <path d="M9.14678 11.8044C10.9327 11.8044 12.3805 10.3788 12.3805 8.62016C12.3805 6.86156 10.9327 5.43593 9.14678 5.43593C7.36086 5.43593 5.91309 6.86156 5.91309 8.62016C5.91309 10.3788 7.36086 11.8044 9.14678 11.8044Z" fill="#FFCE3B" />
+      </svg>
+      <span>目の前に置く</span>
+    `;
+    this.appendChild(arButton);
+
+    const resetButton = document.createElement('button');
+    resetButton.id = Math.random().toString(36).substring(7);
+    const img = document.createElement('img');
+    img.src = 'https://img.icons8.com/material-rounded/48/000000/recurring-appointment.png';
+    resetButton.appendChild(img);
+    resetButton.addEventListener('click', () => {
+      self.cameraOrbit = 'auto auto auto';
+      self.cameraTarget = 'auto auto auto';
+    });
+    this.appendChild(resetButton);
 
     const style = document.createElement('style');
     style.textContent = `
       [slot^="hotspot"] {
         display: block;
-        border-radius: 10px;
+        border-radius: 1.5rem;
         border: none;
         background-color: #FF733B;
         box-sizing: border-box;
         --min-hotspot-opacity: 0;
-        padding: 10px;
+        padding: 1.5rem;
       }
       [slot="ar-button"] {
         position: absolute;
@@ -146,21 +169,18 @@ class FigniViewerElement extends ModelViewerElement {
         margin-right: 4px;
         margin-bottom: 2px;
       }
+      #${resetButton.id} {
+        position: absolute;
+        padding: 0.5rem;
+        right: 0.5rem;
+        white-space: nowrap;
+        bottom: 0.5rem;
+        border: 1px solid #FF733B;
+        border-radius: 0.75rem;
+      }
     `;
     this.appendChild(style);
 
-    const arButton = document.createElement('button');
-    arButton.setAttribute('slot', 'ar-button');
-    arButton.innerHTML = `
-      <svg viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8.50002 8.62017C12.6692 8.62017 16.1338 9.74602 16.8614 11.2244L11.9069 1.12585C11.5836 0.45489 10.8906 0 10.0822 0C9.43548 0 8.86958 0.295679 8.50002 0.761941L0.358032 10.8946C1.40898 9.57544 4.65423 8.62017 8.50002 8.62017Z" fill="#FF733B" />
-        <path d="M8.5 14.9886C13.1944 14.9886 17 13.563 17 11.8044C17 10.0458 13.1944 8.62016 8.5 8.62016C3.80558 8.62016 0 10.0458 0 11.8044C0 13.563 3.80558 14.9886 8.5 14.9886Z" fill="#FFAB3B" />
-        <path d="M8.49995 12.9985C11.4084 12.9985 13.7663 12.4639 13.7663 11.8044C13.7663 11.1449 11.4084 10.6103 8.49995 10.6103C5.59145 10.6103 3.23364 11.1449 3.23364 11.8044C3.23364 12.4639 5.59145 12.9985 8.49995 12.9985Z" fill="#FF733B" />
-        <path d="M9.14678 11.8044C10.9327 11.8044 12.3805 10.3788 12.3805 8.62016C12.3805 6.86156 10.9327 5.43593 9.14678 5.43593C7.36086 5.43593 5.91309 6.86156 5.91309 8.62016C5.91309 10.3788 7.36086 11.8044 9.14678 11.8044Z" fill="#FFCE3B" />
-      </svg>
-      <span>目の前に置く</span>
-    `;
-    this.appendChild(arButton);
 
     // * デバッグ用
     if (this.getAttribute('debug') == '') {

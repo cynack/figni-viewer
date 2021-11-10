@@ -57,6 +57,19 @@ class FigniViewerElement extends ModelViewerElement {
     //   console.log(eve.detail);
     // });
 
+    const resetButton = document.createElement('button');
+    resetButton.id = Math.random().toString(36).substring(7);
+    const img = document.createElement('img');
+    img.src = 'https://img.icons8.com/material-rounded/48/000000/back--v1.png';
+    resetButton.appendChild(img);
+    resetButton.addEventListener('click', () => {
+      self.cameraOrbit = 'auto auto auto';
+      self.cameraTarget = 'auto auto auto';
+      resetButton.style.display = 'none';
+    });
+    resetButton.style.display = 'none';
+    this.appendChild(resetButton);
+
     this.animationCrossfadeDuration = 0;
     const hotspots = this.querySelectorAll('button[slot^="hotspot"]');
     hotspots.forEach((hotspot) => {
@@ -103,6 +116,7 @@ class FigniViewerElement extends ModelViewerElement {
             self.cameraTarget = target;
             const orbit = hotspot.getAttribute('orbit') || 'auto auto auto';
             self.cameraOrbit = orbit;
+            resetButton.style.display = 'block';
           }
         });
       }
@@ -120,17 +134,6 @@ class FigniViewerElement extends ModelViewerElement {
       <span>目の前に置く</span>
     `;
     this.appendChild(arButton);
-
-    const resetButton = document.createElement('button');
-    resetButton.id = Math.random().toString(36).substring(7);
-    const img = document.createElement('img');
-    img.src = 'https://img.icons8.com/material-rounded/48/000000/recurring-appointment.png';
-    resetButton.appendChild(img);
-    resetButton.addEventListener('click', () => {
-      self.cameraOrbit = 'auto auto auto';
-      self.cameraTarget = 'auto auto auto';
-    });
-    this.appendChild(resetButton);
 
     const style = document.createElement('style');
     style.textContent = `

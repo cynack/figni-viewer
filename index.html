@@ -6,7 +6,7 @@
   </head>
   <body>
     <div style="background-color: bisque;">
-      <figni-viewer id="view" item-id="9zsj5h47" token="5UTBSHOXODAj2QLo">
+      <figni-viewer id="view" item-id="9zsj5h47" token="5UTBSHOXODAj2QLo" screenshot>
         <button
           id="open"
           slot="hotspot-open"
@@ -19,6 +19,7 @@
           onend="
             closeBtn.classList.remove('hide', 'first-hide');
             closeupBtn.classList.remove('hide', 'first-hide');
+            panelBtn.classList.remove('hide', 'first-hide');
           "
         ></button>
         <button
@@ -30,7 +31,11 @@
           position="0.6m 1.1m 0.83m"
           normal="-0.8m 0 0.5m"
           class="first-hide"
-          onstart="closeBtn.classList.add('hide');closeupBtn.classList.add('hide')"
+          onstart="
+            closeBtn.classList.add('hide');
+            closeupBtn.classList.add('hide');
+            panelBtn.classList.add('hide');
+          "
           onend="openBtn.classList.remove('hide')"
         ></button>
         <button
@@ -42,12 +47,26 @@
           closeup
           orbit="auto auto 0.1m"
         ></button>
+        <button
+          id="panel"
+          slot="hotspot-panel"
+          position="0.1m 0.3m 0.2m"
+          normal="0m 0m 1m"
+          class="first-hide"
+        >
+          <div class="panel">
+            <span>とてもいい冷蔵庫です。</span>
+            <span onclick="view.setCameraOrbit('auto auto 2m')">次へ</span>
+          </div>
+        </button>
       </figni-viewer>
     </div>
     <script>
+      const view = document.getElementById('view');
       const openBtn = document.getElementById('open');
       const closeBtn = document.getElementById('close');
       const closeupBtn = document.getElementById('closeup');
+      const panelBtn = document.getElementById('panel');
     </script>
     <style>
       .first-hide {
@@ -73,6 +92,15 @@
       #view {
         width: 100%;
         height: 800px;
+      }
+      .panel {
+        background-color:#F1F2F7;
+        position: absolute;
+        right: 1.5rem;
+        bottom: 1.5rem;
+        border-radius: 10px;
+        padding: 10px;
+        width: 80px;
       }
     </style>
   </body>

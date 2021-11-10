@@ -18,8 +18,6 @@ class FigniViewerElement extends ModelViewerElement {
   async connectedCallback() {
     super.connectedCallback();
 
-    const self = this;
-
     // 値の取得
     this.#itemId = this.getAttribute('item-id');
     this.#token = this.getAttribute('token');
@@ -57,23 +55,33 @@ class FigniViewerElement extends ModelViewerElement {
     //   console.log(eve.detail);
     // });
 
-    const resetButton = document.createElement('button');
-    resetButton.id = Math.random().toString(36).substring(7);
-    const img = document.createElement('img');
-    img.src = 'https://img.icons8.com/material-rounded/48/000000/back--v1.png';
-    resetButton.appendChild(img);
-    resetButton.addEventListener('click', () => {
-      self.cameraOrbit = 'auto auto auto';
-      self.cameraTarget = 'auto auto auto';
-      resetButton.style.display = 'none';
+    const initCameraButton = document.createElement('button');
+    initCameraButton.id = Math.random().toString(36).substring(7);
+    const backImg = document.createElement('img');
+    backImg.src = 'https://img.icons8.com/material-rounded/48/000000/back--v1.png';
+    initCameraButton.appendChild(backImg);
+    initCameraButton.addEventListener('click', () => {
+      this.setCameraOrbit('auto auto auto');
+      this.setCameraTarget('auto auto auto');
+      initCameraButton.style.display = 'none';
     });
-    resetButton.style.display = 'none';
-    this.appendChild(resetButton);
+    initCameraButton.style.display = 'none';
+    this.appendChild(initCameraButton);
+
+    const downloadScreenshotButton = document.createElement('button');
+    downloadScreenshotButton.id = Math.random().toString(36).substring(7);
+    const dlImg = document.createElement('img');
+    dlImg.src = 'https://img.icons8.com/material-rounded/48/000000/download--v1.png';
+    downloadScreenshotButton.appendChild(dlImg);
+    downloadScreenshotButton.addEventListener('click', () => {
+      this.downloadScreenshot();
+    });
+    this.appendChild(downloadScreenshotButton);
 
     this.animationCrossfadeDuration = 0;
     const hotspots = this.querySelectorAll('button[slot^="hotspot"]');
     hotspots.forEach((hotspot) => {
-      self.updateHotspot({
+      this.updateHotspot({
         name: hotspot.getAttribute('slot'),
         position: hotspot.getAttribute('position'),
         normal: hotspot.getAttribute('normal'),
@@ -82,13 +90,13 @@ class FigniViewerElement extends ModelViewerElement {
       // Animation
       if (hotspot.getAttribute('anime') == '') {
         hotspot.addEventListener('click', () => {
-          if (window.getComputedStyle(hotspot).opacity == 1 && self.paused) {
+          if (window.getComputedStyle(hotspot).opacity == 1 && this.paused) {
             const anime = hotspot.getAttribute('clip');
             const lenth = Number(hotspot.getAttribute('length')) || 0;
-            if (self.availableAnimations.includes(anime)) {
-              self.animationName = anime;
-              self.currentTime = 0;
-              self.play();
+            if (this.availableAnimations.includes(anime)) {
+              this.animationName = anime;
+              this.currentTime = 0;
+              this.play();
               const f = hotspot.getAttribute('onstart');
               if (f) {
                 const func = new Function(f);
@@ -96,7 +104,7 @@ class FigniViewerElement extends ModelViewerElement {
               }
               if (lenth > 0) {
                 setTimeout(() => {
-                  self.pause();
+                  this.pause();
                   const f = hotspot.getAttribute('onend');
                   if (f) {
                     const func = new Function(f);
@@ -113,10 +121,10 @@ class FigniViewerElement extends ModelViewerElement {
         hotspot.addEventListener('click', () => {
           if (window.getComputedStyle(hotspot).opacity == 1) {
             const target = hotspot.getAttribute('target') || hotspot.getAttribute('position') || 'auto auto auto';
-            self.cameraTarget = target;
+            this.setCameraTarget(target);
             const orbit = hotspot.getAttribute('orbit') || 'auto auto auto';
-            self.cameraOrbit = orbit;
-            resetButton.style.display = 'block';
+            this.setCameraOrbit(orbit);
+            initCameraButton.style.display = 'block';
           }
         });
       }
@@ -172,10 +180,19 @@ class FigniViewerElement extends ModelViewerElement {
         margin-right: 4px;
         margin-bottom: 2px;
       }
-      #${resetButton.id} {
+      #${initCameraButton.id} {
         position: absolute;
         padding: 0.5rem;
         right: 0.5rem;
+        white-space: nowrap;
+        bottom: 0.5rem;
+        border: 1px solid #FF733B;
+        border-radius: 0.75rem;
+      }
+      #${downloadScreenshotButton.id} {
+        position: absolute;
+        padding: 0.5rem;
+        left: 0.5rem;
         white-space: nowrap;
         bottom: 0.5rem;
         border: 1px solid #FF733B;
@@ -188,7 +205,7 @@ class FigniViewerElement extends ModelViewerElement {
     // * デバッグ用
     if (this.getAttribute('debug') == '') {
       this.addEventListener('mousedown', (eve) => {
-        const hit = self.positionAndNormalFromPoint(eve.clientX, eve.clientY);
+        const hit = this.positionAndNormalFromPoint(eve.clientX, eve.clientY);
         console.log(hit);
       }, true);
     }
@@ -234,6 +251,14 @@ class FigniViewerElement extends ModelViewerElement {
         this.iosSrc = usdz[0].url;
       }
     }
+  }
+
+  setCameraOrbit(orbit) {
+    this.cameraOrbit = orbit;
+  }
+
+  setCameraTarget(target) {
+    this.cameraTarget = target;
   }
 
   async downloadScreenshot() {

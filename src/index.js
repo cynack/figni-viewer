@@ -5,14 +5,19 @@ import axios from 'axios';
 const API_BASE = 'https://api.stg.figni.store/api';
 
 class FigniViewerElement extends ModelViewerElement {
-  static #OBSERVED_ATTRIBUTE = ['item-id', 'token', 'model-tag'];
+  static #MODEL_ATTRIBUTE = ['item-id', 'token', 'model-tag'];
+  static #TOOL_ATTRIBUTE = ['screenshot'];
 
   #itemId;
   #token;
   #modelTag;
 
+  #seed;
+
   constructor() {
     super();
+
+    this.#seed = Math.random().toString(36).substring(7);
   }
 
   async connectedCallback() {
@@ -56,7 +61,7 @@ class FigniViewerElement extends ModelViewerElement {
     // });
 
     const initCameraButton = document.createElement('button');
-    initCameraButton.id = Math.random().toString(36).substring(7);
+    initCameraButton.id = `init-camera-button-${this.#seed}`;
     const backImg = document.createElement('img');
     backImg.src = 'https://img.icons8.com/material-rounded/48/000000/back--v1.png';
     initCameraButton.appendChild(backImg);
@@ -67,16 +72,6 @@ class FigniViewerElement extends ModelViewerElement {
     });
     initCameraButton.style.display = 'none';
     this.appendChild(initCameraButton);
-
-    const downloadScreenshotButton = document.createElement('button');
-    downloadScreenshotButton.id = Math.random().toString(36).substring(7);
-    const dlImg = document.createElement('img');
-    dlImg.src = 'https://img.icons8.com/material-rounded/48/000000/download--v1.png';
-    downloadScreenshotButton.appendChild(dlImg);
-    downloadScreenshotButton.addEventListener('click', () => {
-      this.downloadScreenshot();
-    });
-    this.appendChild(downloadScreenshotButton);
 
     this.animationCrossfadeDuration = 0;
     const hotspots = this.querySelectorAll('button[slot^="hotspot"]');
@@ -180,7 +175,7 @@ class FigniViewerElement extends ModelViewerElement {
         margin-right: 4px;
         margin-bottom: 2px;
       }
-      #${initCameraButton.id} {
+      #init-camera-button-${this.#seed} {
         position: absolute;
         padding: 0.5rem;
         right: 0.5rem;
@@ -189,7 +184,7 @@ class FigniViewerElement extends ModelViewerElement {
         border: 1px solid #FF733B;
         border-radius: 0.75rem;
       }
-      #${downloadScreenshotButton.id} {
+      #download-screenshot-button-${this.#seed} {
         position: absolute;
         padding: 0.5rem;
         left: 0.5rem;
@@ -213,20 +208,43 @@ class FigniViewerElement extends ModelViewerElement {
 
   static get observedAttributes() {
     return super.observedAttributes.concat(
-        FigniViewerElement.#OBSERVED_ATTRIBUTE,
+        FigniViewerElement.#MODEL_ATTRIBUTE,
+        FigniViewerElement.#TOOL_ATTRIBUTE,
     );
   }
 
   async attributeChangedCallback(name, oldValue, newValue) {
     super.attributeChangedCallback(name, oldValue, newValue);
     if (oldValue != newValue) {
-      if (FigniViewerElement.#OBSERVED_ATTRIBUTE.includes(name)) {
+      if (FigniViewerElement.#MODEL_ATTRIBUTE.includes(name)) {
         switch (name) {
           case 'item-id': this.#itemId = newValue; break;
           case 'token': this.#token = newValue; break;
           case 'model-tag': this.#modelTag = newValue; break;
         }
         await this.requestModel();
+      } else if (FigniViewerElement.#TOOL_ATTRIBUTE.includes(name)) {
+        switch (name) {
+          case 'screenshot': {
+            if (newValue == '') {
+              let downloadScreenshotButton = document.getElementById(`download-screenshot-button-${this.#seed}`);
+              if (!downloadScreenshotButton) {
+                downloadScreenshotButton = document.createElement('button');
+                downloadScreenshotButton.id = `download-screenshot-button-${this.#seed}`;
+                const dlImg = document.createElement('img');
+                dlImg.src = 'https://img.icons8.com/material-rounded/48/000000/download--v1.png';
+                downloadScreenshotButton.appendChild(dlImg);
+                downloadScreenshotButton.addEventListener('click', () => {
+                  this.downloadScreenshot();
+                });
+                this.appendChild(downloadScreenshotButton);
+              }
+            } else {
+              downloadScreenshotButton.remove();
+            }
+            break;
+          }
+        }
       }
     }
   }

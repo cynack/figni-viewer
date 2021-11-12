@@ -21,7 +21,7 @@ jobs:
           registry-url: 'https://npm.pkg.github.com'
       - name: npm install and lint
         run: |
-          npm run ci
+          npm ci
           npm run build
           npm publish
         env:

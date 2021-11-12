@@ -136,27 +136,22 @@ class FigniViewerElement extends ModelViewerElement {
 
     const style = document.createElement('style');
     style.textContent = `
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      figni-viewer * {
+        font-family: 'Noto Sans JP', sans-serif;
+        color: #222428;
+      }
       [slot^="hotspot"] {
         display: block;
         width: 1.5rem;
         height: 1.5rem;
         border-radius: 50%;
         border: none;
-        background-color: rgba(255, 115, 59, 0.5);
-        outline: 0.1rem solid #FF733B;
+        background-color: rgba(255, 115, 59, 1.0);
+        outline: 0.5rem solid rgba(255, 115, 59, 0.5);
         box-sizing: border-box;
         --min-hotspot-opacity: 0;
         backdrop-filter: blur(3px);
-      }
-      [slot^="hotspot"]:after {
-        display: block;
-        width: 1rem;
-        height: 1rem;
-        border-radius: 50%;
-        border: none;
-        background-color: rgba(255, 115, 59, 1);
-        box-sizing: border-box;
-        --min-hotspot-opacity: 0;
       }
       #init-camera-button-${this.seed} {
         position: absolute;
@@ -168,19 +163,41 @@ class FigniViewerElement extends ModelViewerElement {
         width: 2.5rem;
         height: 2.5rem;
         padding: 0rem;
-        right: 0.5rem;
-        bottom: 0.5rem;
+        top: 0.5rem;
+        left: 0.5rem;
         white-space: nowrap;
         border-radius: 50%;
         border: none;
         background-color: #3B5EFF;
       }
-      .ar-button {
-        // ここにスタイルを記述
-      }
       #init-camera-button-${this.seed} svg {
         height: 1rem;
         transform: translateX(-1.5px) translateY(1.25px);
+      }
+      .ar-button {
+        position: absolute;
+        display: flex;
+        -webkit-box-align: center;
+        align-items: center;
+        -webkit-box-pack: center;
+        justify-content: center;
+        height: 2.5rem;
+        right: 0.5rem;
+        bottom: 0.5rem;
+        background-color: white;
+        border: 1px solid #FF733B;
+        border-radius: 0.75rem;
+        padding: 0 1rem;
+        font-weight: bold;
+      }
+      .ar-button svg {
+        width: 1rem;
+        margin-top: 0.1rem;
+        margin-right: 0.25rem;
+      }
+      .ar-button span {
+        display: block;
+        color: #FF733B;
       }
       #download-screenshot-button-${this.seed} {
         position: absolute;
@@ -248,7 +265,7 @@ class FigniViewerElement extends ModelViewerElement {
               if (!downloadScreenshotButton) {
                 downloadScreenshotButton = document.createElement('button');
                 downloadScreenshotButton.id = `download-screenshot-button-${this.seed}`;
-                downloadScreenshotButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><defs><style>.cls-1{fill:#8f94a9;}</style></defs><path class="cls-1" d="M11.31,1.75V.83A.83.83,0,0,1,12.14,0h2.47A5.39,5.39,0,0,1,20,5.39V7.86a.83.83,0,0,1-.83.83h-1a.83.83,0,0,1-.83-.83V5.38a2.8,2.8,0,0,0-2.8-2.8H12.14A.83.83,0,0,1,11.31,1.75ZM2.58,7.86V5.38a2.8,2.8,0,0,1,2.8-2.8H7.86a.83.83,0,0,0,.83-.83V.83A.83.83,0,0,0,7.86,0H5.39A5.39,5.39,0,0,0,0,5.39V7.86a.83.83,0,0,0,.83.83h.92A.83.83,0,0,0,2.58,7.86Zm14.81,4.28v2.45a2.81,2.81,0,0,1-2.8,2.8H12.14a.83.83,0,0,0-.83.83v1a.83.83,0,0,0,.83.83h2.47A5.39,5.39,0,0,0,20,14.61V12.14a.83.83,0,0,0-.83-.83h-1A.83.83,0,0,0,17.39,12.14ZM7.86,17.39H5.38a2.8,2.8,0,0,1-2.8-2.8V12.14a.83.83,0,0,0-.83-.83H.83a.83.83,0,0,0-.83.83v2.47A5.39,5.39,0,0,0,5.39,20H7.86a.83.83,0,0,0,.83-.83v-1A.83.83,0,0,0,7.86,17.39ZM9.61,14.5a4.53,4.53,0,1,0-4.14-4.15A4.53,4.53,0,0,0,9.61,14.5ZM8.08,10.23a1.92,1.92,0,1,1,1.65,1.65A1.92,1.92,0,0,1,8.08,10.23Z"/></svg>'
+                downloadScreenshotButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><defs><style>.cls-1{fill:#8f94a9;}</style></defs><path class="cls-1" d="M14.61,0H5.39A5.4,5.4,0,0,0,0,5.39v9.22A5.4,5.4,0,0,0,5.39,20h9.22A5.4,5.4,0,0,0,20,14.61V5.39A5.4,5.4,0,0,0,14.61,0ZM5.39,2.58h9.22a2.81,2.81,0,0,1,2.81,2.81v6L13.63,7.64a1.12,1.12,0,0,0-1.57,0L8.54,11.16a1.11,1.11,0,0,1-1.58,0,1.12,1.12,0,0,0-1.57,0L2.58,14V5.39A2.81,2.81,0,0,1,5.39,2.58Z"/><circle class="cls-1" cx="5.88" cy="5.88" r="1.92"/></svg>'
                 downloadScreenshotButton.addEventListener('click', () => {
                   this.downloadScreenshot();
                 });

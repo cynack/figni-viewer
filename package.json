@@ -3,9 +3,6 @@
   "version": "0.0.1",
   "description": "",
   "main": "./dist/figni-viewer.min.js",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
-  },
   "files": [
     "README.md",
     "dist"

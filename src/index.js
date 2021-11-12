@@ -118,6 +118,18 @@ class FigniViewerElement extends ModelViewerElement {
           }
         });
       }
+      const panels = hotspot.querySelectorAll('[slot="panel"]');
+      panels.forEach((panel) => {
+        panel.classList.add('panel-hide');
+      });
+      hotspot.addEventListener('click', () => {
+        const panels = hotspot.querySelectorAll('[slot="panel"]');
+        if (panels.length > 0) {
+          panels.forEach((panel) => {
+            panel.classList.toggle('panel-hide');
+          });
+        }
+      });
     });
 
     const arButton = document.createElement('button');
@@ -200,6 +212,10 @@ class FigniViewerElement extends ModelViewerElement {
       .ar-button span {
         display: block;
         color: #FF733B;
+      }
+      .panel-hide {
+        opacity: 0;
+        display: none;
       }
       #download-screenshot-button-${this.seed} {
         position: absolute;

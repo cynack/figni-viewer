@@ -27,7 +27,9 @@
             closeupBtn.classList.remove('hide', 'first-hide');
             panelBtn.classList.remove('hide', 'first-hide');
           "
-        >開く</button>
+        >
+          開く
+        </button>
         <button
           id="close"
           slot="hotspot-close"
@@ -60,7 +62,7 @@
           normal="0m 0m 1m"
           class="first-hide"
         >
-          <div class="panel">
+          <div class="panel" slot="panel">
             <span>とてもいい冷蔵庫です。</span>
             <span onclick="view.setCameraOrbit('auto auto 2m')">次へ</span>
           </div>

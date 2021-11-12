@@ -60,7 +60,7 @@ class FigniViewerElement extends ModelViewerElement {
 
     this.initCameraButton = document.createElement('button');
     this.initCameraButton.id = `init-camera-button-${this.seed}`;
-    this.initCameraButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11.83 20.22"><defs><style>.figni-viewer-arrow{ fill: white; }</style></defs><path class="figni-viewer-arrow" d="M4.13,10.11l7.39-7.38a1,1,0,0,0,0-1.48L10.58.31A1,1,0,0,0,9.1.31L.5,8.91a1.7,1.7,0,0,0,0,2.41l8.6,8.6a1,1,0,0,0,1.48,0l.94-.94a1,1,0,0,0,0-1.48Z" /></svg> ';
+    this.initCameraButton.innerHTML = 'カメラ位置を戻す';
     this.initCameraButton.addEventListener('click', () => {
       this.setCameraOrbit('auto auto auto');
       this.setCameraTarget('auto auto auto');
@@ -175,19 +175,17 @@ class FigniViewerElement extends ModelViewerElement {
         align-items: center;
         -webkit-box-pack: center;
         justify-content: center;
-        width: 2.5rem;
         height: 2.5rem;
-        padding: 0rem;
+        padding: 0rem 1rem;
         top: 0.5rem;
         left: 0.5rem;
         white-space: nowrap;
-        border-radius: 50%;
+        border-radius: 1.25rem;
         border: none;
+        color: white;
+        font-weight: bold;
         background-color: #3B5EFF;
-      }
-      #init-camera-button-${this.seed} svg {
-        height: 1rem;
-        transform: translateX(-1.5px) translateY(1.25px);
+        z-index: 9999;
       }
       .ar-button {
         position: absolute;
@@ -204,6 +202,7 @@ class FigniViewerElement extends ModelViewerElement {
         border-radius: 0.75rem;
         padding: 0 1rem;
         font-weight: bold;
+        z-index: 9998;
       }
       .ar-button svg {
         width: 1rem;
@@ -234,6 +233,7 @@ class FigniViewerElement extends ModelViewerElement {
         border-radius: 50%;
         border: none;
         background-color: white;
+        z-index: 9997;
       }
       #download-screenshot-button-${this.seed} svg {
         width: 1.25rem;

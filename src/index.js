@@ -60,7 +60,7 @@ class FigniViewerElement extends ModelViewerElement {
 
     const initCameraButton = document.createElement('button');
     initCameraButton.id = `init-camera-button-${this.seed}`;
-    initCameraButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70.05 124.12"><defs><style>.cls-1{fill:#8f94a9;}</style></defs><g id="レイヤー_2" data-name="レイヤー 2"><g id="レイヤー_1-2" data-name="レイヤー 1"><path class="cls-1" d="M68.56,6.42,63.63,1.49a5.08,5.08,0,0,0-7.19,0L2.92,55a10,10,0,0,0,0,14.1l53.52,53.52a5.08,5.08,0,0,0,7.19,0l4.93-4.93a5.09,5.09,0,0,0,0-7.19L20.11,62.06,68.56,13.61A5.09,5.09,0,0,0,68.56,6.42Z"/></g></g></svg>';
+    initCameraButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11.83 20.22"><defs><style>.arrow{ fill: white; }</style></defs><path class="arrow" d="M4.13,10.11l7.39-7.38a1,1,0,0,0,0-1.48L10.58.31A1,1,0,0,0,9.1.31L.5,8.91a1.7,1.7,0,0,0,0,2.41l8.6,8.6a1,1,0,0,0,1.48,0l.94-.94a1,1,0,0,0,0-1.48Z" /></svg> ';
     initCameraButton.addEventListener('click', () => {
       this.setCameraOrbit('auto auto auto');
       this.setCameraTarget('auto auto auto');
@@ -138,19 +138,20 @@ class FigniViewerElement extends ModelViewerElement {
     style.textContent = `
       [slot^="hotspot"] {
         display: block;
-        border-radius: 1.5rem;
+        border-radius: 50%;
         border: none;
         background-color: #FF733B;
+        box-shadow: 0 0 0 0.25rem #FF733B50;
         box-sizing: border-box;
         --min-hotspot-opacity: 0;
-        padding: 1.5rem;
+        padding: 1rem;
       }
       [slot="ar-button"] {
         position: absolute;
         padding: 0.5rem 1rem;
         right: 0.5rem;
-        white-space: nowrap;
         bottom: 0.5rem;
+        white-space: nowrap;
         border: 1px solid #FF733B;
         border-radius: 0.75rem;
         background-color: white;
@@ -173,25 +174,46 @@ class FigniViewerElement extends ModelViewerElement {
       }
       #init-camera-button-${this.seed} {
         position: absolute;
-        padding: 0.5rem;
+        display: flex;
+        -webkit-box-align: center;
+        align-items: center;
+        -webkit-box-pack: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0rem;
         right: 0.5rem;
-        white-space: nowrap;
         bottom: 0.5rem;
-        border: 1px solid #FF733B;
-        border-radius: 0.75rem;
+        white-space: nowrap;
+        border-radius: 50%;
+        border: none;
+        background-color: #3B5EFF;
+      }
+      #init-camera-button-${this.seed} svg {
+        height: 1rem;
+        transform: translateX(-1.5px) translateY(1.25px);
       }
       #download-screenshot-button-${this.seed} {
         position: absolute;
-        padding: 0.5rem;
+        display: flex;
+        -webkit-box-align: center;
+        align-items: center;
+        -webkit-box-pack: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0;
         left: 0.5rem;
-        white-space: nowrap;
         bottom: 0.5rem;
-        border: 1px solid #FF733B;
-        border-radius: 0.75rem;
+        white-space: nowrap;
+        border-radius: 50%;
+        border: none;
+        background-color: white;
       }
       #download-screenshot-button-${this.seed} svg {
-        width: 1rem;
-        height: 1rem;
+        width: 1.25rem;
+        height: 1.25rem;
+        transform: translateX(-0.5px) translateY(-0.5px);
       }
     `;
     this.appendChild(style);
@@ -237,7 +259,7 @@ class FigniViewerElement extends ModelViewerElement {
               if (!downloadScreenshotButton) {
                 downloadScreenshotButton = document.createElement('button');
                 downloadScreenshotButton.id = `download-screenshot-button-${this.seed}`;
-                downloadScreenshotButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 124.12 124.12"><defs><style>.cls-1{fill:#8f94a9;}</style></defs><g id="レイヤー_2" data-name="レイヤー 2"><g id="レイヤー_1-2" data-name="レイヤー 1"><path class="cls-1" d="M70.17,10.85V5.15A5.14,5.14,0,0,1,75.32,0H90.68a33.44,33.44,0,0,1,33.44,33.44V48.8A5.16,5.16,0,0,1,119,54H113a5.15,5.15,0,0,1-5.14-5.15V33.36A17.36,17.36,0,0,0,90.54,16H75.32A5.14,5.14,0,0,1,70.17,10.85ZM16,48.8V33.36A17.36,17.36,0,0,1,33.36,16H48.8A5.15,5.15,0,0,0,54,10.85V5.15A5.15,5.15,0,0,0,48.8,0H33.44A33.44,33.44,0,0,0,0,33.44V48.8A5.15,5.15,0,0,0,5.15,54h5.7A5.15,5.15,0,0,0,16,48.8Zm91.9,26.52V90.54A17.36,17.36,0,0,1,90.54,107.9H75.32A5.14,5.14,0,0,0,70.17,113V119a5.15,5.15,0,0,0,5.15,5.15H90.68a33.44,33.44,0,0,0,33.44-33.44V75.32A5.15,5.15,0,0,0,119,70.17H113A5.14,5.14,0,0,0,107.9,75.32ZM48.8,107.9H33.36A17.36,17.36,0,0,1,16,90.54V75.32a5.14,5.14,0,0,0-5.15-5.15H5.15A5.14,5.14,0,0,0,0,75.32V90.68a33.44,33.44,0,0,0,33.44,33.44H48.8A5.16,5.16,0,0,0,54,119V113A5.15,5.15,0,0,0,48.8,107.9ZM59.67,90A28.12,28.12,0,1,0,33.92,64.23,28.11,28.11,0,0,0,59.67,90ZM50.15,63.5A11.9,11.9,0,1,1,60.4,73.75,11.91,11.91,0,0,1,50.15,63.5Z"/></g></g></svg>'
+                downloadScreenshotButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><defs><style>.cls-1{fill:#8f94a9;}</style></defs><path class="cls-1" d="M11.31,1.75V.83A.83.83,0,0,1,12.14,0h2.47A5.39,5.39,0,0,1,20,5.39V7.86a.83.83,0,0,1-.83.83h-1a.83.83,0,0,1-.83-.83V5.38a2.8,2.8,0,0,0-2.8-2.8H12.14A.83.83,0,0,1,11.31,1.75ZM2.58,7.86V5.38a2.8,2.8,0,0,1,2.8-2.8H7.86a.83.83,0,0,0,.83-.83V.83A.83.83,0,0,0,7.86,0H5.39A5.39,5.39,0,0,0,0,5.39V7.86a.83.83,0,0,0,.83.83h.92A.83.83,0,0,0,2.58,7.86Zm14.81,4.28v2.45a2.81,2.81,0,0,1-2.8,2.8H12.14a.83.83,0,0,0-.83.83v1a.83.83,0,0,0,.83.83h2.47A5.39,5.39,0,0,0,20,14.61V12.14a.83.83,0,0,0-.83-.83h-1A.83.83,0,0,0,17.39,12.14ZM7.86,17.39H5.38a2.8,2.8,0,0,1-2.8-2.8V12.14a.83.83,0,0,0-.83-.83H.83a.83.83,0,0,0-.83.83v2.47A5.39,5.39,0,0,0,5.39,20H7.86a.83.83,0,0,0,.83-.83v-1A.83.83,0,0,0,7.86,17.39ZM9.61,14.5a4.53,4.53,0,1,0-4.14-4.15A4.53,4.53,0,0,0,9.61,14.5ZM8.08,10.23a1.92,1.92,0,1,1,1.65,1.65A1.92,1.92,0,0,1,8.08,10.23Z"/></svg>'
                 downloadScreenshotButton.addEventListener('click', () => {
                   this.downloadScreenshot();
                 });

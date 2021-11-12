@@ -30,10 +30,6 @@ class FigniViewerElement extends ModelViewerElement {
     this.token = this.getAttribute('token');
     this.modelTag = this.getAttribute('model-tag') || '';
 
-    // axios のテスト
-    // const res = await axios.get('https://randomuser.me/api/');
-    // const modelPosterSrc = res.data.results[0].picture.large;
-
     // Attribute
     this.seamlessPoster = true;
     this.loading = 'eager';

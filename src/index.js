@@ -60,9 +60,7 @@ class FigniViewerElement extends ModelViewerElement {
 
     const initCameraButton = document.createElement('button');
     initCameraButton.id = `init-camera-button-${this.seed}`;
-    const backImg = document.createElement('img');
-    backImg.src = 'https://img.icons8.com/material-rounded/48/000000/back--v1.png';
-    initCameraButton.appendChild(backImg);
+    initCameraButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70.05 124.12"><defs><style>.cls-1{fill:#8f94a9;}</style></defs><g id="レイヤー_2" data-name="レイヤー 2"><g id="レイヤー_1-2" data-name="レイヤー 1"><path class="cls-1" d="M68.56,6.42,63.63,1.49a5.08,5.08,0,0,0-7.19,0L2.92,55a10,10,0,0,0,0,14.1l53.52,53.52a5.08,5.08,0,0,0,7.19,0l4.93-4.93a5.09,5.09,0,0,0,0-7.19L20.11,62.06,68.56,13.61A5.09,5.09,0,0,0,68.56,6.42Z"/></g></g></svg>';
     initCameraButton.addEventListener('click', () => {
       this.setCameraOrbit('auto auto auto');
       this.setCameraTarget('auto auto auto');
@@ -239,7 +237,7 @@ class FigniViewerElement extends ModelViewerElement {
               if (!downloadScreenshotButton) {
                 downloadScreenshotButton = document.createElement('button');
                 downloadScreenshotButton.id = `download-screenshot-button-${this.seed}`;
-                downloadScreenshotButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 124.12 124.12"><defs><style>.cls-1{fill:#dddfe4;}</style></defs><g id="レイヤー_2" data-name="レイヤー 2"><g id="レイヤー_1-2" data-name="レイヤー 1"><path class="cls-1" d="M70.17,10.85V5.15A5.14,5.14,0,0,1,75.32,0H90.68a33.44,33.44,0,0,1,33.44,33.44V48.8A5.16,5.16,0,0,1,119,54H113a5.15,5.15,0,0,1-5.14-5.15V33.36A17.36,17.36,0,0,0,90.54,16H75.32A5.14,5.14,0,0,1,70.17,10.85ZM16,48.8V33.36A17.36,17.36,0,0,1,33.36,16H48.8A5.15,5.15,0,0,0,54,10.85V5.15A5.15,5.15,0,0,0,48.8,0H33.44A33.44,33.44,0,0,0,0,33.44V48.8A5.15,5.15,0,0,0,5.15,54h5.7A5.15,5.15,0,0,0,16,48.8Zm91.9,26.52V90.54A17.36,17.36,0,0,1,90.54,107.9H75.32A5.14,5.14,0,0,0,70.17,113V119a5.15,5.15,0,0,0,5.15,5.15H90.68a33.44,33.44,0,0,0,33.44-33.44V75.32A5.15,5.15,0,0,0,119,70.17H113A5.14,5.14,0,0,0,107.9,75.32ZM48.8,107.9H33.36A17.36,17.36,0,0,1,16,90.54V75.32a5.14,5.14,0,0,0-5.15-5.15H5.15A5.14,5.14,0,0,0,0,75.32V90.68a33.44,33.44,0,0,0,33.44,33.44H48.8A5.16,5.16,0,0,0,54,119V113A5.15,5.15,0,0,0,48.8,107.9ZM62,90.06A28.12,28.12,0,1,0,33.83,62,28.1,28.1,0,0,0,62,90.06ZM50.05,62A11.9,11.9,0,1,1,62,73.84,11.9,11.9,0,0,1,50.05,62Z"/></g></g></svg>'
+                downloadScreenshotButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 124.12 124.12"><defs><style>.cls-1{fill:#8f94a9;}</style></defs><g id="レイヤー_2" data-name="レイヤー 2"><g id="レイヤー_1-2" data-name="レイヤー 1"><path class="cls-1" d="M70.17,10.85V5.15A5.14,5.14,0,0,1,75.32,0H90.68a33.44,33.44,0,0,1,33.44,33.44V48.8A5.16,5.16,0,0,1,119,54H113a5.15,5.15,0,0,1-5.14-5.15V33.36A17.36,17.36,0,0,0,90.54,16H75.32A5.14,5.14,0,0,1,70.17,10.85ZM16,48.8V33.36A17.36,17.36,0,0,1,33.36,16H48.8A5.15,5.15,0,0,0,54,10.85V5.15A5.15,5.15,0,0,0,48.8,0H33.44A33.44,33.44,0,0,0,0,33.44V48.8A5.15,5.15,0,0,0,5.15,54h5.7A5.15,5.15,0,0,0,16,48.8Zm91.9,26.52V90.54A17.36,17.36,0,0,1,90.54,107.9H75.32A5.14,5.14,0,0,0,70.17,113V119a5.15,5.15,0,0,0,5.15,5.15H90.68a33.44,33.44,0,0,0,33.44-33.44V75.32A5.15,5.15,0,0,0,119,70.17H113A5.14,5.14,0,0,0,107.9,75.32ZM48.8,107.9H33.36A17.36,17.36,0,0,1,16,90.54V75.32a5.14,5.14,0,0,0-5.15-5.15H5.15A5.14,5.14,0,0,0,0,75.32V90.68a33.44,33.44,0,0,0,33.44,33.44H48.8A5.16,5.16,0,0,0,54,119V113A5.15,5.15,0,0,0,48.8,107.9ZM59.67,90A28.12,28.12,0,1,0,33.92,64.23,28.11,28.11,0,0,0,59.67,90ZM50.15,63.5A11.9,11.9,0,1,1,60.4,73.75,11.91,11.91,0,0,1,50.15,63.5Z"/></g></g></svg>'
                 downloadScreenshotButton.addEventListener('click', () => {
                   this.downloadScreenshot();
                 });

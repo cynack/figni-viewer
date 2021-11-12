@@ -1,10 +1,9 @@
 name: Create a release pull request
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches:
-      - main
+      - 'main'
 
 jobs:
   create-release-pr:

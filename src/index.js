@@ -138,13 +138,25 @@ class FigniViewerElement extends ModelViewerElement {
     style.textContent = `
       [slot^="hotspot"] {
         display: block;
+        width: 1.5rem;
+        height: 1.5rem;
         border-radius: 50%;
         border: none;
-        background-color: #FF733B;
-        box-shadow: 0 0 0 0.25rem #FF733B50;
+        background-color: rgba(255, 115, 59, 0.5);
+        outline: 0.1rem solid #FF733B;
         box-sizing: border-box;
         --min-hotspot-opacity: 0;
-        padding: 1rem;
+        backdrop-filter: blur(3px);
+      }
+      [slot^="hotspot"]:after {
+        display: block;
+        width: 1rem;
+        height: 1rem;
+        border-radius: 50%;
+        border: none;
+        background-color: rgba(255, 115, 59, 1);
+        box-sizing: border-box;
+        --min-hotspot-opacity: 0;
       }
       [slot="ar-button"] {
         position: absolute;

@@ -2,7 +2,16 @@
   "name": "figni-viewer",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "./dist/figni-viewer.min.js",
+  "private": true,
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "keywords": [
+    "model-viewer",
+    "cynack",
+    "ar"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --mode=production --node-env=production",
@@ -16,8 +25,8 @@
     "type": "git",
     "url": "git+https://github.com/cynack/figni-viewer.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Cynack inc.",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/cynack/figni-viewer/issues"
   },
@@ -32,6 +41,7 @@
     "css-loader": "^6.5.0",
     "eslint": "^8.1.0",
     "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^8.3.0",
     "html-webpack-plugin": "^5.5.0",
     "prettier": "^2.4.1",
     "sass": "^1.43.4",

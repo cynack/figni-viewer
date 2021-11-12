@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: 'https://npm.pkg.github.com'
-      - name: npm install and lint
+      - name: npm install and build
         run: |
           npm ci
           npm run build

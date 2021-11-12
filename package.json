@@ -7,6 +7,10 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
+  "files": [
+    "README.md",
+    "dist"
+  ],
   "keywords": [
     "model-viewer",
     "cynack",

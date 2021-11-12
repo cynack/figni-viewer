@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import {
   ModelViewerElement
 } from '@google/model-viewer';
@@ -16,6 +15,8 @@ class FigniViewerElement extends ModelViewerElement {
 
   seed;
 
+  initCameraButton;
+
   constructor() {
     super();
 
@@ -31,7 +32,6 @@ class FigniViewerElement extends ModelViewerElement {
     this.modelTag = this.getAttribute('model-tag') || '';
 
     // Attribute
-    this.seamlessPoster = true;
     this.loading = 'eager';
     this.cameraControls = true;
     this.ar = true;
@@ -44,8 +44,8 @@ class FigniViewerElement extends ModelViewerElement {
     this.style.setProperty('--poster-color', 'transparent');
 
     // Parts
-    const pb = this.shadowRoot.querySelector('[part="default-progress-bar"]');
-    pb.style.backgroundColor = '#FF4733';
+    // const pb = this.shadowRoot.querySelector('[part="default-progress-bar"]');
+    // pb.style.backgroundColor = '#FF4733';
 
     // Properties
     // console.log(this.canActivateAR);
@@ -58,16 +58,16 @@ class FigniViewerElement extends ModelViewerElement {
     //   console.log(eve.detail);
     // });
 
-    const initCameraButton = document.createElement('button');
-    initCameraButton.id = `init-camera-button-${this.seed}`;
-    initCameraButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70.05 124.12"><defs><style>.cls-1{fill:#8f94a9;}</style></defs><g id="レイヤー_2" data-name="レイヤー 2"><g id="レイヤー_1-2" data-name="レイヤー 1"><path class="cls-1" d="M68.56,6.42,63.63,1.49a5.08,5.08,0,0,0-7.19,0L2.92,55a10,10,0,0,0,0,14.1l53.52,53.52a5.08,5.08,0,0,0,7.19,0l4.93-4.93a5.09,5.09,0,0,0,0-7.19L20.11,62.06,68.56,13.61A5.09,5.09,0,0,0,68.56,6.42Z"/></g></g></svg>';
-    initCameraButton.addEventListener('click', () => {
+    this.initCameraButton = document.createElement('button');
+    this.initCameraButton.id = `init-camera-button-${this.seed}`;
+    this.initCameraButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11.83 20.22"><defs><style>.arrow{ fill: white; }</style></defs><path class="arrow" d="M4.13,10.11l7.39-7.38a1,1,0,0,0,0-1.48L10.58.31A1,1,0,0,0,9.1.31L.5,8.91a1.7,1.7,0,0,0,0,2.41l8.6,8.6a1,1,0,0,0,1.48,0l.94-.94a1,1,0,0,0,0-1.48Z" /></svg> ';
+    this.initCameraButton.addEventListener('click', () => {
       this.setCameraOrbit('auto auto auto');
       this.setCameraTarget('auto auto auto');
-      initCameraButton.style.display = 'none';
+      this.initCameraButton.style.display = 'none';
     });
-    initCameraButton.style.display = 'none';
-    this.appendChild(initCameraButton);
+    this.initCameraButton.style.display = 'none';
+    this.appendChild(this.initCameraButton);
 
     this.animationCrossfadeDuration = 0;
     const hotspots = this.querySelectorAll('button[slot^="hotspot"]');
@@ -115,7 +115,6 @@ class FigniViewerElement extends ModelViewerElement {
             this.setCameraTarget(target);
             const orbit = hotspot.getAttribute('orbit') || 'auto auto auto';
             this.setCameraOrbit(orbit);
-            initCameraButton.style.display = 'block';
           }
         });
       }
@@ -132,66 +131,95 @@ class FigniViewerElement extends ModelViewerElement {
       </svg>
       <span>目の前に置く</span>
     `;
+    arButton.classList.add('ar-button');
     this.appendChild(arButton);
 
     const style = document.createElement('style');
     style.textContent = `
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+      figni-viewer * {
+        font-family: 'Noto Sans JP', sans-serif;
+        color: #222428;
+      }
       [slot^="hotspot"] {
         display: block;
-        border-radius: 1.5rem;
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 50%;
         border: none;
-        background-color: #FF733B;
+        background-color: rgba(255, 115, 59, 1.0);
+        outline: 0.5rem solid rgba(255, 115, 59, 0.5);
         box-sizing: border-box;
         --min-hotspot-opacity: 0;
-        padding: 1.5rem;
-      }
-      [slot="ar-button"] {
-        position: absolute;
-        padding: 0.5rem 1rem;
-        right: 0.5rem;
-        white-space: nowrap;
-        bottom: 0.5rem;
-        border: 1px solid #FF733B;
-        border-radius: 0.75rem;
-        background-color: white;
-      }
-      [slot="ar-button"]:active {
-        background-color: white;
-      }
-      [slot="ar-button"]:focus {
-        background-color: white;
-        outline: none;
-      }
-      [slot="ar-button"]:focus-visible {
-        background-color: white;
-        outline: 1px solid #30333E;
-      }
-      [slot="ar-button"] svg {
-        height: 1rem;
-        margin-right: 4px;
-        margin-bottom: 2px;
+        backdrop-filter: blur(3px);
       }
       #init-camera-button-${this.seed} {
         position: absolute;
-        padding: 0.5rem;
-        right: 0.5rem;
+        display: flex;
+        -webkit-box-align: center;
+        align-items: center;
+        -webkit-box-pack: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0rem;
+        top: 0.5rem;
+        left: 0.5rem;
         white-space: nowrap;
+        border-radius: 50%;
+        border: none;
+        background-color: #3B5EFF;
+      }
+      #init-camera-button-${this.seed} svg {
+        height: 1rem;
+        transform: translateX(-1.5px) translateY(1.25px);
+      }
+      .ar-button {
+        position: absolute;
+        display: flex;
+        -webkit-box-align: center;
+        align-items: center;
+        -webkit-box-pack: center;
+        justify-content: center;
+        height: 2.5rem;
+        right: 0.5rem;
         bottom: 0.5rem;
+        background-color: white;
         border: 1px solid #FF733B;
         border-radius: 0.75rem;
+        padding: 0 1rem;
+        font-weight: bold;
+      }
+      .ar-button svg {
+        width: 1rem;
+        margin-top: 0.1rem;
+        margin-right: 0.25rem;
+      }
+      .ar-button span {
+        display: block;
+        color: #FF733B;
       }
       #download-screenshot-button-${this.seed} {
         position: absolute;
-        padding: 0.5rem;
+        display: flex;
+        -webkit-box-align: center;
+        align-items: center;
+        -webkit-box-pack: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0;
         left: 0.5rem;
-        white-space: nowrap;
         bottom: 0.5rem;
-        border: 1px solid #FF733B;
-        border-radius: 0.75rem;
+        white-space: nowrap;
+        border-radius: 50%;
+        border: none;
+        background-color: white;
       }
       #download-screenshot-button-${this.seed} svg {
-        width: 1rem;
-        height: 1rem;
+        width: 1.25rem;
+        height: 1.25rem;
+        transform: translateX(-0.5px) translateY(-0.5px);
       }
     `;
     this.appendChild(style);
@@ -237,7 +265,7 @@ class FigniViewerElement extends ModelViewerElement {
               if (!downloadScreenshotButton) {
                 downloadScreenshotButton = document.createElement('button');
                 downloadScreenshotButton.id = `download-screenshot-button-${this.seed}`;
-                downloadScreenshotButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 124.12 124.12"><defs><style>.cls-1{fill:#8f94a9;}</style></defs><g id="レイヤー_2" data-name="レイヤー 2"><g id="レイヤー_1-2" data-name="レイヤー 1"><path class="cls-1" d="M70.17,10.85V5.15A5.14,5.14,0,0,1,75.32,0H90.68a33.44,33.44,0,0,1,33.44,33.44V48.8A5.16,5.16,0,0,1,119,54H113a5.15,5.15,0,0,1-5.14-5.15V33.36A17.36,17.36,0,0,0,90.54,16H75.32A5.14,5.14,0,0,1,70.17,10.85ZM16,48.8V33.36A17.36,17.36,0,0,1,33.36,16H48.8A5.15,5.15,0,0,0,54,10.85V5.15A5.15,5.15,0,0,0,48.8,0H33.44A33.44,33.44,0,0,0,0,33.44V48.8A5.15,5.15,0,0,0,5.15,54h5.7A5.15,5.15,0,0,0,16,48.8Zm91.9,26.52V90.54A17.36,17.36,0,0,1,90.54,107.9H75.32A5.14,5.14,0,0,0,70.17,113V119a5.15,5.15,0,0,0,5.15,5.15H90.68a33.44,33.44,0,0,0,33.44-33.44V75.32A5.15,5.15,0,0,0,119,70.17H113A5.14,5.14,0,0,0,107.9,75.32ZM48.8,107.9H33.36A17.36,17.36,0,0,1,16,90.54V75.32a5.14,5.14,0,0,0-5.15-5.15H5.15A5.14,5.14,0,0,0,0,75.32V90.68a33.44,33.44,0,0,0,33.44,33.44H48.8A5.16,5.16,0,0,0,54,119V113A5.15,5.15,0,0,0,48.8,107.9ZM59.67,90A28.12,28.12,0,1,0,33.92,64.23,28.11,28.11,0,0,0,59.67,90ZM50.15,63.5A11.9,11.9,0,1,1,60.4,73.75,11.91,11.91,0,0,1,50.15,63.5Z"/></g></g></svg>'
+                downloadScreenshotButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><defs><style>.cls-1{fill:#8f94a9;}</style></defs><path class="cls-1" d="M14.61,0H5.39A5.4,5.4,0,0,0,0,5.39v9.22A5.4,5.4,0,0,0,5.39,20h9.22A5.4,5.4,0,0,0,20,14.61V5.39A5.4,5.4,0,0,0,14.61,0ZM5.39,2.58h9.22a2.81,2.81,0,0,1,2.81,2.81v6L13.63,7.64a1.12,1.12,0,0,0-1.57,0L8.54,11.16a1.11,1.11,0,0,1-1.58,0,1.12,1.12,0,0,0-1.57,0L2.58,14V5.39A2.81,2.81,0,0,1,5.39,2.58Z"/><circle class="cls-1" cx="5.88" cy="5.88" r="1.92"/></svg>'
                 downloadScreenshotButton.addEventListener('click', () => {
                   this.downloadScreenshot();
                 });
@@ -276,10 +304,16 @@ class FigniViewerElement extends ModelViewerElement {
 
   setCameraOrbit(orbit) {
     this.cameraOrbit = orbit;
+    if (this.initCameraButton) {
+      this.initCameraButton.style.display = 'block';
+    }
   }
 
   setCameraTarget(target) {
     this.cameraTarget = target;
+    if (this.initCameraButton) {
+      this.initCameraButton.style.display = 'block';
+    }
   }
 
   async downloadScreenshot() {

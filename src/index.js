@@ -266,12 +266,10 @@ class FigniViewerElement extends ModelViewerElement {
       const glb = res.data.filter((item) => item.format == 'glb');
       if (glb.length > 0) {
         this.src = glb[0].url;
-        console.log(this.src);
       }
       const usdz = res.data.filter((item) => item.format == 'usdz');
       if (usdz.length > 0) {
         this.iosSrc = usdz[0].url;
-        console.log(this.iosSrc);
       }
     }
   }

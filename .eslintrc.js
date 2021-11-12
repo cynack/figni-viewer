@@ -5,6 +5,7 @@ module.exports = {
   },
   'extends': [
     'google',
+    'prettier',
   ],
   'parserOptions': {
     'ecmaVersion': 13,

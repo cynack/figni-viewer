@@ -1,32 +1,34 @@
 /* eslint-disable max-len */
-import {ModelViewerElement} from '@google/model-viewer';
+import {
+  ModelViewerElement
+} from '@google/model-viewer';
 import axios from 'axios';
 
 const API_BASE = 'https://api.stg.figni.store/api';
 
 class FigniViewerElement extends ModelViewerElement {
-  static #MODEL_ATTRIBUTE = ['item-id', 'token', 'model-tag'];
-  static #TOOL_ATTRIBUTE = ['screenshot'];
+  static MODEL_ATTRIBUTE = ['item-id', 'token', 'model-tag'];
+  static TOOL_ATTRIBUTE = ['screenshot'];
 
-  #itemId;
-  #token;
-  #modelTag;
+  itemId;
+  token;
+  modelTag;
 
-  #seed;
+  seed;
 
   constructor() {
     super();
 
-    this.#seed = Math.random().toString(36).substring(7);
+    this.seed = Math.random().toString(36).substring(7);
   }
 
   async connectedCallback() {
     super.connectedCallback();
 
     // 値の取得
-    this.#itemId = this.getAttribute('item-id');
-    this.#token = this.getAttribute('token');
-    this.#modelTag = this.getAttribute('model-tag') || '';
+    this.itemId = this.getAttribute('item-id');
+    this.token = this.getAttribute('token');
+    this.modelTag = this.getAttribute('model-tag') || '';
 
     // axios のテスト
     // const res = await axios.get('https://randomuser.me/api/');
@@ -61,7 +63,7 @@ class FigniViewerElement extends ModelViewerElement {
     // });
 
     const initCameraButton = document.createElement('button');
-    initCameraButton.id = `init-camera-button-${this.#seed}`;
+    initCameraButton.id = `init-camera-button-${this.seed}`;
     const backImg = document.createElement('img');
     backImg.src = 'https://img.icons8.com/material-rounded/48/000000/back--v1.png';
     initCameraButton.appendChild(backImg);
@@ -175,7 +177,7 @@ class FigniViewerElement extends ModelViewerElement {
         margin-right: 4px;
         margin-bottom: 2px;
       }
-      #init-camera-button-${this.#seed} {
+      #init-camera-button-${this.seed} {
         position: absolute;
         padding: 0.5rem;
         right: 0.5rem;
@@ -184,7 +186,7 @@ class FigniViewerElement extends ModelViewerElement {
         border: 1px solid #FF733B;
         border-radius: 0.75rem;
       }
-      #download-screenshot-button-${this.#seed} {
+      #download-screenshot-button-${this.seed} {
         position: absolute;
         padding: 0.5rem;
         left: 0.5rem;
@@ -193,12 +195,16 @@ class FigniViewerElement extends ModelViewerElement {
         border: 1px solid #FF733B;
         border-radius: 0.75rem;
       }
+      #download-screenshot-button-${this.seed} svg {
+        width: 1rem;
+        height: 1rem;
+      }
     `;
     this.appendChild(style);
 
 
     // * デバッグ用
-    if (this.getAttribute('debug') == '') {
+    if (this.getAttribute('debug-hotspot') == '') {
       this.addEventListener('mousedown', (eve) => {
         const hit = this.positionAndNormalFromPoint(eve.clientX, eve.clientY);
         console.log(hit);
@@ -208,32 +214,36 @@ class FigniViewerElement extends ModelViewerElement {
 
   static get observedAttributes() {
     return super.observedAttributes.concat(
-        FigniViewerElement.#MODEL_ATTRIBUTE,
-        FigniViewerElement.#TOOL_ATTRIBUTE,
+      FigniViewerElement.MODEL_ATTRIBUTE,
+      FigniViewerElement.TOOL_ATTRIBUTE,
     );
   }
 
   async attributeChangedCallback(name, oldValue, newValue) {
     super.attributeChangedCallback(name, oldValue, newValue);
     if (oldValue != newValue) {
-      if (FigniViewerElement.#MODEL_ATTRIBUTE.includes(name)) {
+      if (FigniViewerElement.MODEL_ATTRIBUTE.includes(name)) {
         switch (name) {
-          case 'item-id': this.#itemId = newValue; break;
-          case 'token': this.#token = newValue; break;
-          case 'model-tag': this.#modelTag = newValue; break;
+          case 'item-id':
+            this.itemId = newValue;
+            break;
+          case 'token':
+            this.token = newValue;
+            break;
+          case 'model-tag':
+            this.modelTag = newValue;
+            break;
         }
         await this.requestModel();
-      } else if (FigniViewerElement.#TOOL_ATTRIBUTE.includes(name)) {
+      } else if (FigniViewerElement.TOOL_ATTRIBUTE.includes(name)) {
         switch (name) {
           case 'screenshot': {
             if (newValue == '') {
-              let downloadScreenshotButton = document.getElementById(`download-screenshot-button-${this.#seed}`);
+              let downloadScreenshotButton = document.getElementById(`download-screenshot-button-${this.seed}`);
               if (!downloadScreenshotButton) {
                 downloadScreenshotButton = document.createElement('button');
-                downloadScreenshotButton.id = `download-screenshot-button-${this.#seed}`;
-                const dlImg = document.createElement('img');
-                dlImg.src = 'https://img.icons8.com/material-rounded/48/000000/download--v1.png';
-                downloadScreenshotButton.appendChild(dlImg);
+                downloadScreenshotButton.id = `download-screenshot-button-${this.seed}`;
+                downloadScreenshotButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 124.12 124.12"><defs><style>.cls-1{fill:#dddfe4;}</style></defs><g id="レイヤー_2" data-name="レイヤー 2"><g id="レイヤー_1-2" data-name="レイヤー 1"><path class="cls-1" d="M70.17,10.85V5.15A5.14,5.14,0,0,1,75.32,0H90.68a33.44,33.44,0,0,1,33.44,33.44V48.8A5.16,5.16,0,0,1,119,54H113a5.15,5.15,0,0,1-5.14-5.15V33.36A17.36,17.36,0,0,0,90.54,16H75.32A5.14,5.14,0,0,1,70.17,10.85ZM16,48.8V33.36A17.36,17.36,0,0,1,33.36,16H48.8A5.15,5.15,0,0,0,54,10.85V5.15A5.15,5.15,0,0,0,48.8,0H33.44A33.44,33.44,0,0,0,0,33.44V48.8A5.15,5.15,0,0,0,5.15,54h5.7A5.15,5.15,0,0,0,16,48.8Zm91.9,26.52V90.54A17.36,17.36,0,0,1,90.54,107.9H75.32A5.14,5.14,0,0,0,70.17,113V119a5.15,5.15,0,0,0,5.15,5.15H90.68a33.44,33.44,0,0,0,33.44-33.44V75.32A5.15,5.15,0,0,0,119,70.17H113A5.14,5.14,0,0,0,107.9,75.32ZM48.8,107.9H33.36A17.36,17.36,0,0,1,16,90.54V75.32a5.14,5.14,0,0,0-5.15-5.15H5.15A5.14,5.14,0,0,0,0,75.32V90.68a33.44,33.44,0,0,0,33.44,33.44H48.8A5.16,5.16,0,0,0,54,119V113A5.15,5.15,0,0,0,48.8,107.9ZM62,90.06A28.12,28.12,0,1,0,33.83,62,28.1,28.1,0,0,0,62,90.06ZM50.05,62A11.9,11.9,0,1,1,62,73.84,11.9,11.9,0,0,1,50.05,62Z"/></g></g></svg>'
                 downloadScreenshotButton.addEventListener('click', () => {
                   this.downloadScreenshot();
                 });
@@ -250,23 +260,24 @@ class FigniViewerElement extends ModelViewerElement {
   }
 
   async requestModel() {
-    if (this.#itemId && this.#token) {
-      const tag = this.#modelTag ? `?tag=${this.#modelTag}` : '';
+    if (this.itemId && this.token) {
+      const tag = this.modelTag ? `?tag=${this.modelTag}` : '';
       const res = await axios.get(
-          `${API_BASE}/item/${this.#itemId}/model_search${tag}`,
-          {
-            headers: {
-              'accept': 'application/json',
-              'X-Figni-Client-Token': this.#token,
-            },
-          });
-      const glb = res.data.filter((item) => item.format=='glb');
+        `${API_BASE}/item/${this.itemId}/model_search${tag}`, {
+          headers: {
+            'accept': 'application/json',
+            'X-Figni-Client-Token': this.token,
+          },
+        });
+      const glb = res.data.filter((item) => item.format == 'glb');
       if (glb.length > 0) {
         this.src = glb[0].url;
+        console.log(this.src);
       }
-      const usdz = res.data.filter((item) => item.format=='usdz');
+      const usdz = res.data.filter((item) => item.format == 'usdz');
       if (usdz.length > 0) {
         this.iosSrc = usdz[0].url;
+        console.log(this.iosSrc);
       }
     }
   }
@@ -280,7 +291,9 @@ class FigniViewerElement extends ModelViewerElement {
   }
 
   async downloadScreenshot() {
-    const blob = await this.toBlob({idealAspect: true});
+    const blob = await this.toBlob({
+      idealAspect: true
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

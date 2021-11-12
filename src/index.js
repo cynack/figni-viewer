@@ -60,7 +60,7 @@ class FigniViewerElement extends ModelViewerElement {
 
     this.initCameraButton = document.createElement('button');
     this.initCameraButton.id = `init-camera-button-${this.seed}`;
-    this.initCameraButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11.83 20.22"><defs><style>.arrow{ fill: white; }</style></defs><path class="arrow" d="M4.13,10.11l7.39-7.38a1,1,0,0,0,0-1.48L10.58.31A1,1,0,0,0,9.1.31L.5,8.91a1.7,1.7,0,0,0,0,2.41l8.6,8.6a1,1,0,0,0,1.48,0l.94-.94a1,1,0,0,0,0-1.48Z" /></svg> ';
+    this.initCameraButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11.83 20.22"><defs><style>.figni-viewer-arrow{ fill: white; }</style></defs><path class="figni-viewer-arrow" d="M4.13,10.11l7.39-7.38a1,1,0,0,0,0-1.48L10.58.31A1,1,0,0,0,9.1.31L.5,8.91a1.7,1.7,0,0,0,0,2.41l8.6,8.6a1,1,0,0,0,1.48,0l.94-.94a1,1,0,0,0,0-1.48Z" /></svg> ';
     this.initCameraButton.addEventListener('click', () => {
       this.setCameraOrbit('auto auto auto');
       this.setCameraTarget('auto auto auto');
@@ -143,12 +143,15 @@ class FigniViewerElement extends ModelViewerElement {
       }
       [slot^="hotspot"] {
         display: block;
-        width: 1.5rem;
-        height: 1.5rem;
-        border-radius: 50%;
+        min-width: 1.5rem;
+        min-height: 1.5rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 1rem;
         border: none;
         background-color: rgba(255, 115, 59, 1.0);
-        outline: 0.5rem solid rgba(255, 115, 59, 0.5);
+        font-size: 0.75rem;
+        color: white;
+        outline: 0.3rem solid rgba(255, 115, 59, 0.3);
         box-sizing: border-box;
         --min-hotspot-opacity: 0;
         backdrop-filter: blur(3px);
@@ -265,7 +268,7 @@ class FigniViewerElement extends ModelViewerElement {
               if (!downloadScreenshotButton) {
                 downloadScreenshotButton = document.createElement('button');
                 downloadScreenshotButton.id = `download-screenshot-button-${this.seed}`;
-                downloadScreenshotButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><defs><style>.cls-1{fill:#8f94a9;}</style></defs><path class="cls-1" d="M14.61,0H5.39A5.4,5.4,0,0,0,0,5.39v9.22A5.4,5.4,0,0,0,5.39,20h9.22A5.4,5.4,0,0,0,20,14.61V5.39A5.4,5.4,0,0,0,14.61,0ZM5.39,2.58h9.22a2.81,2.81,0,0,1,2.81,2.81v6L13.63,7.64a1.12,1.12,0,0,0-1.57,0L8.54,11.16a1.11,1.11,0,0,1-1.58,0,1.12,1.12,0,0,0-1.57,0L2.58,14V5.39A2.81,2.81,0,0,1,5.39,2.58Z"/><circle class="cls-1" cx="5.88" cy="5.88" r="1.92"/></svg>'
+                downloadScreenshotButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><defs><style>.figni-viewer-screenshot{fill:#8f94a9;}</style></defs><path class="figni-viewer-screenshot" d="M14.61,0H5.39A5.4,5.4,0,0,0,0,5.39v9.22A5.4,5.4,0,0,0,5.39,20h9.22A5.4,5.4,0,0,0,20,14.61V5.39A5.4,5.4,0,0,0,14.61,0ZM5.39,2.58h9.22a2.81,2.81,0,0,1,2.81,2.81v6L13.63,7.64a1.12,1.12,0,0,0-1.57,0L8.54,11.16a1.11,1.11,0,0,1-1.58,0,1.12,1.12,0,0,0-1.57,0L2.58,14V5.39A2.81,2.81,0,0,1,5.39,2.58Z"/><circle class="figni-viewer-screenshot" cx="5.88" cy="5.88" r="1.92"/></svg>'
                 downloadScreenshotButton.addEventListener('click', () => {
                   this.downloadScreenshot();
                 });

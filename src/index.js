@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import {
   ModelViewerElement
 } from '@google/model-viewer';
@@ -31,7 +30,6 @@ class FigniViewerElement extends ModelViewerElement {
     this.modelTag = this.getAttribute('model-tag') || '';
 
     // Attribute
-    this.seamlessPoster = true;
     this.loading = 'eager';
     this.cameraControls = true;
     this.ar = true;
@@ -44,8 +42,8 @@ class FigniViewerElement extends ModelViewerElement {
     this.style.setProperty('--poster-color', 'transparent');
 
     // Parts
-    const pb = this.shadowRoot.querySelector('[part="default-progress-bar"]');
-    pb.style.backgroundColor = '#FF4733';
+    // const pb = this.shadowRoot.querySelector('[part="default-progress-bar"]');
+    // pb.style.backgroundColor = '#FF4733';
 
     // Properties
     // console.log(this.canActivateAR);
@@ -132,6 +130,7 @@ class FigniViewerElement extends ModelViewerElement {
       </svg>
       <span>目の前に置く</span>
     `;
+    arButton.classList.add('ar-button');
     this.appendChild(arButton);
 
     const style = document.createElement('style');
@@ -158,32 +157,6 @@ class FigniViewerElement extends ModelViewerElement {
         box-sizing: border-box;
         --min-hotspot-opacity: 0;
       }
-      [slot="ar-button"] {
-        position: absolute;
-        padding: 0.5rem 1rem;
-        right: 0.5rem;
-        bottom: 0.5rem;
-        white-space: nowrap;
-        border: 1px solid #FF733B;
-        border-radius: 0.75rem;
-        background-color: white;
-      }
-      [slot="ar-button"]:active {
-        background-color: white;
-      }
-      [slot="ar-button"]:focus {
-        background-color: white;
-        outline: none;
-      }
-      [slot="ar-button"]:focus-visible {
-        background-color: white;
-        outline: 1px solid #30333E;
-      }
-      [slot="ar-button"] svg {
-        height: 1rem;
-        margin-right: 4px;
-        margin-bottom: 2px;
-      }
       #init-camera-button-${this.seed} {
         position: absolute;
         display: flex;
@@ -200,6 +173,9 @@ class FigniViewerElement extends ModelViewerElement {
         border-radius: 50%;
         border: none;
         background-color: #3B5EFF;
+      }
+      .ar-button {
+        // ここにスタイルを記述
       }
       #init-camera-button-${this.seed} svg {
         height: 1rem;
@@ -300,12 +276,10 @@ class FigniViewerElement extends ModelViewerElement {
       const glb = res.data.filter((item) => item.format == 'glb');
       if (glb.length > 0) {
         this.src = glb[0].url;
-        console.log(this.src);
       }
       const usdz = res.data.filter((item) => item.format == 'usdz');
       if (usdz.length > 0) {
         this.iosSrc = usdz[0].url;
-        console.log(this.iosSrc);
       }
     }
   }

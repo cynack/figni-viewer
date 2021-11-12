@@ -15,6 +15,8 @@ class FigniViewerElement extends ModelViewerElement {
 
   seed;
 
+  initCameraButton;
+
   constructor() {
     super();
 
@@ -56,16 +58,16 @@ class FigniViewerElement extends ModelViewerElement {
     //   console.log(eve.detail);
     // });
 
-    const initCameraButton = document.createElement('button');
-    initCameraButton.id = `init-camera-button-${this.seed}`;
-    initCameraButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11.83 20.22"><defs><style>.arrow{ fill: white; }</style></defs><path class="arrow" d="M4.13,10.11l7.39-7.38a1,1,0,0,0,0-1.48L10.58.31A1,1,0,0,0,9.1.31L.5,8.91a1.7,1.7,0,0,0,0,2.41l8.6,8.6a1,1,0,0,0,1.48,0l.94-.94a1,1,0,0,0,0-1.48Z" /></svg> ';
-    initCameraButton.addEventListener('click', () => {
+    this.initCameraButton = document.createElement('button');
+    this.initCameraButton.id = `init-camera-button-${this.seed}`;
+    this.initCameraButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11.83 20.22"><defs><style>.arrow{ fill: white; }</style></defs><path class="arrow" d="M4.13,10.11l7.39-7.38a1,1,0,0,0,0-1.48L10.58.31A1,1,0,0,0,9.1.31L.5,8.91a1.7,1.7,0,0,0,0,2.41l8.6,8.6a1,1,0,0,0,1.48,0l.94-.94a1,1,0,0,0,0-1.48Z" /></svg> ';
+    this.initCameraButton.addEventListener('click', () => {
       this.setCameraOrbit('auto auto auto');
       this.setCameraTarget('auto auto auto');
-      initCameraButton.style.display = 'none';
+      this.initCameraButton.style.display = 'none';
     });
-    initCameraButton.style.display = 'none';
-    this.appendChild(initCameraButton);
+    this.initCameraButton.style.display = 'none';
+    this.appendChild(this.initCameraButton);
 
     this.animationCrossfadeDuration = 0;
     const hotspots = this.querySelectorAll('button[slot^="hotspot"]');
@@ -113,7 +115,6 @@ class FigniViewerElement extends ModelViewerElement {
             this.setCameraTarget(target);
             const orbit = hotspot.getAttribute('orbit') || 'auto auto auto';
             this.setCameraOrbit(orbit);
-            initCameraButton.style.display = 'block';
           }
         });
       }
@@ -286,10 +287,16 @@ class FigniViewerElement extends ModelViewerElement {
 
   setCameraOrbit(orbit) {
     this.cameraOrbit = orbit;
+    if (this.initCameraButton) {
+      this.initCameraButton.style.display = 'block';
+    }
   }
 
   setCameraTarget(target) {
     this.cameraTarget = target;
+    if (this.initCameraButton) {
+      this.initCameraButton.style.display = 'block';
+    }
   }
 
   async downloadScreenshot() {

@@ -1,8 +1,6 @@
 # Figni Viewer
 
-<a href="https://www.npmjs.com/package/figni-viewer" title="npm">
-  <img src="http://img.shields.io/npm/v/gmopg.svg?style=for-the-badge">
-</a>
+[![npm version](https://badge.fury.io/js/@cynack%2Ffigni-viewer.svg)](https://badge.fury.io/js/@cynack%2Ffigni-viewer)
 
 ## 開発方法
 

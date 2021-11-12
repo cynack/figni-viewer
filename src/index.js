@@ -16,6 +16,7 @@ class FigniViewerElement extends ModelViewerElement {
   seed;
 
   initCameraButton;
+  panels = [];
 
   constructor() {
     super();
@@ -65,6 +66,7 @@ class FigniViewerElement extends ModelViewerElement {
       this.setCameraOrbit('auto auto auto');
       this.setCameraTarget('auto auto auto');
       this.initCameraButton.style.display = 'none';
+      this.closeAllPanels();
     });
     this.initCameraButton.style.display = 'none';
     this.appendChild(this.initCameraButton);
@@ -112,25 +114,31 @@ class FigniViewerElement extends ModelViewerElement {
         hotspot.addEventListener('click', () => {
           if (window.getComputedStyle(hotspot).opacity == 1) {
             const target = hotspot.getAttribute('target') || hotspot.getAttribute('position') || 'auto auto auto';
-            this.setCameraTarget(target);
             const orbit = hotspot.getAttribute('orbit') || 'auto auto auto';
-            this.setCameraOrbit(orbit);
+            if ((this.cameraTarget == target) && (this.cameraOrbit == orbit)) {
+              this.setCameraOrbit('auto auto auto');
+              this.setCameraTarget('auto auto auto');
+              this.initCameraButton.style.display = 'none';
+            } else {
+              this.setCameraTarget(target);
+              this.setCameraOrbit(orbit);
+            }
           }
         });
       }
-      const panels = hotspot.querySelectorAll('[slot="panel"]');
-      panels.forEach((panel) => {
-        panel.classList.add('panel-hide');
-      });
+      this.panels.push(...hotspot.querySelectorAll('[slot="panel"]'));
       hotspot.addEventListener('click', () => {
         const panels = hotspot.querySelectorAll('[slot="panel"]');
         if (panels.length > 0) {
           panels.forEach((panel) => {
             panel.classList.toggle('panel-hide');
           });
+          this.closeAllPanels(Array.from(panels));
         }
       });
     });
+
+    this.closeAllPanels();
 
     const arButton = document.createElement('button');
     arButton.setAttribute('slot', 'ar-button');
@@ -333,6 +341,14 @@ class FigniViewerElement extends ModelViewerElement {
     if (this.initCameraButton) {
       this.initCameraButton.style.display = 'block';
     }
+  }
+
+  closeAllPanels(excludePanels = []) {
+    this.panels.forEach((panel) => {
+      if (!excludePanels.includes(panel)) {
+        panel.classList.add('panel-hide');
+      }
+    });
   }
 
   async downloadScreenshot() {

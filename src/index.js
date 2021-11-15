@@ -163,15 +163,15 @@ class FigniViewerElement extends ModelViewerElement {
       }
       [slot^="hotspot"] {
         display: block;
-        min-width: 1.5rem;
-        min-height: 1.5rem;
+        min-width: 1.25rem;
+        min-height: 1.25rem;
         padding: 0.25rem 0.5rem;
         border-radius: 1rem;
         border: none;
         background-color: rgba(255, 115, 59, 1.0);
         font-size: 0.75rem;
         color: white;
-        outline: 0.3rem solid rgba(255, 115, 59, 0.3);
+        box-shadow: 0 0 0 0.3rem rgba(255, 115, 59, 0.3);
         box-sizing: border-box;
         --min-hotspot-opacity: 0;
         backdrop-filter: blur(3px);

@@ -14,6 +14,7 @@ class FigniViewerElement extends ModelViewerElement {
   modelTag;
 
   seed;
+  loop = false;
 
   initCameraButton;
   panels = [];
@@ -83,7 +84,7 @@ class FigniViewerElement extends ModelViewerElement {
       // Animation
       if (hotspot.getAttribute('anime') == '') {
         hotspot.addEventListener('click', () => {
-          if (window.getComputedStyle(hotspot).opacity == 1 && this.paused) {
+          if (window.getComputedStyle(hotspot).opacity == 1 && (this.loop || this.paused)) {
             const anime = hotspot.getAttribute('clip');
             const lenth = Number(hotspot.getAttribute('length')) || 0;
             if (this.availableAnimations.includes(anime)) {
@@ -96,6 +97,7 @@ class FigniViewerElement extends ModelViewerElement {
                 func();
               }
               if (lenth > 0) {
+                this.loop = false;
                 setTimeout(() => {
                   this.pause();
                   const f = hotspot.getAttribute('onend');
@@ -104,6 +106,8 @@ class FigniViewerElement extends ModelViewerElement {
                     func();
                   }
                 }, lenth);
+              } else {
+                this.loop = true;
               }
             }
           }

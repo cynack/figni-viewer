@@ -38,7 +38,7 @@ module.exports = () => {
       mode: 'development',
       output: {
         filename: 'figni-viewer.js',
-        path: path.resolve(__dirname, '.test'),
+        path: path.resolve(__dirname, 'test'),
       },
       plugins: [
         new HtmlWebpackPlugin({

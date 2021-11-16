@@ -13,7 +13,7 @@
     "ar"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "http-server ./test",
     "build": "webpack --mode=production --node-env=production",
     "build:dev": "webpack --mode=development",
     "build:prod": "webpack --mode=production --node-env=production",
@@ -43,6 +43,7 @@
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^8.3.0",
     "html-webpack-plugin": "^5.5.0",
+    "http-server": "^14.0.0",
     "prettier": "^2.4.1",
     "sass": "^1.43.4",
     "sass-loader": "^12.2.0",

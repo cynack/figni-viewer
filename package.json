@@ -13,7 +13,7 @@
     "ar"
   ],
   "scripts": {
-    "test": "http-server ./test",
+    "test": "http-server ./test -p 9100",
     "build": "webpack --mode=production --node-env=production",
     "build:dev": "webpack --mode=development",
     "build:prod": "webpack --mode=production --node-env=production",

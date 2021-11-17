@@ -48,6 +48,7 @@ class FigniViewerElement extends ModelViewerElement {
     this.interactionPrompt = 'none'
     this.initCameraTarget = this.getAttribute('target') || this.initCameraTarget
     this.initCameraOrbit = this.getAttribute('orbit') || this.initCameraOrbit
+    this.state = this.getAttribute('state') || this.state
     this.setCameraTarget(this.initCameraTarget)
     this.setCameraOrbit(this.initCameraOrbit)
     this.style.setProperty('--poster-color', 'transparent')

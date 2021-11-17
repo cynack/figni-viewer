@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- *hotspot*の表示非表示を変化させる`to-state`属性を追加
+- *hotspot*の表示非表示を決定する`visible`属性を追加
+
 ### Changed
 
 ### Deprecated

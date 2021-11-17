@@ -15,6 +15,8 @@ class FigniViewerElement extends ModelViewerElement {
 
   seed;
   loop = false;
+  initCameraTarget = 'auto auto auto';
+  initCameraOrbit = '0deg 75deg 105%'
 
   initCameraButton;
   panels = [];
@@ -41,6 +43,10 @@ class FigniViewerElement extends ModelViewerElement {
     this.arScale = 'fixed';
     this.arPlacement = 'floor';
     this.interactionPrompt = 'none';
+    this.initCameraTarget = this.getAttribute('target') || this.initCameraTarget;
+    this.initCameraOrbit = this.getAttribute('orbit') || this.initCameraOrbit;
+    this.setCameraTarget(this.initCameraTarget);
+    this.setCameraOrbit(this.initCameraOrbit);
 
     // CSS
     this.style.setProperty('--poster-color', 'transparent');
@@ -64,8 +70,8 @@ class FigniViewerElement extends ModelViewerElement {
     this.initCameraButton.id = `init-camera-button-${this.seed}`;
     this.initCameraButton.innerHTML = 'カメラ位置を戻す';
     this.initCameraButton.addEventListener('click', () => {
-      this.setCameraOrbit('auto auto auto');
-      this.setCameraTarget('auto auto auto');
+      this.setCameraTarget(this.initCameraTarget);
+      this.setCameraOrbit(this.initCameraOrbit);
       this.initCameraButton.style.display = 'none';
       this.closeAllPanels();
     });
@@ -77,8 +83,8 @@ class FigniViewerElement extends ModelViewerElement {
     hotspots.forEach((hotspot) => {
       this.updateHotspot({
         name: hotspot.getAttribute('slot'),
-        position: hotspot.getAttribute('position'),
-        normal: hotspot.getAttribute('normal'),
+        position: hotspot.getAttribute('position') || '0m 0m 0m',
+        normal: hotspot.getAttribute('normal') || '0m 1m 0m',
       });
 
       // Animation
@@ -117,11 +123,11 @@ class FigniViewerElement extends ModelViewerElement {
       if (hotspot.getAttribute('closeup') == '') {
         hotspot.addEventListener('click', () => {
           if (window.getComputedStyle(hotspot).opacity == 1) {
-            const target = hotspot.getAttribute('target') || hotspot.getAttribute('position') || 'auto auto auto';
-            const orbit = hotspot.getAttribute('orbit') || 'auto auto auto';
+            const target = hotspot.getAttribute('target') || hotspot.getAttribute('position') || '0m 0m 0m';
+            const orbit = hotspot.getAttribute('orbit') || this.initCameraOrbit;
             if ((this.cameraTarget == target) && (this.cameraOrbit == orbit)) {
-              this.setCameraOrbit('auto auto auto');
-              this.setCameraTarget('auto auto auto');
+              this.setCameraOrbit(this.initCameraTarget);
+              this.setCameraTarget(this.initCameraOrbit);
               this.initCameraButton.style.display = 'none';
             } else {
               this.setCameraTarget(target);
@@ -130,9 +136,9 @@ class FigniViewerElement extends ModelViewerElement {
           }
         });
       }
-      this.panels.push(...hotspot.querySelectorAll('[slot="panel"]'));
+      this.panels.push(...hotspot.querySelectorAll('[slot^="panel"]'));
       hotspot.addEventListener('click', () => {
-        const panels = hotspot.querySelectorAll('[slot="panel"]');
+        const panels = hotspot.querySelectorAll('[slot^="panel"]');
         if (panels.length > 0) {
           panels.forEach((panel) => {
             panel.classList.toggle('panel-hide');
@@ -179,6 +185,14 @@ class FigniViewerElement extends ModelViewerElement {
         box-sizing: border-box;
         --min-hotspot-opacity: 0;
         backdrop-filter: blur(3px);
+      }
+      [slot^="panel"] {
+        background-color: #f1f2f7;
+        position: absolute;
+        right: 1.5rem;
+        bottom: 1.5rem;
+        border-radius: 0.5rem;
+        padding: 0.5rem;
       }
       #init-camera-button-${this.seed} {
         position: absolute;

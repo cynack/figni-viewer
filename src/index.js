@@ -7,6 +7,9 @@ class FigniViewerElement extends ModelViewerElement {
   static #MODEL_ATTRIBUTE = ['item-id', 'token', 'model-tag']
   static #TOOL_ATTRIBUTE = ['screenshot']
 
+  static #DEFAULT_HOTSPOT_POSITION = '0m 0m 0m'
+  static #DEFAULT_HOTSPOT_NORMAL = '0m 1m 0m'
+
   itemId
   token
   modelTag
@@ -64,8 +67,12 @@ class FigniViewerElement extends ModelViewerElement {
     hotspots.forEach((hotspot) => {
       this.updateHotspot({
         name: hotspot.getAttribute('slot'),
-        position: hotspot.getAttribute('position') || '0m 0m 0m',
-        normal: hotspot.getAttribute('normal') || '0m 1m 0m',
+        position:
+          hotspot.getAttribute('position') ||
+          FigniViewerElement.#DEFAULT_HOTSPOT_POSITION,
+        normal:
+          hotspot.getAttribute('normal') ||
+          FigniViewerElement.#DEFAULT_HOTSPOT_NORMAL,
       })
 
       // Animation
@@ -110,7 +117,7 @@ class FigniViewerElement extends ModelViewerElement {
             const target =
               hotspot.getAttribute('target') ||
               hotspot.getAttribute('position') ||
-              '0m 0m 0m'
+              FigniViewerElement.#DEFAULT_HOTSPOT_POSITION
             const orbit = hotspot.getAttribute('orbit') || this.initCameraOrbit
             if (this.cameraTarget == target && this.cameraOrbit == orbit) {
               this.setCameraOrbit(this.initCameraTarget)

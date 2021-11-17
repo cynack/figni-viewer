@@ -17,10 +17,12 @@ class FigniViewerElement extends ModelViewerElement {
   initCameraTarget = 'auto auto auto'
   initCameraOrbit = '0deg 75deg 105%'
   loop = false
+  state = ''
 
   #seed
   #initCameraButton
   #panels = []
+  #hotspots = []
 
   constructor() {
     super()
@@ -64,6 +66,7 @@ class FigniViewerElement extends ModelViewerElement {
 
     this.animationCrossfadeDuration = 0
     const hotspots = this.querySelectorAll('button[slot^="hotspot"]')
+    this.#hotspots.push(...hotspots)
     hotspots.forEach((hotspot) => {
       this.updateHotspot({
         name: hotspot.getAttribute('slot'),
@@ -130,6 +133,15 @@ class FigniViewerElement extends ModelViewerElement {
           }
         })
       }
+      // Visible
+      if (hotspot.getAttribute('to-state') != null) {
+        const state = hotspot.getAttribute('to-state')
+        hotspot.addEventListener('click', () => {
+          if (window.getComputedStyle(hotspot).opacity == 1) {
+            this.updateState(state)
+          }
+        })
+      }
       this.#panels.push(...hotspot.querySelectorAll('[slot^="panel"]'))
       hotspot.addEventListener('click', () => {
         const panels = hotspot.querySelectorAll('[slot^="panel"]')
@@ -142,6 +154,7 @@ class FigniViewerElement extends ModelViewerElement {
       })
     })
 
+    this.updateState(this.state)
     this.closeAllPanels()
 
     const arButton = document.createElement('button')
@@ -179,6 +192,9 @@ class FigniViewerElement extends ModelViewerElement {
         box-sizing: border-box;
         --min-hotspot-opacity: 0;
         backdrop-filter: blur(3px);
+      }
+      .hotspot-hide {
+        opacity: var(--min-hotspot-opacity);
       }
       [slot^="panel"] {
         background-color: #f1f2f7;
@@ -369,6 +385,21 @@ class FigniViewerElement extends ModelViewerElement {
     this.#panels.forEach((panel) => {
       if (!excludePanels.includes(panel)) {
         panel.classList.add('panel-hide')
+      }
+    })
+  }
+
+  updateState(state) {
+    this.state = state
+    this.#hotspots.forEach((hotspot) => {
+      const visible = hotspot.getAttribute('visible')
+      console.log(visible)
+      if (visible) {
+        if (visible == this.state) {
+          hotspot.classList.remove('hotspot-hide')
+        } else {
+          hotspot.classList.add('hotspot-hide')
+        }
       }
     })
   }

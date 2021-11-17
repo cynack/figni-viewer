@@ -13,11 +13,17 @@
         token="5UTBSHOXODAj2QLo"
         screenshot
       >
-        <button id="test" slot="hotspot-sample" position="auto auto auto">
-          <div slot="panel-aaa" class="panel">
-            <span>これはサンプルです</span>
-          </div>
-        </button>
+        <button
+          slot="hotspot-sample1"
+          position="-0.3m 1.2m 0m"
+          to-state="s1"
+        ></button>
+        <button
+          slot="hotspot-sample2"
+          position=" 0.3m 1.2m 0m"
+          to-state="s0"
+          visible="s1"
+        ></button>
         <button
           id="open"
           slot="hotspot-open"
@@ -86,23 +92,6 @@
     <style>
       .first-hide {
         display: none;
-      }
-      .hide {
-        animation: fade-out 0.5s ease-in 0s forwards;
-      }
-      @keyframes fade-out {
-        0% {
-          opacity: 1;
-          display: block;
-        }
-        99% {
-          opacity: 0;
-          display: block;
-        }
-        100% {
-          opacity: 0;
-          display: none;
-        }
       }
       #view {
         width: 100%;

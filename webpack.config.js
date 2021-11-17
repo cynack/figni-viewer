@@ -1,8 +1,9 @@
 // Generated using webpack-cli https://github.com/webpack/webpack-cli
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
 
-const isProduction = process.env.NODE_ENV == 'production';
+const isProduction = process.env.NODE_ENV == 'production'
 
 const config = {
   entry: ['@babel/polyfill', './src/index.js'],
@@ -12,17 +13,29 @@ const config = {
     port: 9201,
   },
   module: {
-    rules: [{
-      test: /\.(js|jsx)$/i,
-      use: [{
-        loader: 'babel-loader',
-        options: {
-          plugins: ['@babel/plugin-transform-runtime'],
-        },
-      }, ],
-    }, ],
+    rules: [
+      {
+        test: /\.(js|jsx)$/i,
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              plugins: ['@babel/plugin-transform-runtime'],
+            },
+          },
+        ],
+      },
+    ],
   },
-};
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        extractComments: false,
+      }),
+    ],
+  },
+}
 
 module.exports = () => {
   if (isProduction) {
@@ -32,7 +45,7 @@ module.exports = () => {
         filename: 'figni-viewer.min.js',
         path: path.resolve(__dirname, 'dist'),
       },
-    });
+    })
   } else {
     Object.assign(config, {
       mode: 'development',
@@ -45,7 +58,7 @@ module.exports = () => {
           template: 'index.html',
         }),
       ],
-    });
+    })
   }
-  return config;
-};
+  return config
+}

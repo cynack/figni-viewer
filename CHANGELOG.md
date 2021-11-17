@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- *hotspot*のスタイルを上書きできるように変更
+- *panel*のスタイルを上書きできるように変更
+- カメラを初期位置に戻すボタンのスタイルを上書きできるように変更
+- スクリーンショットボタンのスタイルを上書きできるように変更
+
 ### Deprecated
 
 ### Removed

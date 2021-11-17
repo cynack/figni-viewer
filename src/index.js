@@ -1,157 +1,144 @@
-import {
-  ModelViewerElement
-} from '@google/model-viewer';
-import axios from 'axios';
+import { ModelViewerElement } from '@google/model-viewer'
+import axios from 'axios'
 
-const API_BASE = 'https://api.stg.figni.store/api';
+const API_BASE = 'https://api.stg.figni.store/api'
 
 class FigniViewerElement extends ModelViewerElement {
-  static MODEL_ATTRIBUTE = ['item-id', 'token', 'model-tag'];
-  static TOOL_ATTRIBUTE = ['screenshot'];
+  static #MODEL_ATTRIBUTE = ['item-id', 'token', 'model-tag']
+  static #TOOL_ATTRIBUTE = ['screenshot']
 
-  itemId;
-  token;
-  modelTag;
+  itemId
+  token
+  modelTag
 
-  seed;
-  loop = false;
-  initCameraTarget = 'auto auto auto';
+  initCameraTarget = 'auto auto auto'
   initCameraOrbit = '0deg 75deg 105%'
+  loop = false
 
-  initCameraButton;
-  panels = [];
+  #seed
+  #initCameraButton
+  #panels = []
 
   constructor() {
-    super();
+    super()
 
-    this.seed = Math.random().toString(36).substring(7);
+    this.#seed = Math.random().toString(36).substring(7)
   }
 
   async connectedCallback() {
-    super.connectedCallback();
+    super.connectedCallback()
 
     // 値の取得
-    this.itemId = this.getAttribute('item-id');
-    this.token = this.getAttribute('token');
-    this.modelTag = this.getAttribute('model-tag') || '';
+    this.itemId = this.getAttribute('item-id')
+    this.token = this.getAttribute('token')
+    this.modelTag = this.getAttribute('model-tag') || ''
 
     // Attribute
-    this.loading = 'eager';
-    this.cameraControls = true;
-    this.ar = true;
-    this.arModes = 'webxr scene-viewer quick-look';
-    this.arScale = 'fixed';
-    this.arPlacement = 'floor';
-    this.interactionPrompt = 'none';
-    this.initCameraTarget = this.getAttribute('target') || this.initCameraTarget;
-    this.initCameraOrbit = this.getAttribute('orbit') || this.initCameraOrbit;
-    this.setCameraTarget(this.initCameraTarget);
-    this.setCameraOrbit(this.initCameraOrbit);
+    this.loading = 'eager'
+    this.cameraControls = true
+    this.ar = true
+    this.arModes = 'webxr scene-viewer quick-look'
+    this.arScale = 'fixed'
+    this.arPlacement = 'floor'
+    this.interactionPrompt = 'none'
+    this.initCameraTarget = this.getAttribute('target') || this.initCameraTarget
+    this.initCameraOrbit = this.getAttribute('orbit') || this.initCameraOrbit
+    this.setCameraTarget(this.initCameraTarget)
+    this.setCameraOrbit(this.initCameraOrbit)
+    this.style.setProperty('--poster-color', 'transparent')
 
-    // CSS
-    this.style.setProperty('--poster-color', 'transparent');
+    this.#initCameraButton = document.createElement('button')
+    this.#initCameraButton.id = `init-camera-button-${this.#seed}`
+    this.#initCameraButton.innerHTML = 'カメラ位置を戻す'
+    this.#initCameraButton.addEventListener('click', () => {
+      this.setCameraTarget(this.initCameraTarget)
+      this.setCameraOrbit(this.initCameraOrbit)
+      this.#initCameraButton.style.display = 'none'
+      this.closeAllPanels()
+    })
+    this.#initCameraButton.style.display = 'none'
+    this.appendChild(this.#initCameraButton)
 
-    // Parts
-    // const pb = this.shadowRoot.querySelector('[part="default-progress-bar"]');
-    // pb.style.backgroundColor = '#FF4733';
-
-    // Properties
-    // console.log(this.canActivateAR);
-
-    // Methods
-    // console.log(this.getDimensions());
-
-    // Events
-    // this.addEventListener('camera-change', (eve) => {
-    //   console.log(eve.detail);
-    // });
-
-    this.initCameraButton = document.createElement('button');
-    this.initCameraButton.id = `init-camera-button-${this.seed}`;
-    this.initCameraButton.innerHTML = 'カメラ位置を戻す';
-    this.initCameraButton.addEventListener('click', () => {
-      this.setCameraTarget(this.initCameraTarget);
-      this.setCameraOrbit(this.initCameraOrbit);
-      this.initCameraButton.style.display = 'none';
-      this.closeAllPanels();
-    });
-    this.initCameraButton.style.display = 'none';
-    this.appendChild(this.initCameraButton);
-
-    this.animationCrossfadeDuration = 0;
-    const hotspots = this.querySelectorAll('button[slot^="hotspot"]');
+    this.animationCrossfadeDuration = 0
+    const hotspots = this.querySelectorAll('button[slot^="hotspot"]')
     hotspots.forEach((hotspot) => {
       this.updateHotspot({
         name: hotspot.getAttribute('slot'),
         position: hotspot.getAttribute('position') || '0m 0m 0m',
         normal: hotspot.getAttribute('normal') || '0m 1m 0m',
-      });
+      })
 
       // Animation
       if (hotspot.getAttribute('anime') == '') {
         hotspot.addEventListener('click', () => {
-          if (window.getComputedStyle(hotspot).opacity == 1 && (this.loop || this.paused)) {
-            const anime = hotspot.getAttribute('clip');
-            const lenth = Number(hotspot.getAttribute('length')) || 0;
+          if (
+            window.getComputedStyle(hotspot).opacity == 1 &&
+            (this.loop || this.paused)
+          ) {
+            const anime = hotspot.getAttribute('clip')
+            const lenth = Number(hotspot.getAttribute('length')) || 0
             if (this.availableAnimations.includes(anime)) {
-              this.animationName = anime;
-              this.currentTime = 0;
-              this.play();
-              const f = hotspot.getAttribute('onstart');
+              this.animationName = anime
+              this.currentTime = 0
+              this.play()
+              const f = hotspot.getAttribute('onstart')
               if (f) {
-                const func = new Function(f);
-                func();
+                const func = new Function(f)
+                func()
               }
               if (lenth > 0) {
-                this.loop = false;
+                this.loop = false
                 setTimeout(() => {
-                  this.pause();
-                  const f = hotspot.getAttribute('onend');
+                  this.pause()
+                  const f = hotspot.getAttribute('onend')
                   if (f) {
-                    const func = new Function(f);
-                    func();
+                    const func = new Function(f)
+                    func()
                   }
-                }, lenth);
+                }, lenth)
               } else {
-                this.loop = true;
+                this.loop = true
               }
             }
           }
-        });
+        })
       }
       // Closeup
       if (hotspot.getAttribute('closeup') == '') {
         hotspot.addEventListener('click', () => {
           if (window.getComputedStyle(hotspot).opacity == 1) {
-            const target = hotspot.getAttribute('target') || hotspot.getAttribute('position') || '0m 0m 0m';
-            const orbit = hotspot.getAttribute('orbit') || this.initCameraOrbit;
-            if ((this.cameraTarget == target) && (this.cameraOrbit == orbit)) {
-              this.setCameraOrbit(this.initCameraTarget);
-              this.setCameraTarget(this.initCameraOrbit);
-              this.initCameraButton.style.display = 'none';
+            const target =
+              hotspot.getAttribute('target') ||
+              hotspot.getAttribute('position') ||
+              '0m 0m 0m'
+            const orbit = hotspot.getAttribute('orbit') || this.initCameraOrbit
+            if (this.cameraTarget == target && this.cameraOrbit == orbit) {
+              this.setCameraOrbit(this.initCameraTarget)
+              this.setCameraTarget(this.initCameraOrbit)
+              this.#initCameraButton.style.display = 'none'
             } else {
-              this.setCameraTarget(target);
-              this.setCameraOrbit(orbit);
+              this.setCameraTarget(target)
+              this.setCameraOrbit(orbit)
             }
           }
-        });
+        })
       }
-      this.panels.push(...hotspot.querySelectorAll('[slot^="panel"]'));
+      this.#panels.push(...hotspot.querySelectorAll('[slot^="panel"]'))
       hotspot.addEventListener('click', () => {
-        const panels = hotspot.querySelectorAll('[slot^="panel"]');
+        const panels = hotspot.querySelectorAll('[slot^="panel"]')
         if (panels.length > 0) {
           panels.forEach((panel) => {
-            panel.classList.toggle('panel-hide');
-          });
-          this.closeAllPanels(Array.from(panels));
+            panel.classList.toggle('panel-hide')
+          })
+          this.closeAllPanels(Array.from(panels))
         }
-      });
-    });
+      })
+    })
 
-    this.closeAllPanels();
+    this.closeAllPanels()
 
-    const arButton = document.createElement('button');
-    arButton.setAttribute('slot', 'ar-button');
+    const arButton = document.createElement('button')
+    arButton.setAttribute('slot', 'ar-button')
     arButton.innerHTML = `
       <svg viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M8.50002 8.62017C12.6692 8.62017 16.1338 9.74602 16.8614 11.2244L11.9069 1.12585C11.5836 0.45489 10.8906 0 10.0822 0C9.43548 0 8.86958 0.295679 8.50002 0.761941L0.358032 10.8946C1.40898 9.57544 4.65423 8.62017 8.50002 8.62017Z" fill="#FF733B" />
@@ -160,11 +147,11 @@ class FigniViewerElement extends ModelViewerElement {
         <path d="M9.14678 11.8044C10.9327 11.8044 12.3805 10.3788 12.3805 8.62016C12.3805 6.86156 10.9327 5.43593 9.14678 5.43593C7.36086 5.43593 5.91309 6.86156 5.91309 8.62016C5.91309 10.3788 7.36086 11.8044 9.14678 11.8044Z" fill="#FFCE3B" />
       </svg>
       <span>目の前に置く</span>
-    `;
-    arButton.classList.add('ar-button');
-    this.appendChild(arButton);
+    `
+    arButton.classList.add('ar-button')
+    this.appendChild(arButton)
 
-    const style = document.createElement('style');
+    const style = document.createElement('style')
     style.textContent = `
       @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
       figni-viewer * {
@@ -194,7 +181,7 @@ class FigniViewerElement extends ModelViewerElement {
         border-radius: 0.5rem;
         padding: 0.5rem;
       }
-      #init-camera-button-${this.seed} {
+      #init-camera-button-${this.#seed} {
         position: absolute;
         display: flex;
         -webkit-box-align: center;
@@ -243,7 +230,7 @@ class FigniViewerElement extends ModelViewerElement {
         opacity: 0;
         display: none;
       }
-      #download-screenshot-button-${this.seed} {
+      #download-screenshot-button-${this.#seed} {
         position: absolute;
         display: flex;
         -webkit-box-align: center;
@@ -261,65 +248,73 @@ class FigniViewerElement extends ModelViewerElement {
         background-color: white;
         z-index: 9997;
       }
-      #download-screenshot-button-${this.seed} svg {
+      #download-screenshot-button-${this.#seed} svg {
         width: 1.25rem;
         height: 1.25rem;
         transform: translateX(-0.5px) translateY(-0.5px);
       }
-    `;
-    this.appendChild(style);
-
+    `
+    this.appendChild(style)
 
     // * デバッグ用
     if (this.getAttribute('debug-hotspot') == '') {
-      this.addEventListener('mousedown', (eve) => {
-        const hit = this.positionAndNormalFromPoint(eve.clientX, eve.clientY);
-        console.log(hit);
-      }, true);
+      this.addEventListener(
+        'mousedown',
+        (eve) => {
+          const hit = this.positionAndNormalFromPoint(eve.clientX, eve.clientY)
+          console.log(hit)
+        },
+        true
+      )
     }
   }
 
   static get observedAttributes() {
     return super.observedAttributes.concat(
-      FigniViewerElement.MODEL_ATTRIBUTE,
-      FigniViewerElement.TOOL_ATTRIBUTE,
-    );
+      FigniViewerElement.#MODEL_ATTRIBUTE,
+      FigniViewerElement.#TOOL_ATTRIBUTE
+    )
   }
 
   async attributeChangedCallback(name, oldValue, newValue) {
-    super.attributeChangedCallback(name, oldValue, newValue);
+    super.attributeChangedCallback(name, oldValue, newValue)
     if (oldValue != newValue) {
-      if (FigniViewerElement.MODEL_ATTRIBUTE.includes(name)) {
+      if (FigniViewerElement.#MODEL_ATTRIBUTE.includes(name)) {
         switch (name) {
           case 'item-id':
-            this.itemId = newValue;
-            break;
+            this.itemId = newValue
+            break
           case 'token':
-            this.token = newValue;
-            break;
+            this.token = newValue
+            break
           case 'model-tag':
-            this.modelTag = newValue;
-            break;
+            this.modelTag = newValue
+            break
         }
-        await this.requestModel();
-      } else if (FigniViewerElement.TOOL_ATTRIBUTE.includes(name)) {
+        await this.requestModel()
+      } else if (FigniViewerElement.#TOOL_ATTRIBUTE.includes(name)) {
         switch (name) {
           case 'screenshot': {
             if (newValue == '') {
-              let downloadScreenshotButton = document.getElementById(`download-screenshot-button-${this.seed}`);
+              let downloadScreenshotButton = document.getElementById(
+                `download-screenshot-button-${this.#seed}`
+              )
               if (!downloadScreenshotButton) {
-                downloadScreenshotButton = document.createElement('button');
-                downloadScreenshotButton.id = `download-screenshot-button-${this.seed}`;
-                downloadScreenshotButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><defs><style>.figni-viewer-screenshot{fill:#8f94a9;}</style></defs><path class="figni-viewer-screenshot" d="M14.61,0H5.39A5.4,5.4,0,0,0,0,5.39v9.22A5.4,5.4,0,0,0,5.39,20h9.22A5.4,5.4,0,0,0,20,14.61V5.39A5.4,5.4,0,0,0,14.61,0ZM5.39,2.58h9.22a2.81,2.81,0,0,1,2.81,2.81v6L13.63,7.64a1.12,1.12,0,0,0-1.57,0L8.54,11.16a1.11,1.11,0,0,1-1.58,0,1.12,1.12,0,0,0-1.57,0L2.58,14V5.39A2.81,2.81,0,0,1,5.39,2.58Z"/><circle class="figni-viewer-screenshot" cx="5.88" cy="5.88" r="1.92"/></svg>'
+                downloadScreenshotButton = document.createElement('button')
+                downloadScreenshotButton.id = `download-screenshot-button-${
+                  this.#seed
+                }`
+                downloadScreenshotButton.innerHTML =
+                  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><defs><style>.figni-viewer-screenshot{fill:#8f94a9;}</style></defs><path class="figni-viewer-screenshot" d="M14.61,0H5.39A5.4,5.4,0,0,0,0,5.39v9.22A5.4,5.4,0,0,0,5.39,20h9.22A5.4,5.4,0,0,0,20,14.61V5.39A5.4,5.4,0,0,0,14.61,0ZM5.39,2.58h9.22a2.81,2.81,0,0,1,2.81,2.81v6L13.63,7.64a1.12,1.12,0,0,0-1.57,0L8.54,11.16a1.11,1.11,0,0,1-1.58,0,1.12,1.12,0,0,0-1.57,0L2.58,14V5.39A2.81,2.81,0,0,1,5.39,2.58Z"/><circle class="figni-viewer-screenshot" cx="5.88" cy="5.88" r="1.92"/></svg>'
                 downloadScreenshotButton.addEventListener('click', () => {
-                  this.downloadScreenshot();
-                });
-                this.appendChild(downloadScreenshotButton);
+                  this.downloadScreenshot()
+                })
+                this.appendChild(downloadScreenshotButton)
               }
             } else {
-              downloadScreenshotButton.remove();
+              downloadScreenshotButton.remove()
             }
-            break;
+            break
           }
         }
       }
@@ -328,58 +323,60 @@ class FigniViewerElement extends ModelViewerElement {
 
   async requestModel() {
     if (this.itemId && this.token) {
-      const tag = this.modelTag ? `?tag=${this.modelTag}` : '';
+      const tag = this.modelTag ? `?tag=${this.modelTag}` : ''
       const res = await axios.get(
-        `${API_BASE}/item/${this.itemId}/model_search${tag}`, {
+        `${API_BASE}/item/${this.itemId}/model_search${tag}`,
+        {
           headers: {
-            'accept': 'application/json',
+            accept: 'application/json',
             'X-Figni-Client-Token': this.token,
           },
-        });
-      const glb = res.data.filter((item) => item.format == 'glb');
+        }
+      )
+      const glb = res.data.filter((item) => item.format == 'glb')
       if (glb.length > 0) {
-        this.src = glb[0].url;
+        this.src = glb[0].url
       }
-      const usdz = res.data.filter((item) => item.format == 'usdz');
+      const usdz = res.data.filter((item) => item.format == 'usdz')
       if (usdz.length > 0) {
-        this.iosSrc = usdz[0].url;
+        this.iosSrc = usdz[0].url
       }
     }
   }
 
   setCameraOrbit(orbit) {
-    this.cameraOrbit = orbit;
-    if (this.initCameraButton) {
-      this.initCameraButton.style.display = 'block';
+    this.cameraOrbit = orbit
+    if (this.#initCameraButton) {
+      this.#initCameraButton.style.display = 'block'
     }
   }
 
   setCameraTarget(target) {
-    this.cameraTarget = target;
-    if (this.initCameraButton) {
-      this.initCameraButton.style.display = 'block';
+    this.cameraTarget = target
+    if (this.#initCameraButton) {
+      this.#initCameraButton.style.display = 'block'
     }
   }
 
   closeAllPanels(excludePanels = []) {
-    this.panels.forEach((panel) => {
+    this.#panels.forEach((panel) => {
       if (!excludePanels.includes(panel)) {
-        panel.classList.add('panel-hide');
+        panel.classList.add('panel-hide')
       }
-    });
+    })
   }
 
   async downloadScreenshot() {
     const blob = await this.toBlob({
-      idealAspect: true
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'model.png';
-    a.click();
-    URL.revokeObjectURL(url);
+      idealAspect: true,
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'model.png'
+    a.click()
+    URL.revokeObjectURL(url)
   }
 }
 
-customElements.define('figni-viewer', FigniViewerElement);
+customElements.define('figni-viewer', FigniViewerElement)

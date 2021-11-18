@@ -362,7 +362,7 @@ class FigniViewerElement extends ModelViewerElement {
           headers: {
             accept: 'application/json',
             'X-Figni-Client-Token': this.token,
-            'X-Figni-Client-Version': VERSION,
+            // 'X-Figni-Client-Version': VERSION,
           },
         }
       )
@@ -426,7 +426,7 @@ class FigniViewerElement extends ModelViewerElement {
   }
 
   #distachEvent(string) {
-    return new Function(`"use strict;"return (${string})`)()
+    Function(string)()
   }
 }
 

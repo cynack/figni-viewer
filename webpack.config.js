@@ -36,6 +36,11 @@ const config = {
       }),
     ],
   },
+  plugins: [
+    new webpack.DefinePlugin({
+      VERSION: JSON.stringify(process.env.VERSION),
+    }),
+  ],
 }
 
 module.exports = () => {
@@ -46,7 +51,6 @@ module.exports = () => {
         filename: 'figni-viewer.min.js',
         path: path.resolve(__dirname, 'dist'),
       },
-      plugins: [new webpack.EnvironmentPlugin(['VERSION'])],
     })
   } else {
     Object.assign(config, {
@@ -55,14 +59,11 @@ module.exports = () => {
         filename: 'figni-viewer.js',
         path: path.resolve(__dirname, 'test'),
       },
-      plugins: [
+      plugins: config.plugins.concat([
         new HtmlWebpackPlugin({
           template: 'index.html',
         }),
-        new webpack.DefinePlugin({
-          VERSION: JSON.stringify('development'),
-        }),
-      ],
+      ]),
     })
   }
   return config

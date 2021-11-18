@@ -7,6 +7,9 @@ class FigniViewerElement extends ModelViewerElement {
   static #MODEL_ATTRIBUTE = ['item-id', 'token', 'model-tag']
   static #TOOL_ATTRIBUTE = ['screenshot']
 
+  static #DEFAULT_HOTSPOT_POSITION = '0m 0m 0m'
+  static #DEFAULT_HOTSPOT_NORMAL = '0m 1m 0m'
+
   itemId
   token
   modelTag
@@ -14,10 +17,12 @@ class FigniViewerElement extends ModelViewerElement {
   initCameraTarget = 'auto auto auto'
   initCameraOrbit = '0deg 75deg 105%'
   loop = false
+  state = ''
 
   #seed
   #initCameraButton
   #panels = []
+  #hotspots = []
 
   constructor() {
     super()
@@ -43,6 +48,7 @@ class FigniViewerElement extends ModelViewerElement {
     this.interactionPrompt = 'none'
     this.initCameraTarget = this.getAttribute('target') || this.initCameraTarget
     this.initCameraOrbit = this.getAttribute('orbit') || this.initCameraOrbit
+    this.state = this.getAttribute('state') || this.state
     this.setCameraTarget(this.initCameraTarget)
     this.setCameraOrbit(this.initCameraOrbit)
     this.style.setProperty('--poster-color', 'transparent')
@@ -61,56 +67,70 @@ class FigniViewerElement extends ModelViewerElement {
 
     this.animationCrossfadeDuration = 0
     const hotspots = this.querySelectorAll('button[slot^="hotspot"]')
+    this.#hotspots.push(...hotspots)
     hotspots.forEach((hotspot) => {
       this.updateHotspot({
         name: hotspot.getAttribute('slot'),
-        position: hotspot.getAttribute('position') || '0m 0m 0m',
-        normal: hotspot.getAttribute('normal') || '0m 1m 0m',
+        position:
+          hotspot.getAttribute('position') ||
+          FigniViewerElement.#DEFAULT_HOTSPOT_POSITION,
+        normal:
+          hotspot.getAttribute('normal') ||
+          FigniViewerElement.#DEFAULT_HOTSPOT_NORMAL,
       })
 
-      // Animation
-      if (hotspot.getAttribute('anime') == '') {
+      const isAnime = hotspot.getAttribute('anime') == ''
+      const isCloseup = hotspot.getAttribute('closeup') == ''
+      const isVisible = hotspot.getAttribute('to-state') != null
+
+      if (isAnime) {
         hotspot.addEventListener('click', () => {
           if (
             window.getComputedStyle(hotspot).opacity == 1 &&
             (this.loop || this.paused)
           ) {
-            const anime = hotspot.getAttribute('clip')
+            const clip = hotspot.getAttribute('clip')
             const lenth = Number(hotspot.getAttribute('length')) || 0
-            if (this.availableAnimations.includes(anime)) {
-              this.animationName = anime
+            if (this.availableAnimations.includes(clip)) {
+              this.animationName = clip
               this.currentTime = 0
               this.play()
               const f = hotspot.getAttribute('onstart')
               if (f) {
-                const func = new Function(f)
-                func()
+                this.#evalEvent(f)
               }
               if (lenth > 0) {
                 this.loop = false
+                if (isVisible) {
+                  this.updateState(`temp-${this.#seed}`)
+                }
                 setTimeout(() => {
                   this.pause()
                   const f = hotspot.getAttribute('onend')
                   if (f) {
-                    const func = new Function(f)
-                    func()
+                    this.#evalEvent(f)
+                  }
+                  if (isVisible) {
+                    this.updateState(hotspot.getAttribute('to-state'))
                   }
                 }, lenth)
               } else {
                 this.loop = true
+                if (isVisible) {
+                  this.updateState(hotspot.getAttribute('to-state'))
+                }
               }
             }
           }
         })
       }
-      // Closeup
-      if (hotspot.getAttribute('closeup') == '') {
+      if (isCloseup) {
         hotspot.addEventListener('click', () => {
           if (window.getComputedStyle(hotspot).opacity == 1) {
             const target =
               hotspot.getAttribute('target') ||
               hotspot.getAttribute('position') ||
-              '0m 0m 0m'
+              FigniViewerElement.#DEFAULT_HOTSPOT_POSITION
             const orbit = hotspot.getAttribute('orbit') || this.initCameraOrbit
             if (this.cameraTarget == target && this.cameraOrbit == orbit) {
               this.setCameraOrbit(this.initCameraTarget)
@@ -120,6 +140,14 @@ class FigniViewerElement extends ModelViewerElement {
               this.setCameraTarget(target)
               this.setCameraOrbit(orbit)
             }
+          }
+        })
+      }
+      if (!isAnime && isVisible) {
+        const state = hotspot.getAttribute('to-state')
+        hotspot.addEventListener('click', () => {
+          if (window.getComputedStyle(hotspot).opacity == 1) {
+            this.updateState(state)
           }
         })
       }
@@ -135,6 +163,7 @@ class FigniViewerElement extends ModelViewerElement {
       })
     })
 
+    this.updateState(this.state)
     this.closeAllPanels()
 
     const arButton = document.createElement('button')
@@ -172,6 +201,9 @@ class FigniViewerElement extends ModelViewerElement {
         box-sizing: border-box;
         --min-hotspot-opacity: 0;
         backdrop-filter: blur(3px);
+      }
+      .hotspot-hide {
+        opacity: var(--min-hotspot-opacity);
       }
       [slot^="panel"] {
         background-color: #f1f2f7;
@@ -330,6 +362,7 @@ class FigniViewerElement extends ModelViewerElement {
           headers: {
             accept: 'application/json',
             'X-Figni-Client-Token': this.token,
+            // 'X-Figni-Client-Version': VERSION,
           },
         }
       )
@@ -366,6 +399,20 @@ class FigniViewerElement extends ModelViewerElement {
     })
   }
 
+  updateState(state) {
+    this.state = state
+    this.#hotspots.forEach((hotspot) => {
+      const visible = hotspot.getAttribute('visible')
+      if (visible) {
+        if (visible == this.state) {
+          hotspot.classList.remove('hotspot-hide')
+        } else {
+          hotspot.classList.add('hotspot-hide')
+        }
+      }
+    })
+  }
+
   async downloadScreenshot() {
     const blob = await this.toBlob({
       idealAspect: true,
@@ -376,6 +423,10 @@ class FigniViewerElement extends ModelViewerElement {
     a.download = 'model.png'
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  #evalEvent(string) {
+    Function(string)()
   }
 }
 

@@ -12,12 +12,8 @@
         item-id="9zsj5h47"
         token="5UTBSHOXODAj2QLo"
         screenshot
+        state="close"
       >
-        <button id="test" slot="hotspot-sample" position="auto auto auto">
-          <div slot="panel-aaa" class="panel">
-            <span>これはサンプルです</span>
-          </div>
-        </button>
         <button
           id="open"
           slot="hotspot-open"
@@ -26,15 +22,9 @@
           length="810"
           position="-0.2m 1.1m 0.35m"
           normal="0m 0m 1m"
-          onstart="openBtn.classList.add('hide')"
-          onend="
-            closeBtn.classList.remove('hide', 'first-hide');
-            closeupBtn.classList.remove('hide', 'first-hide');
-            panelBtn.classList.remove('hide', 'first-hide');
-          "
-        >
-          開く
-        </button>
+          to-state="open"
+          visible="close"
+        ></button>
         <button
           id="close"
           slot="hotspot-close"
@@ -43,20 +33,15 @@
           length="810"
           position="0.6m 1.1m 0.83m"
           normal="-0.8m 0 0.5m"
-          class="first-hide"
-          onstart="
-            closeBtn.classList.add('hide');
-            closeupBtn.classList.add('hide');
-            panelBtn.classList.add('hide');
-          "
-          onend="openBtn.classList.remove('hide')"
+          to-state="close"
+          visible="open"
         ></button>
         <button
           id="closeup"
           slot="hotspot-closeup"
           position="0.1m 1.325m 0.2m"
           normal="0m 0m 1m"
-          class="first-hide"
+          visible="open"
           closeup
           orbit="auto auto 0.1m"
         ></button>
@@ -65,7 +50,7 @@
           slot="hotspot-panel"
           position="0.1m 0.3m 0.2m"
           normal="0m 0m 1m"
-          class="first-hide"
+          visible="open"
           closeup
           orbit="auto auto 0.1m"
         >
@@ -78,31 +63,10 @@
     </div>
     <script>
       const view = document.getElementById('view')
-      const openBtn = document.getElementById('open')
-      const closeBtn = document.getElementById('close')
-      const closeupBtn = document.getElementById('closeup')
-      const panelBtn = document.getElementById('panel')
     </script>
     <style>
       .first-hide {
         display: none;
-      }
-      .hide {
-        animation: fade-out 0.5s ease-in 0s forwards;
-      }
-      @keyframes fade-out {
-        0% {
-          opacity: 1;
-          display: block;
-        }
-        99% {
-          opacity: 0;
-          display: block;
-        }
-        100% {
-          opacity: 0;
-          display: none;
-        }
       }
       #view {
         width: 100%;

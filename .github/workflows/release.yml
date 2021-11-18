@@ -13,15 +13,34 @@ jobs:
         node-version: [14.x]
     steps:
       - uses: actions/checkout@v2
-      - name: Run builds and deploys with ${{ matrix.node-version }}
+      - name: setup node ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'
-      - name: npm install and build
+      - name: npm install, build and publish
         run: |
           npm ci
           npm run build
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          VERSION: ${{ env.GITHUB_SHA }}
+      - name: slack notification on success
+        if: ${{ success() }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_USERNAME: figni-viewer release notification bot
+          SLACK_ICON_EMOJI: ':figni:'
+          SLACK_COLOR: good
+          SLACK_MESSAGE: check out the release at https://www.npmjs.com/package/@cynack/figni-viewer
+      - name: slack notification on failure
+        if: ${{ failure() }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_USERNAME: figni-viewer release notification bot
+          SLACK_ICON_EMOJI: ':figni:'
+          SLACK_COLOR: danger
+          SLACK_MESSAGE: check out the problem at https://github.com/cynack/figni-viewer/actions

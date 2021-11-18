@@ -97,7 +97,7 @@ class FigniViewerElement extends ModelViewerElement {
               this.play()
               const f = hotspot.getAttribute('onstart')
               if (f) {
-                this.#distachEvent(f)
+                this.#evalEvent(f)
               }
               if (lenth > 0) {
                 this.loop = false
@@ -108,7 +108,7 @@ class FigniViewerElement extends ModelViewerElement {
                   this.pause()
                   const f = hotspot.getAttribute('onend')
                   if (f) {
-                    this.#distachEvent(f)
+                    this.#evalEvent(f)
                   }
                   if (isVisible) {
                     this.updateState(hotspot.getAttribute('to-state'))
@@ -425,7 +425,7 @@ class FigniViewerElement extends ModelViewerElement {
     URL.revokeObjectURL(url)
   }
 
-  #distachEvent(string) {
+  #evalEvent(string) {
     Function(string)()
   }
 }

@@ -362,6 +362,7 @@ class FigniViewerElement extends ModelViewerElement {
           headers: {
             accept: 'application/json',
             'X-Figni-Client-Token': this.token,
+            'X-Figni-Client-Version': VERSION,
           },
         }
       )
@@ -402,7 +403,6 @@ class FigniViewerElement extends ModelViewerElement {
     this.state = state
     this.#hotspots.forEach((hotspot) => {
       const visible = hotspot.getAttribute('visible')
-      console.log(visible)
       if (visible) {
         if (visible == this.state) {
           hotspot.classList.remove('hotspot-hide')

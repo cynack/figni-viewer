@@ -2,6 +2,7 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
+const webpack = require('webpack')
 
 const isProduction = process.env.NODE_ENV == 'production'
 
@@ -45,6 +46,7 @@ module.exports = () => {
         filename: 'figni-viewer.min.js',
         path: path.resolve(__dirname, 'dist'),
       },
+      plugins: [new webpack.EnvironmentPlugin(['VERSION'])],
     })
   } else {
     Object.assign(config, {
@@ -56,6 +58,9 @@ module.exports = () => {
       plugins: [
         new HtmlWebpackPlugin({
           template: 'index.html',
+        }),
+        new webpack.DefinePlugin({
+          VERSION: JSON.stringify('development'),
         }),
       ],
     })

@@ -1,3 +1,5 @@
+<!-- markdownlint-configure-file { "MD024": { "siblings_only": true } } -->
+
 # Change Log
 
 All notable changes to this project will be documented in this file.
@@ -8,9 +10,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Added
-
-- *hotspot*の表示非表示を変化させる`to-state`属性を追加
-- *hotspot*の表示非表示を決定する`visible`属性を追加
 
 ### Changed
 
@@ -25,4 +24,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.0.0...HEAD
+## [0.0.13] - 2021-11-18
+
+### Added
+
+- *hotspot*の表示非表示を変化させる`to-state`属性を追加
+- *hotspot*の表示非表示を決定する`visible`属性を追加

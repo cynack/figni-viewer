@@ -79,43 +79,52 @@ class FigniViewerElement extends ModelViewerElement {
           FigniViewerElement.#DEFAULT_HOTSPOT_NORMAL,
       })
 
-      // Animation
-      if (hotspot.getAttribute('anime') == '') {
+      const isAnime = hotspot.getAttribute('anime') == ''
+      const isCloseup = hotspot.getAttribute('closeup') == ''
+      const isVisible = hotspot.getAttribute('to-state') != null
+
+      if (isAnime) {
         hotspot.addEventListener('click', () => {
           if (
             window.getComputedStyle(hotspot).opacity == 1 &&
             (this.loop || this.paused)
           ) {
-            const anime = hotspot.getAttribute('clip')
+            const clip = hotspot.getAttribute('clip')
             const lenth = Number(hotspot.getAttribute('length')) || 0
-            if (this.availableAnimations.includes(anime)) {
-              this.animationName = anime
+            if (this.availableAnimations.includes(clip)) {
+              this.animationName = clip
               this.currentTime = 0
               this.play()
               const f = hotspot.getAttribute('onstart')
               if (f) {
-                const func = new Function(f)
-                func()
+                this.#distachEvent(f)
               }
               if (lenth > 0) {
                 this.loop = false
+                if (isVisible) {
+                  this.updateState(`temp-${this.#seed}`)
+                }
                 setTimeout(() => {
                   this.pause()
                   const f = hotspot.getAttribute('onend')
                   if (f) {
-                    const func = new Function(f)
-                    func()
+                    this.#distachEvent(f)
+                  }
+                  if (isVisible) {
+                    this.updateState(hotspot.getAttribute('to-state'))
                   }
                 }, lenth)
               } else {
                 this.loop = true
+                if (isVisible) {
+                  this.updateState(hotspot.getAttribute('to-state'))
+                }
               }
             }
           }
         })
       }
-      // Closeup
-      if (hotspot.getAttribute('closeup') == '') {
+      if (isCloseup) {
         hotspot.addEventListener('click', () => {
           if (window.getComputedStyle(hotspot).opacity == 1) {
             const target =
@@ -134,8 +143,7 @@ class FigniViewerElement extends ModelViewerElement {
           }
         })
       }
-      // Visible
-      if (hotspot.getAttribute('to-state') != null) {
+      if (!isAnime && isVisible) {
         const state = hotspot.getAttribute('to-state')
         hotspot.addEventListener('click', () => {
           if (window.getComputedStyle(hotspot).opacity == 1) {
@@ -415,6 +423,10 @@ class FigniViewerElement extends ModelViewerElement {
     a.download = 'model.png'
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  #distachEvent(string) {
+    return new Function(`"use strict;"return (${string})`)()
   }
 }
 

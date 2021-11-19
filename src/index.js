@@ -2,6 +2,8 @@ import { ModelViewerElement } from '@google/model-viewer'
 import axios from 'axios'
 
 const API_BASE = 'https://api.stg.figni.store/api'
+const SOCKET_BASE = 'wss://api.stg.figni.store/ws'
+const VIEW_THRESHOLD = 0.7
 
 class FigniViewerElement extends ModelViewerElement {
   static #MODEL_ATTRIBUTE = ['item-id', 'token', 'model-tag']
@@ -24,9 +26,41 @@ class FigniViewerElement extends ModelViewerElement {
   #panels = []
   #hotspots = []
 
+  #initTime = 0
+  #appearedTime = 0
+  #sumViewTime = 0
+  #wasInViewport = false
+  #ws
+
   constructor() {
     super()
 
+    window.onload = () => {
+      this.#ws = new WebSocket(SOCKET_BASE)
+      this.#initTime = performance.now()
+      this.#wasInViewport = this.#isInViewport
+      if (this.#isInViewport) {
+        this.#appearedTime = performance.now()
+      }
+      setInterval(() => {
+        this.#ws.send(
+          JSON.stringify({
+            client_token: this.token,
+            client_version: VERSION,
+            stay_time: this.#stayTime,
+            view_time: this.#viewTime,
+          })
+        )
+      }, 1000)
+    }
+    window.onscroll = () => {
+      if (!this.#wasInViewport && this.#isInViewport) {
+        this.#appearedTime = performance.now()
+      } else if (this.#wasInViewport && !this.#isInViewport) {
+        this.#sumViewTime += performance.now() - this.#appearedTime
+      }
+      this.#wasInViewport = this.#isInViewport
+    }
     this.#seed = Math.random().toString(36).substring(7)
   }
 
@@ -428,6 +462,49 @@ class FigniViewerElement extends ModelViewerElement {
 
   #evalEvent(string) {
     Function(string)()
+  }
+
+  get #isInViewport() {
+    const rect = this.getBoundingClientRect()
+    const area = rect.width * rect.height
+    const viewArea =
+      (Math.max(
+        Math.min(
+          rect.bottom,
+          window.innerHeight || document.documentElement.clientHeight
+        ),
+        0
+      ) -
+        Math.min(
+          Math.max(rect.top, 0),
+          window.innerHeight || document.documentElement.clientHeight
+        )) *
+      (Math.max(
+        Math.min(
+          rect.right,
+          window.innerWidth || document.documentElement.clientWidth
+        ),
+        0
+      ) -
+        Math.min(
+          Math.max(rect.left, 0),
+          window.innerWidth || document.documentElement.clientWidth
+        ))
+    const ratio = viewArea / area
+    return ratio > VIEW_THRESHOLD
+  }
+
+  get #stayTime() {
+    return Number((performance.now() - this.#initTime).toFixed(2))
+  }
+
+  get #viewTime() {
+    return Number(
+      (
+        this.#sumViewTime +
+        (this.#isInViewport ? performance.now() - this.#appearedTime : 0)
+      ).toFixed(2)
+    )
   }
 }
 

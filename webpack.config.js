@@ -62,6 +62,7 @@ module.exports = () => {
       plugins: config.plugins.concat([
         new HtmlWebpackPlugin({
           template: 'index.html',
+          hash: true,
         }),
       ]),
     })

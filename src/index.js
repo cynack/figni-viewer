@@ -46,6 +46,7 @@ class FigniViewerElement extends ModelViewerElement {
     this.arScale = 'fixed'
     this.arPlacement = 'floor'
     this.interactionPrompt = 'none'
+    this.shadowIntensity = 1
     this.initCameraTarget = this.getAttribute('target') || this.initCameraTarget
     this.initCameraOrbit = this.getAttribute('orbit') || this.initCameraOrbit
     this.state = this.getAttribute('state') || this.state
@@ -362,7 +363,7 @@ class FigniViewerElement extends ModelViewerElement {
           headers: {
             accept: 'application/json',
             'X-Figni-Client-Token': this.token,
-            // 'X-Figni-Client-Version': VERSION,
+            'X-Figni-Client-Version': VERSION,
           },
         }
       )

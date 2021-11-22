@@ -89,7 +89,7 @@ class FigniViewerElement extends ModelViewerElement {
     this.style.setProperty('--poster-color', 'transparent')
 
     this.#initCameraButton = document.createElement('button')
-    this.#initCameraButton.id = `init-camera-button-${this.#seed}`
+    this.#initCameraButton.classList.add('figni-viewer-camera-init-btn')
     this.#initCameraButton.innerHTML = 'カメラ位置を戻す'
     this.#initCameraButton.addEventListener('click', () => {
       this.setCameraTarget(this.initCameraTarget)
@@ -104,6 +104,7 @@ class FigniViewerElement extends ModelViewerElement {
     const hotspots = this.querySelectorAll('button[slot^="hotspot"]')
     this.#hotspots.push(...hotspots)
     hotspots.forEach((hotspot) => {
+      hotspot.classList.add('figni-viewer-hotspot')
       this.updateHotspot({
         name: hotspot.getAttribute('slot'),
         position:
@@ -186,12 +187,15 @@ class FigniViewerElement extends ModelViewerElement {
           }
         })
       }
-      this.#panels.push(...hotspot.querySelectorAll('[slot^="panel"]'))
+      const panels = hotspot.querySelectorAll('[slot^="panel"]')
+      panels.forEach((panel) => {
+        panel.classList.add('figni-viewer-panel')
+      })
+      this.#panels.push(...panels)
       hotspot.addEventListener('click', () => {
-        const panels = hotspot.querySelectorAll('[slot^="panel"]')
         if (panels.length > 0) {
           panels.forEach((panel) => {
-            panel.classList.toggle('panel-hide')
+            panel.classList.toggle('figni-viewer-panel-hide')
           })
           this.closeAllPanels(Array.from(panels))
         }
@@ -212,7 +216,7 @@ class FigniViewerElement extends ModelViewerElement {
       </svg>
       <span>目の前に置く</span>
     `
-    arButton.classList.add('ar-button')
+    arButton.classList.add('figni-viewer-ar-button')
     this.appendChild(arButton)
 
     const style = document.createElement('style')
@@ -237,7 +241,7 @@ class FigniViewerElement extends ModelViewerElement {
         --min-hotspot-opacity: 0;
         backdrop-filter: blur(3px);
       }
-      .hotspot-hide {
+      .figni-viewer-hotspot-hide {
         opacity: var(--min-hotspot-opacity);
       }
       [slot^="panel"] {
@@ -248,7 +252,7 @@ class FigniViewerElement extends ModelViewerElement {
         border-radius: 0.5rem;
         padding: 0.5rem;
       }
-      #init-camera-button-${this.#seed} {
+      .figni-viewer-camera-init-btn {
         position: absolute;
         display: flex;
         -webkit-box-align: center;
@@ -267,7 +271,7 @@ class FigniViewerElement extends ModelViewerElement {
         background-color: #3B5EFF;
         z-index: 9999;
       }
-      .ar-button {
+      .figni-viewer-ar-button {
         position: absolute;
         display: flex;
         -webkit-box-align: center;
@@ -284,20 +288,20 @@ class FigniViewerElement extends ModelViewerElement {
         font-weight: bold;
         z-index: 9998;
       }
-      .ar-button svg {
+      .figni-viewer-ar-button svg {
         width: 1rem;
         margin-top: 0.1rem;
         margin-right: 0.25rem;
       }
-      .ar-button span {
+      .figni-viewer-ar-button span {
         display: block;
         color: #FF733B;
       }
-      .panel-hide {
+      .figni-viewer-panel-hide {
         opacity: 0;
         display: none;
       }
-      #download-screenshot-button-${this.#seed} {
+      .figni-viewer-download-screenshot-btn {
         position: absolute;
         display: flex;
         -webkit-box-align: center;
@@ -315,7 +319,7 @@ class FigniViewerElement extends ModelViewerElement {
         background-color: white;
         z-index: 9997;
       }
-      #download-screenshot-button-${this.#seed} svg {
+      .figni-viewer-download-screenshot-btn svg {
         width: 1.25rem;
         height: 1.25rem;
         transform: translateX(-0.5px) translateY(-0.5px);
@@ -371,6 +375,9 @@ class FigniViewerElement extends ModelViewerElement {
                 downloadScreenshotButton.id = `download-screenshot-button-${
                   this.#seed
                 }`
+                downloadScreenshotButton.classList.add(
+                  'figni-viewer-download-screenshot-btn'
+                )
                 downloadScreenshotButton.innerHTML =
                   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><defs><style>.figni-viewer-screenshot{fill:#8f94a9;}</style></defs><path class="figni-viewer-screenshot" d="M14.61,0H5.39A5.4,5.4,0,0,0,0,5.39v9.22A5.4,5.4,0,0,0,5.39,20h9.22A5.4,5.4,0,0,0,20,14.61V5.39A5.4,5.4,0,0,0,14.61,0ZM5.39,2.58h9.22a2.81,2.81,0,0,1,2.81,2.81v6L13.63,7.64a1.12,1.12,0,0,0-1.57,0L8.54,11.16a1.11,1.11,0,0,1-1.58,0,1.12,1.12,0,0,0-1.57,0L2.58,14V5.39A2.81,2.81,0,0,1,5.39,2.58Z"/><circle class="figni-viewer-screenshot" cx="5.88" cy="5.88" r="1.92"/></svg>'
                 downloadScreenshotButton.addEventListener('click', () => {
@@ -429,7 +436,7 @@ class FigniViewerElement extends ModelViewerElement {
   closeAllPanels(excludePanels = []) {
     this.#panels.forEach((panel) => {
       if (!excludePanels.includes(panel)) {
-        panel.classList.add('panel-hide')
+        panel.classList.add('figni-viewer-panel-hide')
       }
     })
   }
@@ -440,9 +447,9 @@ class FigniViewerElement extends ModelViewerElement {
       const visible = hotspot.getAttribute('visible')
       if (visible) {
         if (visible == this.state) {
-          hotspot.classList.remove('hotspot-hide')
+          hotspot.classList.remove('figni-viewer-hotspot-hide')
         } else {
-          hotspot.classList.add('hotspot-hide')
+          hotspot.classList.add('figni-viewer-hotspot-hide')
         }
       }
     })

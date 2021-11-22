@@ -104,6 +104,7 @@ class FigniViewerElement extends ModelViewerElement {
     const hotspots = this.querySelectorAll('button[slot^="hotspot"]')
     this.#hotspots.push(...hotspots)
     hotspots.forEach((hotspot) => {
+      hotspot.classList.add('figni-viewer-hotspot')
       this.updateHotspot({
         name: hotspot.getAttribute('slot'),
         position:

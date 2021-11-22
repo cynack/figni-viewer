@@ -13,7 +13,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-- *panel*のスタイルを上書きできるように変更
 - カメラを初期位置に戻すボタンのスタイルを上書きできるように変更
 - スクリーンショットボタンのスタイルを上書きできるように変更
 
@@ -28,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - *hotspot*のスタイルを上書きできるように変更
+- *panel*のスタイルを上書きできるように変更
 
 ## [0.0.15] - 2021-11-19
 

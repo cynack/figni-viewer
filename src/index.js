@@ -187,9 +187,12 @@ class FigniViewerElement extends ModelViewerElement {
           }
         })
       }
-      this.#panels.push(...hotspot.querySelectorAll('[slot^="panel"]'))
+      const panels = hotspot.querySelectorAll('[slot^="panel"]')
+      panels.forEach((panel) => {
+        panel.classList.add('figni-viewer-panel')
+      })
+      this.#panels.push(...panels)
       hotspot.addEventListener('click', () => {
-        const panels = hotspot.querySelectorAll('[slot^="panel"]')
         if (panels.length > 0) {
           panels.forEach((panel) => {
             panel.classList.toggle('panel-hide')

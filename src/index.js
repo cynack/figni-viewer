@@ -347,6 +347,11 @@ class FigniViewerElement extends ModelViewerElement {
     this.appendChild(hotspot)
   }
 
+  removeHotspot(name) {
+    const hotspot = this.querySelector(`[slot="hotspot-${name}"]`)
+    hotspot?.remove()
+  }
+
   #modifyHotspot(hotspot) {
     hotspot.classList.add('figni-viewer-hotspot')
     hotspot.setAttribute(

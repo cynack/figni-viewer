@@ -26,6 +26,7 @@ class FigniViewerElement extends ModelViewerElement {
   #initCameraButton
   #panels = []
   #hotspots = []
+  #hotspotEvents = {}
 
   #initTime = 0
   #appearedTime = 0
@@ -428,7 +429,11 @@ class FigniViewerElement extends ModelViewerElement {
     const isVisible = hotspot.getAttribute('to-state') != null
 
     if (isAnime) {
-      hotspot.addEventListener('click', () => {
+      hotspot.removeEventListener(
+        'click',
+        this.#hotspotEvents[`${hotspot.getAttribute('slot')}-anime`]
+      )
+      const e = () => {
         if (
           window.getComputedStyle(hotspot).opacity == 1 &&
           (this.loop || this.paused)
@@ -466,10 +471,17 @@ class FigniViewerElement extends ModelViewerElement {
             }
           }
         }
-      })
+      }
+      hotspot.addEventListener('click', e)
+      this.#hotspotEvents[`${hotspot.getAttribute('slot')}-anime`] = e
     }
     if (isCloseup) {
-      hotspot.addEventListener('click', () => {
+      hotspot.removeEventListener(
+        'click',
+        this.#hotspotEvents[`${hotspot.getAttribute('slot')}-closeup`]
+      )
+      console.log('closeup')
+      const e = () => {
         if (window.getComputedStyle(hotspot).opacity == 1) {
           const target =
             hotspot.getAttribute('target') ||
@@ -485,15 +497,23 @@ class FigniViewerElement extends ModelViewerElement {
             this.setCameraOrbit(orbit)
           }
         }
-      })
+      }
+      hotspot.addEventListener('click', e)
+      this.#hotspotEvents[`${hotspot.getAttribute('slot')}-closeup`] = e
     }
     if (!isAnime && isVisible) {
       const state = hotspot.getAttribute('to-state')
-      hotspot.addEventListener('click', () => {
+      hotspot.removeEventListener(
+        'click',
+        this.#hotspotEvents[`${hotspot.getAttribute('slot')}-visible`]
+      )
+      const e = () => {
         if (window.getComputedStyle(hotspot).opacity == 1) {
           this.updateState(state)
         }
-      })
+      }
+      hotspot.addEventListener('click', e)
+      this.#hotspotEvents[`${hotspot.getAttribute('slot')}-visible`] = e
     }
   }
 

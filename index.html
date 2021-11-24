@@ -64,6 +64,22 @@
           冷凍庫
         </button>
       </figni-viewer>
+      <button
+        onclick="view.addHotspot('hoge', '0.1m 0m 0m', '0m 1m 0m', { anime: { clip: 'openAction', length: 810, onstart: function() {console.log(123)} } })"
+      >
+        Add anime
+      </button>
+      <button
+        onclick="view.addHotspot('hoge2', '-0.1m 0m 0m', '0m 1m 0m', { closeup: { target: '0m 1m 0m', orbit: '45deg 45deg 105%' }, visible: 'open', toState: 'close' })"
+      >
+        Add closeup
+      </button>
+      <button
+        onclick="view.editHotspot('closeup', null, null, { closeup: { orbit: '45deg auto 1m' } })"
+      >
+        Edit hotspot
+      </button>
+      <button onclick="view.removeHotspot('hoge2')">Remove closeup</button>
     </div>
     <script>
       const view = document.getElementById('view')

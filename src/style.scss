@@ -1,9 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+figni-viewer {
+  --poster-color: transparent;
+}
 figni-viewer * {
   font-family: 'Noto Sans JP', sans-serif;
   color: #222428;
 }
-[slot^='hotspot'] {
+.figni-viewer-hotspot {
   display: block;
   min-width: 1.25rem;
   min-height: 1.25rem;

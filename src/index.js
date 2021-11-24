@@ -26,6 +26,7 @@ class FigniViewerElement extends ModelViewerElement {
   #initCameraButton
   #panels = []
   #hotspots = []
+  #hotspotEvents = {}
 
   #initTime = 0
   #appearedTime = 0
@@ -87,7 +88,6 @@ class FigniViewerElement extends ModelViewerElement {
     this.state = this.getAttribute('state') || this.state
     this.setCameraTarget(this.initCameraTarget)
     this.setCameraOrbit(this.initCameraOrbit)
-    this.style.setProperty('--poster-color', 'transparent')
 
     this.#initCameraButton = document.createElement('button')
     this.#initCameraButton.classList.add('figni-viewer-camera-init-btn')
@@ -101,93 +101,25 @@ class FigniViewerElement extends ModelViewerElement {
     this.#initCameraButton.style.display = 'none'
     this.appendChild(this.#initCameraButton)
 
+    const arButton = document.createElement('button')
+    arButton.setAttribute('slot', 'ar-button')
+    arButton.innerHTML = `
+      <svg viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8.50002 8.62017C12.6692 8.62017 16.1338 9.74602 16.8614 11.2244L11.9069 1.12585C11.5836 0.45489 10.8906 0 10.0822 0C9.43548 0 8.86958 0.295679 8.50002 0.761941L0.358032 10.8946C1.40898 9.57544 4.65423 8.62017 8.50002 8.62017Z" fill="#FF733B" />
+        <path d="M8.5 14.9886C13.1944 14.9886 17 13.563 17 11.8044C17 10.0458 13.1944 8.62016 8.5 8.62016C3.80558 8.62016 0 10.0458 0 11.8044C0 13.563 3.80558 14.9886 8.5 14.9886Z" fill="#FFAB3B" />
+        <path d="M8.49995 12.9985C11.4084 12.9985 13.7663 12.4639 13.7663 11.8044C13.7663 11.1449 11.4084 10.6103 8.49995 10.6103C5.59145 10.6103 3.23364 11.1449 3.23364 11.8044C3.23364 12.4639 5.59145 12.9985 8.49995 12.9985Z" fill="#FF733B" />
+        <path d="M9.14678 11.8044C10.9327 11.8044 12.3805 10.3788 12.3805 8.62016C12.3805 6.86156 10.9327 5.43593 9.14678 5.43593C7.36086 5.43593 5.91309 6.86156 5.91309 8.62016C5.91309 10.3788 7.36086 11.8044 9.14678 11.8044Z" fill="#FFCE3B" />
+      </svg>
+      <span>目の前に置く</span>
+    `
+    arButton.classList.add('figni-viewer-ar-button')
+    this.appendChild(arButton)
+
     this.animationCrossfadeDuration = 0
     const hotspots = this.querySelectorAll('button[slot^="hotspot"]')
-    this.#hotspots.push(...hotspots)
+    this.#hotspots = Array.from(hotspots)
     hotspots.forEach((hotspot) => {
-      hotspot.classList.add('figni-viewer-hotspot')
-      this.updateHotspot({
-        name: hotspot.getAttribute('slot'),
-        position:
-          hotspot.getAttribute('position') ||
-          FigniViewerElement.#DEFAULT_HOTSPOT_POSITION,
-        normal:
-          hotspot.getAttribute('normal') ||
-          FigniViewerElement.#DEFAULT_HOTSPOT_NORMAL,
-      })
-
-      const isAnime = hotspot.getAttribute('anime') == ''
-      const isCloseup = hotspot.getAttribute('closeup') == ''
-      const isVisible = hotspot.getAttribute('to-state') != null
-
-      if (isAnime) {
-        hotspot.addEventListener('click', () => {
-          if (
-            window.getComputedStyle(hotspot).opacity == 1 &&
-            (this.loop || this.paused)
-          ) {
-            const clip = hotspot.getAttribute('clip')
-            const lenth = Number(hotspot.getAttribute('length')) || 0
-            if (this.availableAnimations.includes(clip)) {
-              this.animationName = clip
-              this.currentTime = 0
-              this.play()
-              const f = hotspot.getAttribute('onstart')
-              if (f) {
-                this.#evalEvent(f)
-              }
-              if (lenth > 0) {
-                this.loop = false
-                if (isVisible) {
-                  this.updateState(`temp-${this.#seed}`)
-                }
-                setTimeout(() => {
-                  this.pause()
-                  const f = hotspot.getAttribute('onend')
-                  if (f) {
-                    this.#evalEvent(f)
-                  }
-                  if (isVisible) {
-                    this.updateState(hotspot.getAttribute('to-state'))
-                  }
-                }, lenth)
-              } else {
-                this.loop = true
-                if (isVisible) {
-                  this.updateState(hotspot.getAttribute('to-state'))
-                }
-              }
-            }
-          }
-        })
-      }
-      if (isCloseup) {
-        hotspot.addEventListener('click', () => {
-          if (window.getComputedStyle(hotspot).opacity == 1) {
-            const target =
-              hotspot.getAttribute('target') ||
-              hotspot.getAttribute('position') ||
-              FigniViewerElement.#DEFAULT_HOTSPOT_POSITION
-            const orbit = hotspot.getAttribute('orbit') || this.initCameraOrbit
-            if (this.cameraTarget == target && this.cameraOrbit == orbit) {
-              this.setCameraOrbit(this.initCameraTarget)
-              this.setCameraTarget(this.initCameraOrbit)
-              this.#initCameraButton.style.display = 'none'
-            } else {
-              this.setCameraTarget(target)
-              this.setCameraOrbit(orbit)
-            }
-          }
-        })
-      }
-      if (!isAnime && isVisible) {
-        const state = hotspot.getAttribute('to-state')
-        hotspot.addEventListener('click', () => {
-          if (window.getComputedStyle(hotspot).opacity == 1) {
-            this.updateState(state)
-          }
-        })
-      }
+      this.#modifyHotspot(hotspot)
       const panels = hotspot.querySelectorAll('[slot^="panel"]')
       panels.forEach((panel) => {
         panel.classList.add('figni-viewer-panel')
@@ -206,19 +138,23 @@ class FigniViewerElement extends ModelViewerElement {
     this.updateState(this.state)
     this.closeAllPanels()
 
-    const arButton = document.createElement('button')
-    arButton.setAttribute('slot', 'ar-button')
-    arButton.innerHTML = `
-      <svg viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8.50002 8.62017C12.6692 8.62017 16.1338 9.74602 16.8614 11.2244L11.9069 1.12585C11.5836 0.45489 10.8906 0 10.0822 0C9.43548 0 8.86958 0.295679 8.50002 0.761941L0.358032 10.8946C1.40898 9.57544 4.65423 8.62017 8.50002 8.62017Z" fill="#FF733B" />
-        <path d="M8.5 14.9886C13.1944 14.9886 17 13.563 17 11.8044C17 10.0458 13.1944 8.62016 8.5 8.62016C3.80558 8.62016 0 10.0458 0 11.8044C0 13.563 3.80558 14.9886 8.5 14.9886Z" fill="#FFAB3B" />
-        <path d="M8.49995 12.9985C11.4084 12.9985 13.7663 12.4639 13.7663 11.8044C13.7663 11.1449 11.4084 10.6103 8.49995 10.6103C5.59145 10.6103 3.23364 11.1449 3.23364 11.8044C3.23364 12.4639 5.59145 12.9985 8.49995 12.9985Z" fill="#FF733B" />
-        <path d="M9.14678 11.8044C10.9327 11.8044 12.3805 10.3788 12.3805 8.62016C12.3805 6.86156 10.9327 5.43593 9.14678 5.43593C7.36086 5.43593 5.91309 6.86156 5.91309 8.62016C5.91309 10.3788 7.36086 11.8044 9.14678 11.8044Z" fill="#FFCE3B" />
-      </svg>
-      <span>目の前に置く</span>
-    `
-    arButton.classList.add('figni-viewer-ar-button')
-    this.appendChild(arButton)
+    const observer = new MutationObserver((mutationList) => {
+      for (const mutation of mutationList) {
+        if (mutation.type == 'childList') {
+          for (const node of mutation.addedNodes) {
+            if (/^hotspot/.test(node.getAttribute('slot'))) {
+              this.#hotspots.push(node)
+              this.#modifyHotspot(node)
+              this.updateState(this.state)
+            }
+          }
+        }
+      }
+    })
+    observer.observe(this, {
+      childList: true,
+      attributes: false,
+    })
 
     // * デバッグ用
     if (this.getAttribute('debug-hotspot') == '') {
@@ -358,6 +294,227 @@ class FigniViewerElement extends ModelViewerElement {
     a.download = 'model.png'
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  addHotspot(name, position = null, normal = null, options = null) {
+    if (!name) {
+      throw new SyntaxError('name is required')
+    }
+    const hotspot = document.createElement('button')
+    hotspot.setAttribute(
+      'position',
+      position || FigniViewerElement.#DEFAULT_HOTSPOT_POSITION
+    )
+    hotspot.setAttribute(
+      'normal',
+      normal || FigniViewerElement.#DEFAULT_HOTSPOT_NORMAL
+    )
+    hotspot.setAttribute('slot', `hotspot-${name}`)
+    if (options) {
+      if (options.anime) {
+        hotspot.setAttribute('anime', '')
+        if (options.anime.clip) {
+          hotspot.setAttribute('clip', options.anime.clip)
+        }
+        if (options.anime.length) {
+          hotspot.setAttribute('length', options.anime.length)
+        }
+        if (options.anime.onstart) {
+          hotspot.setAttribute(
+            'onstart',
+            `(${options.anime.onstart.toString()})()`
+          )
+        }
+        if (options.anime.onend) {
+          hotspot.setAttribute('onend', `(${options.anime.onend.toString()})()`)
+        }
+      }
+      if (options.closeup) {
+        hotspot.setAttribute('closeup', '')
+        if (options.closeup.target) {
+          hotspot.setAttribute('target', options.closeup.target)
+        }
+        if (options.closeup.orbit) {
+          hotspot.setAttribute('orbit', options.closeup.orbit)
+        }
+      }
+      if (options.visible) {
+        hotspot.setAttribute('visible', options.visible)
+      }
+      if (options.toState) {
+        hotspot.setAttribute('to-state', options.toState)
+      }
+    }
+    this.appendChild(hotspot)
+  }
+
+  editHotspot(name, position = null, normal = null, options = null) {
+    if (!name) {
+      throw new SyntaxError('name is required')
+    }
+    const hotspot = this.querySelector(`[slot="hotspot-${name}"]`)
+    if (!hotspot) {
+      throw new ReferenceError(`Hotspot ${name} not found`)
+    }
+    if (position) {
+      hotspot.setAttribute('position', position)
+    }
+    if (normal) {
+      hotspot.setAttribute('normal', normal)
+    }
+    if (options) {
+      if (options.anime) {
+        hotspot.setAttribute('anime', '')
+        if (options.anime.clip) {
+          hotspot.setAttribute('clip', options.anime.clip)
+        }
+        if (options.anime.length) {
+          hotspot.setAttribute('length', options.anime.length)
+        }
+        if (options.anime.onstart) {
+          hotspot.setAttribute(
+            'onstart',
+            `(${options.anime.onstart.toString()})()`
+          )
+        }
+        if (options.anime.onend) {
+          hotspot.setAttribute('onend', `(${options.anime.onend.toString()})()`)
+        }
+      }
+      if (options.closeup) {
+        hotspot.setAttribute('closeup', '')
+        if (options.closeup.target) {
+          hotspot.setAttribute('target', options.closeup.target)
+        }
+        if (options.closeup.orbit) {
+          hotspot.setAttribute('orbit', options.closeup.orbit)
+        }
+      }
+      if (options.visible) {
+        hotspot.setAttribute('visible', options.visible)
+      }
+      if (options.toState) {
+        hotspot.setAttribute('to-state', options.toState)
+      }
+    }
+    this.#modifyHotspot(hotspot)
+    this.updateState(this.state)
+  }
+
+  removeHotspot(name) {
+    const hotspot = this.querySelector(`[slot="hotspot-${name}"]`)
+    hotspot?.remove()
+  }
+
+  #modifyHotspot(hotspot) {
+    hotspot.classList.add('figni-viewer-hotspot')
+    hotspot.setAttribute(
+      'position',
+      hotspot.getAttribute('position') ||
+        FigniViewerElement.#DEFAULT_HOTSPOT_POSITION
+    )
+    hotspot.setAttribute(
+      'normal',
+      hotspot.getAttribute('normal') ||
+        FigniViewerElement.#DEFAULT_HOTSPOT_NORMAL
+    )
+    this.updateHotspot({
+      name: hotspot.getAttribute('slot'),
+      position: hotspot.getAttribute('position'),
+      normal: hotspot.getAttribute('normal'),
+    })
+
+    const isAnime = hotspot.getAttribute('anime') == ''
+    const isCloseup = hotspot.getAttribute('closeup') == ''
+    const isVisible = hotspot.getAttribute('to-state') != null
+
+    if (isAnime) {
+      hotspot.removeEventListener(
+        'click',
+        this.#hotspotEvents[`${hotspot.getAttribute('slot')}-anime`]
+      )
+      const e = () => {
+        if (
+          window.getComputedStyle(hotspot).opacity == 1 &&
+          (this.loop || this.paused)
+        ) {
+          const clip = hotspot.getAttribute('clip')
+          const lenth = Number(hotspot.getAttribute('length')) || 0
+          if (this.availableAnimations.includes(clip)) {
+            this.animationName = clip
+            this.currentTime = 0
+            this.play()
+            const f = hotspot.getAttribute('onstart')
+            if (f) {
+              this.#evalEvent(f)
+            }
+            if (lenth > 0) {
+              this.loop = false
+              if (isVisible) {
+                this.updateState(`temp-${this.#seed}`)
+              }
+              setTimeout(() => {
+                this.pause()
+                const f = hotspot.getAttribute('onend')
+                if (f) {
+                  this.#evalEvent(f)
+                }
+                if (isVisible) {
+                  this.updateState(hotspot.getAttribute('to-state'))
+                }
+              }, lenth)
+            } else {
+              this.loop = true
+              if (isVisible) {
+                this.updateState(hotspot.getAttribute('to-state'))
+              }
+            }
+          }
+        }
+      }
+      hotspot.addEventListener('click', e)
+      this.#hotspotEvents[`${hotspot.getAttribute('slot')}-anime`] = e
+    }
+    if (isCloseup) {
+      hotspot.removeEventListener(
+        'click',
+        this.#hotspotEvents[`${hotspot.getAttribute('slot')}-closeup`]
+      )
+      console.log('closeup')
+      const e = () => {
+        if (window.getComputedStyle(hotspot).opacity == 1) {
+          const target =
+            hotspot.getAttribute('target') ||
+            hotspot.getAttribute('position') ||
+            FigniViewerElement.#DEFAULT_HOTSPOT_POSITION
+          const orbit = hotspot.getAttribute('orbit') || this.initCameraOrbit
+          if (this.cameraTarget == target && this.cameraOrbit == orbit) {
+            this.setCameraOrbit(this.initCameraTarget)
+            this.setCameraTarget(this.initCameraOrbit)
+            this.#initCameraButton.style.display = 'none'
+          } else {
+            this.setCameraTarget(target)
+            this.setCameraOrbit(orbit)
+          }
+        }
+      }
+      hotspot.addEventListener('click', e)
+      this.#hotspotEvents[`${hotspot.getAttribute('slot')}-closeup`] = e
+    }
+    if (!isAnime && isVisible) {
+      const state = hotspot.getAttribute('to-state')
+      hotspot.removeEventListener(
+        'click',
+        this.#hotspotEvents[`${hotspot.getAttribute('slot')}-visible`]
+      )
+      const e = () => {
+        if (window.getComputedStyle(hotspot).opacity == 1) {
+          this.updateState(state)
+        }
+      }
+      hotspot.addEventListener('click', e)
+      this.#hotspotEvents[`${hotspot.getAttribute('slot')}-visible`] = e
+    }
   }
 
   #evalEvent(string) {

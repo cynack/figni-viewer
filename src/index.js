@@ -347,6 +347,59 @@ class FigniViewerElement extends ModelViewerElement {
     this.appendChild(hotspot)
   }
 
+  editHotspot(name, position = null, normal = null, options = null) {
+    if (!name) {
+      throw new SyntaxError('name is required')
+    }
+    const hotspot = this.querySelector(`[slot="hotspot-${name}"]`)
+    if (!hotspot) {
+      throw new ReferenceError(`Hotspot ${name} not found`)
+    }
+    if (position) {
+      hotspot.setAttribute('position', position)
+    }
+    if (normal) {
+      hotspot.setAttribute('normal', normal)
+    }
+    if (options) {
+      if (options.anime) {
+        hotspot.setAttribute('anime', '')
+        if (options.anime.clip) {
+          hotspot.setAttribute('clip', options.anime.clip)
+        }
+        if (options.anime.length) {
+          hotspot.setAttribute('length', options.anime.length)
+        }
+        if (options.anime.onstart) {
+          hotspot.setAttribute(
+            'onstart',
+            `(${options.anime.onstart.toString()})()`
+          )
+        }
+        if (options.anime.onend) {
+          hotspot.setAttribute('onend', `(${options.anime.onend.toString()})()`)
+        }
+      }
+      if (options.closeup) {
+        hotspot.setAttribute('closeup', '')
+        if (options.closeup.target) {
+          hotspot.setAttribute('target', options.closeup.target)
+        }
+        if (options.closeup.orbit) {
+          hotspot.setAttribute('orbit', options.closeup.orbit)
+        }
+      }
+      if (options.visible) {
+        hotspot.setAttribute('visible', options.visible)
+      }
+      if (options.toState) {
+        hotspot.setAttribute('to-state', options.toState)
+      }
+    }
+    this.#modifyHotspot(hotspot)
+    this.updateState(this.state)
+  }
+
   removeHotspot(name) {
     const hotspot = this.querySelector(`[slot="hotspot-${name}"]`)
     hotspot?.remove()

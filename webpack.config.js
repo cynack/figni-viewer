@@ -26,6 +26,25 @@ const config = {
           },
         ],
       },
+      {
+        test: /\.scss$/i,
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              sourceMap: !isProduction,
+              importLoaders: 2,
+            },
+          },
+          {
+            loader: 'sass-loader',
+            options: {
+              sourceMap: !isProduction,
+            },
+          },
+        ],
+      },
     ],
   },
   optimization: {

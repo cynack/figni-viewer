@@ -1,5 +1,6 @@
 import { ModelViewerElement } from '@google/model-viewer'
 import axios from 'axios'
+import './style.scss'
 
 const API_BASE = 'https://api.stg.figni.store/api'
 const SOCKET_BASE = 'wss://api.stg.figni.store/ws'
@@ -218,114 +219,6 @@ class FigniViewerElement extends ModelViewerElement {
     `
     arButton.classList.add('figni-viewer-ar-button')
     this.appendChild(arButton)
-
-    const style = document.createElement('style')
-    style.textContent = `
-      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
-      figni-viewer * {
-        font-family: 'Noto Sans JP', sans-serif;
-        color: #222428;
-      }
-      [slot^="hotspot"] {
-        display: block;
-        min-width: 1.25rem;
-        min-height: 1.25rem;
-        padding: 0.25rem 0.5rem;
-        border-radius: 1rem;
-        border: none;
-        background-color: rgba(255, 115, 59, 1.0);
-        font-size: 0.75rem;
-        color: white;
-        box-shadow: 0 0 0 0.3rem rgba(255, 115, 59, 0.3);
-        box-sizing: border-box;
-        --min-hotspot-opacity: 0;
-        backdrop-filter: blur(3px);
-      }
-      .figni-viewer-hotspot-hide {
-        opacity: var(--min-hotspot-opacity);
-      }
-      [slot^="panel"] {
-        background-color: #f1f2f7;
-        position: absolute;
-        right: 1.5rem;
-        bottom: 1.5rem;
-        border-radius: 0.5rem;
-        padding: 0.5rem;
-      }
-      .figni-viewer-camera-init-btn {
-        position: absolute;
-        display: flex;
-        -webkit-box-align: center;
-        align-items: center;
-        -webkit-box-pack: center;
-        justify-content: center;
-        height: 2.5rem;
-        padding: 0rem 1rem;
-        top: 0.5rem;
-        left: 0.5rem;
-        white-space: nowrap;
-        border-radius: 1.25rem;
-        border: none;
-        color: white;
-        font-weight: bold;
-        background-color: #3B5EFF;
-        z-index: 9999;
-      }
-      .figni-viewer-ar-button {
-        position: absolute;
-        display: flex;
-        -webkit-box-align: center;
-        align-items: center;
-        -webkit-box-pack: center;
-        justify-content: center;
-        height: 2.5rem;
-        right: 0.5rem;
-        bottom: 0.5rem;
-        background-color: white;
-        border: 1px solid #FF733B;
-        border-radius: 0.75rem;
-        padding: 0 1rem;
-        font-weight: bold;
-        z-index: 9998;
-      }
-      .figni-viewer-ar-button svg {
-        width: 1rem;
-        margin-top: 0.1rem;
-        margin-right: 0.25rem;
-      }
-      .figni-viewer-ar-button span {
-        display: block;
-        color: #FF733B;
-      }
-      .figni-viewer-panel-hide {
-        opacity: 0;
-        display: none;
-      }
-      .figni-viewer-download-screenshot-btn {
-        position: absolute;
-        display: flex;
-        -webkit-box-align: center;
-        align-items: center;
-        -webkit-box-pack: center;
-        justify-content: center;
-        width: 2.5rem;
-        height: 2.5rem;
-        padding: 0;
-        left: 0.5rem;
-        bottom: 0.5rem;
-        white-space: nowrap;
-        border-radius: 50%;
-        border: none;
-        background-color: white;
-        z-index: 9997;
-      }
-      .figni-viewer-download-screenshot-btn svg {
-        width: 1.25rem;
-        height: 1.25rem;
-        transform: translateX(-0.5px) translateY(-0.5px);
-      }
-    `
-    this.appendChild(style)
 
     // * デバッグ用
     if (this.getAttribute('debug-hotspot') == '') {

@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- *panel*を後から追加した場合に正しい挙動になるように修正
+
 ## [0.0.18] - 2021-11-24
 
 ### Added
@@ -29,7 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-- *hostpot*および*panel*を後から追加した場合に正しい挙動になるように修正
+- *hostpot*を後から追加した場合に正しい挙動になるように修正
 
 ## [0.0.17] - 2021-11-24
 

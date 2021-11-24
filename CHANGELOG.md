@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- *hostpot*および*panel*を後から追加した場合に正しい挙動になるように修正した。
+
+## [0.0.17] - 2021-11-24
+
 ## [0.0.16] - 2021-11-22
 
 ### Changed
@@ -39,7 +43,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v0.0.16...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v0.0.17...HEAD
+[0.0.17]: https://github.com/cynack/figni-viewer/compare/v0.0.16...v0.0.17
 [0.0.16]: https://github.com/cynack/figni-viewer/compare/v0.0.15...v0.0.16
 [0.0.15]: https://github.com/cynack/figni-viewer/compare/v0.0.14...v0.0.15
 [0.0.14]: https://github.com/cynack/figni-viewer/compare/v0.0.13...v0.0.14

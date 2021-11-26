@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- アニメーションを再生する`playAnimation`メソッドを追加
+- アニメーションを停止する`stopAnimation`メソッドを追加
+
 ### Changed
 
 ### Deprecated

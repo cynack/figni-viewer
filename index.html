@@ -15,7 +15,6 @@
         id="view"
         item-id="9zsj5h47"
         token="5UTBSHOXODAj2QLo"
-        screenshot
         state="close"
       >
         <button
@@ -28,6 +27,8 @@
           normal="0m 0m 1m"
           to-state="open"
           visible="close"
+          onstart="console.log('onstart')"
+          onend="console.log('onend')"
         ></button>
         <button
           id="close"
@@ -80,6 +81,7 @@
         Edit hotspot
       </button>
       <button onclick="view.removeHotspot('hoge2')">Remove closeup</button>
+      <button onclick="view.stopAnimation()">Stop Animation</button>
     </div>
     <script>
       const view = document.getElementById('view')

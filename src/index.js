@@ -39,6 +39,7 @@ class FigniViewerElement extends ModelViewerElement {
   #panels = []
   #hotspots = []
   #hotspotEvents = {}
+  #nextState
 
   #initTime = 0
   #appearedTime = 0
@@ -127,13 +128,6 @@ class FigniViewerElement extends ModelViewerElement {
     )
     this.#toggleVisibleHotspotButton.addEventListener('click', () => {
       this.visibleHotspots = !this.visibleHotspots
-      if (this.visibleHotspots) {
-        this.#toggleVisibleHotspotButton.innerHTML =
-          SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF
-      } else {
-        this.#toggleVisibleHotspotButton.innerHTML =
-          SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON
-      }
       this.toggleVisibleHotspot(this.visibleHotspots)
     })
     this.appendChild(this.#toggleVisibleHotspotButton)
@@ -214,7 +208,7 @@ class FigniViewerElement extends ModelViewerElement {
             this.modelTag = newValue
             break
         }
-        await this.requestModel()
+        await this.#requestModel()
       } else if (FigniViewerElement.#TOOL_ATTRIBUTE.includes(name)) {
         switch (name) {
           case 'screenshot': {
@@ -232,7 +226,7 @@ class FigniViewerElement extends ModelViewerElement {
     }
   }
 
-  async requestModel() {
+  async #requestModel() {
     if (this.itemId && this.token) {
       const tag = this.modelTag ? `?tag=${this.modelTag}` : ''
       const res = await axios.get(
@@ -420,6 +414,13 @@ class FigniViewerElement extends ModelViewerElement {
 
   toggleVisibleHotspot(visible) {
     this.visibleHotspots = visible
+    if (this.visibleHotspots) {
+      this.#toggleVisibleHotspotButton.innerHTML =
+        SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF
+    } else {
+      this.#toggleVisibleHotspotButton.innerHTML =
+        SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON
+    }
     this.updateState(this.state)
   }
 
@@ -451,42 +452,13 @@ class FigniViewerElement extends ModelViewerElement {
         this.#hotspotEvents[`${hotspot.getAttribute('slot')}-anime`]
       )
       const e = () => {
-        if (
-          window.getComputedStyle(hotspot).opacity == 1 &&
-          (this.loop || this.paused)
-        ) {
+        if (window.getComputedStyle(hotspot).opacity == 1) {
           const clip = hotspot.getAttribute('clip')
           const lenth = Number(hotspot.getAttribute('length')) || 0
-          if (this.availableAnimations.includes(clip)) {
-            this.animationName = clip
-            this.currentTime = 0
-            this.play()
-            const f = hotspot.getAttribute('onstart')
-            if (f) {
-              this.#evalEvent(f)
-            }
-            if (lenth > 0) {
-              this.loop = false
-              if (isVisible) {
-                this.updateState(`temp-${this.#seed}`)
-              }
-              setTimeout(() => {
-                this.pause()
-                const f = hotspot.getAttribute('onend')
-                if (f) {
-                  this.#evalEvent(f)
-                }
-                if (isVisible) {
-                  this.updateState(hotspot.getAttribute('to-state'))
-                }
-              }, lenth)
-            } else {
-              this.loop = true
-              if (isVisible) {
-                this.updateState(hotspot.getAttribute('to-state'))
-              }
-            }
-          }
+          const toState = hotspot.getAttribute('to-state')
+          const onstart = hotspot.getAttribute('onstart')
+          const onend = hotspot.getAttribute('onend')
+          this.playAnimation(clip, lenth, toState, onstart, onend)
         }
       }
       hotspot.addEventListener('click', e)
@@ -556,6 +528,48 @@ class FigniViewerElement extends ModelViewerElement {
 
   #removeDownloadScreenshotButton() {
     this.#downloadScreenshotButton.remove()
+  }
+
+  playAnimation(clip, length = 0, toState = '', onstart, onend) {
+    if (!this.availableAnimations.includes(clip)) {
+      throw new ReferenceError(`${clip} is not available`)
+    }
+    if (this.loop || this.paused) {
+      this.animationName = clip
+      this.currentTime = 0
+      this.play()
+      if (onstart) {
+        this.#evalEvent(onstart)
+      }
+      if (length > 0) {
+        this.loop = false
+        this.#nextState = toState
+        if (this.#nextState) {
+          this.updateState(`temp-${this.#seed}`)
+        }
+        setTimeout(() => {
+          this.pause()
+          if (onend) {
+            this.#evalEvent(onend)
+          }
+          if (toState) {
+            this.updateState(toState)
+          }
+        }, length)
+      } else {
+        this.loop = true
+        if (toState) {
+          this.updateState(toState)
+        }
+      }
+    }
+  }
+
+  stopAnimation() {
+    this.pause()
+    if (this.#nextState) {
+      this.updateState(this.#nextState)
+    }
   }
 
   #evalEvent(string) {

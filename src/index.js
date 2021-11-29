@@ -6,6 +6,15 @@ const API_BASE = 'https://api.stg.figni.store/api'
 const SOCKET_BASE = 'wss://api.stg.figni.store/ws'
 const VIEW_THRESHOLD = 0.7
 
+const SVG_AR_BUTTON =
+  '<svg viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.50002 8.62017C12.6692 8.62017 16.1338 9.74602 16.8614 11.2244L11.9069 1.12585C11.5836 0.45489 10.8906 0 10.0822 0C9.43548 0 8.86958 0.295679 8.50002 0.761941L0.358032 10.8946C1.40898 9.57544 4.65423 8.62017 8.50002 8.62017Z" fill="#FF733B" /><path d="M8.5 14.9886C13.1944 14.9886 17 13.563 17 11.8044C17 10.0458 13.1944 8.62016 8.5 8.62016C3.80558 8.62016 0 10.0458 0 11.8044C0 13.563 3.80558 14.9886 8.5 14.9886Z" fill="#FFAB3B" /><path d="M8.49995 12.9985C11.4084 12.9985 13.7663 12.4639 13.7663 11.8044C13.7663 11.1449 11.4084 10.6103 8.49995 10.6103C5.59145 10.6103 3.23364 11.1449 3.23364 11.8044C3.23364 12.4639 5.59145 12.9985 8.49995 12.9985Z" fill="#FF733B" /><path d="M9.14678 11.8044C10.9327 11.8044 12.3805 10.3788 12.3805 8.62016C12.3805 6.86156 10.9327 5.43593 9.14678 5.43593C7.36086 5.43593 5.91309 6.86156 5.91309 8.62016C5.91309 10.3788 7.36086 11.8044 9.14678 11.8044Z" fill="#FFCE3B" /></svg>'
+const SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 147.41 147.41"><defs><style>.cls-1{fill:none;}.cls-2{fill:#999fae;}</style></defs><g id="レイヤー_2" data-name="レイヤー 2"><g id="レイヤー_1-2" data-name="レイヤー 1"><rect class="cls-1" width="147.41" height="147.41"/><path class="cls-2" d="M102.13,11.65H45.28A33.62,33.62,0,0,0,11.65,45.28v56.85a33.63,33.63,0,0,0,33.63,33.64h56.85a33.64,33.64,0,0,0,33.64-33.64V45.28A33.63,33.63,0,0,0,102.13,11.65ZM119.77,102A17.75,17.75,0,0,1,102,119.77H45.39A17.75,17.75,0,0,1,27.65,102V45.39A17.74,17.74,0,0,1,45.39,27.65H102a17.75,17.75,0,0,1,17.75,17.74ZM36.47,78.7V73.21A5.26,5.26,0,0,1,41.72,68h5.5a5.26,5.26,0,0,1,5.25,5.26V78.7A5.25,5.25,0,0,1,47.22,84h-5.5A5.25,5.25,0,0,1,36.47,78.7Zm24.63.2V73A5.06,5.06,0,0,1,66.15,68h39.73A5.07,5.07,0,0,1,110.94,73V78.9a5.06,5.06,0,0,1-5.06,5H66.15A5,5,0,0,1,61.1,78.9Zm49.6,19.49v5.5a5.25,5.25,0,0,1-5.25,5.25H100a5.25,5.25,0,0,1-5.25-5.25v-5.5A5.25,5.25,0,0,1,100,93.14h5.5A5.25,5.25,0,0,1,110.7,98.39Zm-25-.2v5.9a5,5,0,0,1-5,5H41.52a5,5,0,0,1-5.05-5v-5.9a5,5,0,0,1,5.05-5H80.67A5,5,0,0,1,85.72,98.19Z"/></g></g></svg>'
+const SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 147.41 147.41"><defs><style>.cls-1{fill:none;}.cls-2{fill:#999fae;}</style></defs><g id="レイヤー_2" data-name="レイヤー 2"><g id="レイヤー_1-2" data-name="レイヤー 1"><rect class="cls-1" width="147.41" height="147.41"/><path class="cls-2" d="M71.52,109.14l9.34-16a5,5,0,0,1,4.86,5v5.9a5,5,0,0,1-5,5Zm33.93-16H100a5.25,5.25,0,0,0-5.25,5.25v5.5a5.25,5.25,0,0,0,5.25,5.25h5.5a5.25,5.25,0,0,0,5.25-5.25v-5.5A5.25,5.25,0,0,0,105.45,93.14Zm.43-9.19a5.06,5.06,0,0,0,5.06-5V73A5.07,5.07,0,0,0,105.88,68H95.61L86.25,84ZM41.52,93.14a5,5,0,0,0-5.05,5v5.9a5.26,5.26,0,0,0,.18,1.27l7.16-12.22ZM47.22,68h-5.5a5.26,5.26,0,0,0-5.25,5.26V78.7A5.25,5.25,0,0,0,41.72,84h5.5a5.23,5.23,0,0,0,2.27-.53l3-5.1V73.21A5.26,5.26,0,0,0,47.22,68Zm76.65-48.32L115.52,33.9a17.63,17.63,0,0,1,4.25,11.49V102A17.75,17.75,0,0,1,102,119.77H65.3l-9.35,16h46.18a33.64,33.64,0,0,0,33.64-33.64V45.28A33.57,33.57,0,0,0,123.87,19.63ZM23.54,127.79l8.35-14.27A17.67,17.67,0,0,1,27.65,102V45.39A17.74,17.74,0,0,1,45.39,27.65H82.11l9.36-16H45.28A33.62,33.62,0,0,0,11.65,45.28v56.85A33.56,33.56,0,0,0,23.54,127.79Zm17.82,17.07,78.5-134.23a5.15,5.15,0,0,0-1.85-7L113.11.71a5.16,5.16,0,0,0-7.06,1.85L27.55,136.78a5.16,5.16,0,0,0,1.85,7.06l4.9,2.87A5.17,5.17,0,0,0,41.36,144.86Z"/></g></g></svg>'
+const SVG_DOWNLOAD_SCREENSHOT_BUTTON =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><defs><style>.figni-viewer-screenshot{fill:#8f94a9;}</style></defs><path class="figni-viewer-screenshot" d="M14.61,0H5.39A5.4,5.4,0,0,0,0,5.39v9.22A5.4,5.4,0,0,0,5.39,20h9.22A5.4,5.4,0,0,0,20,14.61V5.39A5.4,5.4,0,0,0,14.61,0ZM5.39,2.58h9.22a2.81,2.81,0,0,1,2.81,2.81v6L13.63,7.64a1.12,1.12,0,0,0-1.57,0L8.54,11.16a1.11,1.11,0,0,1-1.58,0,1.12,1.12,0,0,0-1.57,0L2.58,14V5.39A2.81,2.81,0,0,1,5.39,2.58Z"/><circle class="figni-viewer-screenshot" cx="5.88" cy="5.88" r="1.92"/></svg>'
+
 class FigniViewerElement extends ModelViewerElement {
   static #MODEL_ATTRIBUTE = ['item-id', 'token', 'model-tag']
   static #TOOL_ATTRIBUTE = ['screenshot']
@@ -21,9 +30,12 @@ class FigniViewerElement extends ModelViewerElement {
   initCameraOrbit = '0deg 75deg 105%'
   loop = false
   state = ''
+  visibleHotspots = true
 
   #seed
   #initCameraButton
+  #downloadScreenshotButton
+  #toggleVisibleHotspotButton
   #panels = []
   #hotspots = []
   #hotspotEvents = {}
@@ -103,17 +115,28 @@ class FigniViewerElement extends ModelViewerElement {
 
     const arButton = document.createElement('button')
     arButton.setAttribute('slot', 'ar-button')
-    arButton.innerHTML = `
-      <svg viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8.50002 8.62017C12.6692 8.62017 16.1338 9.74602 16.8614 11.2244L11.9069 1.12585C11.5836 0.45489 10.8906 0 10.0822 0C9.43548 0 8.86958 0.295679 8.50002 0.761941L0.358032 10.8946C1.40898 9.57544 4.65423 8.62017 8.50002 8.62017Z" fill="#FF733B" />
-        <path d="M8.5 14.9886C13.1944 14.9886 17 13.563 17 11.8044C17 10.0458 13.1944 8.62016 8.5 8.62016C3.80558 8.62016 0 10.0458 0 11.8044C0 13.563 3.80558 14.9886 8.5 14.9886Z" fill="#FFAB3B" />
-        <path d="M8.49995 12.9985C11.4084 12.9985 13.7663 12.4639 13.7663 11.8044C13.7663 11.1449 11.4084 10.6103 8.49995 10.6103C5.59145 10.6103 3.23364 11.1449 3.23364 11.8044C3.23364 12.4639 5.59145 12.9985 8.49995 12.9985Z" fill="#FF733B" />
-        <path d="M9.14678 11.8044C10.9327 11.8044 12.3805 10.3788 12.3805 8.62016C12.3805 6.86156 10.9327 5.43593 9.14678 5.43593C7.36086 5.43593 5.91309 6.86156 5.91309 8.62016C5.91309 10.3788 7.36086 11.8044 9.14678 11.8044Z" fill="#FFCE3B" />
-      </svg>
-      <span>目の前に置く</span>
-    `
+    arButton.innerHTML = `${SVG_AR_BUTTON}<span>目の前に置く</span>`
     arButton.classList.add('figni-viewer-ar-button')
     this.appendChild(arButton)
+
+    this.#toggleVisibleHotspotButton = document.createElement('button')
+    this.#toggleVisibleHotspotButton.innerHTML =
+      SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF
+    this.#toggleVisibleHotspotButton.classList.add(
+      'figni-viewer-toggle-visible-hotspot-button'
+    )
+    this.#toggleVisibleHotspotButton.addEventListener('click', () => {
+      this.visibleHotspots = !this.visibleHotspots
+      if (this.visibleHotspots) {
+        this.#toggleVisibleHotspotButton.innerHTML =
+          SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF
+      } else {
+        this.#toggleVisibleHotspotButton.innerHTML =
+          SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON
+      }
+      this.toggleVisibleHotspot(this.visibleHotspots)
+    })
+    this.appendChild(this.#toggleVisibleHotspotButton)
 
     this.animationCrossfadeDuration = 0
     const hotspots = this.querySelectorAll('button[slot^="hotspot"]')
@@ -196,26 +219,11 @@ class FigniViewerElement extends ModelViewerElement {
         switch (name) {
           case 'screenshot': {
             if (newValue == '') {
-              let downloadScreenshotButton = document.getElementById(
-                `download-screenshot-button-${this.#seed}`
-              )
-              if (!downloadScreenshotButton) {
-                downloadScreenshotButton = document.createElement('button')
-                downloadScreenshotButton.id = `download-screenshot-button-${
-                  this.#seed
-                }`
-                downloadScreenshotButton.classList.add(
-                  'figni-viewer-download-screenshot-btn'
-                )
-                downloadScreenshotButton.innerHTML =
-                  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><defs><style>.figni-viewer-screenshot{fill:#8f94a9;}</style></defs><path class="figni-viewer-screenshot" d="M14.61,0H5.39A5.4,5.4,0,0,0,0,5.39v9.22A5.4,5.4,0,0,0,5.39,20h9.22A5.4,5.4,0,0,0,20,14.61V5.39A5.4,5.4,0,0,0,14.61,0ZM5.39,2.58h9.22a2.81,2.81,0,0,1,2.81,2.81v6L13.63,7.64a1.12,1.12,0,0,0-1.57,0L8.54,11.16a1.11,1.11,0,0,1-1.58,0,1.12,1.12,0,0,0-1.57,0L2.58,14V5.39A2.81,2.81,0,0,1,5.39,2.58Z"/><circle class="figni-viewer-screenshot" cx="5.88" cy="5.88" r="1.92"/></svg>'
-                downloadScreenshotButton.addEventListener('click', () => {
-                  this.downloadScreenshot()
-                })
-                this.appendChild(downloadScreenshotButton)
-              }
+              this.#addDownloadScreenshotButton()
+              this.#toggleVisibleHotspotButton.style.display = 'none'
             } else {
-              downloadScreenshotButton.remove()
+              this.#removeDownloadScreenshotButton()
+              this.#toggleVisibleHotspotButton.style.display = 'display'
             }
             break
           }
@@ -273,13 +281,17 @@ class FigniViewerElement extends ModelViewerElement {
   updateState(state) {
     this.state = state
     this.#hotspots.forEach((hotspot) => {
-      const visible = hotspot.getAttribute('visible')
-      if (visible) {
-        if (visible == this.state) {
-          hotspot.classList.remove('figni-viewer-hotspot-hide')
-        } else {
-          hotspot.classList.add('figni-viewer-hotspot-hide')
+      if (this.visibleHotspots) {
+        const visible = hotspot.getAttribute('visible')
+        if (visible) {
+          if (visible == this.state) {
+            hotspot.classList.remove('figni-viewer-hotspot-hide')
+          } else {
+            hotspot.classList.add('figni-viewer-hotspot-hide')
+          }
         }
+      } else {
+        hotspot.classList.add('figni-viewer-hotspot-hide')
       }
     })
   }
@@ -406,6 +418,11 @@ class FigniViewerElement extends ModelViewerElement {
     hotspot?.remove()
   }
 
+  toggleVisibleHotspot(visible) {
+    this.visibleHotspots = visible
+    this.updateState(this.state)
+  }
+
   #modifyHotspot(hotspot) {
     hotspot.classList.add('figni-viewer-hotspot')
     hotspot.setAttribute(
@@ -515,6 +532,30 @@ class FigniViewerElement extends ModelViewerElement {
       hotspot.addEventListener('click', e)
       this.#hotspotEvents[`${hotspot.getAttribute('slot')}-visible`] = e
     }
+  }
+
+  #addDownloadScreenshotButton() {
+    this.#downloadScreenshotButton = document.getElementById(
+      `download-screenshot-button-${this.#seed}`
+    )
+    if (!this.#downloadScreenshotButton) {
+      this.#downloadScreenshotButton = document.createElement('button')
+      this.#downloadScreenshotButton.id = `download-screenshot-button-${
+        this.#seed
+      }`
+      this.#downloadScreenshotButton.classList.add(
+        'figni-viewer-download-screenshot-btn'
+      )
+      this.#downloadScreenshotButton.innerHTML = SVG_DOWNLOAD_SCREENSHOT_BUTTON
+      this.#downloadScreenshotButton.addEventListener('click', () => {
+        this.downloadScreenshot()
+      })
+      this.appendChild(this.#downloadScreenshotButton)
+    }
+  }
+
+  #removeDownloadScreenshotButton() {
+    this.#downloadScreenshotButton.remove()
   }
 
   #evalEvent(string) {

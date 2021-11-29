@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - *panel*を後から追加した場合に正しい挙動になるように修正
 
+## [0.0.19] - 2021-11-29
+
+- *hotspot*の表示非表示を切り替えるボタンを追加
+- *hotspot*の表示非表示を切り替える`toggleVisibleHotspot`メソッドを追加
+
 ## [0.0.18] - 2021-11-24
 
 ### Added
@@ -58,7 +63,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v0.0.18...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v0.0.19...HEAD
+[0.0.19]: https://github.com/cynack/figni-viewer/compare/v0.0.18...v0.0.19
 [0.0.18]: https://github.com/cynack/figni-viewer/compare/v0.0.17...v0.0.18
 [0.0.17]: https://github.com/cynack/figni-viewer/compare/v0.0.16...v0.0.17
 [0.0.16]: https://github.com/cynack/figni-viewer/compare/v0.0.15...v0.0.16

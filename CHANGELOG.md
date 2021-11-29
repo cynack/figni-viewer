@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - アニメーションを再生する`playAnimation`メソッドを追加
 - アニメーションを停止する`stopAnimation`メソッドを追加
+- *hotspot*の表示非表示を切り替えるボタンを追加
+- *hotspot*の表示非表示を切り替える`toggleHotspot`メソッドを追加
 
 ### Changed
 

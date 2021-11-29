@@ -469,7 +469,6 @@ class FigniViewerElement extends ModelViewerElement {
         'click',
         this.#hotspotEvents[`${hotspot.getAttribute('slot')}-closeup`]
       )
-      console.log('closeup')
       const e = () => {
         if (window.getComputedStyle(hotspot).opacity == 1) {
           const target =

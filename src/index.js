@@ -214,7 +214,7 @@ class FigniViewerElement extends ModelViewerElement {
             this.modelTag = newValue
             break
         }
-        await this.requestModel()
+        await this.#requestModel()
       } else if (FigniViewerElement.#TOOL_ATTRIBUTE.includes(name)) {
         switch (name) {
           case 'screenshot': {
@@ -232,7 +232,7 @@ class FigniViewerElement extends ModelViewerElement {
     }
   }
 
-  async requestModel() {
+  async #requestModel() {
     if (this.itemId && this.token) {
       const tag = this.modelTag ? `?tag=${this.modelTag}` : ''
       const res = await axios.get(

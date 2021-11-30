@@ -538,7 +538,11 @@ class FigniViewerElement extends ModelViewerElement {
       this.currentTime = 0
       this.play()
       if (onstart) {
-        this.#evalEvent(onstart)
+        if (typeof onstart == 'function') {
+          this.#evalEvent(`(${onstart.toString()})()`)
+        } else {
+          this.#evalEvent(onstart)
+        }
       }
       if (length > 0) {
         this.loop = false
@@ -549,7 +553,11 @@ class FigniViewerElement extends ModelViewerElement {
         setTimeout(() => {
           this.pause()
           if (onend) {
-            this.#evalEvent(onend)
+            if (typeof onend == 'function') {
+              this.#evalEvent(`(${onend.toString()})()`)
+            } else {
+              this.#evalEvent(onend)
+            }
           }
           if (toState) {
             this.updateState(toState)

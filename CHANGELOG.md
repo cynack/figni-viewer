@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - *panel*を後から追加した場合に正しい挙動になるように修正
+- *hotspot*が存在しない場合*hotspot*の表示非表示を切り替えるボタンが出ないように修正
 
 ## [0.0.22] - 2021-12-01
 

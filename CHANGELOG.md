@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- `visible`の設定されていない*hotspot*の表示非表示が正しく行われていない問題を修正
 - *panel*を後から追加した場合に正しい挙動になるように修正
 
 ## [0.0.23] - 2021-12-01

@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- 属性`visible`を`visible-state`に改名
+
 ### Deprecated
 
 ### Removed

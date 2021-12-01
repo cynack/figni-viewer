@@ -87,6 +87,8 @@ class FigniViewerElement extends ModelViewerElement {
     this.token = this.getAttribute('token')
     this.modelTag = this.getAttribute('model-tag') || ''
 
+    this.#requestModel()
+
     // Attribute
     this.loading = 'eager'
     this.cameraControls = true
@@ -219,7 +221,9 @@ class FigniViewerElement extends ModelViewerElement {
             this.modelTag = newValue
             break
         }
-        await this.#requestModel()
+        if (oldValue !== null) {
+          await this.#requestModel()
+        }
       } else if (FigniViewerElement.#TOOL_ATTRIBUTE.includes(name)) {
         switch (name) {
           case 'screenshot': {
@@ -240,23 +244,29 @@ class FigniViewerElement extends ModelViewerElement {
   async #requestModel() {
     if (this.itemId && this.token) {
       const tag = this.modelTag ? `?tag=${this.modelTag}` : ''
-      const res = await axios.get(
-        `${API_BASE}/item/${this.itemId}/model_search${tag}`,
-        {
-          headers: {
-            accept: 'application/json',
-            'X-Figni-Client-Token': this.token,
-            'X-Figni-Client-Version': VERSION,
-          },
+      try {
+        const res = await axios.get(
+          `${API_BASE}/item/${this.itemId}/model_search${tag}`,
+          {
+            headers: {
+              accept: 'application/json',
+              'X-Figni-Client-Token': this.token,
+              'X-Figni-Client-Version': VERSION,
+            },
+          }
+        )
+        const glb = res.data.filter((item) => item.format == 'glb')
+        if (glb.length > 0) {
+          this.src = glb[0].url
         }
-      )
-      const glb = res.data.filter((item) => item.format == 'glb')
-      if (glb.length > 0) {
-        this.src = glb[0].url
-      }
-      const usdz = res.data.filter((item) => item.format == 'usdz')
-      if (usdz.length > 0) {
-        this.iosSrc = usdz[0].url
+        const usdz = res.data.filter((item) => item.format == 'usdz')
+        if (usdz.length > 0) {
+          this.iosSrc = usdz[0].url
+        } else {
+          this.iosSrc = ''
+        }
+      } catch (e) {
+        console.error(e.response.data)
       }
     }
   }

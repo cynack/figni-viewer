@@ -68,7 +68,7 @@ figni-viewer * {
   font-weight: bold;
   z-index: 9998;
 }
-.figni-viewer-toggle-visible-hotspot-button {
+.figni-viewer-toggle-visible-hotspot-btn {
   position: absolute;
   display: flex;
   -webkit-box-align: center;
@@ -86,7 +86,7 @@ figni-viewer * {
   background-color: white;
   z-index: 9996;
 }
-.figni-viewer-toggle-visible-hotspot-button svg {
+.figni-viewer-toggle-visible-hotspot-btn svg {
   width: 1.25rem;
   height: 1.25rem;
   transform: translateX(-0.5px) translateY(-0.5px);

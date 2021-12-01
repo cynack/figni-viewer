@@ -120,18 +120,6 @@ class FigniViewerElement extends ModelViewerElement {
     arButton.classList.add('figni-viewer-ar-button')
     this.appendChild(arButton)
 
-    this.#toggleVisibleHotspotButton = document.createElement('button')
-    this.#toggleVisibleHotspotButton.innerHTML =
-      SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF
-    this.#toggleVisibleHotspotButton.classList.add(
-      'figni-viewer-toggle-visible-hotspot-button'
-    )
-    this.#toggleVisibleHotspotButton.addEventListener('click', () => {
-      this.visibleHotspots = !this.visibleHotspots
-      this.toggleVisibleHotspot(this.visibleHotspots)
-    })
-    this.appendChild(this.#toggleVisibleHotspotButton)
-
     this.animationCrossfadeDuration = 0
     const hotspots = this.querySelectorAll('[slot^="hotspot"]')
     this.#hotspots = Array.from(hotspots)
@@ -152,6 +140,11 @@ class FigniViewerElement extends ModelViewerElement {
       })
     })
 
+    if (this.#hotspots.length > 0) {
+      console.log(this.#hotspots)
+      this.#addToggleVisibleHotspotButton()
+    }
+
     this.updateState(this.state)
     this.closeAllPanels()
 
@@ -161,9 +154,25 @@ class FigniViewerElement extends ModelViewerElement {
           for (const node of mutation.addedNodes) {
             if (typeof node == 'element') {
               if (/^hotspot/.test(node.getAttribute('slot'))) {
+                if (this.#hotspots.length == 0) {
+                  this.#addToggleVisibleHotspotButton()
+                }
                 this.#hotspots.push(node)
                 this.#modifyHotspot(node)
                 this.updateState(this.state)
+              }
+            }
+          }
+          for (const node of mutation.removedNodes) {
+            if (typeof node == 'element') {
+              if (/^hotspot/.test(node.getAttribute('slot'))) {
+                const index = this.#hotspots.indexOf(node)
+                if (index > -1) {
+                  this.#hotspots.splice(index, 1)
+                }
+                if (this.#hotspots.length == 0) {
+                  this.#removeToggleVisibleHotspotButton()
+                }
               }
             }
           }
@@ -416,12 +425,14 @@ class FigniViewerElement extends ModelViewerElement {
 
   toggleVisibleHotspot(visible) {
     this.visibleHotspots = visible
-    if (this.visibleHotspots) {
-      this.#toggleVisibleHotspotButton.innerHTML =
-        SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF
-    } else {
-      this.#toggleVisibleHotspotButton.innerHTML =
-        SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON
+    if (this.#toggleVisibleHotspotButton) {
+      if (this.visibleHotspots) {
+        this.#toggleVisibleHotspotButton.innerHTML =
+          SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF
+      } else {
+        this.#toggleVisibleHotspotButton.innerHTML =
+          SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON
+      }
     }
     this.updateState(this.state)
   }
@@ -529,6 +540,33 @@ class FigniViewerElement extends ModelViewerElement {
 
   #removeDownloadScreenshotButton() {
     this.#downloadScreenshotButton.remove()
+    this.#downloadScreenshotButton = null
+  }
+
+  #addToggleVisibleHotspotButton() {
+    this.#toggleVisibleHotspotButton = document.getElementById(
+      `toggle-visible-hotspot-button-${this.#seed}`
+    )
+    if (!this.#toggleVisibleHotspotButton) {
+      this.#toggleVisibleHotspotButton = document.createElement('button')
+      this.#toggleVisibleHotspotButton.id = `toggle-visible-hotspot-button-${
+        this.#seed
+      }`
+      this.#toggleVisibleHotspotButton.classList.add(
+        'figni-viewer-toggle-visible-hotspot-btn'
+      )
+      this.#toggleVisibleHotspotButton.addEventListener('click', () => {
+        this.visibleHotspots = !this.visibleHotspots
+        this.toggleVisibleHotspot(this.visibleHotspots)
+      })
+      this.toggleVisibleHotspot(this.visibleHotspots)
+      this.appendChild(this.#toggleVisibleHotspotButton)
+    }
+  }
+
+  #removeToggleVisibleHotspotButton() {
+    this.#toggleVisibleHotspotButton.remove()
+    this.#toggleVisibleHotspotButton = null
   }
 
   playAnimation(clip, length = 0, toState = '', onstart, onend) {

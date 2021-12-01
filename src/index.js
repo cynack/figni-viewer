@@ -87,6 +87,8 @@ class FigniViewerElement extends ModelViewerElement {
     this.token = this.getAttribute('token')
     this.modelTag = this.getAttribute('model-tag') || ''
 
+    this.#requestModel()
+
     // Attribute
     this.loading = 'eager'
     this.cameraControls = true
@@ -219,7 +221,9 @@ class FigniViewerElement extends ModelViewerElement {
             this.modelTag = newValue
             break
         }
-        await this.#requestModel()
+        if (oldValue !== null) {
+          await this.#requestModel()
+        }
       } else if (FigniViewerElement.#TOOL_ATTRIBUTE.includes(name)) {
         switch (name) {
           case 'screenshot': {
@@ -257,6 +261,8 @@ class FigniViewerElement extends ModelViewerElement {
       const usdz = res.data.filter((item) => item.format == 'usdz')
       if (usdz.length > 0) {
         this.iosSrc = usdz[0].url
+      } else {
+        this.iosSrc = ''
       }
     }
   }

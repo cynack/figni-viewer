@@ -294,6 +294,8 @@ class FigniViewerElement extends ModelViewerElement {
           } else {
             hotspot.classList.add('figni-viewer-hotspot-hide')
           }
+        } else {
+          hotspot.classList.remove('figni-viewer-hotspot-hide')
         }
       } else {
         hotspot.classList.add('figni-viewer-hotspot-hide')

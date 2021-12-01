@@ -133,7 +133,7 @@ class FigniViewerElement extends ModelViewerElement {
     this.appendChild(this.#toggleVisibleHotspotButton)
 
     this.animationCrossfadeDuration = 0
-    const hotspots = this.querySelectorAll('button[slot^="hotspot"]')
+    const hotspots = this.querySelectorAll('[slot^="hotspot"]')
     this.#hotspots = Array.from(hotspots)
     hotspots.forEach((hotspot) => {
       this.#modifyHotspot(hotspot)
@@ -159,10 +159,12 @@ class FigniViewerElement extends ModelViewerElement {
       for (const mutation of mutationList) {
         if (mutation.type == 'childList') {
           for (const node of mutation.addedNodes) {
-            if (/^hotspot/.test(node.getAttribute('slot'))) {
-              this.#hotspots.push(node)
-              this.#modifyHotspot(node)
-              this.updateState(this.state)
+            if (typeof node == 'element') {
+              if (/^hotspot/.test(node.getAttribute('slot'))) {
+                this.#hotspots.push(node)
+                this.#modifyHotspot(node)
+                this.updateState(this.state)
+              }
             }
           }
         }

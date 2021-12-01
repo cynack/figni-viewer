@@ -13,8 +13,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-- 属性`visible`を`visible-state`に改名
-
 ### Deprecated
 
 ### Removed
@@ -22,6 +20,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - *panel*を後から追加した場合に正しい挙動になるように修正
+
+## [0.0.23] - 2021-12-01
+
+### Changed
+
+- 属性`visible`を`visible-state`に改名
+
+### Fixed
+
 - *hotspot*が存在しない場合*hotspot*の表示非表示を切り替えるボタンが出ないように修正
 
 ## [0.0.22] - 2021-12-01
@@ -88,7 +95,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v0.0.22...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v0.0.23...HEAD
+[0.0.23]: https://github.com/cynack/figni-viewer/compare/v0.0.22...v0.0.23
 [0.0.22]: https://github.com/cynack/figni-viewer/compare/v0.0.21...v0.0.22
 [0.0.21]: https://github.com/cynack/figni-viewer/compare/v0.0.20...v0.0.21
 [0.0.20]: https://github.com/cynack/figni-viewer/compare/v0.0.19...v0.0.20

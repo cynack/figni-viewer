@@ -278,7 +278,7 @@ class FigniViewerElement extends ModelViewerElement {
     this.state = state
     this.#hotspots.forEach((hotspot) => {
       if (this.visibleHotspots) {
-        const visible = hotspot.getAttribute('visible')
+        const visible = hotspot.getAttribute('visible-state')
         if (visible) {
           if (visible == this.state) {
             hotspot.classList.remove('figni-viewer-hotspot-hide')
@@ -346,8 +346,8 @@ class FigniViewerElement extends ModelViewerElement {
           hotspot.setAttribute('orbit', options.closeup.orbit)
         }
       }
-      if (options.visible) {
-        hotspot.setAttribute('visible', options.visible)
+      if (options.visibleState) {
+        hotspot.setAttribute('visible-state', options.visibleState)
       }
       if (options.toState) {
         hotspot.setAttribute('to-state', options.toState)
@@ -398,8 +398,8 @@ class FigniViewerElement extends ModelViewerElement {
           hotspot.setAttribute('orbit', options.closeup.orbit)
         }
       }
-      if (options.visible) {
-        hotspot.setAttribute('visible', options.visible)
+      if (options.visibleState) {
+        hotspot.setAttribute('visible-state', options.visibleState)
       }
       if (options.toState) {
         hotspot.setAttribute('to-state', options.toState)

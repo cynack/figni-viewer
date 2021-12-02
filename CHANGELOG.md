@@ -19,9 +19,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- *panel*を後から追加した場合に正しい挙動になるように修正
+
+## [0.0.24] - 2021-12-02
+
+### Fixed
+
 - `model-tag`を利用した 3D モデルの読み込みが正しく行われていない問題を修正
 - `visible`の設定されていない*hotspot*の表示非表示が正しく行われていない問題を修正
-- *panel*を後から追加した場合に正しい挙動になるように修正
 
 ## [0.0.23] - 2021-12-01
 
@@ -97,7 +102,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v0.0.23...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v0.0.24...HEAD
+[0.0.24]: https://github.com/cynack/figni-viewer/compare/v0.0.23...v0.0.24
 [0.0.23]: https://github.com/cynack/figni-viewer/compare/v0.0.22...v0.0.23
 [0.0.22]: https://github.com/cynack/figni-viewer/compare/v0.0.21...v0.0.22
 [0.0.21]: https://github.com/cynack/figni-viewer/compare/v0.0.20...v0.0.21

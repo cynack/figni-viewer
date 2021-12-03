@@ -21,17 +21,34 @@ figni-viewer * {
   --min-hotspot-opacity: 0;
   backdrop-filter: blur(3px);
 }
+
 .figni-viewer-hotspot-hide {
   opacity: var(--min-hotspot-opacity);
 }
 [slot^='panel'] {
-  background-color: #f1f2f7;
+  width: 160px;
+  background-color: white;
   position: absolute;
-  right: 1.5rem;
-  bottom: 1.5rem;
   border-radius: 0.5rem;
-  padding: 0.5rem;
+  overflow: hidden;
+  text-align: left;
+  position: absolute;
+  left: 0;
+  bottom: 50%;
+  transform: translateX(-100%) translateX(-1rem) translateY(50%);
 }
+
+[slot^='panel'] > {
+  p, h1, h2, h3, h4, h5, h6 {
+    color: #222428;
+    margin: 0.25rem 0.5rem 0.5rem;
+  }
+
+  img {
+    width: 100%;
+  }
+}
+
 .figni-viewer-camera-init-btn {
   position: absolute;
   display: flex;

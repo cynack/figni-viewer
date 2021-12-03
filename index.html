@@ -16,55 +16,27 @@
         item-id="9IuDxlQF"
         token="5UTBSHOXODAj2QLo"
         state="close"
+        debug-hotspot
       >
-        <button
-          id="open"
-          slot="hotspot-open"
-          anime
-          clip="openAction"
-          length="810"
-          position="-0.2m 1.1m 0.35m"
-          normal="0m 0m 1m"
-          to-state="open"
-          onstart="console.log('onstart')"
-          onend="console.log('onend')"
-        ></button>
-        <button
-          id="close"
-          slot="hotspot-close"
-          anime
-          clip="closeAction"
-          length="810"
-          position="0.6m 1.1m 0.83m"
-          normal="-0.8m 0 0.5m"
-          to-state="close"
-          visible-state="open"
-        ></button>
-        <button
-          id="closeup"
-          slot="hotspot-closeup"
-          position="0.1m 1.325m 0.2m"
-          normal="0m 0m 1m"
-          visible-state="open"
-          closeup
-          orbit="auto auto 0.1m"
-        ></button>
-        <button
-          id="panel"
-          slot="hotspot-panel"
-          position="0.1m 0.3m 0.2m"
-          normal="0m 0m 1m"
-          visible-state="open"
-          closeup
-          orbit="auto auto 0.1m"
-        >
-          <div slot="panel">
-            <span>とてもいい冷蔵庫です。</span>
-          </div>
-          冷凍庫
-        </button>
+      <button
+        slot="hotspot-1"
+        position="-0.075m 0.32m 0.08m"
+        normal="-1m 0m 1m"
+        closeup
+      >
+        aaaaaaaaaaa
+        <div slot="panel" class="panel">
+          <img src="1_1.png" />
+          <h2>でっか</h2>
+          <p>
+            様々なインテリアに合わせることができるシンプルかつモダンなデザインです。
+          </p>
+        </div>
+      </button>
       </figni-viewer>
     </div>
+    <h2>aaaaasd菅愛奈
+    </h2>
     <script>
       const view = document.getElementById('view')
     </script>

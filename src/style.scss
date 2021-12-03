@@ -36,6 +36,7 @@ figni-viewer * {
   left: 0;
   bottom: 50%;
   transform: translateX(-100%) translateX(-1rem) translateY(50%);
+  z-index: 1000;
 }
 
 [slot^='panel'] > {

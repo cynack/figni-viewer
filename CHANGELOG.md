@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- *panel*の位置を指定することができる属性`place`を追加
-
 ### Changed
 
 ### Deprecated
@@ -23,7 +21,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - *panel*を後から追加した場合に正しい挙動になるように修正
 
+## [0.0.26] - 2021-12-06
+
+### Added
+
+- *panel*の位置を指定することができる属性`place`を追加
+
+### Fixed
+
+- *panel*のデザインを修正
+
 ## [0.0.25] - 2021-12-06
+
+### Fixed
 
 - 3D モデルのテクスチャが黒くなる問題を修正
 
@@ -108,7 +118,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v0.0.25...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v0.0.26...HEAD
+[0.0.26]: https://github.com/cynack/figni-viewer/compare/v0.0.25...v0.0.26
 [0.0.25]: https://github.com/cynack/figni-viewer/compare/v0.0.24...v0.0.25
 [0.0.24]: https://github.com/cynack/figni-viewer/compare/v0.0.23...v0.0.24
 [0.0.23]: https://github.com/cynack/figni-viewer/compare/v0.0.22...v0.0.23

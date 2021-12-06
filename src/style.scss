@@ -40,8 +40,14 @@ figni-viewer * {
 }
 
 [slot^='panel'] > {
-  p, h1, h2, h3, h4, h5, h6 {
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
     color: #222428;
+    margin: 0.25rem 0.5rem;
+  }
+
+  p {
+    color: #787D93;
     margin: 0.25rem 0.5rem 0.5rem;
   }
 

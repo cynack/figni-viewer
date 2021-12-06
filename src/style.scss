@@ -34,22 +34,44 @@ figni-viewer * {
   overflow: hidden;
   text-align: left;
   position: absolute;
+  z-index: 1000;
+  left: 0;
+  bottom: 50%;
+  transform: translateX(-100%) translateX(-1rem) translateY(50%);
 }
 
 .figni-viewer-panel > {
-  p,
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
     color: #222428;
+    margin: 0.25rem 0.5rem;
+  }
+
+  p {
+    color: #787D93;
     margin: 0.25rem 0.5rem 0.5rem;
   }
 
   img {
     width: 100%;
+  }
+
+  button {
+    width: 100%;
+    // margin: 0.25rem 0.5rem 0.5rem;
+    padding: 0.5rem 1rem;
+    margin: 0.25rem 0.5rem 0.5rem;
+    background-color: #3B5EFF;
+    border-radius: 0.25rem;
+    border: none;
+    cursor: pointer;
+    font-size: 0.625rem;
+    color: white;
+    transition: 0.3s ease-out all;
+  }
+
+  button:hover {
+    background-color: lighten(#3B5EFF, 10%);
   }
 }
 

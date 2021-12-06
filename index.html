@@ -16,24 +16,24 @@
         item-id="9IuDxlQF"
         token="5UTBSHOXODAj2QLo"
         state="close"
-        debug-hotspot
       >
-      <button
-        slot="hotspot-1"
-        position="-0.075m 0.32m 0.08m"
-        normal="-1m 0m 1m"
-        closeup
-      >
-        <div slot="panel" class="panel">
-          <img src="1_1.png" />
-          <h2>でっか</h2>
-          <p>
-            様々なインテリアに合わせることができるシンプルかつモダンなデザインです。
-          </p>
-        </div>
-      </button>
-      <button slot="hotspot-2">
-      </button>
+        <button
+          slot="hotspot-1"
+          position="-0.075m 0.32m 0.08m"
+          normal="-1m 0m 1m"
+          closeup
+        >
+          ボタン
+          <div slot="panel" place="left top">左上</div>
+          <div slot="panel" place="center top">上</div>
+          <div slot="panel" place="right top">右上</div>
+          <div slot="panel" place="left middle">左</div>
+          <div slot="panel" place="center middle">中央</div>
+          <div slot="panel" place="right middle">右</div>
+          <div slot="panel" place="left bottom">左下</div>
+          <div slot="panel" place="center bottom">下</div>
+          <div slot="panel" place="right bottom">右下</div>
+        </button>
       </figni-viewer>
     </div>
     <script>
@@ -43,6 +43,10 @@
       #view {
         width: 100%;
         height: 480px;
+      }
+      .figni-viewer-panel {
+        width: 30px;
+        text-align: center;
       }
     </style>
   </body>

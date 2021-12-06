@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- 3D モデルのテクスチャが黒くなる問題を修正
 - *panel*を後から追加した場合に正しい挙動になるように修正
 
 ## [0.0.24] - 2021-12-02

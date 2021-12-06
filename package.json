@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.15.4",
-    "@google/model-viewer": "^1.9.1",
+    "@google/model-viewer": "^1.8.0",
     "axios": "^0.24.0"
   }
 }

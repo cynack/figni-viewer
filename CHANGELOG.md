@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- *panel*の位置を指定することができる属性`place`を追加
+
 ### Changed
 
 ### Deprecated

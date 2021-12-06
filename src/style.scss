@@ -54,6 +54,24 @@ figni-viewer * {
   img {
     width: 100%;
   }
+
+  button {
+    width: 100%;
+    // margin: 0.25rem 0.5rem 0.5rem;
+    padding: 0.5rem 1rem;
+    margin: 0.25rem 0.5rem 0.5rem;
+    background-color: #3B5EFF;
+    border-radius: 0.25rem;
+    border: none;
+    cursor: pointer;
+    font-size: 0.625rem;
+    color: white;
+    transition: 0.3s ease-out all;
+  }
+
+  button:hover {
+    background-color: lighten(#3B5EFF, 10%);
+  }
 }
 
 .figni-viewer-camera-init-btn {

@@ -19,6 +19,8 @@ class FigniViewerElement extends ModelViewerElement {
   static #MODEL_ATTRIBUTE = ['item-id', 'token', 'model-tag']
   static #TOOL_ATTRIBUTE = ['screenshot']
 
+  static #DEFAULT_CAMERA_TARGET = 'auto auto auto'
+  static #DEFAULT_CAMERA_ORBIT = '0deg 75deg 105%'
   static #DEFAULT_HOTSPOT_POSITION = '0m 0m 0m'
   static #DEFAULT_HOTSPOT_NORMAL = '0m 1m 0m'
 
@@ -26,8 +28,8 @@ class FigniViewerElement extends ModelViewerElement {
   token
   modelTag
 
-  initCameraTarget = 'auto auto auto'
-  initCameraOrbit = '0deg 75deg 105%'
+  #initCameraTarget = ''
+  #initCameraOrbit = ''
   loop = false
   state = ''
   visibleHotspots = true
@@ -38,7 +40,7 @@ class FigniViewerElement extends ModelViewerElement {
   #toggleVisibleHotspotButton
   #panels = []
   #hotspots = []
-  #hotspotEvents = {}
+  #events = {}
   #nextState
 
   #initTime = 0
@@ -98,18 +100,20 @@ class FigniViewerElement extends ModelViewerElement {
     this.arPlacement = 'floor'
     this.interactionPrompt = 'none'
     this.shadowIntensity = 1
-    this.initCameraTarget = this.getAttribute('target') || this.initCameraTarget
-    this.initCameraOrbit = this.getAttribute('orbit') || this.initCameraOrbit
+    this.#initCameraTarget =
+      this.getAttribute('target') || FigniViewerElement.#DEFAULT_CAMERA_TARGET
+    this.#initCameraOrbit =
+      this.getAttribute('orbit') || FigniViewerElement.#DEFAULT_CAMERA_ORBIT
     this.state = this.getAttribute('state') || this.state
-    this.setCameraTarget(this.initCameraTarget)
-    this.setCameraOrbit(this.initCameraOrbit)
+    this.setCameraTarget(this.#initCameraTarget)
+    this.setCameraOrbit(this.#initCameraOrbit)
 
     this.#initCameraButton = document.createElement('button')
     this.#initCameraButton.classList.add('figni-viewer-camera-init-btn')
     this.#initCameraButton.innerHTML = 'カメラ位置を戻す'
     this.#initCameraButton.addEventListener('click', () => {
-      this.setCameraTarget(this.initCameraTarget)
-      this.setCameraOrbit(this.initCameraOrbit)
+      this.setCameraTarget(this.#initCameraTarget)
+      this.setCameraOrbit(this.#initCameraOrbit)
       this.#initCameraButton.style.display = 'none'
       this.closeAllPanels()
     })
@@ -127,19 +131,6 @@ class FigniViewerElement extends ModelViewerElement {
     this.#hotspots = Array.from(hotspots)
     hotspots.forEach((hotspot) => {
       this.#modifyHotspot(hotspot)
-      const panels = hotspot.querySelectorAll('[slot^="panel"]')
-      panels.forEach((panel) => {
-        panel.classList.add('figni-viewer-panel')
-      })
-      this.#panels.push(...panels)
-      hotspot.addEventListener('click', () => {
-        if (panels.length > 0) {
-          panels.forEach((panel) => {
-            panel.classList.toggle('figni-viewer-panel-hide')
-          })
-          this.closeAllPanels(Array.from(panels))
-        }
-      })
     })
 
     if (this.#hotspots.length > 0) {
@@ -467,15 +458,13 @@ class FigniViewerElement extends ModelViewerElement {
       normal: hotspot.getAttribute('normal'),
     })
 
+    const name = hotspot.getAttribute('slot')
     const isAnime = hotspot.getAttribute('anime') == ''
     const isCloseup = hotspot.getAttribute('closeup') == ''
     const isVisible = hotspot.getAttribute('to-state') != null
 
     if (isAnime) {
-      hotspot.removeEventListener(
-        'click',
-        this.#hotspotEvents[`${hotspot.getAttribute('slot')}-anime`]
-      )
+      hotspot.removeEventListener('click', this.#events[`${name}-anime`])
       const e = () => {
         if (window.getComputedStyle(hotspot).opacity == 1) {
           const clip = hotspot.getAttribute('clip')
@@ -487,23 +476,20 @@ class FigniViewerElement extends ModelViewerElement {
         }
       }
       hotspot.addEventListener('click', e)
-      this.#hotspotEvents[`${hotspot.getAttribute('slot')}-anime`] = e
+      this.#events[`${name}-anime`] = e
     }
     if (isCloseup) {
-      hotspot.removeEventListener(
-        'click',
-        this.#hotspotEvents[`${hotspot.getAttribute('slot')}-closeup`]
-      )
+      hotspot.removeEventListener('click', this.#events[`${name}-closeup`])
       const e = () => {
         if (window.getComputedStyle(hotspot).opacity == 1) {
           const target =
             hotspot.getAttribute('target') ||
             hotspot.getAttribute('position') ||
             FigniViewerElement.#DEFAULT_HOTSPOT_POSITION
-          const orbit = hotspot.getAttribute('orbit') || this.initCameraOrbit
+          const orbit = hotspot.getAttribute('orbit') || this.#initCameraOrbit
           if (this.cameraTarget == target && this.cameraOrbit == orbit) {
-            this.setCameraOrbit(this.initCameraTarget)
-            this.setCameraTarget(this.initCameraOrbit)
+            this.setCameraOrbit(this.#initCameraTarget)
+            this.setCameraTarget(this.#initCameraOrbit)
             this.#initCameraButton.style.display = 'none'
           } else {
             this.setCameraTarget(target)
@@ -512,13 +498,13 @@ class FigniViewerElement extends ModelViewerElement {
         }
       }
       hotspot.addEventListener('click', e)
-      this.#hotspotEvents[`${hotspot.getAttribute('slot')}-closeup`] = e
+      this.#events[`${name}-closeup`] = e
     }
     if (!isAnime && isVisible) {
       const state = hotspot.getAttribute('to-state')
       hotspot.removeEventListener(
         'click',
-        this.#hotspotEvents[`${hotspot.getAttribute('slot')}-visible`]
+        this.#events[`${hotspot.getAttribute('slot')}-visible`]
       )
       const e = () => {
         if (window.getComputedStyle(hotspot).opacity == 1) {
@@ -526,8 +512,33 @@ class FigniViewerElement extends ModelViewerElement {
         }
       }
       hotspot.addEventListener('click', e)
-      this.#hotspotEvents[`${hotspot.getAttribute('slot')}-visible`] = e
+      this.#events[`${name}-visible`] = e
     }
+
+    const panels = hotspot.querySelectorAll('[slot^="panel"]')
+    this.#panels.push(...Array.from(panels))
+    this.#panels.forEach((panel) => {
+      this.#modifyPanel(panel)
+    })
+
+    hotspot.removeEventListener('click', this.#events[`${name}-panel`])
+    const e = () => {
+      if (window.getComputedStyle(hotspot).opacity == 1) {
+        if (panels.length > 0) {
+          panels.forEach((panel) => {
+            panel.classList.toggle('figni-viewer-panel-hide')
+          })
+          this.closeAllPanels(Array.from(panels))
+        }
+      }
+    }
+    hotspot.addEventListener('click', e)
+    this.#events[`${name}-panel`] = e
+  }
+
+  #modifyPanel(panel) {
+    panel.classList.add('figni-viewer-panel')
+    // TODO: position attribute
   }
 
   #addDownloadScreenshotButton() {

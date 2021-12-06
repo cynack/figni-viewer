@@ -23,6 +23,7 @@ class FigniViewerElement extends ModelViewerElement {
   static #DEFAULT_CAMERA_ORBIT = '0deg 75deg 105%'
   static #DEFAULT_HOTSPOT_POSITION = '0m 0m 0m'
   static #DEFAULT_HOTSPOT_NORMAL = '0m 1m 0m'
+  static #DEFAULT_PANEL_PLACE = 'left middle'
 
   itemId
   token
@@ -539,6 +540,39 @@ class FigniViewerElement extends ModelViewerElement {
   #modifyPanel(panel) {
     panel.classList.add('figni-viewer-panel')
     // TODO: position attribute
+    const place =
+      panel.getAttribute('place') || FigniViewerElement.#DEFAULT_PANEL_PLACE
+    const array = place.split(' ')
+    let vertical = ''
+    let horizontal = ''
+    array.forEach((name) => {
+      if (['top', 'middle', 'bottom'].includes(name)) {
+        vertical = name
+      }
+      if (['left', 'center', 'right'].includes(name)) {
+        horizontal = name
+      }
+    })
+
+    if (horizontal == 'left' && vertical == 'top') {
+      panel.classList.add('figni-viewer-panel-place-left-top')
+    } else if (horizontal == 'center' && vertical == 'top') {
+      panel.classList.add('figni-viewer-panel-place-center-top')
+    } else if (horizontal == 'right' && vertical == 'top') {
+      panel.classList.add('figni-viewer-panel-place-right-top')
+    } else if (horizontal == 'left' && vertical == 'middle') {
+      panel.classList.add('figni-viewer-panel-place-left-middle')
+    } else if (horizontal == 'center' && vertical == 'middle') {
+      panel.classList.add('figni-viewer-panel-place-center-middle')
+    } else if (horizontal == 'right' && vertical == 'middle') {
+      panel.classList.add('figni-viewer-panel-place-right-middle')
+    } else if (horizontal == 'left' && vertical == 'bottom') {
+      panel.classList.add('figni-viewer-panel-place-left-bottom')
+    } else if (horizontal == 'center' && vertical == 'bottom') {
+      panel.classList.add('figni-viewer-panel-place-center-bottom')
+    } else if (horizontal == 'right' && vertical == 'bottom') {
+      panel.classList.add('figni-viewer-panel-place-right-bottom')
+    }
   }
 
   #addDownloadScreenshotButton() {

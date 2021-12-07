@@ -25,6 +25,9 @@ class FigniViewerElement extends ModelViewerElement {
   static #DEFAULT_HOTSPOT_NORMAL = '0m 1m 0m'
   static #DEFAULT_PANEL_PLACE = 'left middle'
 
+  static #MAX_CAMERA_ORBIT = 'auto 180deg 200%'
+  static #MIN_CAMERA_ORBIT = 'auto 0deg auto'
+
   itemId
   token
   modelTag
@@ -101,6 +104,8 @@ class FigniViewerElement extends ModelViewerElement {
     this.arPlacement = 'floor'
     this.interactionPrompt = 'none'
     this.shadowIntensity = 1
+    this.maxCameraOrbit = FigniViewerElement.#MAX_CAMERA_ORBIT
+    this.minCameraOrbit = FigniViewerElement.#MIN_CAMERA_ORBIT
     this.#initCameraTarget =
       this.getAttribute('target') || FigniViewerElement.#DEFAULT_CAMERA_TARGET
     this.#initCameraOrbit =

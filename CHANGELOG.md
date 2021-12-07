@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- `orbit`の指定が正しく反映されていない問題を修正
 - *panel*を後から追加した場合に正しい挙動になるように修正
 
 ## [0.0.26] - 2021-12-06

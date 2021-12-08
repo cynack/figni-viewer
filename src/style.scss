@@ -240,3 +240,19 @@ figni-viewer * {
   height: 1.25rem;
   transform: translateX(-0.5px) translateY(-0.5px);
 }
+.figni-viewer-progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: white;
+  font-size: 2rem;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+}

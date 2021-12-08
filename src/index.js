@@ -42,6 +42,7 @@ class FigniViewerElement extends ModelViewerElement {
   #initCameraButton
   #downloadScreenshotButton
   #toggleVisibleHotspotButton
+  #progressBar
   #panels = []
   #hotspots = []
   #events = {}
@@ -88,14 +89,7 @@ class FigniViewerElement extends ModelViewerElement {
   async connectedCallback() {
     super.connectedCallback()
 
-    // 値の取得
-    this.itemId = this.getAttribute('item-id')
-    this.token = this.getAttribute('token')
-    this.modelTag = this.getAttribute('model-tag') || ''
-
-    this.#requestModel()
-
-    // Attribute
+    // 初期設定
     this.loading = 'eager'
     this.cameraControls = true
     this.ar = true
@@ -106,6 +100,26 @@ class FigniViewerElement extends ModelViewerElement {
     this.shadowIntensity = 1
     this.maxCameraOrbit = FigniViewerElement.#MAX_CAMERA_ORBIT
     this.minCameraOrbit = FigniViewerElement.#MIN_CAMERA_ORBIT
+
+    this.#progressBar = document.createElement('div')
+    this.#progressBar.textContent = 'Loading...(0%)'
+    this.#progressBar.setAttribute('slot', 'progress-bar')
+    this.#progressBar.classList.add('figni-viewer-progress-bar')
+    this.addEventListener('progress', (e) => {
+      const p = e.detail.totalProgress
+      this.#progressBar.textContent = `Loading...(${Math.ceil(p * 100)}%)`
+      if (p === 1) {
+        this.#progressBar.style.display = 'none'
+      }
+    })
+    this.appendChild(this.#progressBar)
+
+    // 値の取得
+    this.itemId = this.getAttribute('item-id')
+    this.token = this.getAttribute('token')
+    this.modelTag = this.getAttribute('model-tag') || ''
+    this.#requestModel()
+
     this.#initCameraTarget =
       this.getAttribute('target') || FigniViewerElement.#DEFAULT_CAMERA_TARGET
     this.#initCameraOrbit =
@@ -140,7 +154,6 @@ class FigniViewerElement extends ModelViewerElement {
     })
 
     if (this.#hotspots.length > 0) {
-      console.log(this.#hotspots)
       this.#addToggleVisibleHotspotButton()
     }
 

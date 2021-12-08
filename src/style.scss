@@ -5,6 +5,12 @@ figni-viewer {
 figni-viewer * {
   font-family: 'Noto Sans JP', sans-serif;
   color: #222428;
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none;
 }
 .figni-viewer-hotspot {
   display: block;
@@ -35,9 +41,6 @@ figni-viewer * {
   text-align: left;
   position: absolute;
   z-index: 1000;
-  left: 0;
-  bottom: 50%;
-  transform: translateX(-100%) translateX(-1rem) translateY(50%);
 }
 
 .figni-viewer-panel > {
@@ -49,23 +52,26 @@ figni-viewer * {
   h6 {
     font-weight: 700;
     color: #222428;
-    margin: 0.25rem 0.5rem;
+    margin: 0.5rem;
+    display: block;
   }
 
   p {
     color: #787d93;
-    margin: 0.25rem 0.5rem 0.5rem;
+    margin: 0.5rem;
+    display: block;
   }
 
   img {
     width: 100%;
+    display: block;
+    margin-bottom: 0.5rem;
   }
 
   button {
-    width: 100%;
-    // margin: 0.25rem 0.5rem 0.5rem;
+    width: calc(100% - 1rem);
     padding: 0.5rem 1rem;
-    margin: 0.25rem 0.5rem 0.5rem;
+    margin: 0.5rem;
     background-color: #3b5eff;
     border-radius: 0.25rem;
     border: none;
@@ -73,6 +79,7 @@ figni-viewer * {
     font-size: 0.625rem;
     color: white;
     transition: 0.3s ease-out all;
+    display: block;
   }
 
   button:hover {
@@ -87,9 +94,9 @@ figni-viewer * {
 }
 
 .figni-viewer-panel-place-center-top {
-  top: -50%;
+  top: 0;
   left: 50%;
-  transform: translateX(-50%) translateY(-100%);
+  transform: translateX(-50%) translateY(-100%) translateY(-0.75rem);
 }
 
 .figni-viewer-panel-place-right-top {
@@ -123,9 +130,9 @@ figni-viewer * {
 }
 
 .figni-viewer-panel-place-center-bottom {
-  bottom: -50%;
+  bottom: 0;
   left: 50%;
-  transform: translateX(-50%) translateY(100%);
+  transform: translateX(-50%) translateY(100%) translateY(0.75rem);
 }
 
 .figni-viewer-panel-place-right-bottom {
@@ -172,7 +179,7 @@ figni-viewer * {
 }
 .figni-viewer-toggle-visible-hotspot-btn {
   position: absolute;
-  display: flex;
+  display: block;
   -webkit-box-align: center;
   align-items: center;
   -webkit-box-pack: center;
@@ -191,7 +198,11 @@ figni-viewer * {
 .figni-viewer-toggle-visible-hotspot-btn svg {
   width: 1.25rem;
   height: 1.25rem;
-  transform: translateX(-0.5px) translateY(-0.5px);
+  top: 50%;
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%) translateY(-50%) translateX(-0.1px)
+    translateY(-0.1px);
 }
 .figni-viewer-ar-button svg {
   width: 1rem;

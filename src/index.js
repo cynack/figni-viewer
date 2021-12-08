@@ -326,6 +326,10 @@ class FigniViewerElement extends ModelViewerElement {
     if (!name) {
       throw new SyntaxError('name is required')
     }
+    const existHotspot = this.querySelector(`[slot="hotspot-${name}"]`)
+    if (existHotspot) {
+      throw new Error(`Hotspot ${name} was already exists`)
+    }
     const hotspot = document.createElement('button')
     hotspot.setAttribute(
       'position',

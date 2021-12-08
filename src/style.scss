@@ -5,6 +5,12 @@ figni-viewer {
 figni-viewer * {
   font-family: 'Noto Sans JP', sans-serif;
   color: #222428;
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none;
 }
 .figni-viewer-hotspot {
   display: block;
@@ -173,7 +179,7 @@ figni-viewer * {
 }
 .figni-viewer-toggle-visible-hotspot-btn {
   position: absolute;
-  display: flex;
+  display: block;
   -webkit-box-align: center;
   align-items: center;
   -webkit-box-pack: center;
@@ -192,7 +198,11 @@ figni-viewer * {
 .figni-viewer-toggle-visible-hotspot-btn svg {
   width: 1.25rem;
   height: 1.25rem;
-  transform: translateX(-0.5px) translateY(-0.5px);
+  top: 50%;
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%) translateY(-50%) translateX(-0.1px)
+    translateY(-0.1px);
 }
 .figni-viewer-ar-button svg {
   width: 1rem;

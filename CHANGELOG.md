@@ -19,10 +19,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- *panel*を後から追加した場合に正しい挙動になるように修正
+
+## [0.0.27] - 2021-12-08
+
+### Fixed
+
 - `orbit`の指定が正しく反映されていない問題を修正
 - *panel*のデザインを修正
 - `addHotspot`メソッドで名前が重複した*hotspot*を追加した場合にエラーを起こす問題を修正
-- *panel*を後から追加した場合に正しい挙動になるように修正
 
 ## [0.0.26] - 2021-12-06
 
@@ -121,7 +126,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v0.0.26...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v0.0.27...HEAD
+[0.0.27]: https://github.com/cynack/figni-viewer/compare/v0.0.26...v0.0.27
 [0.0.26]: https://github.com/cynack/figni-viewer/compare/v0.0.25...v0.0.26
 [0.0.25]: https://github.com/cynack/figni-viewer/compare/v0.0.24...v0.0.25
 [0.0.24]: https://github.com/cynack/figni-viewer/compare/v0.0.23...v0.0.24

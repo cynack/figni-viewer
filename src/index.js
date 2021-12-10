@@ -106,6 +106,7 @@ class FigniViewerElement extends ModelViewerElement {
     this.arPlacement = 'floor'
     this.interactionPrompt = 'none'
     this.shadowIntensity = 1
+    this.minimumRenderScale = 0.25
     this.maxCameraOrbit = FigniViewerElement.#MAX_CAMERA_ORBIT
     this.minCameraOrbit = FigniViewerElement.#MIN_CAMERA_ORBIT
     this.#initCameraTarget =

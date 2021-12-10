@@ -1,80 +1,81 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Figni Viewer Sample</title>
-    <meta name="viewport" content="width=device-width" />
-    <link
-      rel="icon"
-      href="https://icongr.am/simple/git.svg?size=32&color=ff733b&colored=false"
-    />
-  </head>
-  <body>
-    <div style="background-color: rgb(247, 247, 247)">
-      <figni-viewer
-        id="view"
-        item-id="9IuDxlQF"
-        token="5UTBSHOXODAj2QLo"
-        state="close"
-        orbit="10deg 75deg 150%"
-      >
-        <div
-          id="panel-2"
-          slot="hotspot-panel-mov"
-          position="0m 0.3m 0m"
-          normal="0m 0m 1m"
-          closeup
-          orbit="auto auto 0.1m"
-          visible-state="close"
-        >
-          <div slot="panel" place="right middle">
-            <img
-              src="https://i.pinimg.com/736x/77/1d/b4/771db4efcf8e40495b8b03b5407a0adf.jpg"
-            />
-            <h3 class="is-size-7 has-text-weight-bold has-text-primary py-1">
-              開け閉めに、力はいらない。
-            </h3>
-            <p>
-              大きな扉でも軽い操作感で開け閉めラクラク、閉める音も静か。また、挟み込み防止機能で小さなお子様がいるご家庭でも安心です。様々な配置のご家庭で使っていただけるよう、左右どちらからでも開閉が可能です。
-            </p>
-            <button>aaaa</button>
-          </div>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Figni Viewer Sample</title>
+  <meta name="viewport" content="width=device-width" />
+  <link rel="icon" href="https://icongr.am/simple/git.svg?size=32&color=ff733b&colored=false" />
+</head>
+
+<body>
+  <div>
+    <figni-viewer id="view" item-id="9IuDxlQF" token="5UTBSHOXODAj2QLo" state="close" orbit="10deg 75deg 150%">
+      <div slot="hotspot-panel-mov" position="0m 0.3m 0m" normal="0m 0m 1m" closeup orbit="auto auto 0.1m"
+        visible-state="close">
+        <div slot="panel" place="right middle">
+          <img src="https://i.pinimg.com/736x/77/1d/b4/771db4efcf8e40495b8b03b5407a0adf.jpg" />
+          <h2 class="is-size-7 has-text-weight-bold has-text-primary py-1">
+            開け閉めに、力はいらない。
+          </h2>
+          <p>
+            大きな扉でも軽い操作感で開け閉めラクラク、閉める音も静か。また、挟み込み防止機能で小さなお子様がいるご家庭でも安心です。様々な配置のご家庭で使っていただけるよう、左右どちらからでも開閉が可能です。
+          </p>
+          <button>aaaaaa</button>
         </div>
-        <button
-          slot="hotspot-2"
-          position="0m 0.1m 0m"
-          normal="0m 0m 1m"
-          anime
-          clip="Action"
-          length="1000"
-        ></button>
-        <button
-          slot="hotspot-1"
-          position="-0.075m 0.32m 0.08m"
-          normal="-1m 0m 1m"
-          closeup
-        >
-          ボタン
-          <div slot="panel" place="left top">左上</div>
-          <div slot="panel" place="center top">上</div>
-          <div slot="panel" place="right top">右上</div>
-          <div slot="panel" place="left middle">左</div>
-          <div slot="panel" place="center middle">中央</div>
-          <div slot="panel" place="right middle">右</div>
-          <div slot="panel" place="left bottom">左下</div>
-          <div slot="panel" place="center bottom">下</div>
-          <div slot="panel" place="right bottom">右下</div>
-        </button>
-      </figni-viewer>
-    </div>
-    <script>
-      const view = document.getElementById('view')
-    </script>
-    <style>
-      #view {
-        width: 100%;
-        height: 480px;
-      }
-    </style>
-  </body>
+      </div>
+      <div slot="hotspot-2" position="0m 0.1m 0m" normal="0m 0m 1m" anime clip="Action" length="1000" closeup>
+        <div slot="panel" place="right middle">
+          <img src="https://i.pinimg.com/736x/77/1d/b4/771db4efcf8e40495b8b03b5407a0adf.jpg" />
+          <h2 class="is-size-7 has-text-weight-bold has-text-primary py-1">
+            開け閉めに、力はいらない。
+          </h2>
+          <p>
+            大きな扉でも軽い操作感で開け閉めラクラク、閉める音も静か。また、挟み込み防止機能で小さなお子様がいるご家庭でも安心です。様々な配置のご家庭で使っていただけるよう、左右どちらからでも開閉が可能です。
+          </p>
+          <button>aaaa</button>
+        </div>
+      </div>
+      <button slot="hotspot-1" position="-0.075m 0.32m 0.08m" normal="-1m 0m 1m" closeup>
+        ボタン
+        <div slot="panel" place="left top">左上</div>
+        <div slot="panel" place="center top">上</div>
+        <div slot="panel" place="right top">右上</div>
+        <div slot="panel" place="left middle">左</div>
+        <div slot="panel" place="center middle">中央</div>
+        <div slot="panel" place="right middle">右</div>
+        <div slot="panel" place="left bottom">左下</div>
+        <div slot="panel" place="center bottom">下</div>
+        <div slot="panel" place="right bottom">右下</div>
+      </button>
+      <button slot="hotspot-A">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g clip-path="url(#clip0_181_908)">
+            <path
+              d="M11.6906 0H4.31067C3.16738 0.00136573 2.07135 0.456316 1.26316 1.26498C0.454978 2.07365 0.000682152 3.16996 0 4.31324V11.6932C0.00136521 12.8359 0.456002 13.9314 1.26415 14.7393C2.0723 15.5472 3.16795 16.0016 4.31067 16.0026H11.6906C12.8331 16.0012 13.9284 15.5468 14.7363 14.7389C15.5442 13.931 15.9986 12.8357 16 11.6932V4.31324C15.9997 3.17008 15.5456 2.07377 14.7377 1.26506C13.9297 0.456358 12.8338 0.00136615 11.6906 0ZM4.31067 2.06252H11.6906C12.2869 2.06354 12.8584 2.30113 13.2796 2.72311C13.7009 3.14509 13.9375 3.71698 13.9375 4.31324V9.14728L10.9043 6.11795C10.7373 5.95138 10.5111 5.85784 10.2752 5.85784C10.0394 5.85784 9.81313 5.95138 9.64615 6.11795L6.82823 8.93071C6.66125 9.09728 6.43502 9.19082 6.19916 9.19082C5.96331 9.19082 5.73708 9.09728 5.57009 8.93071C5.48758 8.84793 5.38954 8.78224 5.28159 8.73742C5.17364 8.69261 5.05791 8.66953 4.94103 8.66953C4.82414 8.66953 4.70841 8.69261 4.60046 8.73742C4.49251 8.78224 4.39447 8.84793 4.31196 8.93071L2.06252 11.1801V4.31324C2.06252 3.71676 2.2993 3.14467 2.72083 2.72265C3.14237 2.30063 3.71419 2.0632 4.31067 2.06252Z"
+              fill="white" />
+            <path
+              d="M5.78848 5.78795C6.38704 5.18939 6.38704 4.21893 5.78848 3.62037C5.18992 3.02181 4.21946 3.02181 3.6209 3.62037C3.02234 4.21893 3.02234 5.18939 3.6209 5.78795C4.21946 6.38651 5.18992 6.38651 5.78848 5.78795Z"
+              fill="white" />
+          </g>
+          <defs>
+            <clipPath id="clip0_181_908">
+              <rect width="16" height="16" fill="white" />
+            </clipPath>
+          </defs>
+        </svg>
+      </button>
+    </figni-viewer>
+  </div>
+  <script>
+    const view = document.getElementById('view')
+  </script>
+  <style>
+    #view {
+      width: 100%;
+      height: 480px;
+    }
+  </style>
+</body>
+
 </html>

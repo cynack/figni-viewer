@@ -88,6 +88,8 @@ class FigniViewerElement extends ModelViewerElement {
   async connectedCallback() {
     super.connectedCallback()
 
+    this.shadowRoot.querySelectorAll(':not(style[outline="none"])').forEach(d => d.style.outline = 'none')
+
     // 値の取得
     this.itemId = this.getAttribute('item-id')
     this.token = this.getAttribute('token')
@@ -140,7 +142,6 @@ class FigniViewerElement extends ModelViewerElement {
     })
 
     if (this.#hotspots.length > 0) {
-      console.log(this.#hotspots)
       this.#addToggleVisibleHotspotButton()
     }
 
@@ -451,7 +452,14 @@ class FigniViewerElement extends ModelViewerElement {
   }
 
   #modifyHotspot(hotspot) {
-    hotspot.classList.add('figni-viewer-hotspot')
+    hotspot.classList.add('figni-viewer-hotspot-parent')
+
+    const btn = document.createElement('span')
+    btn.classList.add('figni-viewer-hotspot')
+    btn.innerHTML = hotspot.innerHTML
+    hotspot.innerHTML = ''
+    hotspot.appendChild(btn)
+
     hotspot.setAttribute(
       'position',
       hotspot.getAttribute('position') ||
@@ -536,6 +544,8 @@ class FigniViewerElement extends ModelViewerElement {
       if (window.getComputedStyle(hotspot).opacity == 1) {
         if (panels.length > 0) {
           panels.forEach((panel) => {
+            panel.style.maxWidth = `${Number(window.getComputedStyle(this).width.slice(0, -2)) * 0.4}px`
+            panel.style.maxHeight = `calc(${Number(window.getComputedStyle(this).height.slice(0, -2))}px - 4rem )`
             panel.classList.toggle('figni-viewer-panel-hide')
           })
           this.closeAllPanels(Array.from(panels))

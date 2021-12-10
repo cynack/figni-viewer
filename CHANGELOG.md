@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- 動作が重い場合 3D モデル表示の解像度を下げるように修正
 - *panel*を後から追加した場合に正しい挙動になるように修正
 
 ## [0.0.27] - 2021-12-08

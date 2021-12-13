@@ -23,7 +23,7 @@ figni-viewer * {
   backdrop-filter: blur(3px);
   position: relative;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
-  --webkit-tap-highlight-color: transparent;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .figni-viewer-hotspot::after {
@@ -37,6 +37,7 @@ figni-viewer * {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .figni-viewer-hotspot:active {

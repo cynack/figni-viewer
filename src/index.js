@@ -455,13 +455,7 @@ class FigniViewerElement extends ModelViewerElement {
   }
 
   #modifyHotspot(hotspot) {
-    hotspot.classList.add('figni-viewer-hotspot-parent')
-
-    const btn = document.createElement('span')
-    btn.classList.add('figni-viewer-hotspot')
-    btn.innerHTML = hotspot.innerHTML
-    hotspot.innerHTML = ''
-    hotspot.appendChild(btn)
+    hotspot.classList.add('figni-viewer-hotspot')
 
     hotspot.setAttribute(
       'position',
@@ -558,7 +552,6 @@ class FigniViewerElement extends ModelViewerElement {
               panel.style.maxHeight = `calc(${
                 Number(window.getComputedStyle(this).height.slice(0, -2)) / 2
               }px - 3rem )`
-              console.log(Number(window.getComputedStyle(this).height.slice(0, -2)) / 2)
             }
             panel.classList.toggle('figni-viewer-panel-hide')
           })
@@ -572,7 +565,6 @@ class FigniViewerElement extends ModelViewerElement {
 
   #modifyPanel(panel) {
     panel.classList.add('figni-viewer-panel')
-    // TODO: position attribute
     const place =
       panel.getAttribute('place') || FigniViewerElement.#DEFAULT_PANEL_PLACE
     const array = place.split(' ')

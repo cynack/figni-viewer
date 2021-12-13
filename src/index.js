@@ -113,18 +113,26 @@ class FigniViewerElement extends ModelViewerElement {
     this.maxCameraOrbit = FigniViewerElement.#MAX_CAMERA_ORBIT
     this.minCameraOrbit = FigniViewerElement.#MIN_CAMERA_ORBIT
 
-    this.#progressBar = document.createElement('div')
-    this.#progressBar.textContent = 'Loading...(0%)'
-    this.#progressBar.setAttribute('slot', 'progress-bar')
+    const loadingAnimationHolder = document.createElement('div')
+    const progressBarHolder = document.createElement('span')
+    this.#progressBar = document.createElement('span')
+    const loadingAnimationSpinner = document.createElement('span')
+    loadingAnimationHolder.setAttribute('slot', 'progress-bar')
     this.#progressBar.classList.add('figni-viewer-progress-bar')
+    progressBarHolder.classList.add('figni-viewer-progress-bar-holder')
+    loadingAnimationSpinner.classList.add('figni-viewer-loading-animation-spinner')
+    loadingAnimationHolder.classList.add('figni-viewer-loading-animation-holder')
     this.addEventListener('progress', (e) => {
       const p = e.detail.totalProgress
-      this.#progressBar.textContent = `Loading...(${Math.ceil(p * 100)}%)`
+      this.#progressBar.style.setProperty('--progress-bar-width', `${Math.ceil(p * 100)}%`)
       if (p === 1) {
-        this.#progressBar.style.display = 'none'
+        loadingAnimationHolder.style.display = 'none'
       }
     })
-    this.appendChild(this.#progressBar)
+    progressBarHolder.appendChild(this.#progressBar)
+    loadingAnimationHolder.appendChild(loadingAnimationSpinner)
+    loadingAnimationHolder.appendChild(progressBarHolder)
+    this.appendChild(loadingAnimationHolder)
 
     // 値の取得
     this.itemId = this.getAttribute('item-id')

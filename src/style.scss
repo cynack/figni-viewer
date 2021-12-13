@@ -2,6 +2,7 @@
 figni-viewer {
   --poster-color: transparent;
   background-color: rgba(241, 242, 247, 1);
+  border-radius: 1rem;
 }
 figni-viewer * {
   font-family: 'Noto Sans JP', sans-serif;
@@ -34,7 +35,7 @@ figni-viewer * {
   box-sizing: border-box;
   backdrop-filter: blur(3px);
   position: relative;
-  transition: 1s cubic-bezier(0,1,.3,1) all;
+  transition: 1s cubic-bezier(0,1,0.3,1) all;
 }
 
 .figni-viewer-hotspot-parent:active > .figni-viewer-hotspot {
@@ -178,8 +179,8 @@ figni-viewer * {
   color: white;
   font-weight: bold;
   background-color: #3b5eff;
-  z-index: 9999;
-  transition: 0.1s cubic-bezier(0,1,.3,1) all;
+  z-index: 9995;
+  transition: 0.1s cubic-bezier(0,1,0.3,1) all;
 }
 .figni-viewer-camera-init-btn:active {
   box-shadow: 0 0 0 0.3rem rgba(59, 94, 255, 0.3);
@@ -201,7 +202,7 @@ figni-viewer * {
   padding: 0 1rem;
   font-weight: bold;
   z-index: 9998;
-  transition: 0.1s cubic-bezier(0,1,.3,1) all;
+  transition: 0.1s cubic-bezier(0,1,0.3,1) all;
 }
 .figni-viewer-ar-button:active {
   box-shadow: 0 0 0 0.3rem rgba(255, 115, 59, 0.1);
@@ -279,19 +280,64 @@ figni-viewer * {
   height: 1.25rem;
   transform: translateX(-0.5px) translateY(-0.5px);
 }
-.figni-viewer-progress-bar {
+.figni-viewer-loading-animation-holder {
+  display: flex;
   position: absolute;
-  top: 0;
-  left: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
-  color: white;
-  font-size: 2rem;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 9998;
-  display: flex;
-  -webkit-box-align: center;
-  align-items: center;
-  -webkit-box-pack: center;
-  justify-content: center;
+  top: 50%;
+  left: 50%;
+  padding: 2rem;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+}
+.figni-viewer-progress-bar-holder {
+  display: block;
+  max-width: 10rem;
+  width: 100%;
+  height: 0.5rem;
+  background-color: #E6E8EF;
+  overflow: hidden;
+  border-radius: 0.25rem;
+}
+.figni-viewer-progress-bar {
+  display: block;
+  width: var(--progress-bar-width);
+  height: 100%;
+  background-color: #AEB1BF;
+  transition: all 1s cubic-bezier(0, 1, 0.3, 1);
+}
+.figni-viewer-loading-animation-spinner {
+  display: block;
+  width: 5rem;
+  height: 5rem;
+  margin-top: 3.5rem;
+  margin-bottom: 3rem;
+  background-color: #C1C4CF;
+  border-radius: 0.5rem;
+  -webkit-animation: sk-rotateplane 1.2s infinite ease-in-out;
+  animation: sk-rotateplane 1.2s infinite ease-in-out;
+}
+
+@-webkit-keyframes sk-rotateplane {
+  0% { -webkit-transform: perspective(120px) }
+  50% { -webkit-transform: perspective(120px) rotateY(180deg) }
+  100% { -webkit-transform: perspective(120px) rotateY(180deg)  rotateX(180deg) }
+}
+
+@keyframes sk-rotateplane {
+  0% {
+    transform: perspective(120px) rotateX(0deg) rotateY(0deg);
+    -webkit-transform: perspective(120px) rotateX(0deg) rotateY(0deg);
+  } 50% {
+    transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg);
+    -webkit-transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg);
+  } 100% {
+    transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
+    -webkit-transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
+  }
 }

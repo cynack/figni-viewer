@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fix
 
+- スタイル適用前の UI 要素がちらつく問題を修正
 - *panel*を後から追加した場合に正しい挙動になるように修正
 
 ## [Unreleased]
@@ -33,6 +34,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [0.0.28] - 2021-12-13
+
+### Fixed
+
+- デザインの修正
 - 動作が重い場合 3D モデル表示の解像度を下げるように修正
 
 ## [0.0.27] - 2021-12-08
@@ -140,7 +146,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v0.0.27...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v0.0.28...HEAD
+[0.0.28]: https://github.com/cynack/figni-viewer/compare/v0.0.27...v0.0.28
 [0.0.27]: https://github.com/cynack/figni-viewer/compare/v0.0.26...v0.0.27
 [0.0.26]: https://github.com/cynack/figni-viewer/compare/v0.0.25...v0.0.26
 [0.0.25]: https://github.com/cynack/figni-viewer/compare/v0.0.24...v0.0.25

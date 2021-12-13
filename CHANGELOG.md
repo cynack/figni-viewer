@@ -34,6 +34,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- *hotspot*の表示非表示が正しく切り替わらない問題を修正
+
 ## [0.0.29] - 2021-12-13
 
 ### Fixed

@@ -88,7 +88,9 @@ class FigniViewerElement extends ModelViewerElement {
   async connectedCallback() {
     super.connectedCallback()
 
-    this.shadowRoot.querySelectorAll(':not(style[outline="none"])').forEach(d => d.style.outline = 'none')
+    this.shadowRoot
+      .querySelectorAll(':not(style[outline="none"])')
+      .forEach((d) => (d.style.outline = 'none'))
 
     // 値の取得
     this.itemId = this.getAttribute('item-id')
@@ -545,8 +547,19 @@ class FigniViewerElement extends ModelViewerElement {
       if (window.getComputedStyle(hotspot).opacity == 1) {
         if (panels.length > 0) {
           panels.forEach((panel) => {
-            panel.style.maxWidth = `${Number(window.getComputedStyle(this).width.slice(0, -2)) * 0.4}px`
-            panel.style.maxHeight = `calc(${Number(window.getComputedStyle(this).height.slice(0, -2))}px - 4rem )`
+            panel.style.maxWidth = `${
+              Number(window.getComputedStyle(this).width.slice(0, -2)) * 0.4
+            }px`
+            if (panel.dataset.vertical == 'middle') {
+              panel.style.maxHeight = `calc(${Number(
+                window.getComputedStyle(this).height.slice(0, -2)
+              )}px - 4rem )`
+            } else {
+              panel.style.maxHeight = `calc(${
+                Number(window.getComputedStyle(this).height.slice(0, -2)) / 2
+              }px - 3rem )`
+              console.log(Number(window.getComputedStyle(this).height.slice(0, -2)) / 2)
+            }
             panel.classList.toggle('figni-viewer-panel-hide')
           })
           this.closeAllPanels(Array.from(panels))
@@ -573,6 +586,8 @@ class FigniViewerElement extends ModelViewerElement {
         horizontal = name
       }
     })
+    panel.dataset.vertical = vertical
+    panel.dataset.horizontal = horizontal
 
     if (horizontal == 'left' && vertical == 'top') {
       panel.classList.add('figni-viewer-panel-place-left-top')

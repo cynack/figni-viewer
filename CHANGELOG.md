@@ -34,6 +34,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- 特定の環境でクリックが効かない問題を修正
+
 ## [0.0.28] - 2021-12-13
 
 ### Fixed

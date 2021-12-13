@@ -1,17 +1,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
 figni-viewer {
   --poster-color: transparent;
+  background-color: rgba(241, 242, 247, 1);
 }
 figni-viewer * {
   font-family: 'Noto Sans JP', sans-serif;
   color: #222428;
-  -webkit-touch-callout: none; /* iOS Safari */
-  -webkit-user-select: none; /* Safari */
-  -khtml-user-select: none; /* Konqueror HTML */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* Internet Explorer/Edge */
-  user-select: none;
 }
+
+.figni-viewer-hotspot-parent {
+  display: block;
+  box-sizing: border-box;
+  padding: 2rem;
+  border-radius: 50%;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  --min-hotspot-opacity: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .figni-viewer-hotspot {
   display: block;
   min-width: 1.25rem;
@@ -24,9 +32,13 @@ figni-viewer * {
   color: white;
   box-shadow: 0 0 0 0.3rem rgba(255, 115, 59, 0.3);
   box-sizing: border-box;
-  --min-hotspot-opacity: 0;
   backdrop-filter: blur(3px);
   position: relative;
+  transition: 1s cubic-bezier(0,1,.3,1) all;
+}
+
+.figni-viewer-hotspot-parent:active > .figni-viewer-hotspot {
+  box-shadow: 0 0 0 0.8rem rgba(255, 115, 59, 0.3);
 }
 
 .figni-viewer-hotspot-hide {
@@ -34,52 +46,60 @@ figni-viewer * {
 }
 
 .figni-viewer-panel {
-  width: 160px;
+  width: 240px;
   background-color: white;
   border-radius: 0.5rem;
-  overflow: hidden;
+  overflow-y: auto;
   text-align: left;
   position: absolute;
   z-index: 1000;
+  font-size: 12px;
 }
 
 .figni-viewer-panel > {
+  * {
+    display: block;
+    word-break: break-all;
+  }
+
   h1,
   h2,
   h3,
   h4,
   h5,
-  h6 {
+  h6,
+  strong {
     font-weight: 700;
     color: #222428;
     margin: 0.5rem;
-    display: block;
   }
 
-  p {
+  p, i {
     color: #787d93;
     margin: 0.5rem;
-    display: block;
+  }
+
+  a {
+    color: #3b5eff;
+    margin: 0.5rem;
   }
 
   img {
     width: 100%;
-    display: block;
     margin-bottom: 0.5rem;
   }
 
   button {
     width: calc(100% - 1rem);
-    padding: 0.5rem 1rem;
+    padding: 0.5rem;
     margin: 0.5rem;
     background-color: #3b5eff;
     border-radius: 0.25rem;
     border: none;
     cursor: pointer;
-    font-size: 0.625rem;
     color: white;
     transition: 0.3s ease-out all;
-    display: block;
+    font-size: 0.875em;
   }
 
   button:hover {
@@ -159,6 +179,10 @@ figni-viewer * {
   font-weight: bold;
   background-color: #3b5eff;
   z-index: 9999;
+  transition: 0.1s cubic-bezier(0,1,.3,1) all;
+}
+.figni-viewer-camera-init-btn:active {
+  box-shadow: 0 0 0 0.3rem rgba(59, 94, 255, 0.3);
 }
 .figni-viewer-ar-button {
   position: absolute;
@@ -171,11 +195,16 @@ figni-viewer * {
   right: 0.5rem;
   bottom: 0.5rem;
   background-color: white;
-  border: 1px solid #ff733b;
-  border-radius: 0.75rem;
+  // border: 1px solid #ff733b;
+  border: none;
+  border-radius: 1.25rem;
   padding: 0 1rem;
   font-weight: bold;
   z-index: 9998;
+  transition: 0.1s cubic-bezier(0,1,.3,1) all;
+}
+.figni-viewer-ar-button:active {
+  box-shadow: 0 0 0 0.3rem rgba(255, 115, 59, 0.1);
 }
 .figni-viewer-toggle-visible-hotspot-btn {
   position: absolute;
@@ -194,6 +223,11 @@ figni-viewer * {
   border: none;
   background-color: white;
   z-index: 9996;
+  transition: 0.1s ease-out all;
+  -webkit-tap-highlight-color: transparent;
+}
+.figni-viewer-toggle-visible-hotspot-btn:active{
+  box-shadow: 0 0 0 0.3rem rgba(174, 177, 191, 0.3);
 }
 .figni-viewer-toggle-visible-hotspot-btn svg {
   width: 1.25rem;
@@ -234,6 +268,11 @@ figni-viewer * {
   border: none;
   background-color: white;
   z-index: 9997;
+  transition: 0.1s ease-out all;
+  -webkit-tap-highlight-color: transparent;
+}
+.figni-viewer-download-screenshot-btn:active {
+  box-shadow: 0 0 0 0.3rem rgba(174, 177, 191, 0.3);
 }
 .figni-viewer-download-screenshot-btn svg {
   width: 1.25rem;

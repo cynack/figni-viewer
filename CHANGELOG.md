@@ -7,6 +7,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## Future Plans
+
+### Add
+
+### Change
+
+### Deprecate
+
+### Remove
+
+### Fix
+
+- *panel*を後から追加した場合に正しい挙動になるように修正
+
 ## [Unreleased]
 
 ### Added
@@ -19,7 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-- *panel*を後から追加した場合に正しい挙動になるように修正
+- 動作が重い場合 3D モデル表示の解像度を下げるように修正
 
 ## [0.0.27] - 2021-12-08
 

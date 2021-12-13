@@ -82,6 +82,7 @@ module.exports = () => {
         new HtmlWebpackPlugin({
           template: 'index.html',
           hash: true,
+          scriptLoading: 'defer',
         }),
       ]),
     })

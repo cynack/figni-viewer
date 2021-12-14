@@ -126,7 +126,10 @@ class FigniViewerElement extends ModelViewerElement {
       const p = e.detail.totalProgress
       this.#progressBar.style.setProperty('--progress-bar-width', `${Math.ceil(p * 100)}%`)
       if (p === 1) {
-        loadingAnimationHolder.style.display = 'none'
+        loadingAnimationHolder.classList.add('figni-viewer-loading-animation-hide')
+        if (loadingAnimationHolder.style.opacity === 0) {
+          loadingAnimationHolder.style.display = 'none'
+        }
       }
     })
     progressBarHolder.appendChild(this.#progressBar)

@@ -84,6 +84,11 @@ class FigniViewerElement extends ModelViewerElement {
       this.#wasInViewport = this.#isInViewport
     }
     this.#seed = Math.random().toString(36).substring(7)
+
+    for (const ch of this.children) {
+      console.log(ch)
+      ch.style.visibility = 'hidden'
+    }
   }
 
   async connectedCallback() {
@@ -229,6 +234,10 @@ class FigniViewerElement extends ModelViewerElement {
         },
         true
       )
+    }
+
+    for (const ch of this.children) {
+      ch.style.visibility = 'visible'
     }
   }
 

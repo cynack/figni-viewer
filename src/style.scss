@@ -2,6 +2,7 @@
 figni-viewer {
   --poster-color: transparent;
   background-color: rgba(241, 242, 247, 1);
+  border-radius: 1rem;
 }
 figni-viewer * {
   font-family: 'Noto Sans JP', sans-serif;
@@ -183,7 +184,7 @@ figni-viewer * {
   color: white;
   font-weight: bold;
   background-color: #3b5eff;
-  z-index: 9999;
+  z-index: 9995;
   transition: 0.1s cubic-bezier(0, 1, 0.3, 1) all;
 }
 .figni-viewer-camera-init-btn:active {
@@ -283,4 +284,84 @@ figni-viewer * {
   width: 1.25rem;
   height: 1.25rem;
   transform: translateX(-0.5px) translateY(-0.5px);
+}
+.figni-viewer-loading-animation-holder {
+  display: flex;
+  position: absolute;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  top: 50%;
+  left: 50%;
+  padding: 2rem;
+  background-color: #F1F2F7;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  user-select: none;
+	pointer-events:none;
+}
+.figni-viewer-progress-bar-holder {
+  display: block;
+  max-width: 10rem;
+  width: 100%;
+  height: 0.5rem;
+  background-color: #E6E8EF;
+  overflow: hidden;
+  border-radius: 0.25rem;
+}
+.figni-viewer-progress-bar {
+  display: block;
+  width: var(--progress-bar-width);
+  height: 100%;
+  background-color: #AEB1BF;
+  transition: all 0.5s cubic-bezier(0, 1, 0.3, 1);
+}
+.figni-viewer-loading-animation-spinner {
+  display: block;
+  width: 5rem;
+  height: 5rem;
+  margin-top: 3.5rem;
+  margin-bottom: 3rem;
+  background-color: #C1C4CF;
+  border-radius: 0.5rem;
+  -webkit-animation: sk-rotateplane 1.5s infinite cubic-bezier(0, 1, 0.3, 1);
+  animation: sk-rotateplane 1.5s infinite cubic-bezier(0, 1, 0.3, 1);
+}
+
+@-webkit-keyframes sk-rotateplane {
+  0% { -webkit-transform: perspective(120px) }
+  50% { -webkit-transform: perspective(120px) rotateY(180deg) }
+  100% { -webkit-transform: perspective(120px) rotateY(180deg)  rotateX(180deg) }
+}
+
+@keyframes sk-rotateplane {
+  0% {
+    transform: perspective(120px) rotateX(0deg) rotateY(0deg);
+    -webkit-transform: perspective(120px) rotateX(0deg) rotateY(0deg);
+  } 50% {
+    transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg);
+    -webkit-transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg);
+  } 100% {
+    transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
+    -webkit-transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
+  }
+}
+
+.figni-viewer-loading-animation-hide {
+  -webkit-animation: loading-animation-hide 0.5s ease-out;
+  animation: loading-animation-hide 0.5s ease-out;
+  animation-fill-mode: forwards;
+}
+
+@-webkit-keyframes loading-animation-hide {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes loading-animation-hide {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
 }

@@ -19,7 +19,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fix
 
-- スタイル適用前の UI 要素がちらつく問題を修正
 - *panel*を後から追加した場合に正しい挙動になるように修正
 
 ## [Unreleased]
@@ -33,6 +32,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 
 ### Fixed
+
+## [0.0.31] - 2021-12-15
+
+### Added
+
+- ローディングアニメーションを追加
+- UI 要素の色を CSS の変数で指定できる機能を変更
+
+### Changed
+
+- 描画ボックスの丸角を削除
 
 ## [0.0.30] - 2021-12-13
 
@@ -159,7 +169,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v0.0.30...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v0.0.31...HEAD
+[0.0.31]: https://github.com/cynack/figni-viewer/compare/v0.0.30...v0.0.31
 [0.0.30]: https://github.com/cynack/figni-viewer/compare/v0.0.29...v0.0.30
 [0.0.29]: https://github.com/cynack/figni-viewer/compare/v0.0.28...v0.0.29
 [0.0.28]: https://github.com/cynack/figni-viewer/compare/v0.0.27...v0.0.28

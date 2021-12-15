@@ -42,6 +42,7 @@ class FigniViewerElement extends ModelViewerElement {
   #initCameraButton
   #downloadScreenshotButton
   #toggleVisibleHotspotButton
+  #progressBar
   #panels = []
   #hotspots = []
   #events = {}
@@ -116,6 +117,37 @@ class FigniViewerElement extends ModelViewerElement {
     this.minimumRenderScale = 0.25
     this.maxCameraOrbit = FigniViewerElement.#MAX_CAMERA_ORBIT
     this.minCameraOrbit = FigniViewerElement.#MIN_CAMERA_ORBIT
+
+    const loadingAnimationHolder = document.createElement('div')
+    const progressBarHolder = document.createElement('span')
+    this.#progressBar = document.createElement('span')
+    const loadingAnimationSpinner = document.createElement('span')
+    loadingAnimationHolder.setAttribute('slot', 'progress-bar')
+    this.#progressBar.classList.add('figni-viewer-progress-bar')
+    progressBarHolder.classList.add('figni-viewer-progress-bar-holder')
+    loadingAnimationSpinner.classList.add('figni-viewer-loading-animation-spinner')
+    loadingAnimationHolder.classList.add('figni-viewer-loading-animation-holder')
+    this.addEventListener('progress', (e) => {
+      const p = e.detail.totalProgress
+      this.#progressBar.style.setProperty('--progress-bar-width', `${Math.ceil(p * 100)}%`)
+      if (p === 1) {
+        loadingAnimationHolder.classList.add('figni-viewer-loading-animation-hide')
+        if (loadingAnimationHolder.style.opacity === 0) {
+          loadingAnimationHolder.style.display = 'none'
+        }
+      }
+    })
+    progressBarHolder.appendChild(this.#progressBar)
+    loadingAnimationHolder.appendChild(loadingAnimationSpinner)
+    loadingAnimationHolder.appendChild(progressBarHolder)
+    this.appendChild(loadingAnimationHolder)
+
+    // 値の取得
+    this.itemId = this.getAttribute('item-id')
+    this.token = this.getAttribute('token')
+    this.modelTag = this.getAttribute('model-tag') || ''
+    this.#requestModel()
+
     this.#initCameraTarget =
       this.getAttribute('target') || FigniViewerElement.#DEFAULT_CAMERA_TARGET
     this.#initCameraOrbit =
@@ -671,10 +703,10 @@ class FigniViewerElement extends ModelViewerElement {
       this.currentTime = 0
       this.play()
       if (onstart) {
-        if (typeof onstart == 'function') {
-          this.#evalEvent(`(${onstart.toString()})()`)
+        if (typeof onstart === 'function') {
+          onstart()
         } else {
-          this.#evalEvent(onstart)
+          Function(onstart)()
         }
       }
       if (length > 0) {
@@ -686,10 +718,10 @@ class FigniViewerElement extends ModelViewerElement {
         setTimeout(() => {
           this.pause()
           if (onend) {
-            if (typeof onend == 'function') {
-              this.#evalEvent(`(${onend.toString()})()`)
+            if (typeof onend === 'function') {
+              onend()
             } else {
-              this.#evalEvent(onend)
+              Function(onend)()
             }
           }
           if (toState) {
@@ -710,10 +742,6 @@ class FigniViewerElement extends ModelViewerElement {
     if (this.#nextState) {
       this.updateState(this.#nextState)
     }
-  }
-
-  #evalEvent(string) {
-    Function(string)()
   }
 
   get #isInViewport() {

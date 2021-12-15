@@ -24,9 +24,8 @@
           position="-0.075m 0.32m 0.08m"
           normal="-1m 0m 1m"
           closeup
-          @click="() => count++"
+          onclick="view.playAnimation('Action', 2400, '', () => console.log('start'), () => console.log('end'))"
         >
-          ahghudagyudgyuabtdgqyux
           <div slot="panel" place="left top">
             <img
               src="https://i.pinimg.com/564x/94/6d/f3/946df305252f252463a8241f8ec7700b.jpg"
@@ -52,7 +51,9 @@
             <p>
               広い可動域を有しているため、デスク以外にもベッドやソファーの脇に置いて使用することもできます。aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaｈｄしｈｙｓだｙさｄふやｓぴどｙなすｃｈんぢおｓじゅｄこいｐすｄｆにぽえすｆｃぽいうｓんｃふぃおｐｃ９うｄｓぽｆｃ
             </p>
-            <button onclick="view.playAnimation('Action', 2400)">
+            <button
+              onclick="view.playAnimation('Action', 2400, 'aa', () => view.toggleVisibleHotspot(false), () => view.toggleVisibleHotspot(true))"
+            >
               可動域を確認する
             </button>
           </div>

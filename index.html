@@ -1,59 +1,73 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Figni Viewer Sample</title>
+    <meta name="viewport" content="width=device-width" />
+    <link
+      rel="icon"
+      href="https://icongr.am/simple/git.svg?size=32&color=ff733b&colored=false"
+    />
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <title>Figni Viewer Sample</title>
-  <meta name="viewport" content="width=device-width" />
-  <link rel="icon" href="https://icongr.am/simple/git.svg?size=32&color=ff733b&colored=false" />
-</head>
-
-<body>
-  <div>
-    <figni-viewer id="view" item-id="9IuDxlQF" token="5UTBSHOXODAj2QLo" state="close" orbit="10deg 75deg 150%">
-      <button
-              slot="hotspot-1"
-              position="-0.075m 0.32m 0.08m"
-              normal="-1m 0m 1m"
-              closeup
-              @click="() => count++"
+  <body>
+    <div>
+      <figni-viewer
+        id="view"
+        item-id="9IuDxlQF"
+        token="5UTBSHOXODAj2QLo"
+        state="close"
+        orbit="10deg 75deg 150%"
+      >
+        <button
+          slot="hotspot-1"
+          position="-0.075m 0.32m 0.08m"
+          normal="-1m 0m 1m"
+          closeup
+          onclick="view.playAnimation('Action', 2400, '', () => console.log('start'), () => console.log('end'))"
+        >
+          <div slot="panel" place="left top">
+            <img
+              src="https://i.pinimg.com/564x/94/6d/f3/946df305252f252463a8241f8ec7700b.jpg"
+            />
+            <p>
+              様々なインテリアに合わせることができるシンプルかつモダンなデザインです。
+            </p>
+            <strong>anooosaojasdgjg推あgぢうdg</strong>
+            <a href="cynack.com">詳細はこちら</a>
+          </div>
+        </button>
+        <div
+          slot="hotspot-2"
+          position="-0.05m 0.18m -0.15m"
+          normal="-1m 0 1m"
+          place="right top"
+          closeup
+        >
+          <div slot="panel" place="right bottom">
+            <img
+              src="https://i.pinimg.com/564x/94/6d/f3/946df305252f252463a8241f8ec7700b.jpg"
+            />
+            <p>
+              広い可動域を有しているため、デスク以外にもベッドやソファーの脇に置いて使用することもできます。aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaｈｄしｈｙｓだｙさｄふやｓぴどｙなすｃｈんぢおｓじゅｄこいｐすｄｆにぽえすｆｃぽいうｓんｃふぃおｐｃ９うｄｓぽｆｃ
+            </p>
+            <button
+              onclick="view.playAnimation('Action', 2400, 'aa', () => view.toggleVisibleHotspot(false), () => view.toggleVisibleHotspot(true))"
             >
-              <div slot="panel" place="left top">
-                <img src="https://i.pinimg.com/564x/94/6d/f3/946df305252f252463a8241f8ec7700b.jpg" />
-                <p>
-                  様々なインテリアに合わせることができるシンプルかつモダンなデザインです。
-                </p>
-                <strong>anooosaojasdgjg推あgぢうdg</strong>
-                <a href="cynack.com">詳細はこちら</a>
-              </div>
+              可動域を確認する
             </button>
-            <div
-              slot="hotspot-2"
-              position="-0.05m 0.18m -0.15m"
-              normal="-1m 0 1m"
-              place="right top"
-              closeup
-            >
-              <div slot="panel" place="right bottom">
-                <img src="https://i.pinimg.com/564x/94/6d/f3/946df305252f252463a8241f8ec7700b.jpg" />
-                <p>
-                  広い可動域を有しているため、デスク以外にもベッドやソファーの脇に置いて使用することもできます。aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaｈｄしｈｙｓだｙさｄふやｓぴどｙなすｃｈんぢおｓじゅｄこいｐすｄｆにぽえすｆｃぽいうｓんｃふぃおｐｃ９うｄｓぽｆｃ                </p>
-                <button @click.stop="hideWhileAnime('Action', 2400)">
-                  可動域を確認する
-                </button>
-              </div>
-            </div>
-    </figni-viewer>
-  </div>
-  <script>
-    const view = document.getElementById('view')
-  </script>
-  <style>
-    #view {
-      width: 100%;
-      height: 480px;
-    }
-  </style>
-</body>
-
+          </div>
+        </div>
+      </figni-viewer>
+    </div>
+    <script>
+      const view = document.getElementById('view')
+    </script>
+    <style>
+      #view {
+        width: 100%;
+        height: 480px;
+      }
+    </style>
+  </body>
 </html>

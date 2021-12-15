@@ -487,13 +487,7 @@ class FigniViewerElement extends ModelViewerElement {
   }
 
   #modifyHotspot(hotspot) {
-    hotspot.classList.add('figni-viewer-hotspot-parent')
-
-    const btn = document.createElement('span')
-    btn.classList.add('figni-viewer-hotspot')
-    btn.innerHTML = hotspot.innerHTML
-    hotspot.innerHTML = ''
-    hotspot.appendChild(btn)
+    hotspot.classList.add('figni-viewer-hotspot')
 
     hotspot.setAttribute(
       'position',
@@ -590,7 +584,6 @@ class FigniViewerElement extends ModelViewerElement {
               panel.style.maxHeight = `calc(${
                 Number(window.getComputedStyle(this).height.slice(0, -2)) / 2
               }px - 3rem )`
-              console.log(Number(window.getComputedStyle(this).height.slice(0, -2)) / 2)
             }
             panel.classList.toggle('figni-viewer-panel-hide')
           })
@@ -604,7 +597,6 @@ class FigniViewerElement extends ModelViewerElement {
 
   #modifyPanel(panel) {
     panel.classList.add('figni-viewer-panel')
-    // TODO: position attribute
     const place =
       panel.getAttribute('place') || FigniViewerElement.#DEFAULT_PANEL_PLACE
     const array = place.split(' ')
@@ -702,10 +694,10 @@ class FigniViewerElement extends ModelViewerElement {
       this.currentTime = 0
       this.play()
       if (onstart) {
-        if (typeof onstart == 'function') {
-          this.#evalEvent(`(${onstart.toString()})()`)
+        if (typeof onstart === 'function') {
+          onstart()
         } else {
-          this.#evalEvent(onstart)
+          Function(onstart)()
         }
       }
       if (length > 0) {
@@ -717,10 +709,10 @@ class FigniViewerElement extends ModelViewerElement {
         setTimeout(() => {
           this.pause()
           if (onend) {
-            if (typeof onend == 'function') {
-              this.#evalEvent(`(${onend.toString()})()`)
+            if (typeof onend === 'function') {
+              onend()
             } else {
-              this.#evalEvent(onend)
+              Function(onend)()
             }
           }
           if (toState) {
@@ -741,10 +733,6 @@ class FigniViewerElement extends ModelViewerElement {
     if (this.#nextState) {
       this.updateState(this.#nextState)
     }
-  }
-
-  #evalEvent(string) {
-    Function(string)()
   }
 
   get #isInViewport() {

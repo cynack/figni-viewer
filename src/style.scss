@@ -356,49 +356,102 @@ figni-viewer * {
   transition: all 0.5s cubic-bezier(0, 1, 0.3, 1);
 }
 
-.figni-viewer-loading-animation-spinner {
-  display: block;
-  width: 5rem;
-  height: 5rem;
-  margin-top: 3.5rem;
+$w: 60px;
+$h: 70px;
+$xspace: $w/2;
+$yspace: $h/4 - 1;
+$speed: 2s;
+$ease: cubic-bezier(0, 1, 0.3, 1);
+
+.figni-viewer-cubes {
+  position: absolute;
+}
+
+.figni-viewer-loading-animation {
+  position: relative;
+  width: 150px;
+  height: 90px;
   margin-bottom: 3rem;
-  background-color: var(--figni-viewer-gray-300);
-  border-radius: 0.5rem;
-  -webkit-animation: sk-rotateplane 1.5s infinite cubic-bezier(0, 1, 0.3, 1);
-  animation: sk-rotateplane 1.5s infinite cubic-bezier(0, 1, 0.3, 1);
 }
 
-@-webkit-keyframes sk-rotateplane {
+.figni-viewer-cube {
+  width: $w;
+  height: $h;
+  position: absolute;
+  transition: all ease-out .3s;
+}
+
+.figni-viewer-cube-svg {
+  fill: var(--figni-viewer-gray-500);
+}
+
+.figni-viewer-cube-window {
+  fill: var(--figni-viewer-gray-50);
+}
+
+.figni-viewer-cube1 {
+  animation: cube1-animation $speed $ease infinite;
+}
+.figni-viewer-cube2 {
+  animation: cube2-animation $speed $ease infinite;
+}
+.figni-viewer-cube3 {
+  animation: cube3-animation $speed $ease infinite;
+  z-index: 2;
+}
+.figni-viewer-cube4 {
+  animation: cube4-animation $speed $ease infinite;
+}
+.figni-viewer-cube-svg-window {
+  fill: var(--figni-viewer-gray-50);
+}
+
+
+@keyframes cube1-animation {
   0% {
-    -webkit-transform: perspective(120px);
-  }
-
-  50% {
-    -webkit-transform: perspective(120px) rotateY(180deg);
-  }
-
-  100% {
-    -webkit-transform: perspective(120px) rotateY(180deg) rotateX(180deg);
+    /* compose logo *//* 1 on 3 *//* L-shape */
+    transform: translate(0,0);
+  } 50% {
+    /* pre-box */
+    transform: translate($xspace,-$yspace);
+  } 100% {
+    /* box *//* compose logo */
+    transform: translate($xspace*2,0);
   }
 }
 
-@keyframes sk-rotateplane {
+@keyframes cube2-animation {
+  0%, 50% {
+    /* compose logo *//* 1 on 3 */
+    transform: translate($xspace*2, 0px);
+  } 100% {
+    /* L-shape *//* box *//* compose logo */
+    transform: translate($xspace*3, $yspace);
+  }
+}
+
+@keyframes cube3-animation {
   0% {
-    transform: perspective(120px) rotateX(0deg) rotateY(0deg);
-    -webkit-transform: perspective(120px) rotateX(0deg) rotateY(0deg);
-  }
-
-  50% {
-    transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg);
-    -webkit-transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg);
-  }
-
-  100% {
-    transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
-    -webkit-transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
+    /* compose logo */
+    transform: translate($xspace*3, $yspace);
+  } 50% {
+    /* 1 on 3 *//* L-shape *//* box */
+    transform: translate($xspace*2, $yspace*2);
+  } 100% {
+    /* compose logo */
+    transform: translate($xspace, $yspace);
   }
 }
 
+@keyframes cube4-animation {
+  0%, 50% {
+    /* compose logo *//* 1 on 3 *//* L-shape *//* box */
+    transform: translate($xspace, $yspace);
+  } 100% {
+    /* compose logo */
+    transform: translate(0, 0);
+  }
+}
 .figni-viewer-loading-animation-hide {
   -webkit-animation: loading-animation-hide 0.5s ease-out;
   animation: loading-animation-hide 0.5s ease-out;

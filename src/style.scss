@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Spartan:wght@700&display=swap');
 
 :root {
   --figni-viewer-primary: rgb(255, 115, 59);
@@ -14,6 +14,8 @@
   --figni-viewer-link: rgb(59, 94, 255);
   --figni-viewer-button: rgb(59, 94, 255);
   --figni-viewer-button-tp: rgba(59, 94, 255, 0.8);
+  --figni-viewer-primary-font: 'Noto Sans JP', sans-serif;
+  --figni-viewer-secondary-font: 'Spartan', sans-serif;
 }
 
 figni-viewer {
@@ -22,7 +24,7 @@ figni-viewer {
 }
 
 figni-viewer * {
-  font-family: 'Noto Sans JP', sans-serif;
+  font-family: var(--figni-viewer-primary-font);
   color: var(--figni-viewer-black);
 }
 
@@ -343,7 +345,7 @@ figni-viewer * {
   max-width: 10rem;
   width: 100%;
   height: 0.5rem;
-  background-color: var(--figni-viewer-gray-100);
+  background-color: var(--figni-viewer-gray-300-tp);
   overflow: hidden;
   border-radius: 0.25rem;
 }
@@ -356,8 +358,8 @@ figni-viewer * {
   transition: all 0.5s cubic-bezier(0, 1, 0.3, 1);
 }
 
-$w: 60px;
-$h: 70px;
+$w: 40px;
+$h: 46.6px;
 $xspace: $w/2;
 $yspace: $h/4 - 1;
 $speed: 2s;
@@ -369,14 +371,28 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
 
 .figni-viewer-loading-animation {
   position: relative;
-  width: 150px;
-  height: 90px;
-  margin-bottom: 3rem;
+  width: 100px;
+  height: 60px;
+  margin-bottom: 2rem;
+}
+
+.figni-viewer-loading-text {
+  margin-top: 1.5rem;
+  color: var(--figni-viewer-gray-300);
+  font-family: var(--figni-viewer-secondary-font);
+  font-size: 0.75rem;
+  animation: loading-text-blinking 2s infinite ease-in-out;
+}
+
+@keyframes loading-text-blinking {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 .figni-viewer-cube {
   width: $w;
-  height: $h;
+  height: $h;;
   position: absolute;
   transition: all ease-out .3s;
 }
@@ -409,46 +425,36 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
 
 @keyframes cube1-animation {
   0% {
-    /* compose logo *//* 1 on 3 *//* L-shape */
     transform: translate(0,0);
   } 50% {
-    /* pre-box */
     transform: translate($xspace,-$yspace);
   } 100% {
-    /* box *//* compose logo */
     transform: translate($xspace*2,0);
   }
 }
 
 @keyframes cube2-animation {
   0%, 50% {
-    /* compose logo *//* 1 on 3 */
     transform: translate($xspace*2, 0px);
   } 100% {
-    /* L-shape *//* box *//* compose logo */
     transform: translate($xspace*3, $yspace);
   }
 }
 
 @keyframes cube3-animation {
   0% {
-    /* compose logo */
     transform: translate($xspace*3, $yspace);
   } 50% {
-    /* 1 on 3 *//* L-shape *//* box */
     transform: translate($xspace*2, $yspace*2);
   } 100% {
-    /* compose logo */
     transform: translate($xspace, $yspace);
   }
 }
 
 @keyframes cube4-animation {
   0%, 50% {
-    /* compose logo *//* 1 on 3 *//* L-shape *//* box */
     transform: translate($xspace, $yspace);
   } 100% {
-    /* compose logo */
     transform: translate(0, 0);
   }
 }

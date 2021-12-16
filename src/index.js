@@ -123,6 +123,7 @@ class FigniViewerElement extends ModelViewerElement {
     const cubes = document.createElement('div')
     const progressBarHolder = document.createElement('span')
     this.#progressBar = document.createElement('span')
+    const loadingText = document.createElement('span')
     for (let i = 0; i < 4; i++) {
       const cube = document.createElement('div')
       cube.innerHTML = SVG_LOADING_CUBE
@@ -130,18 +131,20 @@ class FigniViewerElement extends ModelViewerElement {
       cube.classList.add(`figni-viewer-cube${i + 1}`)
       cubes.appendChild(cube)
     }
+    loadingText.innerText = 'LOADING'
     loadingAnimationHolder.setAttribute('slot', 'progress-bar')
     this.#progressBar.classList.add('figni-viewer-progress-bar')
     progressBarHolder.classList.add('figni-viewer-progress-bar-holder')
     cubes.classList.add('figni-viewer-cubes')
     loadingAnimation.classList.add('figni-viewer-loading-animation')
+    loadingText.classList.add('figni-viewer-loading-text')
     loadingAnimationHolder.classList.add('figni-viewer-loading-animation-holder')
     this.addEventListener('progress', (e) => {
       const p = e.detail.totalProgress
       this.#progressBar.style.setProperty('--progress-bar-width', `${Math.ceil(p * 100)}%`)
       if (p === 1) {
         loadingAnimationHolder.classList.add('figni-viewer-loading-animation-hide')
-        if (loadingAnimationHolder.style.opacity === 0) {
+        if (loadingAnimationHolder.style.opacity >= 0.01) {
           loadingAnimationHolder.style.display = 'none'
         }
       }
@@ -150,6 +153,7 @@ class FigniViewerElement extends ModelViewerElement {
     loadingAnimation.appendChild(cubes)
     loadingAnimationHolder.appendChild(loadingAnimation)
     loadingAnimationHolder.appendChild(progressBarHolder)
+    loadingAnimationHolder.appendChild(loadingText)
     this.appendChild(loadingAnimationHolder)
 
     // 値の取得
@@ -598,7 +602,7 @@ class FigniViewerElement extends ModelViewerElement {
             if (panel.dataset.vertical == 'middle') {
               panel.style.maxHeight = `calc(${Number(
                 window.getComputedStyle(this).height.slice(0, -2)
-              )}px - 4rem )`
+              )}px - 5rem )`
             } else {
               panel.style.maxHeight = `calc(${
                 Number(window.getComputedStyle(this).height.slice(0, -2)) / 2

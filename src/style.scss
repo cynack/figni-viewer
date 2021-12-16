@@ -14,8 +14,8 @@
   --figni-viewer-link: rgb(59, 94, 255);
   --figni-viewer-button: rgb(59, 94, 255);
   --figni-viewer-button-tp: rgba(59, 94, 255, 0.8);
-  --figni-viewer-primary-font: 'Noto Sans JP', sans-serif;
-  --figni-viewer-secondary-font: 'Spartan', sans-serif;
+  --figni-viewer-contents-font: 'Noto Sans JP', sans-serif;
+  --figni-viewer-ui-font: 'Spartan', 'Noto Sans JP', sans-serif;
 }
 
 figni-viewer {
@@ -24,7 +24,7 @@ figni-viewer {
 }
 
 figni-viewer * {
-  font-family: var(--figni-viewer-primary-font);
+  font-family: var(--figni-viewer-contents-font);
   color: var(--figni-viewer-black);
 }
 
@@ -284,6 +284,7 @@ figni-viewer * {
   display: block;
   line-height: 1.5;
   color: rgb(255, 115, 59);
+  font-family: var(--figni-viewer-ui-font);
 }
 
 .figni-viewer-panel-hide {
@@ -381,7 +382,7 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
 .figni-viewer-loading-text {
   margin-top: 1.5rem;
   color: var(--figni-viewer-gray-300);
-  font-family: var(--figni-viewer-secondary-font);
+  font-family: var(--figni-viewer-ui-font);
   font-size: 0.75rem;
   animation: loading-text-blinking 2s infinite ease-in-out;
 }

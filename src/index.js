@@ -144,9 +144,6 @@ class FigniViewerElement extends ModelViewerElement {
       this.#progressBar.style.setProperty('--progress-bar-width', `${Math.ceil(p * 100)}%`)
       if (p === 1) {
         loadingAnimationHolder.classList.add('figni-viewer-loading-animation-hide')
-        if (loadingAnimationHolder.style.opacity >= 0.01) {
-          loadingAnimationHolder.style.display = 'none'
-        }
       }
     })
     progressBarHolder.appendChild(this.#progressBar)

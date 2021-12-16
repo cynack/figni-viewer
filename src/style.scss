@@ -338,6 +338,7 @@ figni-viewer * {
   transform: translate(-50%, -50%);
   z-index: 9999;
   pointer-events: none;
+  transition: opacity 0.3s ease-out;
 }
 
 .figni-viewer-progress-bar-holder {
@@ -373,6 +374,7 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
   position: relative;
   width: 100px;
   height: 60px;
+  margin-top: 2rem;
   margin-bottom: 2rem;
 }
 
@@ -459,27 +461,6 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
   }
 }
 .figni-viewer-loading-animation-hide {
-  -webkit-animation: loading-animation-hide 0.5s ease-out;
-  animation: loading-animation-hide 0.5s ease-out;
-  animation-fill-mode: forwards;
-}
-
-@-webkit-keyframes loading-animation-hide {
-  0% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes loading-animation-hide {
-  0% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
-  }
+  opacity: 0;
+  visibility: hidden !important;
 }

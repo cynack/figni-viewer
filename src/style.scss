@@ -282,7 +282,6 @@ figni-viewer * {
 
 .figni-viewer-ar-button span {
   display: block;
-  line-height: 1.5;
   color: rgb(255, 115, 59);
   font-family: var(--figni-viewer-ui-font);
 }
@@ -395,7 +394,7 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
 
 .figni-viewer-cube {
   width: $w;
-  height: $h;;
+  height: $h;
   position: absolute;
   transition: all ease-out .3s;
 }

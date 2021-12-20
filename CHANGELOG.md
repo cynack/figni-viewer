@@ -33,6 +33,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- 細かなバグを修正
+
 ## [0.0.32] - 2021-12-17
 
 ### Added

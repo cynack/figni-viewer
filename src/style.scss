@@ -1,3 +1,4 @@
+@use 'sass:math';
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Spartan:wght@700&display=swap');
 
 :root {
@@ -361,8 +362,8 @@ figni-viewer * {
 
 $w: 40px;
 $h: 46.6px;
-$xspace: $w/2;
-$yspace: $h/4 - 1;
+$xspace: math.div($w, 2);
+$yspace: math.div($h, 4) - 1;
 $speed: 2s;
 $ease: cubic-bezier(0, 1, 0.3, 1);
 
@@ -387,16 +388,22 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
 }
 
 @keyframes loading-text-blinking {
-  0% { opacity: 1; }
-  50% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 .figni-viewer-cube {
   width: $w;
   height: $h;
   position: absolute;
-  transition: all ease-out .3s;
+  transition: all ease-out 0.3s;
 }
 
 .figni-viewer-cube-svg {
@@ -424,39 +431,46 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
   fill: var(--figni-viewer-gray-50);
 }
 
-
 @keyframes cube1-animation {
   0% {
-    transform: translate(0,0);
-  } 50% {
-    transform: translate($xspace,-$yspace);
-  } 100% {
-    transform: translate($xspace*2,0);
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate($xspace, -$yspace);
+  }
+  100% {
+    transform: translate($xspace * 2, 0);
   }
 }
 
 @keyframes cube2-animation {
-  0%, 50% {
-    transform: translate($xspace*2, 0px);
-  } 100% {
-    transform: translate($xspace*3, $yspace);
+  0%,
+  50% {
+    transform: translate($xspace * 2, 0px);
+  }
+  100% {
+    transform: translate($xspace * 3, $yspace);
   }
 }
 
 @keyframes cube3-animation {
   0% {
-    transform: translate($xspace*3, $yspace);
-  } 50% {
-    transform: translate($xspace*2, $yspace*2);
-  } 100% {
+    transform: translate($xspace * 3, $yspace);
+  }
+  50% {
+    transform: translate($xspace * 2, $yspace * 2);
+  }
+  100% {
     transform: translate($xspace, $yspace);
   }
 }
 
 @keyframes cube4-animation {
-  0%, 50% {
+  0%,
+  50% {
     transform: translate($xspace, $yspace);
-  } 100% {
+  }
+  100% {
     transform: translate(0, 0);
   }
 }

@@ -25,7 +25,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- 属性`loop`を追加
+
 ### Changed
+
+- `playAnimation`メソッドの引数に`loop`を追加
 
 ### Deprecated
 
@@ -33,7 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-- 細かなバグを修正
+- `closeup`でのカメラの誤った挙動を修正
 
 ## [0.0.32] - 2021-12-17
 

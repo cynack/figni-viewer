@@ -562,8 +562,8 @@ class FigniViewerElement extends ModelViewerElement {
             FigniViewerElement.#DEFAULT_HOTSPOT_POSITION
           const orbit = hotspot.getAttribute('orbit') || this.#initCameraOrbit
           if (this.cameraTarget == target && this.cameraOrbit == orbit) {
-            this.setCameraOrbit(this.#initCameraTarget)
-            this.setCameraTarget(this.#initCameraOrbit)
+            this.setCameraTarget(this.#initCameraTarget)
+            this.setCameraOrbit(this.#initCameraOrbit)
             this.#initCameraButton.style.display = 'none'
           } else {
             this.setCameraTarget(target)

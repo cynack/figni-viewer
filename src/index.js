@@ -542,11 +542,12 @@ class FigniViewerElement extends ModelViewerElement {
       const e = () => {
         if (window.getComputedStyle(hotspot).opacity == 1) {
           const clip = hotspot.getAttribute('clip')
+          const loop = hotspot.getAttribute('loop') == ''
           const lenth = Number(hotspot.getAttribute('length')) || 0
           const toState = hotspot.getAttribute('to-state')
           const onstart = hotspot.getAttribute('onstart')
           const onend = hotspot.getAttribute('onend')
-          this.playAnimation(clip, lenth, toState, onstart, onend)
+          this.playAnimation(clip, loop, lenth, toState, onstart, onend)
         }
       }
       hotspot.addEventListener('click', e)
@@ -712,7 +713,14 @@ class FigniViewerElement extends ModelViewerElement {
     this.#toggleVisibleHotspotButton = null
   }
 
-  playAnimation(clip, length = 0, toState = '', onstart, onend) {
+  async playAnimation(
+    clip,
+    loop = false,
+    length = 0,
+    toState = '',
+    onstart,
+    onend
+  ) {
     if (!this.availableAnimations.includes(clip)) {
       throw new ReferenceError(`${clip} is not available`)
     }
@@ -727,7 +735,11 @@ class FigniViewerElement extends ModelViewerElement {
           Function(onstart)()
         }
       }
-      if (length > 0) {
+      await this.updateComplete
+      if (!loop) {
+        if (length == 0) {
+          length = this.duration * 1000
+        }
         this.loop = false
         this.#nextState = toState
         if (this.#nextState) {

@@ -2,8 +2,8 @@ import { ModelViewerElement } from '@google/model-viewer'
 import axios from 'axios'
 import './style.scss'
 
-const API_BASE = 'https://api.stg.figni.store/api'
-const SOCKET_BASE = 'wss://api.stg.figni.store/ws'
+const API_BASE = 'https://api.stg.figni.io/api'
+const SOCKET_BASE = 'wss://api.stg.figni.io/ws'
 const VIEW_THRESHOLD = 0.7
 
 const SVG_AR_BUTTON =

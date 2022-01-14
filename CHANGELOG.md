@@ -25,13 +25,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- 属性`loopCount`を追加
+
 ### Changed
+
+- `playAnimation`メソッドの引数を(`clip`, `loop`, `length`, `toState`, `onstart`, `onend`)から(`clip`, `loopCount`, `toState`, `onstart`, `onend`)に変更
+- 属性`anime`および`clip`の挙動を変更
 
 ### Deprecated
 
 ### Removed
 
+- 属性`loop`を削除
+
 ### Fixed
+
+- 消えた*hotspot*にクリック判定が残っていた問題を修正
 
 ## [0.0.33] - 2021-12-28
 

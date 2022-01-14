@@ -541,13 +541,12 @@ class FigniViewerElement extends ModelViewerElement {
       hotspot.removeEventListener('click', this.#events[`${name}-anime`])
       const e = () => {
         if (window.getComputedStyle(hotspot).opacity == 1) {
-          const clip = hotspot.getAttribute('clip')
-          const loop = hotspot.getAttribute('loop') == ''
-          const lenth = Number(hotspot.getAttribute('length')) || 0
+          const clip = hotspot.getAttribute('clip') || null
+          const loopCount = Number(hotspot.getAttribute('loopCount')) || 1
           const toState = hotspot.getAttribute('to-state')
           const onstart = hotspot.getAttribute('onstart')
           const onend = hotspot.getAttribute('onend')
-          this.playAnimation(clip, loop, lenth, toState, onstart, onend)
+          this.playAnimation(clip, loopCount, toState, onstart, onend)
         }
       }
       hotspot.addEventListener('click', e)
@@ -714,20 +713,37 @@ class FigniViewerElement extends ModelViewerElement {
   }
 
   async playAnimation(
-    clip,
-    loop = false,
-    length = 0,
-    toState = '',
-    onstart,
-    onend
+    clip = null,
+    loopCount = 1,
+    toState = null,
+    onstart = null,
+    onend = null
   ) {
+    /**
+     * アニメーションが止まっている、またはループ再生している場合のみ再生する
+     * clip が null の場合、3Dモデルに含まれる最初のアニメーションを再生する
+     * length が Infinity の場合、ループ再生する
+     * toState が設定されている場合、アニメーションが終了したときに指定した状態にする
+     * ループ再生されている場合は、アニメーションを再生したときに指定した状態にする
+     * onstart が設定されている場合、アニメーションが再生されたときに指定した関数を実行する
+     * onend が設定されている場合、アニメーションが終了したときに指定した関数を実行する
+     * ループ再生されている場合は、onend は実行されない
+     */
+    if (!clip) {
+      if (this.availableAnimations.length > 0) {
+        clip = this.availableAnimations[0]
+      }
+    }
+    if (clip == null) {
+      throw new ReferenceError(`${clip} should be specified`)
+    }
     if (!this.availableAnimations.includes(clip)) {
       throw new ReferenceError(`${clip} is not available`)
     }
-    if (this.loop || this.paused) {
+    if (this.paused || this.loop) {
       this.animationName = clip
       this.currentTime = 0
-      this.play()
+      await this.updateComplete
       if (onstart) {
         if (typeof onstart === 'function') {
           onstart()
@@ -735,34 +751,24 @@ class FigniViewerElement extends ModelViewerElement {
           Function(onstart)()
         }
       }
-      await this.updateComplete
-      if (!loop) {
-        if (length == 0) {
-          length = this.duration * 1000
-        }
-        this.loop = false
-        this.#nextState = toState
-        if (this.#nextState) {
-          this.updateState(`temp-${this.#seed}`)
-        }
-        setTimeout(() => {
-          this.pause()
-          if (onend) {
-            if (typeof onend === 'function') {
-              onend()
-            } else {
-              Function(onend)()
-            }
+      this.play({ repetitions: loopCount })
+      this.loop = loopCount === Infinity
+      const onFinishFunc = () => {
+        if (onend && !this.loop) {
+          if (typeof onend === 'function') {
+            onend()
+          } else {
+            Function(onend)()
           }
-          if (toState) {
-            this.updateState(toState)
-          }
-        }, length)
-      } else {
-        this.loop = true
+        }
         if (toState) {
           this.updateState(toState)
         }
+      }
+      if (!this.loop) {
+        this.addEventListener('finished', onFinishFunc, { once: true })
+      } else {
+        onFinishFunc()
       }
     }
   }

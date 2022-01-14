@@ -27,8 +27,9 @@
           closeup
           anime
           clip="Action"
-          length="1200"
-          loop
+          loopCount="Infinity"
+          onstart="console.log('start')"
+          onend="console.log('end')"
         >
           <div slot="panel" place="left middle">
             <img
@@ -37,7 +38,6 @@
             <p>
               様々なインテリアに合わせることができるシンプルかつモダンなデザインです。
             </p>
-            <strong>anooosaojasdgjg推あgぢうdg</strong>
             <a href="cynack.com">詳細はこちら</a>
           </div>
         </button>
@@ -56,7 +56,7 @@
               広い可動域を有しているため、デスク以外にもベッドやソファーの脇に置いて使用することもできます。aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaｈｄしｈｙｓだｙさｄふやｓぴどｙなすｃｈんぢおｓじゅｄこいｐすｄｆにぽえすｆｃぽいうｓんｃふぃおｐｃ９うｄｓぽｆｃ
             </p>
             <button
-              onclick="view.playAnimation('Action', 2400, 'aa', () => view.toggleVisibleHotspot(false), () => view.toggleVisibleHotspot(true))"
+              onclick="view.playAnimation('Action', 2, 'aa', () => view.toggleVisibleHotspot(false), () => view.toggleVisibleHotspot(true))"
             >
               可動域を確認する
             </button>
@@ -68,23 +68,9 @@
       const view = document.getElementById('view')
     </script>
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Noto+Sans+JP:wght@400;700&family=Spartan:wght@700&family=Yuji+Mai&display=swap');
       #view {
         width: 100%;
         height: 480px;
-        /* --figni-viewer-primary: rgb(22, 152, 217);
-        --figni-viewer-primary-tp: rgba(22, 152, 217, 0.3);
-        --figni-viewer-secondary: rgb(255, 71, 51);
-        --figni-viewer-secondary-tp: rgba(255, 221, 51, 0.3);
-        --figni-viewer-button: rgb(22, 152, 217);
-        --figni-viewer-button-tp: rgba(22, 152, 217, 0.8);
-        --figni-viewer-gray-50: rgb(246, 246, 246);
-        --figni-viewer-gray-100: rgb(230, 230, 230);
-        --figni-viewer-gray-500: rgb(130, 130, 130);
-        --figni-viewer-gray-300: rgb(180, 180, 180);
-        --figni-viewer-gray-300-tp: rgba(180, 180, 180, 0.3); */
-        --figni-viewer-contents-font: 'Sawarabi Mincho', sans-serif;
-        --figni-viewer-ui-font: 'DotGothic16', sans-serif;
       }
       figni-viewer:not(:defined) {
         display: none;

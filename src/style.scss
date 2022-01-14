@@ -68,6 +68,7 @@ figni-viewer * {
 
 .figni-viewer-hotspot-hide {
   opacity: var(--min-hotspot-opacity);
+  pointer-events: none;
 }
 
 .figni-viewer-panel {

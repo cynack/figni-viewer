@@ -1,6 +1,6 @@
 {
   "name": "@cynack/figni-viewer",
-  "version": "0.0.33",
+  "version": "1.0.0",
   "description": "",
   "main": "./dist/figni-viewer.min.js",
   "files": [

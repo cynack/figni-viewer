@@ -25,14 +25,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [1.0.0] - 2022-01-14
+
+### Added
+
 - 属性`loopCount`を追加
 
 ### Changed
 
 - `playAnimation`メソッドの引数を(`clip`, `loop`, `length`, `toState`, `onstart`, `onend`)から(`clip`, `loopCount`, `toState`, `onstart`, `onend`)に変更
 - 属性`anime`および`clip`の挙動を変更
-
-### Deprecated
 
 ### Removed
 
@@ -202,7 +212,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v0.0.33...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/cynack/figni-viewer/compare/v0.0.33...v1.0.0
 [0.0.33]: https://github.com/cynack/figni-viewer/compare/v0.0.32...v0.0.33
 [0.0.32]: https://github.com/cynack/figni-viewer/compare/v0.0.31...v0.0.32
 [0.0.31]: https://github.com/cynack/figni-viewer/compare/v0.0.30...v0.0.31

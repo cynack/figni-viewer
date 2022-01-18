@@ -104,7 +104,7 @@ class FigniViewerElement extends ModelViewerElement {
     this.#requestModel()
 
     // Attribute
-    this.loading = 'eager'
+    this.loading = 'lazy'
     this.cameraControls = true
     this.ar = true
     this.arModes = 'webxr scene-viewer quick-look'

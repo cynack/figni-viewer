@@ -19,13 +19,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fix
 
-- *panel*を後から追加した場合に正しい挙動になるように修正
-
 ## [Unreleased]
 
 ### Added
 
 ### Changed
+
+- 3D モデルのプリロードするタイミングを figni-viewer がビューポート内に近づいた時に変更
 
 ### Deprecated
 

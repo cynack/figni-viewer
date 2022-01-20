@@ -1,5 +1,6 @@
 import { ModelViewerElement } from '@google/model-viewer'
 import axios from 'axios'
+import { handleError } from './error'
 import './style.scss'
 
 const API_BASE = 'https://api.stg.figni.io/api'
@@ -44,6 +45,8 @@ class FigniViewerElement extends ModelViewerElement {
   #downloadScreenshotButton
   #toggleVisibleHotspotButton
   #progressBar
+  #loadingAnimationHolder
+  #loadingText
   #panels = []
   #hotspots = []
   #events = {}
@@ -92,11 +95,12 @@ class FigniViewerElement extends ModelViewerElement {
   async connectedCallback() {
     super.connectedCallback()
 
+    // 輪郭線を削除
     this.shadowRoot
       .querySelectorAll(':not(style[outline="none"])')
       .forEach((d) => (d.style.outline = 'none'))
 
-    // Attribute
+    // model-viewerのセットアップ
     this.loading = 'lazy'
     this.cameraControls = true
     this.ar = true
@@ -109,12 +113,12 @@ class FigniViewerElement extends ModelViewerElement {
     this.maxCameraOrbit = FigniViewerElement.#MAX_CAMERA_ORBIT
     this.minCameraOrbit = FigniViewerElement.#MIN_CAMERA_ORBIT
 
-    const loadingAnimationHolder = document.createElement('div')
+    this.#loadingAnimationHolder = document.createElement('div')
     const loadingAnimation = document.createElement('div')
     const cubes = document.createElement('div')
     const progressBarHolder = document.createElement('span')
     this.#progressBar = document.createElement('span')
-    const loadingText = document.createElement('span')
+    this.#loadingText = document.createElement('span')
     for (let i = 0; i < 4; i++) {
       const cube = document.createElement('div')
       cube.innerHTML = SVG_LOADING_CUBE
@@ -122,14 +126,14 @@ class FigniViewerElement extends ModelViewerElement {
       cube.classList.add(`figni-viewer-cube${i + 1}`)
       cubes.appendChild(cube)
     }
-    loadingText.innerText = 'LOADING'
-    loadingAnimationHolder.setAttribute('slot', 'progress-bar')
+    this.#loadingText.innerText = 'LOADING'
+    this.#loadingAnimationHolder.setAttribute('slot', 'progress-bar')
     this.#progressBar.classList.add('figni-viewer-progress-bar')
     progressBarHolder.classList.add('figni-viewer-progress-bar-holder')
     cubes.classList.add('figni-viewer-cubes')
     loadingAnimation.classList.add('figni-viewer-loading-animation')
-    loadingText.classList.add('figni-viewer-loading-text')
-    loadingAnimationHolder.classList.add(
+    this.#loadingText.classList.add('figni-viewer-loading-text')
+    this.#loadingAnimationHolder.classList.add(
       'figni-viewer-loading-animation-holder'
     )
     this.addEventListener('progress', (e) => {
@@ -139,17 +143,17 @@ class FigniViewerElement extends ModelViewerElement {
         `${Math.ceil(p * 100)}%`
       )
       if (p === 1) {
-        loadingAnimationHolder.classList.add(
+        this.#loadingAnimationHolder.classList.add(
           'figni-viewer-loading-animation-hide'
         )
       }
     })
     progressBarHolder.appendChild(this.#progressBar)
     loadingAnimation.appendChild(cubes)
-    loadingAnimationHolder.appendChild(loadingAnimation)
-    loadingAnimationHolder.appendChild(progressBarHolder)
-    loadingAnimationHolder.appendChild(loadingText)
-    this.appendChild(loadingAnimationHolder)
+    this.#loadingAnimationHolder.appendChild(loadingAnimation)
+    this.#loadingAnimationHolder.appendChild(progressBarHolder)
+    this.#loadingAnimationHolder.appendChild(this.#loadingText)
+    this.appendChild(this.#loadingAnimationHolder)
 
     // 値の取得
     this.itemId = this.getAttribute('item-id')
@@ -311,8 +315,10 @@ class FigniViewerElement extends ModelViewerElement {
           this.iosSrc = ''
         }
       } catch (e) {
-        console.error(e.response.data)
+        handleError(e, this.#loadingText)
       }
+    } else {
+      throw new ReferenceError('item-id or token is not set.')
     }
   }
 

@@ -33,6 +33,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- アニメーションの一回再生に関して、終了時の 3D モデルの状態が 0 フレーム目になっていた問題を修正
+
 ## [1.0.0] - 2022-01-14
 
 ### Added

@@ -1,5 +1,5 @@
-import { ModelViewerElement } from '@google/model-viewer'
 import axios from 'axios'
+import { ModelViewerElement } from './model-viewer'
 import './style.scss'
 
 const API_BASE = 'https://api.stg.figni.io/api'

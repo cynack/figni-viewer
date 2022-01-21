@@ -401,8 +401,8 @@ class FigniViewerElement extends ModelViewerElement {
         if (options.anime.clip) {
           hotspot.setAttribute('clip', options.anime.clip)
         }
-        if (options.anime.length) {
-          hotspot.setAttribute('length', options.anime.length)
+        if (options.anime.loopCount) {
+          hotspot.setAttribute('loopCount', options.anime.loopCount)
         }
         if (options.anime.onstart) {
           hotspot.setAttribute(
@@ -453,8 +453,8 @@ class FigniViewerElement extends ModelViewerElement {
         if (options.anime.clip) {
           hotspot.setAttribute('clip', options.anime.clip)
         }
-        if (options.anime.length) {
-          hotspot.setAttribute('length', options.anime.length)
+        if (options.anime.loopCount) {
+          hotspot.setAttribute('loopCount', options.anime.loopCount)
         }
         if (options.anime.onstart) {
           hotspot.setAttribute(
@@ -719,16 +719,6 @@ class FigniViewerElement extends ModelViewerElement {
     onstart = null,
     onend = null
   ) {
-    /**
-     * アニメーションが止まっている、またはループ再生している場合のみ再生する
-     * clip が null の場合、3Dモデルに含まれる最初のアニメーションを再生する
-     * length が Infinity の場合、ループ再生する
-     * toState が設定されている場合、アニメーションが終了したときに指定した状態にする
-     * ループ再生されている場合は、アニメーションを再生したときに指定した状態にする
-     * onstart が設定されている場合、アニメーションが再生されたときに指定した関数を実行する
-     * onend が設定されている場合、アニメーションが終了したときに指定した関数を実行する
-     * ループ再生されている場合は、onend は実行されない
-     */
     if (!clip) {
       if (this.availableAnimations.length > 0) {
         clip = this.availableAnimations[0]

@@ -220,6 +220,9 @@ class FigniViewerElement extends ModelViewerElement {
             this.modelTag = newValue
             break
         }
+        if (oldValue !== null) {
+          this.#requestModel()
+        }
       } else if (
         FigniViewerElement.#FIGNI_OBSERBED_ATTRIBUTES.TOOL.includes(name)
       ) {
@@ -723,7 +726,7 @@ class FigniViewerElement extends ModelViewerElement {
         }
       })
     } else {
-      this.#loadingPanel.style.display = 'block'
+      this.#loadingPanel.style.display = ''
     }
   }
 

@@ -55,9 +55,8 @@ class FigniViewerElement extends ModelViewerElement {
   #initCameraButton
   #downloadScreenshotButton
   #toggleVisibleHotspotButton
-  #progressBar
-  #loadingAnimationHolder
-  #loadingText
+  #loadingPanel
+
   #panels = []
   #hotspots = []
 
@@ -114,49 +113,6 @@ class FigniViewerElement extends ModelViewerElement {
     this.maxCameraOrbit = FigniViewerElement.#MAX_CAMERA_ORBIT
     this.minCameraOrbit = FigniViewerElement.#MIN_CAMERA_ORBIT
 
-    this.#loadingAnimationHolder = document.createElement('div')
-    const loadingAnimation = document.createElement('div')
-    const cubes = document.createElement('div')
-    const progressBarHolder = document.createElement('span')
-    this.#progressBar = document.createElement('span')
-    this.#loadingText = document.createElement('span')
-    for (let i = 0; i < 4; i++) {
-      const cube = document.createElement('div')
-      cube.innerHTML = SVG_LOADING_CUBE
-      cube.classList.add('figni-viewer-cube')
-      cube.classList.add(`figni-viewer-cube${i + 1}`)
-      cubes.appendChild(cube)
-    }
-    this.#loadingText.innerText = 'LOADING'
-    this.#loadingAnimationHolder.setAttribute('slot', 'progress-bar')
-    this.#progressBar.classList.add('figni-viewer-progress-bar')
-    progressBarHolder.classList.add('figni-viewer-progress-bar-holder')
-    cubes.classList.add('figni-viewer-cubes')
-    loadingAnimation.classList.add('figni-viewer-loading-animation')
-    this.#loadingText.classList.add('figni-viewer-loading-text')
-    this.#loadingAnimationHolder.classList.add(
-      'figni-viewer-loading-animation-holder'
-    )
-    this.addEventListener('progress', (e) => {
-      const p = e.detail.totalProgress
-      this.#progressBar.style.setProperty(
-        '--progress-bar-width',
-        `${Math.ceil(p * 100)}%`
-      )
-      if (p === 1) {
-        this.#loadingAnimationHolder.classList.add(
-          'figni-viewer-loading-animation-hide'
-        )
-      }
-    })
-    progressBarHolder.appendChild(this.#progressBar)
-    loadingAnimation.appendChild(cubes)
-    this.#loadingAnimationHolder.appendChild(loadingAnimation)
-    this.#loadingAnimationHolder.appendChild(progressBarHolder)
-    this.#loadingAnimationHolder.appendChild(this.#loadingText)
-    this.appendChild(this.#loadingAnimationHolder)
-
-    // 値の取得
     this.itemId = this.getAttribute('item-id')
     this.token = this.getAttribute('token')
     this.modelTag = this.getAttribute('model-tag') || ''
@@ -243,12 +199,14 @@ class FigniViewerElement extends ModelViewerElement {
 
   static get observedAttributes() {
     return super.observedAttributes.concat(
-      FigniViewerElement.#FIGNI_OBSERBED_ATTRIBUTES
+      FigniViewerElement.#FIGNI_OBSERBED_ATTRIBUTES.MODEL,
+      FigniViewerElement.#FIGNI_OBSERBED_ATTRIBUTES.TOOL
     )
   }
 
   async attributeChangedCallback(name, oldValue, newValue) {
     super.attributeChangedCallback(name, oldValue, newValue)
+    console.log(name, oldValue, newValue)
     if (oldValue != newValue) {
       if (FigniViewerElement.#FIGNI_OBSERBED_ATTRIBUTES.MODEL.includes(name)) {
         switch (name) {
@@ -261,9 +219,6 @@ class FigniViewerElement extends ModelViewerElement {
           case 'model-tag':
             this.modelTag = newValue
             break
-        }
-        if (oldValue !== null) {
-          await this.#requestModel()
         }
       } else if (
         FigniViewerElement.#FIGNI_OBSERBED_ATTRIBUTES.TOOL.includes(name)
@@ -306,8 +261,9 @@ class FigniViewerElement extends ModelViewerElement {
         } else {
           this.iosSrc = ''
         }
+        this.#enableLoadingPanel()
       } catch (e) {
-        handleError(e, this.#loadingText)
+        handleError(e, null)
       }
     } else {
       throw new ReferenceError('item-id or token is not set.')
@@ -717,6 +673,63 @@ class FigniViewerElement extends ModelViewerElement {
   #disableToggleVisibleHotspotButton() {
     if (this.#toggleVisibleHotspotButton) {
       this.#toggleVisibleHotspotButton.style.display = 'none'
+    }
+  }
+
+  #enableLoadingPanel() {
+    if (!this.#loadingPanel) {
+      this.#loadingPanel = document.createElement('div')
+      this.#loadingPanel.classList.add('figni-viewer-loading-panel')
+      this.#loadingPanel.setAttribute('slot', 'progress-bar')
+      // ローディングアニメ
+      const loadingAnimation = document.createElement('div')
+      loadingAnimation.classList.add('figni-viewer-loading-animation')
+      const loadingAnimationCubes = document.createElement('div')
+      loadingAnimationCubes.classList.add(
+        'figni-viewer-loading-animation-cubes'
+      )
+      for (let i = 0; i < 4; i++) {
+        const cube = document.createElement('div')
+        cube.innerHTML = SVG_LOADING_CUBE
+        cube.classList.add('figni-viewer-loading-animation-cube')
+        cube.classList.add(`figni-viewer-loading-animation-cube${i + 1}`)
+        loadingAnimationCubes.appendChild(cube)
+      }
+      loadingAnimation.appendChild(loadingAnimationCubes)
+      this.#loadingPanel.appendChild(loadingAnimation)
+      // プログレスバー
+      const loadingProgressBarBase = document.createElement('span')
+      loadingProgressBarBase.classList.add(
+        'figni-viewer-loading-progress-bar-base'
+      )
+      const loadingProgressBar = document.createElement('span')
+      loadingProgressBar.classList.add('figni-viewer-loading-progress-bar')
+      loadingProgressBarBase.appendChild(loadingProgressBar)
+      this.#loadingPanel.appendChild(loadingProgressBarBase)
+      // ローディングテキスト
+      const loadingText = document.createElement('span')
+      loadingText.innerText = 'LOADING'
+      loadingText.classList.add('figni-viewer-loading-text')
+      this.#loadingPanel.appendChild(loadingText)
+      this.appendChild(this.#loadingPanel)
+      this.addEventListener('progress', (e) => {
+        const p = e.detail.totalProgress
+        loadingProgressBar.style.setProperty(
+          '--progress-bar-width',
+          `${Math.ceil(p * 100)}%`
+        )
+        if (p === 1) {
+          this.#disableLoadingPanel()
+        }
+      })
+    } else {
+      this.#loadingPanel.style.display = 'block'
+    }
+  }
+
+  #disableLoadingPanel() {
+    if (this.#loadingPanel) {
+      this.#loadingPanel.style.display = 'none'
     }
   }
 

@@ -324,7 +324,7 @@ figni-viewer * {
   transform: translateX(-0.5px) translateY(-0.5px);
 }
 
-.figni-viewer-loading-animation-holder {
+.figni-viewer-loading-panel {
   display: flex;
   position: absolute;
   flex-direction: column;
@@ -343,22 +343,16 @@ figni-viewer * {
   transition: opacity 0.3s ease-out;
 }
 
-.figni-viewer-progress-bar-holder {
-  display: block;
-  max-width: 10rem;
-  width: 100%;
-  height: 0.5rem;
-  background-color: var(--figni-viewer-gray-300-tp);
-  overflow: hidden;
-  border-radius: 0.25rem;
+.figni-viewer-loading-animation {
+  position: relative;
+  width: 100px;
+  height: 60px;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
 }
 
-.figni-viewer-progress-bar {
-  display: block;
-  width: var(--progress-bar-width);
-  height: 100%;
-  background-color: var(--figni-viewer-gray-300);
-  transition: all 0.5s cubic-bezier(0, 1, 0.3, 1);
+.figni-viewer-loading-animation-cubes {
+  position: absolute;
 }
 
 $w: 40px;
@@ -368,71 +362,27 @@ $yspace: math.div($h, 4) - 1;
 $speed: 2s;
 $ease: cubic-bezier(0, 1, 0.3, 1);
 
-.figni-viewer-cubes {
-  position: absolute;
-}
-
-.figni-viewer-loading-animation {
-  position: relative;
-  width: 100px;
-  height: 60px;
-  margin-top: 2rem;
-  margin-bottom: 2rem;
-}
-
-.figni-viewer-loading-text {
-  margin-top: 1.5rem;
-  color: var(--figni-viewer-gray-300);
-  font-family: var(--figni-viewer-ui-font);
-  font-size: 0.75rem;
-  animation: loading-text-blinking 2s infinite ease-in-out;
-}
-
-@keyframes loading-text-blinking {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-.figni-viewer-cube {
+.figni-viewer-loading-animation-cube {
   width: $w;
   height: $h;
   position: absolute;
   transition: all ease-out 0.3s;
 }
-
-.figni-viewer-cube-svg {
-  fill: var(--figni-viewer-gray-500);
+.figni-viewer-loading-animation-cube1 {
+  animation: animation-cube1 $speed $ease infinite;
 }
-
-.figni-viewer-cube-window {
-  fill: var(--figni-viewer-gray-50);
+.figni-viewer-loading-animation-cube2 {
+  animation: animation-cube2 $speed $ease infinite;
 }
-
-.figni-viewer-cube1 {
-  animation: cube1-animation $speed $ease infinite;
-}
-.figni-viewer-cube2 {
-  animation: cube2-animation $speed $ease infinite;
-}
-.figni-viewer-cube3 {
-  animation: cube3-animation $speed $ease infinite;
+.figni-viewer-loading-animation-cube3 {
+  animation: animation-cube3 $speed $ease infinite;
   z-index: 2;
 }
-.figni-viewer-cube4 {
-  animation: cube4-animation $speed $ease infinite;
-}
-.figni-viewer-cube-svg-window {
-  fill: var(--figni-viewer-gray-50);
+.figni-viewer-loading-animation-cube4 {
+  animation: animation-cube4 $speed $ease infinite;
 }
 
-@keyframes cube1-animation {
+@keyframes animation-cube1 {
   0% {
     transform: translate(0, 0);
   }
@@ -444,7 +394,7 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
   }
 }
 
-@keyframes cube2-animation {
+@keyframes animation-cube2 {
   0%,
   50% {
     transform: translate($xspace * 2, 0px);
@@ -454,7 +404,7 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
   }
 }
 
-@keyframes cube3-animation {
+@keyframes animation-cube3 {
   0% {
     transform: translate($xspace * 3, $yspace);
   }
@@ -466,7 +416,7 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
   }
 }
 
-@keyframes cube4-animation {
+@keyframes animation-cube4 {
   0%,
   50% {
     transform: translate($xspace, $yspace);
@@ -475,11 +425,49 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
     transform: translate(0, 0);
   }
 }
-.figni-viewer-loading-animation-hide {
-  opacity: 0;
-  visibility: hidden !important;
+
+.figni-viewer-loading-cube-svg {
+  fill: var(--figni-viewer-gray-500);
 }
 
-.figni-viewer-loading-animation-holder-error {
-  color: red;
+.figni-viewer-loading-cube-svg-window {
+  fill: var(--figni-viewer-gray-50);
+}
+
+.figni-viewer-loading-progress-bar-base {
+  display: block;
+  max-width: 10rem;
+  width: 100%;
+  height: 0.5rem;
+  background-color: var(--figni-viewer-gray-300-tp);
+  overflow: hidden;
+  border-radius: 0.25rem;
+}
+
+.figni-viewer-loading-progress-bar {
+  display: block;
+  width: var(--progress-bar-width);
+  height: 100%;
+  background-color: var(--figni-viewer-gray-300);
+  transition: all 0.5s cubic-bezier(0, 1, 0.3, 1);
+}
+
+.figni-viewer-loading-text {
+  margin-top: 1.5rem;
+  color: var(--figni-viewer-gray-300);
+  font-family: var(--figni-viewer-ui-font);
+  font-size: 0.75rem;
+  animation: animation-text-blinking 2s infinite ease-in-out;
+}
+
+@keyframes animation-text-blinking {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }

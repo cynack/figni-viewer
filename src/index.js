@@ -43,6 +43,14 @@ class FigniViewerElement extends ModelViewerElement {
   #events = {}
   #nextState
 
+  // 利用データ
+  #ws
+  #initTime = 0
+  #appearedTime = 0
+  #sumViewTime = 0
+  #wasInViewport = false
+  #hotspotClickCount = {}
+
   // HTML要素
   #initCameraButton
   #downloadScreenshotButton
@@ -52,13 +60,6 @@ class FigniViewerElement extends ModelViewerElement {
   #loadingText
   #panels = []
   #hotspots = []
-
-  #ws
-  #initTime = 0
-  #appearedTime = 0
-  #sumViewTime = 0
-  #wasInViewport = false
-  #hotspotClickCount = {}
 
   constructor() {
     super()
@@ -169,17 +170,7 @@ class FigniViewerElement extends ModelViewerElement {
     this.setCameraTarget(this.#initCameraTarget)
     this.setCameraOrbit(this.#initCameraOrbit)
 
-    this.#initCameraButton = document.createElement('button')
-    this.#initCameraButton.classList.add('figni-viewer-camera-init-btn')
-    this.#initCameraButton.innerHTML = 'カメラ位置を戻す'
-    this.#initCameraButton.addEventListener('click', () => {
-      this.setCameraTarget(this.#initCameraTarget)
-      this.setCameraOrbit(this.#initCameraOrbit)
-      this.#initCameraButton.style.display = 'none'
-      this.closeAllPanels()
-    })
-    this.#initCameraButton.style.display = 'none'
-    this.appendChild(this.#initCameraButton)
+    this.#disableInitCameraButton()
 
     const arButton = document.createElement('button')
     arButton.setAttribute('slot', 'ar-button')
@@ -324,17 +315,17 @@ class FigniViewerElement extends ModelViewerElement {
   }
 
   setCameraOrbit(orbit) {
-    this.cameraOrbit = orbit
-    if (this.#initCameraButton) {
-      this.#initCameraButton.style.display = 'block'
+    if (this.cameraOrbit !== orbit) {
+      this.#enableInitCameraButton()
     }
+    this.cameraOrbit = orbit
   }
 
   setCameraTarget(target) {
-    this.cameraTarget = target
-    if (this.#initCameraButton) {
-      this.#initCameraButton.style.display = 'block'
+    if (this.cameraTarget !== target) {
+      this.#enableInitCameraButton()
     }
+    this.cameraTarget = target
   }
 
   closeAllPanels(excludePanels = []) {
@@ -564,7 +555,6 @@ class FigniViewerElement extends ModelViewerElement {
           if (this.cameraTarget == target && this.cameraOrbit == orbit) {
             this.setCameraTarget(this.#initCameraTarget)
             this.setCameraOrbit(this.#initCameraOrbit)
-            this.#initCameraButton.style.display = 'none'
           } else {
             this.setCameraTarget(target)
             this.setCameraOrbit(orbit)
@@ -661,6 +651,29 @@ class FigniViewerElement extends ModelViewerElement {
     }
   }
 
+  #enableInitCameraButton() {
+    if (!this.#initCameraButton) {
+      this.#initCameraButton = document.createElement('button')
+      this.#initCameraButton.classList.add('figni-viewer-init-camera-btn')
+      this.#initCameraButton.innerText = 'カメラ位置を戻す'
+      this.#initCameraButton.addEventListener('click', () => {
+        this.setCameraTarget(this.#initCameraTarget)
+        this.setCameraOrbit(this.#initCameraOrbit)
+        this.closeAllPanels()
+        this.#disableInitCameraButton()
+      })
+      this.appendChild(this.#initCameraButton)
+    } else {
+      this.#initCameraButton.style.display = 'block'
+    }
+  }
+
+  #disableInitCameraButton() {
+    if (this.#initCameraButton) {
+      this.#initCameraButton.style.display = 'none'
+    }
+  }
+
   #enableDownloadScreenshotButton() {
     if (!this.#downloadScreenshotButton) {
       this.#downloadScreenshotButton = document.createElement('button')
@@ -672,12 +685,15 @@ class FigniViewerElement extends ModelViewerElement {
         this.downloadScreenshot()
       })
       this.appendChild(this.#downloadScreenshotButton)
+    } else {
+      this.#downloadScreenshotButton.style.display = 'block'
     }
   }
 
   #disableDownloadScreenshotButton() {
-    this.#downloadScreenshotButton.remove()
-    this.#downloadScreenshotButton = null
+    if (this.#downloadScreenshotButton) {
+      this.#downloadScreenshotButton.style.display = 'none'
+    }
   }
 
   #enableToggleVisibleHotspotButton() {
@@ -692,12 +708,15 @@ class FigniViewerElement extends ModelViewerElement {
       })
       this.toggleVisibleHotspot(this.#visibleAllHotspots)
       this.appendChild(this.#toggleVisibleHotspotButton)
+    } else {
+      this.#toggleVisibleHotspotButton.style.display = 'block'
     }
   }
 
   #disableToggleVisibleHotspotButton() {
-    this.#toggleVisibleHotspotButton.remove()
-    this.#toggleVisibleHotspotButton = null
+    if (this.#toggleVisibleHotspotButton) {
+      this.#toggleVisibleHotspotButton.style.display = 'none'
+    }
   }
 
   async playAnimation(

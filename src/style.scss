@@ -188,7 +188,7 @@ figni-viewer * {
   transform: translateX(100%) translateY(100%);
 }
 
-.figni-viewer-camera-init-btn {
+.figni-viewer-init-camera-btn {
   position: absolute;
   display: flex;
   -webkit-box-align: center;
@@ -211,7 +211,7 @@ figni-viewer * {
   cursor: pointer;
 }
 
-.figni-viewer-camera-init-btn:active {
+.figni-viewer-init-camera-btn:active {
   box-shadow: 0 0 0 0.3rem var(--figni-viewer-secondary-tp);
 }
 

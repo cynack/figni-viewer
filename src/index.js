@@ -29,17 +29,22 @@ class FigniViewerElement extends ModelViewerElement {
   static #MAX_CAMERA_ORBIT = 'auto 180deg 200%'
   static #MIN_CAMERA_ORBIT = 'auto 0deg auto'
 
+  // 公開する値
   itemId
   token
   modelTag
-
-  #initCameraTarget = ''
-  #initCameraOrbit = ''
   loop = false
   state = ''
-  visibleHotspots = true
 
+  // 内部で使う値
+  #initCameraTarget = ''
+  #initCameraOrbit = ''
+  #visibleAllHotspots = true
   #seed
+  #events = {}
+  #nextState
+
+  // HTML要素
   #initCameraButton
   #downloadScreenshotButton
   #toggleVisibleHotspotButton
@@ -48,8 +53,6 @@ class FigniViewerElement extends ModelViewerElement {
   #loadingText
   #panels = []
   #hotspots = []
-  #events = {}
-  #nextState
 
   #ws
   #initTime = 0
@@ -194,7 +197,7 @@ class FigniViewerElement extends ModelViewerElement {
     })
 
     if (this.#hotspots.length > 0) {
-      this.#addToggleVisibleHotspotButton()
+      this.#enableToggleVisibleHotspotButton()
     }
 
     this.updateState(this.state)
@@ -207,7 +210,7 @@ class FigniViewerElement extends ModelViewerElement {
             if (typeof node == 'element') {
               if (/^hotspot/.test(node.getAttribute('slot'))) {
                 if (this.#hotspots.length == 0) {
-                  this.#addToggleVisibleHotspotButton()
+                  this.#enableToggleVisibleHotspotButton()
                 }
                 this.#hotspots.push(node)
                 this.#modifyHotspot(node)
@@ -223,7 +226,7 @@ class FigniViewerElement extends ModelViewerElement {
                   this.#hotspots.splice(index, 1)
                 }
                 if (this.#hotspots.length == 0) {
-                  this.#removeToggleVisibleHotspotButton()
+                  this.#disableToggleVisibleHotspotButton()
                 }
               }
             }
@@ -279,9 +282,9 @@ class FigniViewerElement extends ModelViewerElement {
         switch (name) {
           case 'screenshot': {
             if (newValue == '') {
-              this.#addDownloadScreenshotButton()
+              this.#enableDownloadScreenshotButton()
             } else {
-              this.#removeDownloadScreenshotButton()
+              this.#disableDownloadScreenshotButton()
             }
             break
           }
@@ -347,7 +350,7 @@ class FigniViewerElement extends ModelViewerElement {
   updateState(state) {
     this.state = state
     this.#hotspots.forEach((hotspot) => {
-      if (this.visibleHotspots) {
+      if (this.#visibleAllHotspots) {
         const visible = hotspot.getAttribute('visible-state')
         if (visible) {
           if (visible == this.state) {
@@ -491,9 +494,9 @@ class FigniViewerElement extends ModelViewerElement {
   }
 
   toggleVisibleHotspot(visible) {
-    this.visibleHotspots = visible
+    this.#visibleAllHotspots = visible
     if (this.#toggleVisibleHotspotButton) {
-      if (this.visibleHotspots) {
+      if (this.#visibleAllHotspots) {
         this.#toggleVisibleHotspotButton.innerHTML =
           SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF
       } else {
@@ -660,15 +663,9 @@ class FigniViewerElement extends ModelViewerElement {
     }
   }
 
-  #addDownloadScreenshotButton() {
-    this.#downloadScreenshotButton = document.getElementById(
-      `download-screenshot-button-${this.#seed}`
-    )
+  #enableDownloadScreenshotButton() {
     if (!this.#downloadScreenshotButton) {
       this.#downloadScreenshotButton = document.createElement('button')
-      this.#downloadScreenshotButton.id = `download-screenshot-button-${
-        this.#seed
-      }`
       this.#downloadScreenshotButton.classList.add(
         'figni-viewer-download-screenshot-btn'
       )
@@ -680,33 +677,27 @@ class FigniViewerElement extends ModelViewerElement {
     }
   }
 
-  #removeDownloadScreenshotButton() {
+  #disableDownloadScreenshotButton() {
     this.#downloadScreenshotButton.remove()
     this.#downloadScreenshotButton = null
   }
 
-  #addToggleVisibleHotspotButton() {
-    this.#toggleVisibleHotspotButton = document.getElementById(
-      `toggle-visible-hotspot-button-${this.#seed}`
-    )
+  #enableToggleVisibleHotspotButton() {
     if (!this.#toggleVisibleHotspotButton) {
       this.#toggleVisibleHotspotButton = document.createElement('button')
-      this.#toggleVisibleHotspotButton.id = `toggle-visible-hotspot-button-${
-        this.#seed
-      }`
       this.#toggleVisibleHotspotButton.classList.add(
         'figni-viewer-toggle-visible-hotspot-btn'
       )
       this.#toggleVisibleHotspotButton.addEventListener('click', () => {
-        this.visibleHotspots = !this.visibleHotspots
-        this.toggleVisibleHotspot(this.visibleHotspots)
+        this.#visibleAllHotspots = !this.#visibleAllHotspots
+        this.toggleVisibleHotspot(this.#visibleAllHotspots)
       })
-      this.toggleVisibleHotspot(this.visibleHotspots)
+      this.toggleVisibleHotspot(this.#visibleAllHotspots)
       this.appendChild(this.#toggleVisibleHotspotButton)
     }
   }
 
-  #removeToggleVisibleHotspotButton() {
+  #disableToggleVisibleHotspotButton() {
     this.#toggleVisibleHotspotButton.remove()
     this.#toggleVisibleHotspotButton = null
   }

@@ -40,7 +40,6 @@ class FigniViewerElement extends ModelViewerElement {
   #initCameraTarget = ''
   #initCameraOrbit = ''
   #visibleAllHotspots = true
-  #seed
   #events = {}
   #nextState
 
@@ -91,7 +90,6 @@ class FigniViewerElement extends ModelViewerElement {
       }
       this.#wasInViewport = this.#isInViewport
     }
-    this.#seed = Math.random().toString(36).substring(7)
   }
 
   async connectedCallback() {

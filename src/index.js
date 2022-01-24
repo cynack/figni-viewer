@@ -10,6 +10,10 @@ import {
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
 } from './svg'
 
+const API_BASE = 'https://api.stg.figni.io/api'
+const SOCKET_BASE = 'wss://api.stg.figni.io/ws'
+const VIEW_THRESHOLD = 0.7
+
 class FigniViewerElement extends ModelViewerElement {
   static #FIGNI_OBSERBED_ATTRIBUTES = {
     MODEL: ['item-id', 'token', 'model-tag'],
@@ -24,10 +28,6 @@ class FigniViewerElement extends ModelViewerElement {
 
   static #MAX_CAMERA_ORBIT = 'auto 180deg 200%'
   static #MIN_CAMERA_ORBIT = 'auto 0deg auto'
-
-  static #API_BASE = 'https://api.stg.figni.io/api'
-  static #SOCKET_BASE = 'wss://api.stg.figni.io/ws'
-  static #VIEW_THRESHOLD = 0.7
 
   itemId
   token
@@ -62,7 +62,7 @@ class FigniViewerElement extends ModelViewerElement {
     super()
 
     window.onload = () => {
-      this.#ws = new WebSocket(FigniViewerElement.#SOCKET_BASE)
+      this.#ws = new WebSocket(SOCKET_BASE)
       this.#initTime = performance.now()
       this.#wasInViewport = this.#isInViewport
       if (this.#isInViewport) {
@@ -295,9 +295,7 @@ class FigniViewerElement extends ModelViewerElement {
       const tag = this.modelTag ? `?tag=${this.modelTag}` : ''
       try {
         const res = await axios.get(
-          `${FigniViewerElement.#API_BASE}/item/${
-            this.itemId
-          }/model_search${tag}`,
+          `${API_BASE}/item/${this.itemId}/model_search${tag}`,
           {
             headers: {
               accept: 'application/json',
@@ -798,7 +796,7 @@ class FigniViewerElement extends ModelViewerElement {
           window.innerWidth || document.documentElement.clientWidth
         ))
     const ratio = viewArea / area
-    return ratio > FigniViewerElement.#VIEW_THRESHOLD
+    return ratio > VIEW_THRESHOLD
   }
 
   get #stayTime() {

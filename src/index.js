@@ -555,6 +555,7 @@ class FigniViewerElement extends ModelViewerElement {
           if (this.cameraTarget == target && this.cameraOrbit == orbit) {
             this.setCameraTarget(this.#initCameraTarget)
             this.setCameraOrbit(this.#initCameraOrbit)
+            this.#disableInitCameraButton()
           } else {
             this.setCameraTarget(target)
             this.setCameraOrbit(orbit)

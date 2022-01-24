@@ -10,13 +10,11 @@ import {
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
 } from './svg'
 
-const API_BASE = 'https://api.stg.figni.io/api'
-const SOCKET_BASE = 'wss://api.stg.figni.io/ws'
-const VIEW_THRESHOLD = 0.7
-
 class FigniViewerElement extends ModelViewerElement {
-  static #MODEL_ATTRIBUTE = ['item-id', 'token', 'model-tag']
-  static #TOOL_ATTRIBUTE = ['screenshot']
+  static #FIGNI_OBSERBED_ATTRIBUTES = {
+    MODEL: ['item-id', 'token', 'model-tag'],
+    TOOL: ['screenshot'],
+  }
 
   static #DEFAULT_CAMERA_TARGET = 'auto auto auto'
   static #DEFAULT_CAMERA_ORBIT = '0deg 75deg 105%'
@@ -26,6 +24,10 @@ class FigniViewerElement extends ModelViewerElement {
 
   static #MAX_CAMERA_ORBIT = 'auto 180deg 200%'
   static #MIN_CAMERA_ORBIT = 'auto 0deg auto'
+
+  static #API_BASE = 'https://api.stg.figni.io/api'
+  static #SOCKET_BASE = 'wss://api.stg.figni.io/ws'
+  static #VIEW_THRESHOLD = 0.7
 
   itemId
   token
@@ -60,7 +62,7 @@ class FigniViewerElement extends ModelViewerElement {
     super()
 
     window.onload = () => {
-      this.#ws = new WebSocket(SOCKET_BASE)
+      this.#ws = new WebSocket(FigniViewerElement.#SOCKET_BASE)
       this.#initTime = performance.now()
       this.#wasInViewport = this.#isInViewport
       if (this.#isInViewport) {
@@ -249,15 +251,14 @@ class FigniViewerElement extends ModelViewerElement {
 
   static get observedAttributes() {
     return super.observedAttributes.concat(
-      FigniViewerElement.#MODEL_ATTRIBUTE,
-      FigniViewerElement.#TOOL_ATTRIBUTE
+      FigniViewerElement.#FIGNI_OBSERBED_ATTRIBUTES
     )
   }
 
   async attributeChangedCallback(name, oldValue, newValue) {
     super.attributeChangedCallback(name, oldValue, newValue)
     if (oldValue != newValue) {
-      if (FigniViewerElement.#MODEL_ATTRIBUTE.includes(name)) {
+      if (FigniViewerElement.#FIGNI_OBSERBED_ATTRIBUTES.MODEL.includes(name)) {
         switch (name) {
           case 'item-id':
             this.itemId = newValue
@@ -272,7 +273,9 @@ class FigniViewerElement extends ModelViewerElement {
         if (oldValue !== null) {
           await this.#requestModel()
         }
-      } else if (FigniViewerElement.#TOOL_ATTRIBUTE.includes(name)) {
+      } else if (
+        FigniViewerElement.#FIGNI_OBSERBED_ATTRIBUTES.TOOL.includes(name)
+      ) {
         switch (name) {
           case 'screenshot': {
             if (newValue == '') {
@@ -292,7 +295,9 @@ class FigniViewerElement extends ModelViewerElement {
       const tag = this.modelTag ? `?tag=${this.modelTag}` : ''
       try {
         const res = await axios.get(
-          `${API_BASE}/item/${this.itemId}/model_search${tag}`,
+          `${FigniViewerElement.#API_BASE}/item/${
+            this.itemId
+          }/model_search${tag}`,
           {
             headers: {
               accept: 'application/json',
@@ -793,7 +798,7 @@ class FigniViewerElement extends ModelViewerElement {
           window.innerWidth || document.documentElement.clientWidth
         ))
     const ratio = viewArea / area
-    return ratio > VIEW_THRESHOLD
+    return ratio > FigniViewerElement.#VIEW_THRESHOLD
   }
 
   get #stayTime() {

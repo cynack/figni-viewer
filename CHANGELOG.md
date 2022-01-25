@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- 3D モデル読み込み中のエラー表示画面を追加
+
 ### Changed
 
 - 3D モデルのプリロードするタイミングを figni-viewer がビューポート内に近づいた時に変更
@@ -32,6 +34,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 
 ### Fixed
+
+- 初回ロード時に誤って二回リクエストを送ってしまう問題を修正
+- HTML 要素の表示を再利用によって最適化
 
 ## [1.0.0] - 2022-01-14
 

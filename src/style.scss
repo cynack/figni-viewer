@@ -491,20 +491,25 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
   transition: opacity 0.3s ease-out;
 }
 
+.figni-viewer-error-icon {
+  width: $w;
+  height: $h;
+  margin-bottom: 0.75rem;
+}
+
+.figni-viewer-error-icon-svg {
+  fill: var(--figni-viewer-red);
+}
+
 .figni-viewer-error-text {
-  margin-top: 1.5rem;
   color: var(--figni-viewer-red);
   font-family: var(--figni-viewer-ui-font);
   font-size: 0.75rem;
 }
 
-.figni-viewer-error-icon {
-  width: $w;
-  height: $h;
-  position: absolute;
-  margin-bottom: 3rem;
-}
-
-.figni-viewer-error-icon-svg {
-  fill: var(--figni-viewer-red);
+.figni-viewer-error-reload {
+  cursor: pointer;
+  text-decoration: underline;
+  color: var(--figni-viewer-link);
+  font-size: 0.5rem;
 }

@@ -242,6 +242,7 @@ class FigniViewerElement extends ModelViewerElement {
 
   async #requestModel() {
     if (this.itemId && this.token) {
+      this.#disableErrorPanel()
       const tag = this.modelTag ? `?tag=${this.modelTag}` : ''
       try {
         const res = await axios.get(
@@ -751,8 +752,23 @@ class FigniViewerElement extends ModelViewerElement {
       errorText.classList.add('figni-viewer-error-text')
       this.#errorPanel.appendChild(errorText)
       this.appendChild(this.#errorPanel)
+      // 再読み込みボタン
+      const errorReload = document.createElement('span')
+      errorReload.innerText = '再読み込み'
+      errorReload.classList.add('figni-viewer-error-reload')
+      errorReload.addEventListener('click', () => {
+        this.#requestModel()
+      })
+      this.#errorPanel.appendChild(errorReload)
+      this.appendChild(this.#errorPanel)
     } else {
       this.#errorPanel.style.display = ''
+    }
+  }
+
+  #disableErrorPanel() {
+    if (this.#errorPanel) {
+      this.#errorPanel.style.display = 'none'
     }
   }
 

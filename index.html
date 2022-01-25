@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width" />
     <link
       rel="icon"
-      href="https://icongr.am/simple/git.svg?size=32&color=ff733b&colored=false"
+      href="https://icongr.am/simple/javascript.svg?size=32&color=3B5EFF&colored=false"
     />
   </head>
 
@@ -15,27 +15,23 @@
       <h1>テストページ</h1>
       <figni-viewer
         id="view"
-        item-id="OD1tMSio"
-        token="5UTBSHOXODAj2QLo"
+        item-id="jX8I8IVG"
+        token="5UTBSHOXODAj2QLo2"
         state="close"
-        orbit="10deg 75deg 150%"
+        orbit="40deg 75deg 150%"
       >
-        <button
-          slot="hotspot-anim1"
-          position="-0.1m 0m 0m"
-          anime
-          clip="openAction"
-        ></button>
-        <button
-          slot="hotspot-anim2"
-          position=" 0.1m 0m 0m"
-          anime
-          clip="closeAction"
-        ></button>
+        <button slot="hotspot-a" closeup orbit="15deg 30deg 50%"></button>
+        <button onclick="changeModel()">モデルを変更</button>
       </figni-viewer>
     </div>
     <script>
       const view = document.getElementById('view')
+      function changeModel() {
+        view.setAttribute(
+          'item-id',
+          view.itemId != 'jX8I8IVG' ? 'jX8I8IVG' : '9IuDxlQF'
+        )
+      }
     </script>
     <style>
       #view {

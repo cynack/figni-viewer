@@ -23,13 +23,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- 3D モデル読み込み中のエラー表示画面を追加
-
 ### Changed
 
 ### Deprecated
 
 ### Removed
+
+### Fixed
+
+## [1.0.2] - 2022-01-25
+
+### Added
+
+- 3D モデル読み込み中のエラー表示画面を追加
+
+### Changed
+
+- 3D モデルを再読み込みした時にロード画面を表示するように変更
 
 ### Fixed
 
@@ -225,7 +235,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.0.1...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/cynack/figni-viewer/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/cynack/figni-viewer/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/cynack/figni-viewer/compare/v0.0.33...v1.0.0
 [0.0.33]: https://github.com/cynack/figni-viewer/compare/v0.0.32...v0.0.33

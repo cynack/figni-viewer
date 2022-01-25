@@ -1,6 +1,6 @@
-import { ModelViewerElement } from '@google/model-viewer'
 import axios from 'axios'
 import { getErrorMessage } from './error'
+import { ModelViewerElement } from './model-viewer'
 import './style.scss'
 import {
   SVG_AR_BUTTON,
@@ -352,8 +352,8 @@ class FigniViewerElement extends ModelViewerElement {
         if (options.anime.clip) {
           hotspot.setAttribute('clip', options.anime.clip)
         }
-        if (options.anime.length) {
-          hotspot.setAttribute('length', options.anime.length)
+        if (options.anime.loopCount) {
+          hotspot.setAttribute('loopCount', options.anime.loopCount)
         }
         if (options.anime.onstart) {
           hotspot.setAttribute(
@@ -404,8 +404,8 @@ class FigniViewerElement extends ModelViewerElement {
         if (options.anime.clip) {
           hotspot.setAttribute('clip', options.anime.clip)
         }
-        if (options.anime.length) {
-          hotspot.setAttribute('length', options.anime.length)
+        if (options.anime.loopCount) {
+          hotspot.setAttribute('loopCount', options.anime.loopCount)
         }
         if (options.anime.onstart) {
           hotspot.setAttribute(

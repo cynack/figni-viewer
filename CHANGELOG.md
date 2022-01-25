@@ -27,8 +27,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-- 3D モデルのプリロードするタイミングを figni-viewer がビューポート内に近づいた時に変更
-
 ### Deprecated
 
 ### Removed
@@ -37,6 +35,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - 初回ロード時に誤って二回リクエストを送ってしまう問題を修正
 - HTML 要素の表示を再利用によって最適化
+
+## [1.0.1] - 2022-01-21
+
+### Changed
+
+- 3D モデルのプリロードするタイミングを figni-viewer がビューポート内に近づいた時に変更
+
+### Fixed
+
+- アニメーションの一回再生に関して、終了時の 3D モデルの状態が 0 フレーム目になっていた問題を修正
 
 ## [1.0.0] - 2022-01-14
 
@@ -217,7 +225,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.0.0...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/cynack/figni-viewer/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/cynack/figni-viewer/compare/v0.0.33...v1.0.0
 [0.0.33]: https://github.com/cynack/figni-viewer/compare/v0.0.32...v0.0.33
 [0.0.32]: https://github.com/cynack/figni-viewer/compare/v0.0.31...v0.0.32

@@ -1,10 +1,11 @@
 import { ModelViewerElement } from '@google/model-viewer'
 import axios from 'axios'
-import { handleError } from './error'
+import { getErrorMessage } from './error'
 import './style.scss'
 import {
   SVG_AR_BUTTON,
   SVG_DOWNLOAD_SCREENSHOT_BUTTON,
+  SVG_ERROR_ICON,
   SVG_LOADING_CUBE,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
@@ -56,6 +57,7 @@ class FigniViewerElement extends ModelViewerElement {
   #downloadScreenshotButton
   #toggleVisibleHotspotButton
   #loadingPanel
+  #errorPanel
 
   #panels = []
   #hotspots = []
@@ -116,17 +118,12 @@ class FigniViewerElement extends ModelViewerElement {
     this.itemId = this.getAttribute('item-id')
     this.token = this.getAttribute('token')
     this.modelTag = this.getAttribute('model-tag') || ''
-    this.#requestModel()
 
     this.#initCameraTarget =
       this.getAttribute('target') || FigniViewerElement.#DEFAULT_CAMERA_TARGET
     this.#initCameraOrbit =
       this.getAttribute('orbit') || FigniViewerElement.#DEFAULT_CAMERA_ORBIT
     this.state = this.getAttribute('state') || this.state
-    this.setCameraTarget(this.#initCameraTarget)
-    this.setCameraOrbit(this.#initCameraOrbit)
-
-    this.#disableInitCameraButton()
 
     const arButton = document.createElement('button')
     arButton.setAttribute('slot', 'ar-button')
@@ -145,6 +142,10 @@ class FigniViewerElement extends ModelViewerElement {
       this.#enableToggleVisibleHotspotButton()
     }
 
+    this.#requestModel()
+    this.setCameraTarget(this.#initCameraTarget)
+    this.setCameraOrbit(this.#initCameraOrbit)
+    this.#disableInitCameraButton()
     this.updateState(this.state)
     this.closeAllPanels()
 
@@ -206,7 +207,6 @@ class FigniViewerElement extends ModelViewerElement {
 
   async attributeChangedCallback(name, oldValue, newValue) {
     super.attributeChangedCallback(name, oldValue, newValue)
-    console.log(name, oldValue, newValue)
     if (oldValue != newValue) {
       if (FigniViewerElement.#FIGNI_OBSERBED_ATTRIBUTES.MODEL.includes(name)) {
         switch (name) {
@@ -266,7 +266,7 @@ class FigniViewerElement extends ModelViewerElement {
         }
         this.#enableLoadingPanel()
       } catch (e) {
-        handleError(e, null)
+        this.#enableErrorPanel(getErrorMessage(e))
       }
     } else {
       throw new ReferenceError('item-id or token is not set.')
@@ -733,6 +733,26 @@ class FigniViewerElement extends ModelViewerElement {
   #disableLoadingPanel() {
     if (this.#loadingPanel) {
       this.#loadingPanel.style.display = 'none'
+    }
+  }
+
+  #enableErrorPanel(message) {
+    if (!this.#errorPanel) {
+      this.#errorPanel = document.createElement('div')
+      this.#errorPanel.classList.add('figni-viewer-error-panel')
+      // エラーアイコン
+      const icon = document.createElement('div')
+      icon.innerHTML = SVG_ERROR_ICON
+      icon.classList.add('figni-viewer-error-icon')
+      this.#errorPanel.appendChild(icon)
+      // エラーテキスト
+      const errorText = document.createElement('span')
+      errorText.innerText = message
+      errorText.classList.add('figni-viewer-error-text')
+      this.#errorPanel.appendChild(errorText)
+      this.appendChild(this.#errorPanel)
+    } else {
+      this.#errorPanel.style.display = ''
     }
   }
 

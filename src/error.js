@@ -1,24 +1,21 @@
 /**
  * エラー処理
  * @param {Object} err エラーオブジェクト
- * @param {HTMLElement} msg エラーメッセージを表示する要素
+ * @return {string} エラーメッセージ
  */
-export function handleError(err, msg) {
+export function getErrorMessage(err) {
   if (err.response && err.response.data) {
     switch (err.response.data.error) {
       case 'ErrItemNotFound': {
-        msg.innerText = '商品が見つかりませんでした'
-        return
+        return '商品が見つかりませんでした'
       }
       case 'ErrInvalidClientToken': {
-        msg.innerText = 'トークンが無効です'
-        return
+        return 'トークンが無効です'
       }
       case 'ErrQuotaLimitReached': {
-        msg.innerText = 'API利用回数が上限に達しました'
-        return
+        return 'API利用回数が上限に達しました'
       }
     }
   }
-  msg.innerText = 'エラーが発生しました'
+  return 'エラーが発生しました'
 }

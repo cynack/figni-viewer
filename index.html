@@ -18,13 +18,20 @@
         item-id="jX8I8IVG"
         token="5UTBSHOXODAj2QLo"
         state="close"
-        orbit="10deg 75deg 150%"
+        orbit="40deg 75deg 150%"
       >
         <button slot="hotspot-a" closeup orbit="15deg 30deg 50%"></button>
+        <button onclick="changeModel()">モデルを変更</button>
       </figni-viewer>
     </div>
     <script>
       const view = document.getElementById('view')
+      function changeModel() {
+        view.setAttribute(
+          'item-id',
+          view.itemId != 'jX8I8IVG' ? 'jX8I8IVG' : '9IuDxlQF'
+        )
+      }
     </script>
     <style>
       #view {

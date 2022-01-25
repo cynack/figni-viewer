@@ -12,6 +12,7 @@
   --figni-viewer-gray-300-tp: rgba(120, 125, 147, 0.3);
   --figni-viewer-gray-500: rgb(120, 125, 147);
   --figni-viewer-black: rgb(34, 36, 40);
+  --figni-viewer-red: rgb(255, 63, 59);
   --figni-viewer-link: rgb(59, 94, 255);
   --figni-viewer-button: rgb(59, 94, 255);
   --figni-viewer-button-tp: rgba(59, 94, 255, 0.8);
@@ -470,4 +471,40 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
   100% {
     opacity: 1;
   }
+}
+
+.figni-viewer-error-panel {
+  display: flex;
+  position: absolute;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  top: 50%;
+  left: 50%;
+  padding: 2rem;
+  background-color: var(--figni-viewer-gray-50);
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  transition: opacity 0.3s ease-out;
+}
+
+.figni-viewer-error-text {
+  margin-top: 1.5rem;
+  color: var(--figni-viewer-red);
+  font-family: var(--figni-viewer-ui-font);
+  font-size: 0.75rem;
+}
+
+.figni-viewer-error-icon {
+  width: $w;
+  height: $h;
+  position: absolute;
+  margin-bottom: 3rem;
+}
+
+.figni-viewer-error-icon-svg {
+  fill: var(--figni-viewer-red);
 }

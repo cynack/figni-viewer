@@ -25,11 +25,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-- アニメーション再生中はキャプションが表示されないように変更
-
 ### Deprecated
 
 ### Removed
+
+### Fixed
+
+## [1.0.3] - 2022-01-28
+
+### Changed
+
+- アニメーション再生中はキャプションが表示されないように変更
 
 ### Fixed
 
@@ -239,7 +245,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.0.2...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/cynack/figni-viewer/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/cynack/figni-viewer/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/cynack/figni-viewer/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/cynack/figni-viewer/compare/v0.0.33...v1.0.0

@@ -482,7 +482,7 @@ class FigniViewerElement extends ModelViewerElement {
 
     hotspot.removeEventListener('click', this.#events[`${name}-data`])
     const ce = () => {
-      if (window.getComputedStyle(hotspot).opacity == 1) {
+      if (this.#clickableHotspot(hotspot)) {
         this.#hotspotClickCount[name] = (this.#hotspotClickCount[name] || 0) + 1
       }
     }
@@ -491,7 +491,7 @@ class FigniViewerElement extends ModelViewerElement {
     if (isAnime) {
       hotspot.removeEventListener('click', this.#events[`${name}-anime`])
       const e = () => {
-        if (window.getComputedStyle(hotspot).opacity == 1) {
+        if (this.#clickableHotspot(hotspot)) {
           const clip = hotspot.getAttribute('clip') || null
           const loopCount = Number(hotspot.getAttribute('loopCount')) || 1
           const toState = hotspot.getAttribute('to-state')
@@ -506,7 +506,7 @@ class FigniViewerElement extends ModelViewerElement {
     if (isCloseup) {
       hotspot.removeEventListener('click', this.#events[`${name}-closeup`])
       const e = () => {
-        if (window.getComputedStyle(hotspot).opacity == 1) {
+        if (this.#clickableHotspot(hotspot)) {
           const target =
             hotspot.getAttribute('target') ||
             hotspot.getAttribute('position') ||
@@ -532,7 +532,7 @@ class FigniViewerElement extends ModelViewerElement {
         this.#events[`${hotspot.getAttribute('slot')}-visible`]
       )
       const e = () => {
-        if (window.getComputedStyle(hotspot).opacity == 1) {
+        if (this.#clickableHotspot(hotspot)) {
           this.updateState(state)
         }
       }
@@ -548,7 +548,7 @@ class FigniViewerElement extends ModelViewerElement {
 
     hotspot.removeEventListener('click', this.#events[`${name}-panel`])
     const e = () => {
-      if (window.getComputedStyle(hotspot).opacity == 1) {
+      if (this.#clickableHotspot(hotspot)) {
         if (panels.length > 0) {
           panels.forEach((panel) => {
             panel.style.maxWidth = `${
@@ -571,6 +571,10 @@ class FigniViewerElement extends ModelViewerElement {
     }
     hotspot.addEventListener('click', e)
     this.#events[`${name}-panel`] = e
+  }
+
+  #clickableHotspot(hotspot) {
+    return window.getComputedStyle(hotspot).opacity > 0.5
   }
 
   #modifyPanel(panel) {
@@ -801,15 +805,21 @@ class FigniViewerElement extends ModelViewerElement {
           Function(onstart)()
         }
       }
-      this.play({ repetitions: loopCount })
       this.loop = loopCount === Infinity
+      if (!this.loop) {
+        this.toggleVisibleHotspot(false)
+      }
+      this.play({ repetitions: loopCount })
       const onFinishFunc = () => {
-        if (onend && !this.loop) {
-          if (typeof onend === 'function') {
-            onend()
-          } else {
-            Function(onend)()
+        if (!this.loop) {
+          if (onend) {
+            if (typeof onend === 'function') {
+              onend()
+            } else {
+              Function(onend)()
+            }
           }
+          this.toggleVisibleHotspot(true)
         }
         if (toState) {
           this.updateState(toState)

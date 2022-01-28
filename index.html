@@ -15,23 +15,31 @@
       <h1>テストページ</h1>
       <figni-viewer
         id="view"
-        item-id="jX8I8IVG"
+        item-id="f41aOKIi"
         token="5UTBSHOXODAj2QLo"
         state="close"
         orbit="40deg 75deg 150%"
       >
-        <button slot="hotspot-a" closeup orbit="15deg 30deg 50%"></button>
-        <button onclick="changeModel()">モデルを変更</button>
+        <button
+          slot="hotspot-a"
+          anime
+          clip="topDoorOpenAction"
+          position="-0.2m 1m 0m"
+          visible-state="close"
+          to-state="open"
+        ></button>
+        <button
+          slot="hotspot-b"
+          anime
+          clip="topDoorCloseAction"
+          position=" 0.2m 1m 0m"
+          visible-state="open"
+          to-state="close"
+        ></button>
       </figni-viewer>
     </div>
     <script>
       const view = document.getElementById('view')
-      function changeModel() {
-        view.setAttribute(
-          'item-id',
-          view.itemId != 'jX8I8IVG' ? 'jX8I8IVG' : '9IuDxlQF'
-        )
-      }
     </script>
     <style>
       #view {

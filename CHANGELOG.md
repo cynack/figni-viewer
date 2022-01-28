@@ -25,11 +25,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- アニメーション再生中はキャプションが表示されないように変更
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- *hotspot*に関して、完全に可視化されるまでクリックできない問題を修正
 
 ## [1.0.2] - 2022-01-25
 

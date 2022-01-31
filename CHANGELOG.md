@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [1.0.4] - 2022-01-31
+
+### Changed
+
+- 接続先データベースの変更
+
 ## [1.0.3] - 2022-01-28
 
 ### Changed

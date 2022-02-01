@@ -51,6 +51,7 @@ class FigniViewerElement extends ModelViewerElement {
   #appearedTime = 0
   #sumViewTime = 0
   #wasInViewport = false
+  #arCount = 0
   #hotspotClickCount = {}
 
   // HTML要素
@@ -81,6 +82,7 @@ class FigniViewerElement extends ModelViewerElement {
             stay_time: this.#stayTime,
             view_time: this.#viewTime,
             model_viewe_time: this.#modelViewTime,
+            ar_count: this.#arCount,
             hotspot_click: this.#hotspotClickCount,
           })
         )
@@ -131,6 +133,9 @@ class FigniViewerElement extends ModelViewerElement {
     arButton.setAttribute('slot', 'ar-button')
     arButton.innerHTML = `${SVG_AR_BUTTON}<span>目の前に置く</span>`
     arButton.classList.add('figni-viewer-ar-button')
+    arButton.addEventListener('click', () => {
+      this.#arCount++
+    })
     this.appendChild(arButton)
 
     this.animationCrossfadeDuration = 0

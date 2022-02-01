@@ -48,6 +48,7 @@ class FigniViewerElement extends ModelViewerElement {
   #ws
   #initTime = 0
   #initModelTime = 0
+  #initArViewTime = 0
   #appearedTime = 0
   #sumViewTime = 0
   #wasInViewport = false
@@ -81,8 +82,9 @@ class FigniViewerElement extends ModelViewerElement {
             client_version: VERSION,
             stay_time: this.#stayTime,
             view_time: this.#viewTime,
-            model_viewe_time: this.#modelViewTime,
+            model_view_time: this.#modelViewTime,
             ar_count: this.#arCount,
+            ar_view_time: this.#arViewTime,
             hotspot_click: this.#hotspotClickCount,
           })
         )
@@ -135,6 +137,7 @@ class FigniViewerElement extends ModelViewerElement {
     arButton.classList.add('figni-viewer-ar-button')
     arButton.addEventListener('click', () => {
       this.#arCount++
+      this.#initArViewTime = performance.now()
     })
     this.appendChild(arButton)
 
@@ -895,6 +898,12 @@ class FigniViewerElement extends ModelViewerElement {
     return Number(Math.max(performance.now() - this.#initModelTime, 0)).toFixed(
       2
     )
+  }
+
+  get #arViewTime() {
+    return Number(
+      Math.max(performance.now() - this.#initArViewTime, 0)
+    ).toFixed(2)
   }
 }
 

@@ -47,6 +47,7 @@ class FigniViewerElement extends ModelViewerElement {
   // 利用データ
   #ws
   #initTime = 0
+  #initModelTime = 0
   #appearedTime = 0
   #sumViewTime = 0
   #wasInViewport = false
@@ -79,6 +80,7 @@ class FigniViewerElement extends ModelViewerElement {
             client_version: VERSION,
             stay_time: this.#stayTime,
             view_time: this.#viewTime,
+            model_viewe_time: this.#modelViewTime,
             hotspot_click: this.#hotspotClickCount,
           })
         )
@@ -727,6 +729,7 @@ class FigniViewerElement extends ModelViewerElement {
           `${Math.ceil(p * 100)}%`
         )
         if (p === 1) {
+          this.#initModelTime = performance.now()
           this.#disableLoadingPanel()
         }
       })
@@ -880,6 +883,12 @@ class FigniViewerElement extends ModelViewerElement {
         this.#sumViewTime +
         (this.#isInViewport ? performance.now() - this.#appearedTime : 0)
       ).toFixed(2)
+    )
+  }
+
+  get #modelViewTime() {
+    return Number(Math.max(performance.now() - this.#initModelTime, 0)).toFixed(
+      2
     )
   }
 }

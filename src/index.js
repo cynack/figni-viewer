@@ -296,6 +296,13 @@ class FigniViewerElement extends ModelViewerElement {
     this.cameraTarget = target
   }
 
+  resetCameraTargetAndOrbit() {
+    this.setCameraTarget(this.#initCameraTarget)
+    this.setCameraOrbit(this.#initCameraOrbit)
+    this.closeAllPanels()
+    this.#disableInitCameraButton()
+  }
+
   closeAllPanels(excludePanels = []) {
     this.#panels.forEach((panel) => {
       if (!excludePanels.includes(panel)) {
@@ -629,12 +636,9 @@ class FigniViewerElement extends ModelViewerElement {
       this.#initCameraButton = document.createElement('button')
       this.#initCameraButton.classList.add('figni-viewer-init-camera-btn')
       this.#initCameraButton.innerText = 'カメラ位置を戻す'
-      this.#initCameraButton.addEventListener('click', () => {
-        this.setCameraTarget(this.#initCameraTarget)
-        this.setCameraOrbit(this.#initCameraOrbit)
-        this.closeAllPanels()
-        this.#disableInitCameraButton()
-      })
+      this.#initCameraButton.addEventListener('click', () =>
+        this.resetCameraTargetAndOrbit()
+      )
       this.appendChild(this.#initCameraButton)
     } else {
       this.#initCameraButton.style.display = 'block'

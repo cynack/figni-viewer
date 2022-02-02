@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- カメラ位置をリセットする`resetCameraPosition()`関数を追加
+
 ### Changed
 
 ### Deprecated
@@ -80,7 +82,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-- `playAnimation`メソッドの引数を(`clip`, `loop`, `length`, `toState`, `onstart`, `onend`)から(`clip`, `loopCount`, `toState`, `onstart`, `onend`)に変更
+- `playAnimation()`の引数を(`clip`, `loop`, `length`, `toState`, `onstart`, `onend`)から(`clip`, `loopCount`, `toState`, `onstart`, `onend`)に変更
 - 属性`anime`および`clip`の挙動を変更
 
 ### Removed
@@ -99,7 +101,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-- `playAnimation`メソッドの引数に`loop`を追加
+- `playAnimation()`の引数に`loop`を追加
 
 ### Fixed
 
@@ -152,7 +154,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - `orbit`の指定が正しく反映されていない問題を修正
 - *panel*のデザインを修正
-- `addHotspot`メソッドで名前が重複した*hotspot*を追加した場合にエラーを起こす問題を修正
+- `addHotspot()`で名前が重複した*hotspot*を追加した場合にエラーを起こす問題を修正
 
 ## [0.0.26] - 2021-12-06
 
@@ -197,14 +199,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-- `playAnimation`メソッドの`onstart`と`onend`のコールバックが正しく動作しない問題を修正
+- `playAnimation()`の`onstart`と`onend`のコールバックが正しく動作しない問題を修正
 
 ## [0.0.20] - 2021-11-29
 
 ### Added
 
-- アニメーションを再生する`playAnimation`メソッドを追加
-- アニメーションを停止する`stopAnimation`メソッドを追加
+- アニメーションを再生する`playAnimation()`関数を追加
+- アニメーションを停止する`stopAnimation()`関数を追加
 
 ### Fixed
 
@@ -215,15 +217,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - *hotspot*の表示非表示を切り替えるボタンを追加
-- *hotspot*の表示非表示を切り替える`toggleVisibleHotspot`メソッドを追加
+- *hotspot*の表示非表示を切り替える`toggleVisibleHotspot()`関数を追加
 
 ## [0.0.18] - 2021-11-24
 
 ### Added
 
-- *hotspot*を追加する`addHotspot`メソッドを追加
-- *hotspot*の位置や機能を編集する`editHotspot`メソッドを追加
-- *hotspot*を削除する`removeHotspot`メソッドを追加
+- *hotspot*を追加する`addHotspot()`関数を追加
+- *hotspot*の位置や機能を編集する`editHotspot()`関数を追加
+- *hotspot*を削除する`removeHotspot()`関数を追加
 
 ### Fixed
 

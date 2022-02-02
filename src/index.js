@@ -11,8 +11,6 @@ import {
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
 } from './svg'
 
-const API_BASE = 'https://api.figni.io/api'
-const SOCKET_BASE = 'wss://api.figni.io/ws'
 const VIEW_THRESHOLD = 0.7
 
 class FigniViewerElement extends ModelViewerElement {
@@ -69,7 +67,7 @@ class FigniViewerElement extends ModelViewerElement {
     super()
 
     window.onload = () => {
-      this.#ws = new WebSocket(SOCKET_BASE)
+      this.#ws = new WebSocket(WEBSOCKET_BASE)
       this.#initTime = performance.now()
       this.#wasInViewport = this.#isInViewport
       if (this.#isInViewport) {

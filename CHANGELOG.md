@@ -29,6 +29,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Deprecated
 
+- 属性`anime`を指定しなくても属性`clip`があればアニメーションが再生されるように変更
+- 属性`closeup`を指定しなくても属性`taget`または属性`orbit`があればカメラの位置や回転が変更されるように変更
+
 ### Removed
 
 ### Fixed

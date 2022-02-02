@@ -363,7 +363,6 @@ class FigniViewerElement extends ModelViewerElement {
     hotspot.setAttribute('slot', `hotspot-${name}`)
     if (options) {
       if (options.anime) {
-        hotspot.setAttribute('anime', '')
         if (options.anime.clip) {
           hotspot.setAttribute('clip', options.anime.clip)
         }
@@ -381,7 +380,6 @@ class FigniViewerElement extends ModelViewerElement {
         }
       }
       if (options.closeup) {
-        hotspot.setAttribute('closeup', '')
         if (options.closeup.target) {
           hotspot.setAttribute('target', options.closeup.target)
         }
@@ -415,7 +413,6 @@ class FigniViewerElement extends ModelViewerElement {
     }
     if (options) {
       if (options.anime) {
-        hotspot.setAttribute('anime', '')
         if (options.anime.clip) {
           hotspot.setAttribute('clip', options.anime.clip)
         }
@@ -433,7 +430,6 @@ class FigniViewerElement extends ModelViewerElement {
         }
       }
       if (options.closeup) {
-        hotspot.setAttribute('closeup', '')
         if (options.closeup.target) {
           hotspot.setAttribute('target', options.closeup.target)
         }
@@ -491,8 +487,13 @@ class FigniViewerElement extends ModelViewerElement {
     })
 
     const name = hotspot.getAttribute('slot')
-    const isAnime = hotspot.getAttribute('anime') == ''
-    const isCloseup = hotspot.getAttribute('closeup') == ''
+    const isAnime =
+      hotspot.getAttribute('clip') != null ||
+      hotspot.getAttribute('anime') == ''
+    const isCloseup =
+      hotspot.getAttribute('target') != null ||
+      hotspot.getAttribute('orbit') != null ||
+      hotspot.getAttribute('closeup') == ''
     const isVisible = hotspot.getAttribute('to-state') != null
 
     hotspot.removeEventListener('click', this.#events[`${name}-data`])

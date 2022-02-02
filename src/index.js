@@ -11,8 +11,6 @@ import {
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
 } from './svg'
 
-const API_BASE = 'https://api.figni.io/api'
-const SOCKET_BASE = 'wss://api.figni.io/ws'
 const VIEW_THRESHOLD = 0.7
 
 class FigniViewerElement extends ModelViewerElement {
@@ -47,9 +45,12 @@ class FigniViewerElement extends ModelViewerElement {
   // 利用データ
   #ws
   #initTime = 0
+  #initModelTime = 0
+  #initArViewTime = 0
   #appearedTime = 0
   #sumViewTime = 0
   #wasInViewport = false
+  #arCount = 0
   #hotspotClickCount = {}
 
   // HTML要素
@@ -66,7 +67,7 @@ class FigniViewerElement extends ModelViewerElement {
     super()
 
     window.onload = () => {
-      this.#ws = new WebSocket(SOCKET_BASE)
+      this.#ws = new WebSocket(WEBSOCKET_BASE)
       this.#initTime = performance.now()
       this.#wasInViewport = this.#isInViewport
       if (this.#isInViewport) {
@@ -79,6 +80,9 @@ class FigniViewerElement extends ModelViewerElement {
             client_version: VERSION,
             stay_time: this.#stayTime,
             view_time: this.#viewTime,
+            model_view_time: this.#modelViewTime,
+            ar_count: this.#arCount,
+            ar_view_time: this.#arViewTime,
             hotspot_click: this.#hotspotClickCount,
           })
         )
@@ -129,6 +133,10 @@ class FigniViewerElement extends ModelViewerElement {
     arButton.setAttribute('slot', 'ar-button')
     arButton.innerHTML = `${SVG_AR_BUTTON}<span>目の前に置く</span>`
     arButton.classList.add('figni-viewer-ar-button')
+    arButton.addEventListener('click', () => {
+      this.#arCount++
+      this.#initArViewTime = performance.now()
+    })
     this.appendChild(arButton)
 
     this.animationCrossfadeDuration = 0
@@ -727,6 +735,7 @@ class FigniViewerElement extends ModelViewerElement {
           `${Math.ceil(p * 100)}%`
         )
         if (p === 1) {
+          this.#initModelTime = performance.now()
           this.#disableLoadingPanel()
         }
       })
@@ -881,6 +890,18 @@ class FigniViewerElement extends ModelViewerElement {
         (this.#isInViewport ? performance.now() - this.#appearedTime : 0)
       ).toFixed(2)
     )
+  }
+
+  get #modelViewTime() {
+    return Number(Math.max(performance.now() - this.#initModelTime, 0)).toFixed(
+      2
+    )
+  }
+
+  get #arViewTime() {
+    return Number(
+      Math.max(performance.now() - this.#initArViewTime, 0)
+    ).toFixed(2)
   }
 }
 

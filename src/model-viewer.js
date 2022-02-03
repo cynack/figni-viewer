@@ -53629,6 +53629,7 @@ class ModelScene extends Scene {
         this.idealAspect = 0;
         this.framedFoVDeg = DEFAULT_FOV_DEG;
         this.boundingRadius = 0;
+        this.isUnlit = false;
         this.shadow = null;
         this.shadowIntensity = 0;
         this.shadowSoftness = 1;
@@ -53744,6 +53745,7 @@ class ModelScene extends Scene {
         this._currentGLTF = gltf;
         if (gltf != null) {
             this.modelContainer.add(gltf.scene);
+            this.isUnlit = gltf.scene.userData.isUnlit;
         }
         const { animations } = gltf;
         const animationsByName = new Map();
@@ -55878,6 +55880,7 @@ class ModelViewerGLTFInstance extends GLTFInstance {
         }
         const { scene } = prepared;
         const nullSphere = new Sphere(undefined, Infinity);
+        let hasPBR = false;
         scene.traverse((node) => {
             // Set a high renderOrder while we're here to ensure the model
             // always renders on top of the skysphere
@@ -55904,10 +55907,14 @@ class ModelViewerGLTFInstance extends GLTFInstance {
                     mesh.geometry.boundingBox = null;
                 }
                 const material = mesh.material;
+                if (material.isMeshStandardMaterial === true) {
+                    hasPBR = true;
+                }
                 // This makes shadows better for non-manifold meshes
                 material.shadowSide = FrontSide;
             }
         });
+        scene.userData.isUnlit = !hasPBR;
         return prepared;
     }
     get correlatedSceneGraph() {
@@ -57295,6 +57302,8 @@ class Renderer extends EventDispatcher {
             // that we can do proper rounding and avoid white boundary pixels.
             const width = Math.min(Math.ceil(scene.width * scaleFactor * dpr), this.canvas3D.width);
             const height = Math.min(Math.ceil(scene.height * scaleFactor * dpr), this.canvas3D.height);
+            this.threeRenderer.toneMapping =
+                scene.isUnlit ? NoToneMapping : ACESFilmicToneMapping;
             // Need to set the render target in order to prevent
             // clearing the depth from a different buffer
             this.threeRenderer.setRenderTarget(null);
@@ -61564,7 +61573,9 @@ const ControlsMixin = (ModelViewerElement) => {
         }
         [$syncCameraTarget](style) {
             const [x, y, z] = style;
-            this[$scene].setTarget(x, y, z);
+            if (!this[$renderer].arRenderer.isPresenting) {
+                this[$scene].setTarget(x, y, z);
+            }
             this[$renderer].arRenderer.updateTarget();
         }
         [$tick](time, delta) {

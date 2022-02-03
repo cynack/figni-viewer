@@ -17,29 +17,25 @@
         id="view"
         item-id="wQbRquQ9"
         token="JfYdMBuQVtkVAdcj5"
-        state="close"
         orbit="40deg 75deg 150%"
       >
-        <button
-          slot="hotspot-a"
-          clip="topDoorOpenAction"
-          position="-0.2m 1m 0m"
-          visible-state="close"
-          to-state="open"
-          orbit="-40deg 75deg 50%"
-        ></button>
+        <button slot="hotspot-a" clip="Push_in" position="-0.2m 0m 0m"></button>
         <button
           slot="hotspot-b"
-          clip="topDoorCloseAction"
-          position=" 0.2m 1m 0m"
-          visible-state="open"
-          to-state="close"
-          onclick="view.resetCameraTargetAndOrbit()"
+          clip="Pull_out"
+          position=" 0.2m 0m 0m"
         ></button>
       </figni-viewer>
     </div>
     <script>
-      const view = document.getElementById('view')
+      const view = document.querySelector('figni-viewer')
+      view.addEventListener(
+        'load',
+        () => {
+          view.timeScale = 5
+        },
+        { once: true }
+      )
     </script>
     <style>
       #view {

@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - カメラ位置をリセットする`resetCameraPosition()`関数を追加
+- アニメーションの再生速度を変更する`timeScale`プロパティを追加
 
 ### Changed
 

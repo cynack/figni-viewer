@@ -816,6 +816,9 @@ export class FigniViewerElement extends ModelViewerElement {
     if (!this.availableAnimations.includes(clip)) {
       throw new ReferenceError(`${clip} is not available`)
     }
+    if (this.timeScale === 0) {
+      throw new RangeError(`Animation timeScale is 0`)
+    }
     if (this.paused || this.loop) {
       this.animationName = clip
       this.currentTime = 0
@@ -831,7 +834,14 @@ export class FigniViewerElement extends ModelViewerElement {
       if (!this.loop) {
         this.toggleVisibleHotspot(false)
       }
-      this.play({ repetitions: loopCount })
+      if (this.timeScale < 0) {
+        this.play({ repetitions: loopCount + 1 })
+        this.addEventListener('loop', () => {
+          this.play({ repetitions: loopCount })
+        })
+      } else {
+        this.play({ repetitions: loopCount })
+      }
       const onFinishFunc = () => {
         if (!this.loop) {
           if (onend) {

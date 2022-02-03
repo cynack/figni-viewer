@@ -19,11 +19,17 @@
         token="JfYdMBuQVtkVAdcj5"
         orbit="40deg 75deg 150%"
       >
-        <button slot="hotspot-a" clip="Push_in" position="-0.2m 0m 0m"></button>
+        <button
+          slot="hotspot-a"
+          clip="Push_in"
+          position="-0.2m 0m 0m"
+          loopCount="2"
+        ></button>
         <button
           slot="hotspot-b"
           clip="Pull_out"
           position=" 0.2m 0m 0m"
+          loopCount="2"
         ></button>
       </figni-viewer>
     </div>
@@ -31,8 +37,8 @@
       const view = document.querySelector('figni-viewer')
       view.addEventListener(
         'load',
-        () => {
-          view.timeScale = 5
+        async () => {
+          view.timeScale = -1
         },
         { once: true }
       )

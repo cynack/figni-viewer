@@ -17,5 +17,6 @@ export function getErrorMessage(err) {
       }
     }
   }
+  console.error(err)
   return 'エラーが発生しました(ERR_UNKNOWN)'
 }

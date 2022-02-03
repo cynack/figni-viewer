@@ -13,6 +13,7 @@ import {
 
 const API_BASE = 'https://api.stg.figni.io/api'
 const WEBSOCKET_BASE = 'wss://api.stg.figni.io/ws'
+const VERSION = process.env.VERSION
 const VIEW_THRESHOLD = 0.7
 
 export class FigniViewerElement extends ModelViewerElement {

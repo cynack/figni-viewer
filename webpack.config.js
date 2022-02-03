@@ -58,8 +58,6 @@ const config = {
   plugins: [
     new webpack.DefinePlugin({
       VERSION: JSON.stringify(process.env.VERSION),
-      API_BASE: JSON.stringify(process.env.API_BASE),
-      WEBSOCKET_BASE: JSON.stringify(process.env.WEBSOCKET_BASE),
     }),
   ],
 }

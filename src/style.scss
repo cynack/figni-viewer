@@ -358,8 +358,8 @@ figni-viewer * {
 
 $w: 40px;
 $h: 46.6px;
-$xspace: math.div($w, 2);
-$yspace: math.div($h, 4) - 1;
+$xspace: 20px;
+$yspace: 10.65px;
 $speed: 2s;
 $ease: cubic-bezier(0, 1, 0.3, 1);
 

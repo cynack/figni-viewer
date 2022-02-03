@@ -11,9 +11,11 @@ import {
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
 } from './svg'
 
+const API_BASE = 'https://api.figni.com'
+const WEBSOCKET_BASE = 'wss://api.figni.com/ws'
 const VIEW_THRESHOLD = 0.7
 
-class FigniViewerElement extends ModelViewerElement {
+export class FigniViewerElement extends ModelViewerElement {
   static #FIGNI_OBSERBED_ATTRIBUTES = {
     MODEL: ['item-id', 'token', 'model-tag'],
     TOOL: ['screenshot'],

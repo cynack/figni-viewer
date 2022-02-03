@@ -8,10 +8,9 @@ import {
   SVG_ERROR_ICON,
   SVG_LOADING_CUBE,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF,
-  SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON
+  SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
 } from './svg'
 
-const VERSION = process.env.VERSION
 const API_BASE = 'https://api.figni.io/api'
 const WEBSOCKET_BASE = 'wss://api.figni.io/ws'
 const VIEW_THRESHOLD = 0.7

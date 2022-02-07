@@ -23,19 +23,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [1.1.0] - 2022-02-07
+
+### Added
+
 - カメラ位置をリセットする`resetCameraPosition()`関数を追加
 - アニメーションの再生速度を変更する`timeScale`プロパティを追加
-
-### Changed
 
 ### Deprecated
 
 - 属性`anime`を指定しなくても属性`clip`があればアニメーションが再生されるように変更
 - 属性`closeup`を指定しなくても属性`taget`または属性`orbit`があればカメラの位置や回転が変更されるように変更
-
-### Removed
-
-### Fixed
 
 ## [1.0.4] - 2022-01-31
 
@@ -257,7 +263,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.0.4...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/cynack/figni-viewer/compare/v1.0.4...v1.1.0
 [1.0.4]: https://github.com/cynack/figni-viewer/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/cynack/figni-viewer/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/cynack/figni-viewer/compare/v1.0.1...v1.0.2

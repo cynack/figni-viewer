@@ -26,6 +26,8 @@
           position="-0.2m 0m 0m"
           to-state="pushin"
           visible-state="pushout pushin"
+          onstart="console.log('start push in')"
+          onend="console.log('end push in')"
         ></button>
         <button
           slot="hotspot-b"
@@ -33,11 +35,28 @@
           position=" 0.2m 0m 0m"
           to-state="pushout"
           visible-state="pushin"
+          reverse
+          onstart="console.log('start pull out')"
+          onend="console.log('end pull out')"
+        ></button>
+        <button
+          slot="hotspot-c"
+          position="0.2m 0.5m 0m"
+          onclick="play()"
         ></button>
       </figni-viewer>
     </div>
     <script>
       const view = document.querySelector('figni-viewer')
+      function play() {
+        view.playAnimation('Push_in', {
+          loopCount: 2,
+          toState: 'pushin',
+          reverse: true,
+          onStart: () => console.log('start push in'),
+          onEnd: () => console.log('end push in'),
+        })
+      }
     </script>
     <style>
       #view {

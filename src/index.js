@@ -321,7 +321,7 @@ export class FigniViewerElement extends ModelViewerElement {
     this.state = state
     this.#hotspots.forEach((hotspot) => {
       if (this.#visibleAllHotspots) {
-        const visible = hotspot.getAttribute('visible-state').split(' ')
+        const visible = hotspot.getAttribute('visible-state')?.split(' ')
         if (visible) {
           if (visible.includes(this.state)) {
             hotspot.classList.remove('figni-viewer-hotspot-hide')
@@ -516,10 +516,17 @@ export class FigniViewerElement extends ModelViewerElement {
         if (this.#clickableHotspot(hotspot)) {
           const clip = hotspot.getAttribute('clip') || null
           const loopCount = Number(hotspot.getAttribute('loopCount')) || 1
+          const reverse = hotspot.getAttribute('reverse') == '' || false
           const toState = hotspot.getAttribute('to-state')
-          const onstart = hotspot.getAttribute('onstart')
-          const onend = hotspot.getAttribute('onend')
-          this.playAnimation(clip, loopCount, toState, onstart, onend)
+          const onStart = Function(hotspot.getAttribute('onstart'))
+          const onEnd = Function(hotspot.getAttribute('onend'))
+          this.playAnimation(clip, {
+            loopCount,
+            reverse,
+            toState,
+            onStart,
+            onEnd,
+          })
         }
       }
       hotspot.addEventListener('click', e)
@@ -796,13 +803,12 @@ export class FigniViewerElement extends ModelViewerElement {
     }
   }
 
-  async playAnimation(
-    clip = null,
-    loopCount = 1,
-    toState = null,
-    onstart = null,
-    onend = null
-  ) {
+  /**
+   * アニメーションを再生する
+   * @param {string} clip 再生するアニメーション名
+   * @param {{ loopCount: number, reverse: boolean, toState: string, onStart: Function, onEnd: Function }} options オプション
+   */
+  async playAnimation(clip = null, options = {}) {
     if (!clip) {
       if (this.availableAnimations.length > 0) {
         clip = this.availableAnimations[0]
@@ -821,16 +827,20 @@ export class FigniViewerElement extends ModelViewerElement {
       this.animationName = clip
       this.currentTime = 0
       await this.updateComplete
-      if (onstart) {
-        if (typeof onstart === 'function') {
-          onstart()
+      if (options.onStart) {
+        if (typeof options.onStart === 'function') {
+          options.onStart()
         } else {
-          Function(onstart)()
+          throw new TypeError('onStart must be a function')
         }
       }
+      const loopCount = options.loopCount || 1
       this.loop = loopCount === Infinity
       if (!this.loop) {
         this.toggleVisibleHotspot(false)
+      }
+      if (options.reverse === true) {
+        this.timeScale = -this.timeScale
       }
       if (this.timeScale < 0) {
         this.play({ repetitions: loopCount + 1 })
@@ -842,17 +852,20 @@ export class FigniViewerElement extends ModelViewerElement {
       }
       const onFinishFunc = () => {
         if (!this.loop) {
-          if (onend) {
-            if (typeof onend === 'function') {
-              onend()
+          if (options.onEnd) {
+            if (typeof options.onEnd === 'function') {
+              options.onEnd()
             } else {
-              Function(onend)()
+              throw new TypeError('onEnd must be a function')
             }
           }
           this.toggleVisibleHotspot(true)
         }
-        if (toState) {
-          this.updateState(toState)
+        if (options.toState) {
+          this.updateState(options.toState)
+        }
+        if (options.reverse === true) {
+          this.timeScale = -this.timeScale
         }
       }
       if (!this.loop) {

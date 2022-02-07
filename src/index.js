@@ -11,8 +11,8 @@ import {
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
 } from './svg'
 
-const API_BASE = 'https://api.stg.figni.io/api'
-const WEBSOCKET_BASE = 'wss://api.stg.figni.io/ws'
+const API_BASE = 'https://api.figni.io/api'
+const WEBSOCKET_BASE = 'wss://api.figni.io/ws'
 const VIEW_THRESHOLD = 0.7
 
 export class FigniViewerElement extends ModelViewerElement {

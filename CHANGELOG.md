@@ -23,15 +23,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- 再生するアニメーションを逆再生に変更する属性`reverse`を追加
+
 ### Changed
 
 - 属性`visible-state`において複数の値を設定できるように変更
+- `playAnimation()`の引数を(`clip`, `loopCount`, `toState`, `onstart`, `onend`)から(`clip`, `options`)に変更
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- 属性`visible-state`を指定しなかった場合エラーが発生する問題を修正
 
 ## [1.1.0] - 2022-02-07
 

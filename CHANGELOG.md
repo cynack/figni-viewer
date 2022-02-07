@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- 属性`visible-state`において複数の値を設定できるように変更
+
 ### Deprecated
 
 ### Removed

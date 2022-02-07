@@ -15,33 +15,29 @@
       <h1>テストページ</h1>
       <figni-viewer
         id="view"
-        item-id="wQbRquQ9"
-        token="JfYdMBuQVtkVAdcj5"
+        item-id="jX8I8IVG"
+        token="ZRZYCb22MFWG7ha4"
         orbit="40deg 75deg 150%"
+        state="pushout"
       >
         <button
           slot="hotspot-a"
           clip="Push_in"
           position="-0.2m 0m 0m"
-          loopCount="2"
+          to-state="pushin"
+          visible-state="pushout pushin"
         ></button>
         <button
           slot="hotspot-b"
           clip="Pull_out"
           position=" 0.2m 0m 0m"
-          loopCount="2"
+          to-state="pushout"
+          visible-state="pushin"
         ></button>
       </figni-viewer>
     </div>
     <script>
       const view = document.querySelector('figni-viewer')
-      view.addEventListener(
-        'load',
-        async () => {
-          view.timeScale = -1
-        },
-        { once: true }
-      )
     </script>
     <style>
       #view {

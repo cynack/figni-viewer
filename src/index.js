@@ -323,9 +323,9 @@ export class FigniViewerElement extends ModelViewerElement {
     this.state = state
     this.#hotspots.forEach((hotspot) => {
       if (this.#visibleAllHotspots) {
-        const visible = hotspot.getAttribute('visible-state')
+        const visible = hotspot.getAttribute('visible-state').split(' ')
         if (visible) {
-          if (visible == this.state) {
+          if (visible.includes(this.state)) {
             hotspot.classList.remove('figni-viewer-hotspot-hide')
           } else {
             hotspot.classList.add('figni-viewer-hotspot-hide')

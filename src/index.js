@@ -362,10 +362,12 @@ export class FigniViewerElement extends ModelViewerElement {
       'position',
       position || FigniViewerElement.#DEFAULT_HOTSPOT_POSITION
     )
-    hotspot.setAttribute(
-      'normal',
-      normal || FigniViewerElement.#DEFAULT_HOTSPOT_NORMAL
-    )
+    if (normal) {
+      hotspot.setAttribute(
+        'normal',
+        normal || FigniViewerElement.#DEFAULT_HOTSPOT_NORMAL
+      )
+    }
     hotspot.setAttribute('slot', `hotspot-${name}`)
     if (options) {
       if (options.anime) {
@@ -412,10 +414,16 @@ export class FigniViewerElement extends ModelViewerElement {
       throw new ReferenceError(`Hotspot ${name} not found`)
     }
     if (position) {
-      hotspot.setAttribute('position', position)
+      hotspot.setAttribute(
+        'position',
+        position || FigniViewerElement.#DEFAULT_HOTSPOT_POSITION
+      )
     }
     if (normal) {
-      hotspot.setAttribute('normal', normal)
+      hotspot.setAttribute(
+        'normal',
+        normal || FigniViewerElement.#DEFAULT_HOTSPOT_NORMAL
+      )
     }
     if (options) {
       if (options.anime) {
@@ -481,16 +489,19 @@ export class FigniViewerElement extends ModelViewerElement {
       hotspot.getAttribute('position') ||
         FigniViewerElement.#DEFAULT_HOTSPOT_POSITION
     )
-    hotspot.setAttribute(
-      'normal',
-      hotspot.getAttribute('normal') ||
-        FigniViewerElement.#DEFAULT_HOTSPOT_NORMAL
-    )
-    this.updateHotspot({
-      name: hotspot.getAttribute('slot'),
-      position: hotspot.getAttribute('position'),
-      normal: hotspot.getAttribute('normal'),
-    })
+    if (hotspot.getAttribute('normal')) {
+      this.updateHotspot({
+        name: hotspot.getAttribute('slot'),
+        position: hotspot.getAttribute('position'),
+        normal: hotspot.getAttribute('normal'),
+      })
+    } else {
+      hotspot.classList.add('figni-viewer-hotspot-no-normal')
+      this.updateHotspot({
+        name: hotspot.getAttribute('slot'),
+        position: hotspot.getAttribute('position'),
+      })
+    }
 
     const name = hotspot.getAttribute('slot')
     const isAnime =

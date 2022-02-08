@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - 属性`visible-state`において複数の値を設定できるように変更
 - `playAnimation()`の引数を(`clip`, `loopCount`, `toState`, `onstart`, `onend`)から(`clip`, `options`)に変更
+- *hotspot*において属性`normal`を指定しなかった場合、常に見えるように変更
 
 ### Deprecated
 

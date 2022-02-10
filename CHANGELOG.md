@@ -23,13 +23,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- `addHotspot()`の引数に`reverse`を追加
+- `editHotspot()`の引数に`reverse`を追加
+
 ### Changed
+
+- `addHotspot()`の引数`onstart`および`onend`をそれぞれ`onStart`、`onEnd`に変更
+- `editHotspot()`の引数`onstart`および`onend`をそれぞれ`onStart`、`onEnd`に変更
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- `addHotspot()`が正しく動作しない問題を修正
 
 ## [1.2.0] - 2022-02-10
 

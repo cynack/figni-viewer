@@ -4,7 +4,7 @@
 
 ## ドキュメント
 
-[figni-viewer document](https://cynack.notion.site/figni-viewer-e5f236458b9d4c889d4d57f7bcbce862)
+[Figni Viewer ドキュメント](https://cynack.notion.site/Figni-Viewer-c53ca5a80bdd4a8abf4f41aa899aa9f1)
 
 ## 開発方法
 

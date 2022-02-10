@@ -23,6 +23,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [1.2.0] - 2022-02-10
+
+### Added
+
 - 再生するアニメーションを逆再生に変更する属性`reverse`を追加
 
 ### Changed
@@ -30,10 +42,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - 属性`visible-state`において複数の値を設定できるように変更
 - `playAnimation()`の引数を(`clip`, `loopCount`, `toState`, `onstart`, `onend`)から(`clip`, `options`)に変更
 - *hotspot*において属性`normal`を指定しなかった場合、常に見えるように変更
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -271,7 +279,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.1.0...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/cynack/figni-viewer/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/cynack/figni-viewer/compare/v1.0.4...v1.1.0
 [1.0.4]: https://github.com/cynack/figni-viewer/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/cynack/figni-viewer/compare/v1.0.2...v1.0.3

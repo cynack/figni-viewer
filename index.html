@@ -18,44 +18,33 @@
         item-id="jX8I8IVG"
         token="ZRZYCb22MFWG7ha4"
         orbit="40deg 75deg 150%"
-        state="pushout"
       >
-        <button
-          slot="hotspot-a"
-          clip="Push_in"
-          position="-0.2m 0m 0m"
-          to-state="pushin"
-          normal="0m 1m 0m"
-          visible-state="pushout pushin"
-          onstart="console.log('start push in')"
-          onend="console.log('end push in')"
-        ></button>
-        <button
-          slot="hotspot-b"
-          clip="Pull_out"
-          position=" 0.2m 0m 0m"
-          to-state="pushout"
-          visible-state="pushin"
-          reverse
-          onstart="console.log('start pull out')"
-          onend="console.log('end pull out')"
-        ></button>
-        <button
-          slot="hotspot-c"
-          position="0.2m 0.5m 0m"
-          onclick="play()"
-        ></button>
       </figni-viewer>
+      <button onclick="Add()">Add</button>
+      <button onclick="Edit()">Edit</button>
     </div>
     <script>
       const view = document.querySelector('figni-viewer')
-      function play() {
-        view.playAnimation('Push_in', {
-          loopCount: 2,
-          toState: 'pushin',
-          reverse: true,
-          onStart: () => console.log('start push in'),
-          onEnd: () => console.log('end push in'),
+      function Add() {
+        view.addHotspot('sample', '-0.5m 0.5m 0m', null, {
+          anime: {
+            clip: 'Push_in',
+            loopCount: 1,
+            reverse: true,
+            onStart: () => {
+              console.log('start')
+            },
+            onEnd: () => {
+              console.log('end')
+            },
+          },
+        })
+      }
+      function Edit() {
+        view.editHotspot('sample', '0.5m 0.5m 0m', null, {
+          anime: {
+            reverse: false,
+          },
         })
       }
     </script>

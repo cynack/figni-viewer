@@ -349,7 +349,7 @@ export class FigniViewerElement extends ModelViewerElement {
     URL.revokeObjectURL(url)
   }
 
-  addHotspot(name, position = null, normal = null, options = null) {
+  async addHotspot(name, position = null, normal = null, options = null) {
     if (!name) {
       throw new SyntaxError('name is required')
     }
@@ -377,14 +377,17 @@ export class FigniViewerElement extends ModelViewerElement {
         if (options.anime.loopCount) {
           hotspot.setAttribute('loopCount', options.anime.loopCount)
         }
-        if (options.anime.onstart) {
+        if (options.anime.reverse === true) {
+          hotspot.setAttribute('reverse', '')
+        }
+        if (options.anime.onStart) {
           hotspot.setAttribute(
             'onstart',
-            `(${options.anime.onstart.toString()})()`
+            `(${options.anime.onStart.toString()})()`
           )
         }
-        if (options.anime.onend) {
-          hotspot.setAttribute('onend', `(${options.anime.onend.toString()})()`)
+        if (options.anime.onEnd) {
+          hotspot.setAttribute('onend', `(${options.anime.onEnd.toString()})()`)
         }
       }
       if (options.closeup) {
@@ -403,9 +406,13 @@ export class FigniViewerElement extends ModelViewerElement {
       }
     }
     this.appendChild(hotspot)
+
+    await this.updateComplete
+    this.#modifyHotspot(hotspot)
+    this.updateState(this.state)
   }
 
-  editHotspot(name, position = null, normal = null, options = null) {
+  async editHotspot(name, position = null, normal = null, options = null) {
     if (!name) {
       throw new SyntaxError('name is required')
     }
@@ -433,14 +440,19 @@ export class FigniViewerElement extends ModelViewerElement {
         if (options.anime.loopCount) {
           hotspot.setAttribute('loopCount', options.anime.loopCount)
         }
-        if (options.anime.onstart) {
+        if (options.anime.reverse === true) {
+          hotspot.setAttribute('reverse', '')
+        } else if (options.anime.reverse === false) {
+          hotspot.removeAttribute('reverse')
+        }
+        if (options.anime.onStart) {
           hotspot.setAttribute(
             'onstart',
-            `(${options.anime.onstart.toString()})()`
+            `(${options.anime.onStart.toString()})()`
           )
         }
-        if (options.anime.onend) {
-          hotspot.setAttribute('onend', `(${options.anime.onend.toString()})()`)
+        if (options.anime.onEnd) {
+          hotspot.setAttribute('onend', `(${options.anime.onEnd.toString()})()`)
         }
       }
       if (options.closeup) {
@@ -458,6 +470,8 @@ export class FigniViewerElement extends ModelViewerElement {
         hotspot.setAttribute('to-state', options.toState)
       }
     }
+
+    await this.updateComplete
     this.#modifyHotspot(hotspot)
     this.updateState(this.state)
   }

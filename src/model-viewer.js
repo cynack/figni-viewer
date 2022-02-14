@@ -2859,11 +2859,11 @@ class EventDispatcher {
 
 }
 
-const _lut = [];
+const _lut$1 = [];
 
 for ( let i = 0; i < 256; i ++ ) {
 
-	_lut[ i ] = ( i < 16 ? '0' : '' ) + ( i ).toString( 16 );
+	_lut$1[ i ] = ( i < 16 ? '0' : '' ) + ( i ).toString( 16 );
 
 }
 
@@ -2880,10 +2880,10 @@ function generateUUID() {
 	const d1 = Math.random() * 0xffffffff | 0;
 	const d2 = Math.random() * 0xffffffff | 0;
 	const d3 = Math.random() * 0xffffffff | 0;
-	const uuid = _lut[ d0 & 0xff ] + _lut[ d0 >> 8 & 0xff ] + _lut[ d0 >> 16 & 0xff ] + _lut[ d0 >> 24 & 0xff ] + '-' +
-			_lut[ d1 & 0xff ] + _lut[ d1 >> 8 & 0xff ] + '-' + _lut[ d1 >> 16 & 0x0f | 0x40 ] + _lut[ d1 >> 24 & 0xff ] + '-' +
-			_lut[ d2 & 0x3f | 0x80 ] + _lut[ d2 >> 8 & 0xff ] + '-' + _lut[ d2 >> 16 & 0xff ] + _lut[ d2 >> 24 & 0xff ] +
-			_lut[ d3 & 0xff ] + _lut[ d3 >> 8 & 0xff ] + _lut[ d3 >> 16 & 0xff ] + _lut[ d3 >> 24 & 0xff ];
+	const uuid = _lut$1[ d0 & 0xff ] + _lut$1[ d0 >> 8 & 0xff ] + _lut$1[ d0 >> 16 & 0xff ] + _lut$1[ d0 >> 24 & 0xff ] + '-' +
+			_lut$1[ d1 & 0xff ] + _lut$1[ d1 >> 8 & 0xff ] + '-' + _lut$1[ d1 >> 16 & 0x0f | 0x40 ] + _lut$1[ d1 >> 24 & 0xff ] + '-' +
+			_lut$1[ d2 & 0x3f | 0x80 ] + _lut$1[ d2 >> 8 & 0xff ] + '-' + _lut$1[ d2 >> 16 & 0xff ] + _lut$1[ d2 >> 24 & 0xff ] +
+			_lut$1[ d3 & 0xff ] + _lut$1[ d3 >> 8 & 0xff ] + _lut$1[ d3 >> 16 & 0xff ] + _lut$1[ d3 >> 24 & 0xff ];
 
 	// .toUpperCase() here flattens concatenated strings to save heap memory space.
 	return uuid.toUpperCase();
@@ -2927,7 +2927,7 @@ function inverseLerp( x, y, value ) {
 }
 
 // https://en.wikipedia.org/wiki/Linear_interpolation
-function lerp( x, y, t ) {
+function lerp$1( x, y, t ) {
 
 	return ( 1 - t ) * x + t * y;
 
@@ -2936,7 +2936,7 @@ function lerp( x, y, t ) {
 // http://www.rorydriscoll.com/2016/03/07/frame-rate-independent-damping-using-lerp/
 function damp( x, y, lambda, dt ) {
 
-	return lerp( x, y, 1 - Math.exp( - lambda * dt ) );
+	return lerp$1( x, y, 1 - Math.exp( - lambda * dt ) );
 
 }
 
@@ -3099,7 +3099,7 @@ var MathUtils = /*#__PURE__*/Object.freeze({
 	euclideanModulo: euclideanModulo,
 	mapLinear: mapLinear,
 	inverseLerp: inverseLerp,
-	lerp: lerp,
+	lerp: lerp$1,
 	damp: damp,
 	pingpong: pingpong,
 	smoothstep: smoothstep,
@@ -11356,9 +11356,9 @@ class Color {
 		this.getHSL( _hslA );
 		color.getHSL( _hslB );
 
-		const h = lerp( _hslA.h, _hslB.h, alpha );
-		const s = lerp( _hslA.s, _hslB.s, alpha );
-		const l = lerp( _hslA.l, _hslB.l, alpha );
+		const h = lerp$1( _hslA.h, _hslB.h, alpha );
+		const s = lerp$1( _hslA.s, _hslB.s, alpha );
+		const l = lerp$1( _hslA.l, _hslB.l, alpha );
 
 		this.setHSL( h, s, l );
 
@@ -53382,8 +53382,135 @@ const reduceVertices = (model, func, initialValue) => {
     return value;
 };
 
+/**
+ * Two pass Gaussian blur filter (horizontal and vertical blur shaders)
+ * - see http://www.cake23.de/traveling-wavefronts-lit-up.html
+ *
+ * - 9 samples per pass
+ * - standard deviation 2.7
+ * - "h" and "v" parameters should be set to "1 / width" and "1 / height"
+ */
+
+var HorizontalBlurShader = {
+
+	uniforms: {
+
+		'tDiffuse': { value: null },
+		'h': { value: 1.0 / 512.0 }
+
+	},
+
+	vertexShader: /* glsl */`
+
+		varying vec2 vUv;
+
+		void main() {
+
+			vUv = uv;
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+		}`,
+
+	fragmentShader: /* glsl */`
+
+		uniform sampler2D tDiffuse;
+		uniform float h;
+
+		varying vec2 vUv;
+
+		void main() {
+
+			vec4 sum = vec4( 0.0 );
+
+			sum += texture2D( tDiffuse, vec2( vUv.x - 4.0 * h, vUv.y ) ) * 0.051;
+			sum += texture2D( tDiffuse, vec2( vUv.x - 3.0 * h, vUv.y ) ) * 0.0918;
+			sum += texture2D( tDiffuse, vec2( vUv.x - 2.0 * h, vUv.y ) ) * 0.12245;
+			sum += texture2D( tDiffuse, vec2( vUv.x - 1.0 * h, vUv.y ) ) * 0.1531;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y ) ) * 0.1633;
+			sum += texture2D( tDiffuse, vec2( vUv.x + 1.0 * h, vUv.y ) ) * 0.1531;
+			sum += texture2D( tDiffuse, vec2( vUv.x + 2.0 * h, vUv.y ) ) * 0.12245;
+			sum += texture2D( tDiffuse, vec2( vUv.x + 3.0 * h, vUv.y ) ) * 0.0918;
+			sum += texture2D( tDiffuse, vec2( vUv.x + 4.0 * h, vUv.y ) ) * 0.051;
+
+			gl_FragColor = sum;
+
+		}`
+
+};
+
+/**
+ * Two pass Gaussian blur filter (horizontal and vertical blur shaders)
+ * - see http://www.cake23.de/traveling-wavefronts-lit-up.html
+ *
+ * - 9 samples per pass
+ * - standard deviation 2.7
+ * - "h" and "v" parameters should be set to "1 / width" and "1 / height"
+ */
+
+const VerticalBlurShader = {
+
+	uniforms: {
+
+		'tDiffuse': { value: null },
+		'v': { value: 1.0 / 512.0 }
+
+	},
+
+	vertexShader: /* glsl */`
+
+		varying vec2 vUv;
+
+		void main() {
+
+			vUv = uv;
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+		}`,
+
+	fragmentShader: /* glsl */`
+
+		uniform sampler2D tDiffuse;
+		uniform float v;
+
+		varying vec2 vUv;
+
+		void main() {
+
+			vec4 sum = vec4( 0.0 );
+
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 4.0 * v ) ) * 0.051;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 3.0 * v ) ) * 0.0918;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 2.0 * v ) ) * 0.12245;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 1.0 * v ) ) * 0.1531;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y ) ) * 0.1633;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 1.0 * v ) ) * 0.1531;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 2.0 * v ) ) * 0.12245;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 3.0 * v ) ) * 0.0918;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 4.0 * v ) ) * 0.051;
+
+			gl_FragColor = sum;
+
+		}`
+
+};
+
+const _lut = [];
+
+for ( let i = 0; i < 256; i ++ ) {
+
+	_lut[ i ] = ( i < 16 ? '0' : '' ) + ( i ).toString( 16 );
+
+}
+
+// https://en.wikipedia.org/wiki/Linear_interpolation
+function lerp( x, y, t ) {
+
+	return ( 1 - t ) * x + t * y;
+
+}
+
 /* @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2022 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -53396,9 +53523,6 @@ const reduceVertices = (model, func, initialValue) => {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// Nothing within Offset of the bottom of the scene casts a shadow
-// (this is to avoid having a baked-in shadow plane cast its own shadow).
-const OFFSET = 0.002;
 // The softness [0, 1] of the shadow is mapped to a resolution between
 // 2^LOG_MAX_RESOLUTION and 2^LOG_MIN_RESOLUTION.
 const LOG_MAX_RESOLUTION = 9;
@@ -53408,6 +53532,10 @@ const LOG_MIN_RESOLUTION = 6;
 // for animated models sized to their largest bounding box dimesion multiplied
 // by this scale factor.
 const ANIMATION_SCALING = 2;
+// Since hard shadows are not lightened by blurring and depth, set a lower
+// default intensity to make them more perceptually similar to the intensity of
+// the soft shadows.
+const DEFAULT_HARD_INTENSITY = 0.3;
 /**
  * The Shadow class creates a shadow that fits a given scene and follows a
  * target. This shadow will follow the scene without any updates needed so long
@@ -53421,28 +53549,54 @@ const ANIMATION_SCALING = 2;
  * The softness of the shadow is controlled by changing its resolution, making
  * softer shadows faster, but less precise.
  */
-class Shadow extends DirectionalLight {
+class Shadow extends Object3D {
     constructor(scene, softness, side) {
         super();
-        this.shadowMaterial = new ShadowMaterial();
+        this.camera = new OrthographicCamera();
+        // private cameraHelper = new CameraHelper(this.camera);
+        this.renderTarget = null;
+        this.renderTargetBlur = null;
+        this.depthMaterial = new MeshDepthMaterial();
+        this.horizontalBlurMaterial = new ShaderMaterial(HorizontalBlurShader);
+        this.verticalBlurMaterial = new ShaderMaterial(VerticalBlurShader);
+        this.intensity = 0;
+        this.softness = 1;
         this.boundingBox = new Box3;
         this.size = new Vector3;
-        this.shadowScale = 1;
+        this.maxDimension = 0;
         this.isAnimated = false;
-        this.side = 'bottom';
         this.needsUpdate = false;
-        // We use the light only to cast a shadow, not to light the scene.
-        this.intensity = 0;
-        this.castShadow = true;
-        this.frustumCulled = false;
-        this.floor = new Mesh(new PlaneGeometry, this.shadowMaterial);
-        this.floor.rotateX(-Math.PI / 2);
-        this.floor.receiveShadow = true;
-        this.floor.castShadow = false;
-        this.floor.frustumCulled = false;
-        this.add(this.floor);
+        const { camera } = this;
+        camera.rotation.x = Math.PI / 2;
+        camera.left = -0.5;
+        camera.right = 0.5;
+        camera.bottom = -0.5;
+        camera.top = 0.5;
+        this.add(camera);
+        // this.add(this.cameraHelper);
+        // this.cameraHelper.updateMatrixWorld = function() {
+        //   this.matrixWorld = this.camera.matrixWorld;
+        // };
+        const plane = new PlaneGeometry();
+        const shadowMaterial = new MeshBasicMaterial({
+            // color: new Color(1, 0, 0),
+            opacity: 1,
+            transparent: true,
+            side: BackSide,
+        });
+        this.floor = new Mesh(plane, shadowMaterial);
+        camera.add(this.floor);
+        // the plane onto which to blur the texture
+        this.blurPlane = new Mesh(plane);
+        this.blurPlane.visible = false;
+        camera.add(this.blurPlane);
         scene.target.add(this);
-        this.target = scene.target;
+        // like MeshDepthMaterial, but goes from black to transparent
+        this.depthMaterial.onBeforeCompile = function (shader) {
+            shader.fragmentShader = shader.fragmentShader.replace('gl_FragColor = vec4( vec3( 1.0 - fragCoordZ ), opacity );', 'gl_FragColor = vec4( vec3( 0.0 ), ( 1.0 - fragCoordZ ) * opacity );');
+        };
+        this.horizontalBlurMaterial.depthTest = false;
+        this.verticalBlurMaterial.depthTest = false;
         this.setScene(scene, softness, side);
     }
     /**
@@ -53450,39 +53604,39 @@ class Shadow extends DirectionalLight {
      * needed, as this controls the shadow's resolution.
      */
     setScene(scene, softness, side) {
-        this.side = side;
+        const { boundingBox, size, rotation, position } = this;
         this.isAnimated = scene.animationNames.length > 0;
         this.boundingBox.copy(scene.boundingBox);
         this.size.copy(scene.size);
-        if (this.side === 'back') {
-            const { min, max } = this.boundingBox;
+        this.maxDimension = Math.max(size.x, size.y, size.z) *
+            (this.isAnimated ? ANIMATION_SCALING : 1);
+        this.boundingBox.getCenter(position);
+        if (side === 'back') {
+            const { min, max } = boundingBox;
             [min.y, min.z] = [min.z, min.y];
             [max.y, max.z] = [max.z, max.y];
-            [this.size.y, this.size.z] = [this.size.z, this.size.y];
-            this.rotation.x = Math.PI / 2;
-            this.rotation.y = Math.PI;
+            [size.y, size.z] = [size.z, size.y];
+            rotation.x = Math.PI / 2;
+            rotation.y = Math.PI;
         }
         else {
-            this.rotation.x = 0;
-            this.rotation.y = 0;
+            rotation.x = 0;
+            rotation.y = 0;
         }
-        const { boundingBox, size } = this;
         if (this.isAnimated) {
-            const maxDimension = Math.max(size.x, size.y, size.z) * ANIMATION_SCALING;
-            size.y = maxDimension;
-            boundingBox.expandByVector(size.subScalar(maxDimension).multiplyScalar(-0.5));
-            boundingBox.max.y = boundingBox.min.y + maxDimension;
-            size.set(maxDimension, maxDimension, maxDimension);
+            const minY = boundingBox.min.y;
+            const maxY = boundingBox.max.y;
+            size.y = this.maxDimension;
+            boundingBox.expandByVector(size.subScalar(this.maxDimension).multiplyScalar(-0.5));
+            boundingBox.min.y = minY;
+            boundingBox.max.y = maxY;
+            size.set(this.maxDimension, maxY - minY, this.maxDimension);
         }
-        boundingBox.getCenter(this.floor.position);
-        const shadowOffset = boundingBox.max.y + size.y * OFFSET;
         if (side === 'bottom') {
-            this.position.y = shadowOffset;
-            this.position.z = 0;
+            position.y = boundingBox.min.y;
         }
         else {
-            this.position.y = 0;
-            this.position.z = shadowOffset;
+            position.z = boundingBox.min.y;
         }
         this.setSoftness(softness);
     }
@@ -53491,49 +53645,68 @@ class Shadow extends DirectionalLight {
      * not be called frequently, as this results in reallocation.
      */
     setSoftness(softness) {
-        const resolution = Math.pow(2, LOG_MAX_RESOLUTION -
-            softness * (LOG_MAX_RESOLUTION - LOG_MIN_RESOLUTION));
+        this.softness = softness;
+        const { size, camera } = this;
+        const scaleY = (this.isAnimated ? ANIMATION_SCALING : 1);
+        const resolution = scaleY *
+            Math.pow(2, LOG_MAX_RESOLUTION -
+                softness * (LOG_MAX_RESOLUTION - LOG_MIN_RESOLUTION));
         this.setMapSize(resolution);
+        const softFar = size.y / 2;
+        const hardFar = size.y * scaleY;
+        camera.near = 0;
+        camera.far = lerp(hardFar, softFar, softness);
+        // we have co-opted opacity to scale the depth to clip
+        this.depthMaterial.opacity = 1.0 / softness;
+        camera.updateProjectionMatrix();
+        // this.cameraHelper.update();
+        this.setIntensity(this.intensity);
+        this.setOffset(0);
     }
     /**
      * Lower-level version of the above function.
      */
     setMapSize(maxMapSize) {
-        const { camera, mapSize, map } = this.shadow;
-        const { size, boundingBox } = this;
-        // This feels like a three.js bug; changing the mapSize has no effect unless
-        // the map is manually disposed of.
-        if (map != null) {
-            map.dispose();
-            this.shadow.map = null;
-        }
+        const { size } = this;
         if (this.isAnimated) {
             maxMapSize *= ANIMATION_SCALING;
         }
-        const width = Math.floor(size.x > size.z ? maxMapSize : maxMapSize * size.x / size.z);
-        const height = Math.floor(size.x > size.z ? maxMapSize * size.z / size.x : maxMapSize);
-        mapSize.set(width, height);
+        const baseWidth = Math.floor(size.x > size.z ? maxMapSize : maxMapSize * size.x / size.z);
+        const baseHeight = Math.floor(size.x > size.z ? maxMapSize * size.z / size.x : maxMapSize);
+        // width of blur filter in pixels (not adjustable)
+        const TAP_WIDTH = 10;
+        const width = TAP_WIDTH + baseWidth;
+        const height = TAP_WIDTH + baseHeight;
+        if (this.renderTarget != null &&
+            (this.renderTarget.width !== width ||
+                this.renderTarget.height !== height)) {
+            this.renderTarget.dispose();
+            this.renderTarget = null;
+            this.renderTargetBlur.dispose();
+            this.renderTargetBlur = null;
+        }
+        if (this.renderTarget == null) {
+            const params = { format: RGBAFormat };
+            this.renderTarget = new WebGLRenderTarget(width, height, params);
+            this.renderTargetBlur = new WebGLRenderTarget(width, height, params);
+            this.floor.material.map =
+                this.renderTarget.texture;
+        }
         // These pads account for the softening radius around the shadow.
-        const widthPad = 2.5 * size.x / width;
-        const heightPad = 2.5 * size.z / height;
-        camera.left = -boundingBox.max.x - widthPad;
-        camera.right = -boundingBox.min.x + widthPad;
-        camera.bottom = boundingBox.min.z - heightPad;
-        camera.top = boundingBox.max.z + heightPad;
-        this.setScaleAndOffset(this.shadowScale, 0);
-        this.floor.scale.set(size.x + 2 * widthPad, size.z + 2 * heightPad, 1);
+        this.camera.scale.set(size.x * (1 + TAP_WIDTH / baseWidth), size.z * (1 + TAP_WIDTH / baseHeight), 1);
         this.needsUpdate = true;
-        this.shadow.needsUpdate = true;
     }
     /**
      * Set the shadow's intensity (0 to 1), which is just its opacity. Turns off
      * shadow rendering if zero.
      */
     setIntensity(intensity) {
-        this.shadowMaterial.opacity = intensity;
+        this.intensity = intensity;
         if (intensity > 0) {
             this.visible = true;
             this.floor.visible = true;
+            this.floor.material.opacity = intensity *
+                lerp(DEFAULT_HARD_INTENSITY, 1, this.softness * this.softness);
         }
         else {
             this.visible = false;
@@ -53541,41 +53714,59 @@ class Shadow extends DirectionalLight {
         }
     }
     getIntensity() {
-        return this.shadowMaterial.opacity;
+        return this.intensity;
     }
     /**
-     * The shadow does not rotate with its parent transforms, so the rotation must
-     * be manually updated here if it rotates in world space. The input is its
-     * absolute orientation about the Y-axis (other rotations are not supported).
-     */
-    setRotation(radiansY) {
-        if (this.side !== 'bottom') {
-            // We don't support rotation about a horizontal axis yet.
-            this.shadow.camera.up.set(0, 1, 0);
-            this.shadow.updateMatrices(this);
-            return;
-        }
-        this.shadow.camera.up.set(Math.sin(radiansY), 0, Math.cos(radiansY));
-        this.shadow.updateMatrices(this);
-    }
-    /**
-     * The scale is also not inherited from parents, so it must be set here in
-     * accordance with any transforms. An offset can also be specified to move the
+     * An offset can be specified to move the
      * shadow vertically relative to the bottom of the scene. Positive is up, so
-     * values are generally negative.
+     * values are generally negative. A small offset keeps our shadow from
+     * z-fighting with any baked-in shadow plane.
      */
-    setScaleAndOffset(scale, offset) {
-        const sizeY = this.size.y;
-        const { camera } = this.shadow;
-        this.shadowScale = scale;
-        camera.near = 0;
-        camera.far = sizeY - offset / scale;
-        camera.updateProjectionMatrix();
-        camera.scale.setScalar(scale);
-        // Floor plane is up slightly from the bottom of the bounding box to avoid
-        // Z-fighting with baked-in shadows and to stay inside the shadow camera.
-        const shadowOffset = sizeY * OFFSET;
-        this.floor.position.y = 2 * shadowOffset - camera.far;
+    setOffset(offset) {
+        this.floor.position.z = -offset + 0.001 * this.maxDimension;
+    }
+    render(renderer, scene) {
+        // this.cameraHelper.visible = false;
+        // force the depthMaterial to everything
+        scene.overrideMaterial = this.depthMaterial;
+        // set renderer clear alpha
+        const initialClearAlpha = renderer.getClearAlpha();
+        renderer.setClearAlpha(0);
+        this.floor.visible = false;
+        // disable XR for offscreen rendering
+        const xrEnabled = renderer.xr.enabled;
+        renderer.xr.enabled = false;
+        // render to the render target to get the depths
+        const oldRenderTarget = renderer.getRenderTarget();
+        renderer.setRenderTarget(this.renderTarget);
+        renderer.render(scene, this.camera);
+        // and reset the override material
+        scene.overrideMaterial = null;
+        this.floor.visible = true;
+        this.blurShadow(renderer);
+        // reset and render the normal scene
+        renderer.xr.enabled = xrEnabled;
+        renderer.setRenderTarget(oldRenderTarget);
+        renderer.setClearAlpha(initialClearAlpha);
+        // this.cameraHelper.visible = true;
+    }
+    blurShadow(renderer) {
+        const { camera, horizontalBlurMaterial, verticalBlurMaterial, renderTarget, renderTargetBlur, blurPlane } = this;
+        blurPlane.visible = true;
+        // blur horizontally and draw in the renderTargetBlur
+        blurPlane.material = horizontalBlurMaterial;
+        horizontalBlurMaterial.uniforms.h.value = 1 / this.renderTarget.width;
+        horizontalBlurMaterial.uniforms.tDiffuse.value = this.renderTarget.texture;
+        renderer.setRenderTarget(renderTargetBlur);
+        renderer.render(blurPlane, camera);
+        // blur vertically and draw in the main renderTarget
+        blurPlane.material = verticalBlurMaterial;
+        verticalBlurMaterial.uniforms.v.value = 1 / this.renderTarget.height;
+        verticalBlurMaterial.uniforms.tDiffuse.value =
+            this.renderTargetBlur.texture;
+        renderer.setRenderTarget(renderTarget);
+        renderer.render(blurPlane, camera);
+        blurPlane.visible = false;
     }
 }
 
@@ -53924,7 +54115,6 @@ class ModelScene extends Scene {
             z = this.targetDamperZ.update(z, goal.z, delta, normalization);
             this.target.position.set(x, y, z);
             this.target.updateMatrixWorld();
-            this.setShadowRotation(this.yaw);
             this.queueRender();
         }
     }
@@ -53941,8 +54131,6 @@ class ModelScene extends Scene {
      */
     set yaw(radiansY) {
         this.rotation.y = radiansY;
-        this.updateMatrixWorld(true);
-        this.setShadowRotation(radiansY);
         this.queueRender();
     }
     get yaw() {
@@ -53950,6 +54138,7 @@ class ModelScene extends Scene {
     }
     set animationTime(value) {
         this.mixer.setTime(value);
+        this.queueShadowRender();
     }
     get animationTime() {
         if (this.currentAnimationAction != null) {
@@ -54027,6 +54216,7 @@ class ModelScene extends Scene {
     }
     updateAnimation(step) {
         this.mixer.update(step);
+        this.queueShadowRender();
     }
     subscribeMixerEvent(event, callback) {
         this.mixer.addEventListener(event, callback);
@@ -54040,7 +54230,19 @@ class ModelScene extends Scene {
         if (shadow != null) {
             const side = this.element.arPlacement === 'wall' ? 'back' : 'bottom';
             shadow.setScene(this, this.shadowSoftness, side);
-            shadow.setRotation(this.yaw);
+            shadow.needsUpdate = true;
+        }
+    }
+    renderShadow(renderer) {
+        const shadow = this.shadow;
+        if (shadow != null && shadow.needsUpdate == true) {
+            shadow.render(renderer, this);
+            shadow.needsUpdate = false;
+        }
+    }
+    queueShadowRender() {
+        if (this.shadow != null) {
+            this.shadow.needsUpdate = true;
         }
     }
     /**
@@ -54057,7 +54259,6 @@ class ModelScene extends Scene {
         if (this.shadow == null) {
             const side = this.element.arPlacement === 'wall' ? 'back' : 'bottom';
             this.shadow = new Shadow(this, this.shadowSoftness, side);
-            this.shadow.setRotation(this.yaw);
         }
         this.shadow.setIntensity(shadowIntensity);
     }
@@ -54074,38 +54275,13 @@ class ModelScene extends Scene {
         }
     }
     /**
-     * The shadow must be rotated manually to match any global rotation applied to
-     * this model. The input is the global orientation about the Y axis.
-     */
-    setShadowRotation(radiansY) {
-        const shadow = this.shadow;
-        if (shadow != null) {
-            shadow.setRotation(radiansY);
-        }
-    }
-    /**
-     * Call to check if the shadow needs an updated render; returns true if an
-     * update is needed and resets the state.
-     */
-    isShadowDirty() {
-        const shadow = this.shadow;
-        if (shadow == null) {
-            return false;
-        }
-        else {
-            const { needsUpdate } = shadow;
-            shadow.needsUpdate = false;
-            return needsUpdate;
-        }
-    }
-    /**
      * Shift the floor vertically from the bottom of the model's bounding box by
      * offset (should generally be negative).
      */
-    setShadowScaleAndOffset(scale, offset) {
+    setShadowOffset(offset) {
         const shadow = this.shadow;
         if (shadow != null) {
-            shadow.setScaleAndOffset(scale, offset);
+            shadow.setOffset(offset);
         }
     }
     get raycaster() {
@@ -54252,7 +54428,7 @@ var __decorate$7 = (undefined && undefined.__decorate) || function (decorators, 
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-const BASE_OPACITY = 0.1;
+const BASE_OPACITY = 0.5;
 const DEFAULT_SHADOW_INTENSITY = 0.0;
 const DEFAULT_SHADOW_SOFTNESS = 1.0;
 const DEFAULT_EXPOSURE = 1.0;
@@ -54685,6 +54861,7 @@ class PlacementBox extends Mesh {
                 this.position.z = this.shadowHeight;
         }
         scene.target.add(this);
+        this.offsetHeight = 0;
     }
     /**
      * Get the world hit position if the touch coordinates hit the box, and null
@@ -54708,6 +54885,7 @@ class PlacementBox extends Mesh {
      * is up, so generally only negative values are used.
      */
     set offsetHeight(offset) {
+        offset -= 0.001; // push 1 mm below shadow to avoid z-fighting
         if (this.side === 'back') {
             this.position.z = this.shadowHeight + offset;
         }
@@ -54770,7 +54948,7 @@ class PlacementBox extends Mesh {
 const INIT_FRAMES = 30;
 // AR shadow is not user-configurable. This is to pave the way for AR lighting
 // estimation, which will be used once available in WebXR.
-const AR_SHADOW_INTENSITY = 0.3;
+const AR_SHADOW_INTENSITY = 0.8;
 const ROTATION_RATE = 1.5;
 // Angle down (towards bottom of screen) from camera center ray to use for hit
 // testing against the floor. This makes placement faster and more intuitive
@@ -55053,7 +55231,7 @@ class ARRenderer extends EventDispatcher {
             }
             scene.position.set(0, 0, 0);
             scene.scale.set(1, 1, 1);
-            scene.setShadowScaleAndOffset(1, 0);
+            scene.setShadowOffset(0);
             const yaw = this.turntableRotation;
             if (yaw != null) {
                 scene.yaw = yaw;
@@ -55303,7 +55481,7 @@ class ARRenderer extends EventDispatcher {
                     // drop the placement box to the floor. The model falls on select end.
                     if (offset < 0) {
                         this.placementBox.offsetHeight = offset / scale;
-                        this.presentedScene.setShadowScaleAndOffset(scale, offset);
+                        this.presentedScene.setShadowOffset(offset);
                         // Interpolate hit ray up to drag plane
                         const cameraPosition = vector3.copy(scene.getCamera().position);
                         const alpha = -offset / (cameraPosition.y - hit.y);
@@ -55334,7 +55512,7 @@ class ARRenderer extends EventDispatcher {
                 const offset = goal.y - y;
                 if (this.placementComplete && this.placeOnWall === false) {
                     box.offsetHeight = offset / newScale;
-                    scene.setShadowScaleAndOffset(newScale, offset);
+                    scene.setShadowOffset(offset);
                 }
                 else if (offset === 0) {
                     this.placementComplete = true;
@@ -55383,13 +55561,8 @@ class ARRenderer extends EventDispatcher {
                 this.moveScene(delta);
                 this.renderer.preRender(scene, time, delta);
                 this.lastTick = time;
+                scene.renderShadow(this.threeRenderer);
             }
-            // TODO: This is a workaround for a Chrome bug, which should be fixed
-            // soon: https://bugs.chromium.org/p/chromium/issues/detail?id=1184085
-            const gl = this.threeRenderer.getContext();
-            gl.depthMask(false);
-            gl.clear(gl.DEPTH_BUFFER_BIT);
-            gl.depthMask(true);
             this.threeRenderer.render(scene, scene.getCamera());
             isFirstView = false;
         }
@@ -56990,7 +57163,6 @@ class Renderer extends EventDispatcher {
             for (const scene of this.scenes) {
                 scene.element[$updateEnvironment]();
             }
-            this.threeRenderer.shadowMap.needsUpdate = true;
         };
         this.dpr = resolveDpr();
         this.canvas3D = document.createElement('canvas');
@@ -57007,9 +57179,6 @@ class Renderer extends EventDispatcher {
             this.threeRenderer.outputEncoding = sRGBEncoding;
             this.threeRenderer.physicallyCorrectLights = true;
             this.threeRenderer.setPixelRatio(1); // handle pixel ratio externally
-            this.threeRenderer.shadowMap.enabled = true;
-            this.threeRenderer.shadowMap.type = PCFSoftShadowMap;
-            this.threeRenderer.shadowMap.autoUpdate = false;
             this.debugger = !!options.debug ? new Debugger(this) : null;
             this.threeRenderer.debug = { checkShaderErrors: !!this.debugger };
             // ACESFilmicToneMapping appears to be the most "saturated",
@@ -57246,9 +57415,6 @@ class Renderer extends EventDispatcher {
         element[$tick](t, delta);
         const exposureIsNumber = typeof exposure === 'number' && !self.isNaN(exposure);
         this.threeRenderer.toneMappingExposure = exposureIsNumber ? exposure : 1.0;
-        if (scene.isShadowDirty()) {
-            this.threeRenderer.shadowMap.needsUpdate = true;
-        }
     }
     render(t, frame) {
         if (frame != null) {
@@ -57304,6 +57470,7 @@ class Renderer extends EventDispatcher {
             const height = Math.min(Math.ceil(scene.height * scaleFactor * dpr), this.canvas3D.height);
             this.threeRenderer.toneMapping =
                 scene.isUnlit ? NoToneMapping : ACESFilmicToneMapping;
+            scene.renderShadow(this.threeRenderer);
             // Need to set the render target in order to prevent
             // clearing the depth from a different buffer
             this.threeRenderer.setRenderTarget(null);
@@ -57975,8 +58142,7 @@ const AnimationMixin = (ModelViewerElement) => {
             });
             this[$scene].subscribeMixerEvent('finished', () => {
                 this[$paused] = true;
-                this[$renderer].threeRenderer.shadowMap.autoUpdate = false;
-                this[$changeAnimation]({ repetitions: Infinity, pingpong: false });
+                this[$changeAnimation]();
                 this.dispatchEvent(new CustomEvent('finished'));
             });
         }
@@ -58000,7 +58166,6 @@ const AnimationMixin = (ModelViewerElement) => {
         }
         set currentTime(value) {
             this[$scene].animationTime = value;
-            this[$renderer].threeRenderer.shadowMap.needsUpdate = true;
             this[$needsRender]();
         }
         get timeScale() {
@@ -58014,13 +58179,11 @@ const AnimationMixin = (ModelViewerElement) => {
                 return;
             }
             this[$paused] = true;
-            this[$renderer].threeRenderer.shadowMap.autoUpdate = false;
             this.dispatchEvent(new CustomEvent('pause'));
         }
-        play(options = DEFAULT_PLAY_OPTIONS) {
+        play(options) {
             if (this.availableAnimations.length > 0) {
                 this[$paused] = false;
-                this[$renderer].threeRenderer.shadowMap.autoUpdate = true;
                 this[$changeAnimation](options);
                 this.dispatchEvent(new CustomEvent('play'));
             }
@@ -58029,7 +58192,6 @@ const AnimationMixin = (ModelViewerElement) => {
             super[$onModelLoad]();
             this[$paused] = true;
             if (this.autoplay) {
-                this[$changeAnimation]({ repetitions: Infinity, pingpong: false });
                 this.play();
             }
         }
@@ -58048,7 +58210,7 @@ const AnimationMixin = (ModelViewerElement) => {
                 this.play();
             }
             if (changedProperties.has('animationName')) {
-                this[$changeAnimation]({ repetitions: Infinity, pingpong: false });
+                this[$changeAnimation]();
             }
         }
         async [$updateSource]() {
@@ -58059,7 +58221,7 @@ const AnimationMixin = (ModelViewerElement) => {
             this[$scene].stopAnimation();
             return super[$updateSource]();
         }
-        [$changeAnimation](options) {
+        [$changeAnimation](options = DEFAULT_PLAY_OPTIONS) {
             var _b;
             const repetitions = (_b = options.repetitions) !== null && _b !== void 0 ? _b : Infinity;
             const mode = options.pingpong ?
@@ -65107,7 +65269,9 @@ class Image$1 extends ThreeDOMElement {
     }
     constructor(onUpdate, texture, gltfImage) {
         gltfImage = gltfImage !== null && gltfImage !== void 0 ? gltfImage : {
-            name: 'adhoc_image',
+            name: (texture && texture.image && texture.image.src) ?
+                texture.image.src.split('/').pop() :
+                'adhoc_image',
             uri: (texture && texture.image && texture.image.src) ?
                 texture.image.src :
                 'adhoc_image' + adhocNum++
@@ -65126,8 +65290,12 @@ class Image$1 extends ThreeDOMElement {
     get type() {
         return this.uri != null ? 'external' : 'embedded';
     }
+    set name(name) {
+        this[$sourceObject].name = name;
+    }
     async setURI(uri) {
         this[$sourceObject].uri = uri;
+        this[$sourceObject].name = uri.split('/').pop();
         const image = await new Promise((resolve, reject) => {
             loader.load(uri, resolve, undefined, reject);
         });
@@ -65335,6 +65503,9 @@ class Texture extends ThreeDOMElement {
     }
     get name() {
         return this[$sourceObject].name || '';
+    }
+    set name(name) {
+        this[$sourceObject].name = name;
     }
     get sampler() {
         return this[$sampler];

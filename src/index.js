@@ -52,6 +52,7 @@ export class FigniViewerElement extends ModelViewerElement {
   #wasInViewport = false
   #arCount = 0
   #hotspotClickCount = {}
+  #animationPlayCount = {}
 
   // HTML要素
   #initCameraButton
@@ -87,6 +88,7 @@ export class FigniViewerElement extends ModelViewerElement {
             ar_count: this.#arCount,
             ar_view_time: this.#arViewTime,
             hotspot_click: this.#hotspotClickCount,
+            animation_play: this.#animationPlayCount,
           })
         )
       }, 1000)
@@ -517,7 +519,7 @@ export class FigniViewerElement extends ModelViewerElement {
       })
     }
 
-    const name = hotspot.getAttribute('slot')
+    const name = hotspot.getAttribute('slot').replace(/^hotspot-/, '')
     const isAnime =
       hotspot.getAttribute('clip') != null ||
       hotspot.getAttribute('anime') == ''
@@ -898,6 +900,7 @@ export class FigniViewerElement extends ModelViewerElement {
       } else {
         onFinishFunc()
       }
+      this.#animationPlayCount[clip] = (this.#animationPlayCount[clip] || 0) + 1
     }
   }
 

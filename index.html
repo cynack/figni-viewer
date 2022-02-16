@@ -15,38 +15,14 @@
       <h1>テストページ</h1>
       <figni-viewer
         id="view"
-        item-id="jX8I8IVG"
+        item-id="jjV8SWKY"
         token="ZRZYCb22MFWG7ha4"
         orbit="40deg 75deg 150%"
       >
       </figni-viewer>
-      <button onclick="Add()">Add</button>
-      <button onclick="Edit()">Edit</button>
     </div>
     <script>
       const view = document.querySelector('figni-viewer')
-      function Add() {
-        view.addHotspot('sample', '-0.5m 0.5m 0m', null, {
-          anime: {
-            clip: 'Push_in',
-            loopCount: 1,
-            reverse: true,
-            onStart: () => {
-              console.log('start')
-            },
-            onEnd: () => {
-              console.log('end')
-            },
-          },
-        })
-      }
-      function Edit() {
-        view.editHotspot('sample', '0.5m 0.5m 0m', null, {
-          anime: {
-            reverse: false,
-          },
-        })
-      }
     </script>
     <style>
       #view {

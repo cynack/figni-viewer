@@ -958,15 +958,15 @@ export class FigniViewerElement extends ModelViewerElement {
   }
 
   get #modelViewTime() {
-    return Number(Math.max(performance.now() - this.#initModelTime, 0)).toFixed(
-      2
+    return Number(
+      Math.max(performance.now() - this.#initModelTime, 0).toFixed(2)
     )
   }
 
   get #arViewTime() {
     return Number(
-      Math.max(performance.now() - this.#initArViewTime, 0)
-    ).toFixed(2)
+      Math.max(performance.now() - this.#initArViewTime, 0).toFixed(2)
+    )
   }
 }
 

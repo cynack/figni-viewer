@@ -52,6 +52,7 @@ export class FigniViewerElement extends ModelViewerElement {
   #wasInViewport = false
   #arCount = 0
   #hotspotClickCount = {}
+  #animationPlayCount = {}
 
   // HTML要素
   #initCameraButton
@@ -90,6 +91,7 @@ export class FigniViewerElement extends ModelViewerElement {
             ar_count: this.#arCount,
             ar_view_time: this.#arViewTime,
             hotspot_click: this.#hotspotClickCount,
+            animation_play: this.#animationPlayCount,
           })
         )
       }, 1000)
@@ -124,8 +126,6 @@ export class FigniViewerElement extends ModelViewerElement {
     this.arPlacement = 'floor'
     this.interactionPrompt = 'none'
     this.shadowIntensity = 1
-    this.environmentImage =
-      'https://storage.googleapis.com/figni-image/default-environment.hdr'
     this.minimumRenderScale = 0.25
     this.maxCameraOrbit = FigniViewerElement.#MAX_CAMERA_ORBIT
     this.minCameraOrbit = FigniViewerElement.#MIN_CAMERA_ORBIT
@@ -522,7 +522,7 @@ export class FigniViewerElement extends ModelViewerElement {
       })
     }
 
-    const name = hotspot.getAttribute('slot')
+    const name = hotspot.getAttribute('slot').replace(/^hotspot-/, '')
     const isAnime =
       hotspot.getAttribute('clip') != null ||
       hotspot.getAttribute('anime') == ''
@@ -903,6 +903,7 @@ export class FigniViewerElement extends ModelViewerElement {
       } else {
         onFinishFunc()
       }
+      this.#animationPlayCount[clip] = (this.#animationPlayCount[clip] || 0) + 1
     }
   }
 

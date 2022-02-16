@@ -30,7 +30,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - `addHotspot()`の引数`onstart`および`onend`をそれぞれ`onStart`、`onEnd`に変更
 - `editHotspot()`の引数`onstart`および`onend`をそれぞれ`onStart`、`onEnd`に変更
-- 環境画像を変更
 
 ### Deprecated
 

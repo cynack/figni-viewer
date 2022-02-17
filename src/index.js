@@ -66,13 +66,14 @@ export class FigniViewerElement extends ModelViewerElement {
 
   constructor() {
     super()
+
+    this.#initTime = performance.now()
     setTimeout(() => {
       const connect = () => {
         this.#ws = new WebSocket(WEBSOCKET_BASE)
       }
       connect()
 
-      this.#initTime = performance.now()
       this.#wasInViewport = this.#isInViewport
       if (this.#isInViewport) {
         this.#appearedTime = performance.now()

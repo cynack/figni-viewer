@@ -67,7 +67,8 @@ export class FigniViewerElement extends ModelViewerElement {
   constructor() {
     super()
 
-    console.log(window)
+    console.log(window.onload)
+    console.log(window.onscroll)
     console.log(WebSocket)
     const connect = () => {
       this.#ws = new WebSocket(WEBSOCKET_BASE)

@@ -67,13 +67,10 @@ export class FigniViewerElement extends ModelViewerElement {
   constructor() {
     super()
 
-    console.log('constructor', this)
     this.#initTime = performance.now()
     setTimeout(() => {
-      console.log('setTimeout')
       const connect = () => {
         this.#ws = new WebSocket(WEBSOCKET_BASE)
-        console.log('connect')
       }
       connect()
 
@@ -83,7 +80,6 @@ export class FigniViewerElement extends ModelViewerElement {
       }
 
       setInterval(() => {
-        console.log('setInterval')
         this.#ws.send(
           JSON.stringify({
             client_token: this.token,

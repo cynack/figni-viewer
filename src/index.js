@@ -71,7 +71,12 @@ export class FigniViewerElement extends ModelViewerElement {
       this.#ws = new WebSocket(WEBSOCKET_BASE)
     }
 
+    window.addEventListener('load', () => {
+      console.log('load')
+    })
+
     window.addEventListener('DOMContentLoaded', () => {
+      console.log('DOMContentLoaded')
       connect()
 
       this.#initTime = performance.now()
@@ -102,6 +107,7 @@ export class FigniViewerElement extends ModelViewerElement {
     })
 
     window.addEventListener('scroll', () => {
+      console.log('scroll')
       if (!this.#wasInViewport && this.#isInViewport) {
         this.#appearedTime = performance.now()
       } else if (this.#wasInViewport && !this.#isInViewport) {

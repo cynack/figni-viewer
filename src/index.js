@@ -66,46 +66,47 @@ export class FigniViewerElement extends ModelViewerElement {
 
   constructor() {
     super()
-
-    const connect = () => {
-      this.#ws = new WebSocket(WEBSOCKET_BASE)
-    }
-    connect()
-
-    this.#initTime = performance.now()
-    this.#wasInViewport = this.#isInViewport
-    if (this.#isInViewport) {
-      this.#appearedTime = performance.now()
-    }
-
-    setInterval(() => {
-      this.#ws.send(
-        JSON.stringify({
-          client_token: this.token,
-          client_version: VERSION,
-          stay_time: this.#stayTime,
-          view_time: this.#viewTime,
-          model_view_time: this.#modelViewTime,
-          ar_count: this.#arCount,
-          ar_view_time: this.#arViewTime,
-          hotspot_click: this.#hotspotClickCount,
-          animation_play: this.#animationPlayCount,
-        })
-      )
-    }, 1000)
-
-    this.#ws.addEventListener('close', () => {
-      connect()
-    })
-
-    window.addEventListener('scroll', () => {
-      if (!this.#wasInViewport && this.#isInViewport) {
-        this.#appearedTime = performance.now()
-      } else if (this.#wasInViewport && !this.#isInViewport) {
-        this.#sumViewTime += performance.now() - this.#appearedTime
+    setTimeout(() => {
+      const connect = () => {
+        this.#ws = new WebSocket(WEBSOCKET_BASE)
       }
+      connect()
+
+      this.#initTime = performance.now()
       this.#wasInViewport = this.#isInViewport
-    })
+      if (this.#isInViewport) {
+        this.#appearedTime = performance.now()
+      }
+
+      setInterval(() => {
+        this.#ws.send(
+          JSON.stringify({
+            client_token: this.token,
+            client_version: VERSION,
+            stay_time: this.#stayTime,
+            view_time: this.#viewTime,
+            model_view_time: this.#modelViewTime,
+            ar_count: this.#arCount,
+            ar_view_time: this.#arViewTime,
+            hotspot_click: this.#hotspotClickCount,
+            animation_play: this.#animationPlayCount,
+          })
+        )
+      }, 1000)
+
+      this.#ws.addEventListener('close', () => {
+        connect()
+      })
+
+      window.addEventListener('scroll', () => {
+        if (!this.#wasInViewport && this.#isInViewport) {
+          this.#appearedTime = performance.now()
+        } else if (this.#wasInViewport && !this.#isInViewport) {
+          this.#sumViewTime += performance.now() - this.#appearedTime
+        }
+        this.#wasInViewport = this.#isInViewport
+      })
+    }, 1000)
   }
 
   async connectedCallback() {

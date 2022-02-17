@@ -45,8 +45,8 @@ export class FigniViewerElement extends ModelViewerElement {
   // 利用データ
   #ws
   #initTime = 0
-  #initModelTime = 0
-  #initArViewTime = 0
+  #initModelTime = Infinity
+  #initArViewTime = Infinity
   #appearedTime = 0
   #sumViewTime = 0
   #wasInViewport = false
@@ -69,12 +69,12 @@ export class FigniViewerElement extends ModelViewerElement {
 
     console.log(window)
     console.log(WebSocket)
-    const wsConnect = () => {
+    const connect = () => {
       this.#ws = new WebSocket(WEBSOCKET_BASE)
       console.log(this.#ws)
     }
-    window.onload = () => {
-      wsConnect()
+    if (WebSocket) {
+      connect()
       this.#initTime = performance.now()
       this.#wasInViewport = this.#isInViewport
       if (this.#isInViewport) {
@@ -96,10 +96,11 @@ export class FigniViewerElement extends ModelViewerElement {
         )
       }, 1000)
       this.#ws.addEventListener('close', () => {
-        wsConnect()
+        connect()
       })
     }
     window.onscroll = () => {
+      console.log('scroll')
       if (!this.#wasInViewport && this.#isInViewport) {
         this.#appearedTime = performance.now()
       } else if (this.#wasInViewport && !this.#isInViewport) {
@@ -959,13 +960,19 @@ export class FigniViewerElement extends ModelViewerElement {
 
   get #modelViewTime() {
     return Number(
-      Math.max(performance.now() - this.#initModelTime, 0).toFixed(2)
+      Math.min(
+        Math.max(performance.now() - this.#initTime, 0),
+        this.#initModelTime
+      ).toFixed(2)
     )
   }
 
   get #arViewTime() {
     return Number(
-      Math.max(performance.now() - this.#initArViewTime, 0).toFixed(2)
+      Math.min(
+        Math.max(performance.now() - this.#initTime, 0),
+        this.#initArViewTime
+      ).toFixed(2)
     )
   }
 }

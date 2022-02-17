@@ -67,20 +67,19 @@ export class FigniViewerElement extends ModelViewerElement {
   constructor() {
     super()
 
-    console.log(window.onload)
-    console.log(window.onscroll)
-    console.log(WebSocket)
     const connect = () => {
       this.#ws = new WebSocket(WEBSOCKET_BASE)
-      console.log(this.#ws)
     }
-    if (WebSocket) {
+
+    window.addEventListener('DOMContentLoaded', () => {
       connect()
+
       this.#initTime = performance.now()
       this.#wasInViewport = this.#isInViewport
       if (this.#isInViewport) {
         this.#appearedTime = performance.now()
       }
+
       setInterval(() => {
         this.#ws.send(
           JSON.stringify({
@@ -96,19 +95,20 @@ export class FigniViewerElement extends ModelViewerElement {
           })
         )
       }, 1000)
+
       this.#ws.addEventListener('close', () => {
         connect()
       })
-    }
-    window.onscroll = () => {
-      console.log('scroll')
+    })
+
+    window.addEventListener('scroll', () => {
       if (!this.#wasInViewport && this.#isInViewport) {
         this.#appearedTime = performance.now()
       } else if (this.#wasInViewport && !this.#isInViewport) {
         this.#sumViewTime += performance.now() - this.#appearedTime
       }
       this.#wasInViewport = this.#isInViewport
-    }
+    })
   }
 
   async connectedCallback() {

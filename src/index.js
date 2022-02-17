@@ -67,7 +67,7 @@ export class FigniViewerElement extends ModelViewerElement {
   constructor() {
     super()
 
-    console.log('constructor')
+    console.log('constructor', this)
     this.#initTime = performance.now()
     setTimeout(() => {
       console.log('setTimeout')

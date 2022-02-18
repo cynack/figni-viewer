@@ -83,6 +83,7 @@ export class FigniViewerElement extends ModelViewerElement {
       setInterval(() => {
         this.#ws.send(
           JSON.stringify({
+            item_id: this.itemId,
             client_token: this.token,
             client_version: VERSION,
             stay_time: this.#stayTime,

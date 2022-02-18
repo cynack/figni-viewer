@@ -45,8 +45,8 @@ export class FigniViewerElement extends ModelViewerElement {
   // 利用データ
   #ws
   #initTime = 0
-  #initModelTime = 0
-  #initArViewTime = 0
+  #initModelTime = Infinity
+  #initArViewTime = Infinity
   #appearedTime = 0
   #sumViewTime = 0
   #wasInViewport = false
@@ -64,54 +64,49 @@ export class FigniViewerElement extends ModelViewerElement {
   #panels = []
   #hotspots = []
 
-  constructor() {
-    super()
+  initializeDataConnection() {
+    if (this.#ws) {
+      this.#ws.close()
+    }
+    this.#ws = new WebSocket(WEBSOCKET_BASE)
 
-    console.log(window)
-    console.log(WebSocket)
-    const wsConnect = () => {
-      this.#ws = new WebSocket(WEBSOCKET_BASE)
-      console.log(this.#ws)
+    this.#initTime = performance.now()
+    this.#wasInViewport = this.#isInViewport
+    if (this.#isInViewport) {
+      this.#appearedTime = performance.now()
     }
-    window.onload = () => {
-      wsConnect()
-      this.#initTime = performance.now()
-      this.#wasInViewport = this.#isInViewport
-      if (this.#isInViewport) {
-        this.#appearedTime = performance.now()
-      }
-      setInterval(() => {
-        this.#ws.send(
-          JSON.stringify({
-            item_id: this.itemId,
-            client_token: this.token,
-            client_version: VERSION,
-            stay_time: this.#stayTime,
-            view_time: this.#viewTime,
-            model_view_time: this.#modelViewTime,
-            ar_count: this.#arCount,
-            ar_view_time: this.#arViewTime,
-            hotspot_click: this.#hotspotClickCount,
-            animation_play: this.#animationPlayCount,
-          })
-        )
-      }, 1000)
-      this.#ws.addEventListener('close', () => {
-        wsConnect()
-      })
-    }
-    window.onscroll = () => {
+
+    setInterval(() => {
+      this.#ws.send(
+        JSON.stringify({
+          item_id: this.itemId,
+          client_token: this.token,
+          client_version: VERSION,
+          stay_time: this.#stayTime,
+          view_time: this.#viewTime,
+          model_view_time: this.#modelViewTime,
+          ar_count: this.#arCount,
+          ar_view_time: this.#arViewTime,
+          hotspot_click: this.#hotspotClickCount,
+          animation_play: this.#animationPlayCount,
+        })
+      )
+    }, 1000)
+
+    window.addEventListener('scroll', () => {
       if (!this.#wasInViewport && this.#isInViewport) {
         this.#appearedTime = performance.now()
       } else if (this.#wasInViewport && !this.#isInViewport) {
         this.#sumViewTime += performance.now() - this.#appearedTime
       }
       this.#wasInViewport = this.#isInViewport
-    }
+    })
   }
 
   async connectedCallback() {
     super.connectedCallback()
+
+    this.initializeDataConnection()
 
     // 輪郭線を削除
     this.shadowRoot
@@ -959,15 +954,21 @@ export class FigniViewerElement extends ModelViewerElement {
   }
 
   get #modelViewTime() {
-    return Number(Math.max(performance.now() - this.#initModelTime, 0)).toFixed(
-      2
+    return Number(
+      Math.min(
+        Math.max(performance.now() - this.#initTime, 0),
+        this.#initModelTime
+      ).toFixed(2)
     )
   }
 
   get #arViewTime() {
     return Number(
-      Math.max(performance.now() - this.#initArViewTime, 0)
-    ).toFixed(2)
+      Math.min(
+        Math.max(performance.now() - this.#initTime, 0),
+        this.#initArViewTime
+      ).toFixed(2)
+    )
   }
 }
 

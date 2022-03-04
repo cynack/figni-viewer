@@ -5,14 +5,12 @@ const TerserPlugin = require('terser-webpack-plugin')
 const webpack = require('webpack')
 
 const isProduction = process.env.NODE_ENV == 'production'
-const apiBase =
-  process.env.FIGNI_ENV == 'production'
-    ? 'https://api.figni.io/api'
-    : 'https://api.stg.figni.io/api'
-const websocketBase =
-  process.env.FIGNI_ENV == 'production'
-    ? 'wss://api.figni.io/ws'
-    : 'wss://api.stg.figni.io/ws'
+const apiBase = isProduction
+  ? 'https://api.figni.io/api'
+  : 'https://api.stg.figni.io/api'
+const websocketBase = isProduction
+  ? 'wss://api.figni.io/ws'
+  : 'wss://api.stg.figni.io/ws'
 
 const config = {
   entry: ['@babel/polyfill', './src/index.js'],

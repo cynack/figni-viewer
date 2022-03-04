@@ -28,7 +28,6 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           VERSION: ${{ github.sha }}
-          FIGNI_ENV: production
       - name: slack notification on success
         if: ${{ success() }}
         uses: rtCamp/action-slack-notify@v2

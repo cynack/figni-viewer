@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - `addHotspot()`の引数に`reverse`を追加
 - `editHotspot()`の引数に`reverse`を追加
+- 利用方法を示すプロンプトを追加
 
 ### Changed
 

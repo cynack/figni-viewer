@@ -16,7 +16,7 @@ const VIEW_THRESHOLD = 0.7
 export class FigniViewerElement extends ModelViewerElement {
   static #FIGNI_OBSERBED_ATTRIBUTES = {
     MODEL: ['item-id', 'token', 'model-tag'],
-    TOOL: ['screenshot'],
+    TOOL: ['screenshot', 'toggle-caption'],
   }
 
   static #DEFAULT_CAMERA_TARGET = 'auto auto auto'
@@ -160,10 +160,6 @@ export class FigniViewerElement extends ModelViewerElement {
       this.#modifyHotspot(hotspot)
     })
 
-    if (this.#hotspots.length > 0) {
-      this.#enableToggleVisibleHotspotButton()
-    }
-
     this.#requestModel()
     this.setCameraTarget(this.#initCameraTarget)
     this.setCameraOrbit(this.#initCameraOrbit)
@@ -177,9 +173,6 @@ export class FigniViewerElement extends ModelViewerElement {
           for (const node of mutation.addedNodes) {
             if (typeof node == 'element') {
               if (/^hotspot/.test(node.getAttribute('slot'))) {
-                if (this.#hotspots.length == 0) {
-                  this.#enableToggleVisibleHotspotButton()
-                }
                 this.#hotspots.push(node)
                 this.#modifyHotspot(node)
                 this.updateState(this.state)
@@ -256,6 +249,14 @@ export class FigniViewerElement extends ModelViewerElement {
               this.#enableDownloadScreenshotButton()
             } else {
               this.#disableDownloadScreenshotButton()
+            }
+            break
+          }
+          case 'toggle-caption': {
+            if (newValue == '') {
+              this.#enableToggleVisibleHotspotButton()
+            } else {
+              this.#enableToggleVisibleHotspotButton()
             }
             break
           }

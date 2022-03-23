@@ -127,7 +127,7 @@ export class FigniViewerElement extends ModelViewerElement {
     this.arModes = 'webxr scene-viewer quick-look'
     this.arScale = 'fixed'
     this.arPlacement = 'floor'
-    this.interactionPrompt = 'auto'
+    this.interactionPrompt = 'none'
     this.shadowIntensity = 1
     this.minimumRenderScale = 0.25
     this.maxCameraOrbit = FigniViewerElement.#MAX_CAMERA_ORBIT

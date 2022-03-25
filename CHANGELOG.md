@@ -23,6 +23,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [1.3.0] - 2022-03-23
+
+### Added
+
 - `addHotspot()`の引数に`reverse`を追加
 - `editHotspot()`の引数に`reverse`を追加
 - 利用方法を示すプロンプトを追加
@@ -32,10 +44,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `addHotspot()`の引数`onstart`および`onend`をそれぞれ`onStart`、`onEnd`に変更
 - `editHotspot()`の引数`onstart`および`onend`をそれぞれ`onStart`、`onEnd`に変更
 - キャプションの表示非表示を切り替えるボタンを属性`toggle-caption`の有無で制御できるように変更
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 

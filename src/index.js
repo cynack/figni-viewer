@@ -58,6 +58,7 @@ export class FigniViewerElement extends ModelViewerElement {
   #animationPlayCount = {}
 
   // HTML要素
+  #interactionCursor
   #arButton
   #initCameraButton
   #downloadScreenshotButton
@@ -158,6 +159,7 @@ export class FigniViewerElement extends ModelViewerElement {
       this.getAttribute('orbit') || FigniViewerElement.#DEFAULT_CAMERA_ORBIT
     this.state = this.getAttribute('state') || this.state
 
+    this.#enableInteractionCursor()
     this.#enableArButton()
 
     const hotspots = this.querySelectorAll('[slot^="hotspot"]')
@@ -687,6 +689,39 @@ export class FigniViewerElement extends ModelViewerElement {
     }
   }
 
+  #enableInteractionCursor() {
+    if (!this.#interactionCursor) {
+      this.#interactionCursor = document.createElement('div')
+      this.#interactionCursor.classList.add('figni-viewer-interaction-cursor')
+      this.#interactionCursor.style.opacity = 0
+      this.addEventListener('pointerdown', (e) => {
+        const rect = e.currentTarget.getBoundingClientRect()
+        this.#interactionCursor.style.left = `${e.clientX - rect.left}px`
+        this.#interactionCursor.style.top = `${e.clientY - rect.top}px`
+        this.#interactionCursor.style.opacity = 1
+      })
+      this.addEventListener('pointermove', (e) => {
+        if (this.#isInteracting) {
+          const rect = e.currentTarget.getBoundingClientRect()
+          this.#interactionCursor.style.left = `${e.clientX - rect.left}px`
+          this.#interactionCursor.style.top = `${e.clientY - rect.top}px`
+        }
+      })
+      this.addEventListener('pointerup', () => {
+        this.#interactionCursor.style.opacity = 0
+      })
+      this.appendChild(this.#interactionCursor)
+    } else {
+      this.#interactionCursor.style.display = 'block'
+    }
+  }
+
+  #disableInteractionCursor() {
+    if (this.#interactionCursor) {
+      this.#interactionCursor.style.display = 'none'
+    }
+  }
+
   #enableArButton() {
     if (!this.#arButton) {
       this.#arButton = document.createElement('button')
@@ -697,7 +732,7 @@ export class FigniViewerElement extends ModelViewerElement {
         this.#arCount++
         this.#initArViewTime = performance.now()
       })
-      this.appendChild(arButton)
+      this.appendChild(this.#arButton)
     } else {
       this.#arButton.style.display = 'block'
     }

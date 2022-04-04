@@ -296,6 +296,7 @@ export class FigniViewerElement extends ModelViewerElement {
   async #requestModel() {
     if (this.itemId && this.token) {
       this.#disableErrorPanel()
+      this.#enableLoadingPanel()
       const tag = this.modelTag ? `?tag=${this.modelTag}` : ''
       try {
         const res = await axios.get(
@@ -318,7 +319,6 @@ export class FigniViewerElement extends ModelViewerElement {
         } else {
           this.iosSrc = ''
         }
-        this.#enableLoadingPanel()
       } catch (e) {
         this.#enableErrorPanel(getErrorMessage(e))
       }
@@ -716,6 +716,7 @@ export class FigniViewerElement extends ModelViewerElement {
       this.#interactionCursor.style.opacity = 0
       let isDragging = false
       let wasInteracted = false
+      let pointerId = null
       this.addEventListener('pointerdown', (e) => {
         isDragging = true
         if (this.#isInteracting) {
@@ -728,16 +729,19 @@ export class FigniViewerElement extends ModelViewerElement {
         }
       })
       this.addEventListener('pointermove', (e) => {
-        if (this.#isInteracting && isDragging) {
-          const rect = e.currentTarget.getBoundingClientRect()
-          this.#interactionCursor.style.left = `${e.clientX - rect.left}px`
-          this.#interactionCursor.style.top = `${e.clientY - rect.top}px`
-          if (!wasInteracted) {
-            this.#interactionCursor.style.opacity = 0.075
-            this.#interactionCursor.style.width = '8rem'
-            this.#interactionCursor.style.height = '8rem'
+        if (pointerId == null || pointerId == e.pointerId) {
+          if (this.#isInteracting && isDragging) {
+            const rect = e.currentTarget.getBoundingClientRect()
+            this.#interactionCursor.style.left = `${e.clientX - rect.left}px`
+            this.#interactionCursor.style.top = `${e.clientY - rect.top}px`
+            if (!wasInteracted) {
+              this.#interactionCursor.style.opacity = 0.075
+              this.#interactionCursor.style.width = '8rem'
+              this.#interactionCursor.style.height = '8rem'
+            }
+            wasInteracted = true
+            pointerId = e.pointerId
           }
-          wasInteracted = true
         }
       })
       this.addEventListener('pointerup', (e) => {
@@ -745,6 +749,7 @@ export class FigniViewerElement extends ModelViewerElement {
         this.#interactionCursor.style.opacity = 0
         this.#interactionCursor.style.width = 0
         this.#interactionCursor.style.height = 0
+        pointerId = null
       })
       this.addEventListener('scroll', (e) => {
         this.#interactionCursor.style.opacity = 0

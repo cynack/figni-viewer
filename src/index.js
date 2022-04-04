@@ -698,7 +698,9 @@ export class FigniViewerElement extends ModelViewerElement {
         const rect = e.currentTarget.getBoundingClientRect()
         this.#interactionCursor.style.left = `${e.clientX - rect.left}px`
         this.#interactionCursor.style.top = `${e.clientY - rect.top}px`
-        this.#interactionCursor.style.opacity = 1
+        this.#interactionCursor.style.opacity = 0.25
+        this.#interactionCursor.style.width = '4rem'
+        this.#interactionCursor.style.height = '4rem'
       })
       this.addEventListener('pointermove', (e) => {
         if (this.#isInteracting) {
@@ -709,6 +711,8 @@ export class FigniViewerElement extends ModelViewerElement {
       })
       this.addEventListener('pointerup', () => {
         this.#interactionCursor.style.opacity = 0
+        this.#interactionCursor.style.width = '0'
+        this.#interactionCursor.style.height = '0'
       })
       this.appendChild(this.#interactionCursor)
     } else {

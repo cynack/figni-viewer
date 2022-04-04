@@ -58,6 +58,7 @@ export class FigniViewerElement extends ModelViewerElement {
   #animationPlayCount = {}
 
   // HTML要素
+  #arButton
   #initCameraButton
   #downloadScreenshotButton
   #toggleVisibleHotspotButton
@@ -143,6 +144,7 @@ export class FigniViewerElement extends ModelViewerElement {
     this.interactionPrompt = 'auto'
     this.shadowIntensity = 1
     this.minimumRenderScale = 0.25
+    this.animationCrossfadeDuration = 0
     this.maxCameraOrbit = FigniViewerElement.#MAX_CAMERA_ORBIT
     this.minCameraOrbit = FigniViewerElement.#MIN_CAMERA_ORBIT
 
@@ -156,17 +158,8 @@ export class FigniViewerElement extends ModelViewerElement {
       this.getAttribute('orbit') || FigniViewerElement.#DEFAULT_CAMERA_ORBIT
     this.state = this.getAttribute('state') || this.state
 
-    const arButton = document.createElement('button')
-    arButton.setAttribute('slot', 'ar-button')
-    arButton.innerHTML = `${SVG_AR_BUTTON}<span>目の前に置く</span>`
-    arButton.classList.add('figni-viewer-ar-button')
-    arButton.addEventListener('click', () => {
-      this.#arCount++
-      this.#initArViewTime = performance.now()
-    })
-    this.appendChild(arButton)
+    this.#enableArButton()
 
-    this.animationCrossfadeDuration = 0
     const hotspots = this.querySelectorAll('[slot^="hotspot"]')
     this.#hotspots = Array.from(hotspots)
     hotspots.forEach((hotspot) => {
@@ -691,6 +684,28 @@ export class FigniViewerElement extends ModelViewerElement {
       panel.classList.add('figni-viewer-panel-place-center-bottom')
     } else if (horizontal == 'right' && vertical == 'bottom') {
       panel.classList.add('figni-viewer-panel-place-right-bottom')
+    }
+  }
+
+  #enableArButton() {
+    if (!this.#arButton) {
+      this.#arButton = document.createElement('button')
+      this.#arButton.setAttribute('slot', 'ar-button')
+      this.#arButton.innerHTML = `${SVG_AR_BUTTON}<span>目の前に置く</span>`
+      this.#arButton.classList.add('figni-viewer-ar-button')
+      this.#arButton.addEventListener('click', () => {
+        this.#arCount++
+        this.#initArViewTime = performance.now()
+      })
+      this.appendChild(arButton)
+    } else {
+      this.#arButton.style.display = 'block'
+    }
+  }
+
+  #disableArButton() {
+    if (this.#arButton) {
+      this.#arButton.style.display = 'none'
     }
   }
 

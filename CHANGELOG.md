@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- *hotspot*に強調アニメーションを追加
+- タッチ(クリック)している位置を強調するカーソルを追加
+
 ### Changed
 
 ### Deprecated

@@ -115,7 +115,6 @@ export class FigniViewerElement extends ModelViewerElement {
         }
         this.#wasInViewport = this.#isInViewport
       })
-
       this.addEventListener('pointerdown', () => {
         this.#isInteracting = true
         this.#interactedTime = performance.now()
@@ -698,9 +697,9 @@ export class FigniViewerElement extends ModelViewerElement {
         const rect = e.currentTarget.getBoundingClientRect()
         this.#interactionCursor.style.left = `${e.clientX - rect.left}px`
         this.#interactionCursor.style.top = `${e.clientY - rect.top}px`
-        this.#interactionCursor.style.opacity = 0.25
-        this.#interactionCursor.style.width = '4rem'
-        this.#interactionCursor.style.height = '4rem'
+        this.#interactionCursor.style.opacity = 0.075
+        this.#interactionCursor.style.width = '8rem'
+        this.#interactionCursor.style.height = '8rem'
       })
       this.addEventListener('pointermove', (e) => {
         if (this.#isInteracting) {

@@ -49,6 +49,9 @@ export class FigniViewerElement extends ModelViewerElement {
   #initArViewTime = Infinity
   #appearedTime = 0
   #sumViewTime = 0
+  #interactedTime = 0
+  #sumInteractionTime = 0
+  #isInteracting = false
   #wasInViewport = false
   #arCount = 0
   #hotspotClickCount = {}
@@ -92,6 +95,7 @@ export class FigniViewerElement extends ModelViewerElement {
             client_version: VERSION,
             stay_time: this.#stayTime,
             view_time: this.#viewTime,
+            interaction_time: this.#interactionTime,
             model_view_time: this.#modelViewTime,
             ar_count: this.#arCount,
             ar_view_time: this.#arViewTime,
@@ -108,6 +112,15 @@ export class FigniViewerElement extends ModelViewerElement {
           this.#sumViewTime += performance.now() - this.#appearedTime
         }
         this.#wasInViewport = this.#isInViewport
+      })
+
+      this.addEventListener('pointerdown', () => {
+        this.#isInteracting = true
+        this.#interactedTime = performance.now()
+      })
+      this.addEventListener('pointerup', () => {
+        this.#isInteracting = false
+        this.#sumInteractionTime += performance.now() - this.#interactedTime
       })
     }
   }
@@ -959,6 +972,15 @@ export class FigniViewerElement extends ModelViewerElement {
       (
         this.#sumViewTime +
         (this.#isInViewport ? performance.now() - this.#appearedTime : 0)
+      ).toFixed(2)
+    )
+  }
+
+  get #interactionTime() {
+    return Number(
+      (
+        this.#sumInteractionTime +
+        (this.#isInteracting ? performance.now() - this.#interactedTime : 0)
       ).toFixed(2)
     )
   }

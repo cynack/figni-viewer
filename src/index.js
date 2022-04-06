@@ -90,21 +90,26 @@ export class FigniViewerElement extends ModelViewerElement {
       }
 
       setInterval(() => {
-        this.#ws.send(
-          JSON.stringify({
-            item_id: this.itemId,
-            client_token: this.token,
-            client_version: VERSION,
-            stay_time: this.#stayTime,
-            view_time: this.#viewTime,
-            interaction_time: this.#interactionTime,
-            model_view_time: this.#modelViewTime,
-            ar_count: this.#arCount,
-            ar_view_time: this.#arViewTime,
-            hotspot_click: this.#hotspotClickCount,
-            animation_play: this.#animationPlayCount,
-          })
-        )
+        if (this.#ws.readyState === WebSocket.OPEN) {
+          this.#ws.send(
+            JSON.stringify({
+              item_id: this.itemId,
+              client_token: this.token,
+              client_version: VERSION,
+              stay_time: this.#stayTime,
+              view_time: this.#viewTime,
+              interaction_time: this.#interactionTime,
+              model_view_time: this.#modelViewTime,
+              ar_count: this.#arCount,
+              ar_view_time: this.#arViewTime,
+              hotspot_click: this.#hotspotClickCount,
+              animation_play: this.#animationPlayCount,
+            })
+          )
+        } else {
+          console.error("Can't send analytics data. Reconnecting...")
+          this.#ws = new WebSocket(WEBSOCKET_BASE)
+        }
       }, 1000)
 
       window.addEventListener('scroll', () => {
@@ -720,25 +725,19 @@ export class FigniViewerElement extends ModelViewerElement {
       this.addEventListener('pointerdown', (e) => {
         isDragging = true
         if (this.#isInteracting) {
+          this.#cursorShow()
           const rect = e.currentTarget.getBoundingClientRect()
-          this.#interactionCursor.style.left = `${e.clientX - rect.left}px`
-          this.#interactionCursor.style.top = `${e.clientY - rect.top}px`
-          this.#interactionCursor.style.opacity = 0.075
-          this.#interactionCursor.style.width = '8rem'
-          this.#interactionCursor.style.height = '8rem'
+          this.#cursorMove(e.clientX - rect.left, e.clientY - rect.top)
         }
       })
       this.addEventListener('pointermove', (e) => {
         if (pointerId == null || pointerId == e.pointerId) {
           if (this.#isInteracting && isDragging) {
-            const rect = e.currentTarget.getBoundingClientRect()
-            this.#interactionCursor.style.left = `${e.clientX - rect.left}px`
-            this.#interactionCursor.style.top = `${e.clientY - rect.top}px`
             if (!wasInteracted) {
-              this.#interactionCursor.style.opacity = 0.075
-              this.#interactionCursor.style.width = '8rem'
-              this.#interactionCursor.style.height = '8rem'
+              this.#cursorShow()
             }
+            const rect = e.currentTarget.getBoundingClientRect()
+            this.#cursorMove(e.clientX - rect.left, e.clientY - rect.top)
             wasInteracted = true
             pointerId = e.pointerId
           }
@@ -746,21 +745,15 @@ export class FigniViewerElement extends ModelViewerElement {
       })
       this.addEventListener('pointerup', (e) => {
         isDragging = false
-        this.#interactionCursor.style.opacity = 0
-        this.#interactionCursor.style.width = 0
-        this.#interactionCursor.style.height = 0
+        this.#cursorHide()
         pointerId = null
       })
       this.addEventListener('scroll', (e) => {
-        this.#interactionCursor.style.opacity = 0
-        this.#interactionCursor.style.width = 0
-        this.#interactionCursor.style.height = 0
+        this.#cursorHide()
       })
       this.addEventListener('interaction-end', (e) => {
         wasInteracted = false
-        this.#interactionCursor.style.opacity = 0
-        this.#interactionCursor.style.width = 0
-        this.#interactionCursor.style.height = 0
+        this.#cursorHide()
       })
       this.appendChild(this.#interactionCursor)
     } else {
@@ -771,6 +764,29 @@ export class FigniViewerElement extends ModelViewerElement {
   #disableInteractionCursor() {
     if (this.#interactionCursor) {
       this.#interactionCursor.style.display = 'none'
+    }
+  }
+
+  #cursorShow() {
+    if (this.#interactionCursor) {
+      this.#interactionCursor.style.opacity = 0.075
+      this.#interactionCursor.style.width = '8rem'
+      this.#interactionCursor.style.height = '8rem'
+    }
+  }
+
+  #cursorMove(x, y) {
+    if (this.#interactionCursor) {
+      this.#interactionCursor.style.left = `${x}px`
+      this.#interactionCursor.style.top = `${y}px`
+    }
+  }
+
+  #cursorHide() {
+    if (this.#interactionCursor) {
+      this.#interactionCursor.style.opacity = 0
+      this.#interactionCursor.style.width = 0
+      this.#interactionCursor.style.height = 0
     }
   }
 

@@ -59,6 +59,7 @@ export class FigniViewerElement extends ModelViewerElement {
 
   // HTML要素
   #interactionCursor
+  #interactionPrompt
   #arButton
   #initCameraButton
   #downloadScreenshotButton
@@ -168,6 +169,10 @@ export class FigniViewerElement extends ModelViewerElement {
     this.arScale = 'fixed'
     this.arPlacement = 'floor'
     this.interactionPrompt = 'auto'
+    this.interactionPromptStyle = 'basic'
+    this.interactionPromptThreshold = 0
+    this.autoRotate = true
+    this.autoRotateDelay = 0
     this.shadowIntensity = 1
     this.minimumRenderScale = 0.25
     this.animationCrossfadeDuration = 0
@@ -185,6 +190,7 @@ export class FigniViewerElement extends ModelViewerElement {
     this.state = this.getAttribute('state') || this.state
 
     this.#enableInteractionCursor()
+    this.#enableInteractionPrompt()
     this.#enableArButton()
 
     const hotspots = this.querySelectorAll('[slot^="hotspot"]')
@@ -246,6 +252,10 @@ export class FigniViewerElement extends ModelViewerElement {
     }
 
     await this.initializeDataConnection()
+
+    this.addEventListener('pointerdown', (e) => {
+      this.autoRotate = false
+    })
   }
 
   static get observedAttributes() {
@@ -787,6 +797,32 @@ export class FigniViewerElement extends ModelViewerElement {
       this.#interactionCursor.style.opacity = 0
       this.#interactionCursor.style.width = 0
       this.#interactionCursor.style.height = 0
+    }
+  }
+
+  #enableInteractionPrompt() {
+    if (!this.#interactionPrompt) {
+      this.#interactionPrompt = document.createElement('div')
+      this.#interactionPrompt.setAttribute('slot', 'interaction-prompt')
+      this.#interactionPrompt.classList.add('figni-viewer-interaction-prompt')
+      /*
+      Lottie.loadAnimation({
+        container: this.#interactionPrompt,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        animationData: INTERACTION_PROMPT_ANIMATION,
+      })
+      */
+      this.appendChild(this.#interactionPrompt)
+    } else {
+      this.#interactionPrompt.style.display = 'block'
+    }
+  }
+
+  #disableInteractionPrompt() {
+    if (this.#interactionPrompt) {
+      this.#interactionPrompt.style.display = 'none'
     }
   }
 

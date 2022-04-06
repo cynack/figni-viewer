@@ -539,3 +539,9 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
   mix-blend-mode: difference;
   transition: opacity 0.2s ease-out, width 0.2s ease-out, height 0.2s ease-out;
 }
+
+.figni-viewer-interaction-prompt {
+  width: 400px;
+  height: 400px;
+  background-color: var(--figni-viewer-gray-300-tp);
+}

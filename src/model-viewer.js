@@ -54747,7 +54747,8 @@ class ModelScene extends Scene {
                 if (lastAnimationAction != null && action !== lastAnimationAction) {
                     action.crossFadeFrom(lastAnimationAction, crossfadeTime, false);
                 }
-                else if (this.animationTimeScale > 0) {
+                else if (this.animationTimeScale > 0 &&
+                    this.animationTime == this.duration) {
                     // This is a workaround for what I believe is a three.js bug.
                     this.animationTime = 0;
                 }
@@ -61874,6 +61875,8 @@ class SmoothControls extends EventDispatcher {
         scene.setTarget(target.x, target.y, target.z);
     }
     recenter(pointer) {
+        const { scene } = this;
+        scene.element[$panElement].style.opacity = 0;
         if (!this.enablePan ||
             Math.abs(pointer.clientX - this.startPointerPosition.clientX) >
                 TAP_DISTANCE ||
@@ -61881,8 +61884,6 @@ class SmoothControls extends EventDispatcher {
                 TAP_DISTANCE) {
             return;
         }
-        const { scene } = this;
-        scene.element[$panElement].style.opacity = 0;
         const hit = scene.positionAndNormalFromPoint(scene.getNDC(pointer.clientX, pointer.clientY));
         if (hit == null) {
             const { cameraTarget } = scene.element;
@@ -61894,19 +61895,18 @@ class SmoothControls extends EventDispatcher {
         else {
             scene.target.worldToLocal(hit.position);
             scene.setTarget(hit.position.x, hit.position.y, hit.position.z);
-            // Zoom in on the tapped point.
-            this.userAdjustOrbit(0, 0, -5 * ZOOM_SENSITIVITY);
         }
     }
     resetRadius() {
+        const { scene } = this;
+        scene.element[$panElement].style.opacity = 0;
         if (!this.enablePan || this.panPerPixel === 0) {
             return;
         }
-        const { scene } = this;
-        scene.element[$panElement].style.opacity = 0;
         const hit = scene.positionAndNormalFromPoint(vector2.set(0, 0));
-        if (hit == null)
+        if (hit == null) {
             return;
+        }
         scene.target.worldToLocal(hit.position);
         const goalTarget = scene.getTarget();
         const { theta, phi } = this.spherical;
@@ -61951,7 +61951,7 @@ class SmoothControls extends EventDispatcher {
                     null :
                     this.touchModeZoom;
                 this.touchDecided = true;
-                if (this.enablePan) {
+                if (this.enablePan && this.touchMode != null) {
                     this.initializePan();
                     const x = 0.5 * (targetTouches[0].clientX + targetTouches[1].clientX);
                     const y = 0.5 * (targetTouches[0].clientY + targetTouches[1].clientY);

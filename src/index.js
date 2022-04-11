@@ -1,4 +1,7 @@
 import axios from 'axios'
+import Lottie from 'lottie-web'
+import QRCode from 'qrcode'
+import { LOADING_ANIMATION_MINI } from './animation'
 import { getErrorMessage } from './error'
 import { ModelViewerElement } from './model-viewer'
 import './style.scss'
@@ -6,7 +9,6 @@ import {
   SVG_AR_BUTTON,
   SVG_DOWNLOAD_SCREENSHOT_BUTTON,
   SVG_ERROR_ICON,
-  SVG_LOADING_CUBE,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
 } from './svg'
@@ -61,6 +63,7 @@ export class FigniViewerElement extends ModelViewerElement {
   #interactionCursor
   #interactionPrompt
   #arButton
+  #qrCodePanel
   #initCameraButton
   #downloadScreenshotButton
   #toggleVisibleHotspotButton
@@ -190,7 +193,8 @@ export class FigniViewerElement extends ModelViewerElement {
     this.state = this.getAttribute('state') || this.state
 
     this.#enableInteractionCursor()
-    this.#enableInteractionPrompt()
+    // TODO: インタラクションプロンプトやる
+    // this.#enableInteractionPrompt()
     this.#enableArButton()
 
     const hotspots = this.querySelectorAll('[slot^="hotspot"]')
@@ -829,12 +833,17 @@ export class FigniViewerElement extends ModelViewerElement {
   #enableArButton() {
     if (!this.#arButton) {
       this.#arButton = document.createElement('button')
-      this.#arButton.setAttribute('slot', 'ar-button')
+      // this.#arButton.setAttribute('slot', 'ar-button')
       this.#arButton.innerHTML = `${SVG_AR_BUTTON}<span>目の前に置く</span>`
       this.#arButton.classList.add('figni-viewer-ar-button')
       this.#arButton.addEventListener('click', () => {
-        this.#arCount++
-        this.#initArViewTime = performance.now()
+        if (this.canActivateAR) {
+          this.#arCount++
+          this.#initArViewTime = performance.now()
+          this.activateAR()
+        } else {
+          this.#enableQRCodePanel()
+        }
       })
       this.appendChild(this.#arButton)
     } else {
@@ -845,6 +854,32 @@ export class FigniViewerElement extends ModelViewerElement {
   #disableArButton() {
     if (this.#arButton) {
       this.#arButton.style.display = 'none'
+    }
+  }
+
+  #enableQRCodePanel() {
+    if (!this.#qrCodePanel) {
+      this.#qrCodePanel = document.createElement('div')
+      this.#qrCodePanel.classList.add('figni-viewer-qrcode-panel')
+      this.#qrCodePanel.addEventListener('click', () => {
+        this.#disableQRCodePanel()
+      })
+      QRCode.toString(window.top.location.href, { width: 100 }, (err, str) => {
+        if (!err) {
+          this.#qrCodePanel.innerHTML = str.replace('#000000', '#222428')
+        } else {
+          console.error(err)
+        }
+      })
+      this.appendChild(this.#qrCodePanel)
+    } else {
+      this.#qrCodePanel.style.display = 'block'
+    }
+  }
+
+  #disableQRCodePanel() {
+    if (this.#qrCodePanel) {
+      this.#qrCodePanel.style.display = 'none'
     }
   }
 
@@ -921,18 +956,13 @@ export class FigniViewerElement extends ModelViewerElement {
       // ローディングアニメ
       const loadingAnimation = document.createElement('div')
       loadingAnimation.classList.add('figni-viewer-loading-animation')
-      const loadingAnimationCubes = document.createElement('div')
-      loadingAnimationCubes.classList.add(
-        'figni-viewer-loading-animation-cubes'
-      )
-      for (let i = 0; i < 4; i++) {
-        const cube = document.createElement('div')
-        cube.innerHTML = SVG_LOADING_CUBE
-        cube.classList.add('figni-viewer-loading-animation-cube')
-        cube.classList.add(`figni-viewer-loading-animation-cube${i + 1}`)
-        loadingAnimationCubes.appendChild(cube)
-      }
-      loadingAnimation.appendChild(loadingAnimationCubes)
+      Lottie.loadAnimation({
+        container: loadingAnimation,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        animationData: LOADING_ANIMATION_MINI,
+      })
       this.#loadingPanel.appendChild(loadingAnimation)
       // プログレスバー
       const loadingProgressBar = document.createElement('span')
@@ -952,7 +982,7 @@ export class FigniViewerElement extends ModelViewerElement {
         )
         if (p === 1) {
           this.#initModelTime = performance.now()
-          // this.#disableLoadingPanel()
+          this.#disableLoadingPanel()
         }
       })
     } else {

@@ -231,6 +231,10 @@ figni-viewer * {
   box-shadow: 0 0 0 0.3rem var(--figni-viewer-secondary-tp);
 }
 
+figni-viewer::part(default-ar-button) {
+  display: none;
+}
+
 .figni-viewer-ar-button {
   position: absolute;
   display: flex;
@@ -361,93 +365,10 @@ figni-viewer * {
 
 .figni-viewer-loading-animation {
   position: relative;
-  width: 100px;
-  height: 60px;
+  width: 80%;
+  height: 80%;
   margin-top: 2rem;
   margin-bottom: 2rem;
-}
-
-.figni-viewer-loading-animation-cubes {
-  position: absolute;
-}
-
-$w: 40px;
-$h: 46.6px;
-$xspace: 20px;
-$yspace: 10.65px;
-$speed: 2s;
-$ease: cubic-bezier(0, 1, 0.3, 1);
-
-.figni-viewer-loading-animation-cube {
-  width: $w;
-  height: $h;
-  position: absolute;
-  transition: all ease-out 0.3s;
-}
-.figni-viewer-loading-animation-cube1 {
-  animation: animation-cube1 $speed $ease infinite;
-}
-.figni-viewer-loading-animation-cube2 {
-  animation: animation-cube2 $speed $ease infinite;
-}
-.figni-viewer-loading-animation-cube3 {
-  animation: animation-cube3 $speed $ease infinite;
-  z-index: 2;
-}
-.figni-viewer-loading-animation-cube4 {
-  animation: animation-cube4 $speed $ease infinite;
-}
-
-@keyframes animation-cube1 {
-  0% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate($xspace, -$yspace);
-  }
-  100% {
-    transform: translate($xspace * 2, 0);
-  }
-}
-
-@keyframes animation-cube2 {
-  0%,
-  50% {
-    transform: translate($xspace * 2, 0px);
-  }
-  100% {
-    transform: translate($xspace * 3, $yspace);
-  }
-}
-
-@keyframes animation-cube3 {
-  0% {
-    transform: translate($xspace * 3, $yspace);
-  }
-  50% {
-    transform: translate($xspace * 2, $yspace * 2);
-  }
-  100% {
-    transform: translate($xspace, $yspace);
-  }
-}
-
-@keyframes animation-cube4 {
-  0%,
-  50% {
-    transform: translate($xspace, $yspace);
-  }
-  100% {
-    transform: translate(0, 0);
-  }
-}
-
-.figni-viewer-loading-cube-svg {
-  fill: var(--figni-viewer-gray-500);
-}
-
-.figni-viewer-loading-cube-svg-window {
-  fill: var(--figni-viewer-gray-50);
 }
 
 .figni-viewer-loading-progress-bar {
@@ -504,8 +425,8 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
 }
 
 .figni-viewer-error-icon {
-  width: $w;
-  height: $h;
+  width: 40px;
+  height: 46.6px;
   margin-bottom: 0.75rem;
 }
 
@@ -542,4 +463,19 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
   width: 400px;
   height: 400px;
   background-color: var(--figni-viewer-gray-300-tp);
+}
+
+.figni-viewer-qrcode-panel {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0.5rem;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  z-index: 9999;
+  background-color: var(--figni-viewer-white);
 }

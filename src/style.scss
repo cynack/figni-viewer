@@ -378,8 +378,8 @@ figni-viewer::part(default-ar-button) {
   background: linear-gradient(
     90deg,
     #fff1ec 0%,
-    #fff1ec var(--figni-viewer-progress),
-    #ffffff var(--figni-viewer-progress),
+    #fff1ec var(--figni-viewer-progress, 0%),
+    #ffffff var(--figni-viewer-progress, 0%),
     #ffffff 100%
   );
   border-radius: 0.5rem;

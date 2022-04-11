@@ -6,6 +6,7 @@
   --figni-viewer-primary-tp: rgba(255, 115, 59, 0.3);
   --figni-viewer-secondary: rgb(59, 94, 255);
   --figni-viewer-secondary-tp: rgba(59, 94, 255, 0.3);
+  --figni-viewer-white: rgb(255, 255, 255);
   --figni-viewer-gray-50: rgb(241, 242, 247);
   --figni-viewer-gray-100: rgb(230, 232, 239);
   --figni-viewer-gray-300: rgb(120, 125, 147);
@@ -449,30 +450,27 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
   fill: var(--figni-viewer-gray-50);
 }
 
-.figni-viewer-loading-progress-bar-base {
-  display: block;
-  max-width: 10rem;
-  width: 100%;
-  height: 0.5rem;
-  background-color: var(--figni-viewer-gray-300-tp);
-  overflow: hidden;
-  border-radius: 0.25rem;
-}
-
 .figni-viewer-loading-progress-bar {
+  position: absolute;
+  bottom: 2rem;
   display: block;
-  width: var(--progress-bar-width, 0%);
-  height: 100%;
-  background-color: var(--figni-viewer-gray-300);
+  background: linear-gradient(
+    90deg,
+    #fff1ec 0%,
+    #fff1ec var(--figni-viewer-progress),
+    #ffffff var(--figni-viewer-progress),
+    #ffffff 100%
+  );
+  border-radius: 0.5rem;
   transition: all 0.5s cubic-bezier(0, 1, 0.3, 1);
 }
 
 .figni-viewer-loading-text {
-  margin-top: 1.5rem;
-  color: var(--figni-viewer-gray-300);
+  display: inline-block;
+  margin: 0.25rem 1rem;
+  color: var(--figni-viewer-primary);
   font-family: var(--figni-viewer-ui-font);
   font-size: 0.75rem;
-  animation: animation-text-blinking 2s infinite ease-in-out;
 }
 
 @keyframes animation-text-blinking {

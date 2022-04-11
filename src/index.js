@@ -866,8 +866,16 @@ export class FigniViewerElement extends ModelViewerElement {
       })
       QRCode.toString(window.top.location.href, { width: 100 }, (err, str) => {
         if (!err) {
-          this.#qrCodePanel.innerHTML = str.replace('#000000', '#222428')
+          const text = document.createElement('span')
+          text.innerText =
+            'QRコードを読み取ってスマホ版で\nサイトを閲覧してください'
+          this.#qrCodePanel.appendChild(text)
+          this.#qrCodePanel.innerHTML += str.replace('#000000', '#222428')
         } else {
+          const text = document.createElement('span')
+          text.style.color = 'var(--figni-viewer-red)'
+          text.innerText = 'QRコードの生成に失敗しました...'
+          this.#qrCodePanel.appendChild(text)
           console.error(err)
         }
       })

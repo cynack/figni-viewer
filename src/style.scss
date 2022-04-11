@@ -243,7 +243,7 @@ figni-viewer::part(default-ar-button) {
   -webkit-box-pack: center;
   justify-content: center;
   height: 2.5rem;
-  right: 0.5rem;
+  left: 0.5rem;
   bottom: 0.5rem;
   background-color: white;
   border: none;
@@ -258,6 +258,18 @@ figni-viewer::part(default-ar-button) {
 
 .figni-viewer-ar-button:active {
   box-shadow: 0 0 0 0.3rem var(--figni-viewer-primary-tp);
+}
+
+.figni-viewer-ar-button svg {
+  width: 1.25rem;
+}
+
+.figni-viewer-ar-button span {
+  display: block;
+  color: var(--figni-viewer-primary);
+  font-size: 12px;
+  font-family: var(--figni-viewer-ui-font);
+  font-weight: bold;
 }
 
 .figni-viewer-toggle-visible-hotspot-btn {
@@ -294,18 +306,6 @@ figni-viewer::part(default-ar-button) {
   position: absolute;
   transform: translateX(-50%) translateY(-50%) translateX(-0.1px)
     translateY(-0.1px);
-}
-
-.figni-viewer-ar-button svg {
-  width: 1.25rem;
-  margin-top: 0.05rem;
-  margin-right: 0.325rem;
-}
-
-.figni-viewer-ar-button span {
-  display: block;
-  color: rgb(255, 115, 59);
-  font-family: var(--figni-viewer-ui-font);
 }
 
 .figni-viewer-panel-hide {

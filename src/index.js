@@ -7,29 +7,69 @@ import { ModelViewerElement } from './model-viewer'
 import './style.scss'
 import {
   SVG_AR_BUTTON,
+  SVG_CLOSE_ICON,
   SVG_DOWNLOAD_SCREENSHOT_BUTTON,
   SVG_ERROR_ICON,
+  SVG_HELP_ICON,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
 } from './svg'
 
 const VIEW_THRESHOLD = 0.7
+const OBSERBED_ATTRIBUTES = [
+  'item-id',
+  'token',
+  'model-tag',
+  'target',
+  'orbit',
+  'screenshot',
+  'toggle-caption',
+  'state',
+  'environment-image',
+  'debug-hotspot',
+]
+const FIGNI_SETTINGS = {
+  DEFAULT_CAMERA_TARGET: 'auto auto auto',
+  DEFAULT_CAMERA_ORBIT: '0deg 75deg 105%',
+  DEFAULT_HOTSPOT_POSITION: '0m 0m 0m',
+  DEFAULT_HOTSPOT_NORMAL: '0m 1m 0m',
+  DEFAULT_PANEL_PLACE: 'left middle',
+  MAX_CAMERA_ORBIT: 'auto 180deg 200%',
+  MIN_CAMERA_ORBIT: 'auto 0deg auto',
+}
 
-export class FigniViewerElement extends ModelViewerElement {
-  static #FIGNI_OBSERBED_ATTRIBUTES = {
-    MODEL: ['item-id', 'token', 'model-tag'],
-    TOOL: ['screenshot', 'toggle-caption'],
+export class FigniViewerElement extends HTMLElement {
+  #figniViewerBase = null
+  #figniHelpPanel = null
+
+  constructor() {
+    super()
+    this.attachShadow({ mode: 'open' })
+
+    // Figni Viewer Base
+    this.#figniViewerBase = new FigniViewerBaseElement()
+    this.#figniViewerBase.style = {
+      flex: '1',
+    }
+    this.shadowRoot.appendChild(this.#figniViewerBase)
+
+    // Figni Help Panel
+    this.#figniHelpPanel = document.createElement('div')
+    this.#figniHelpPanel.style.width = '100px'
+    this.shadowRoot.appendChild(this.#figniHelpPanel)
   }
 
-  static #DEFAULT_CAMERA_TARGET = 'auto auto auto'
-  static #DEFAULT_CAMERA_ORBIT = '0deg 75deg 105%'
-  static #DEFAULT_HOTSPOT_POSITION = '0m 0m 0m'
-  static #DEFAULT_HOTSPOT_NORMAL = '0m 1m 0m'
-  static #DEFAULT_PANEL_PLACE = 'left middle'
+  static get observedAttributes() {
+    return OBSERBED_ATTRIBUTES
+  }
 
-  static #MAX_CAMERA_ORBIT = 'auto 180deg 200%'
-  static #MIN_CAMERA_ORBIT = 'auto 0deg auto'
+  async attributeChangedCallback(name, oldValue, newValue) {
+    this.#figniViewerBase.attributeChangedCallback(name, oldValue, newValue)
+  }
+}
+customElements.define('figni-viewer', FigniViewerElement)
 
+export class FigniViewerBaseElement extends ModelViewerElement {
   // 公開する値
   itemId
   token
@@ -64,6 +104,8 @@ export class FigniViewerElement extends ModelViewerElement {
   #interactionPrompt
   #arButton
   #qrCodePanel
+  #helpButton
+  #helpPanel
   #initCameraButton
   #downloadScreenshotButton
   #toggleVisibleHotspotButton
@@ -179,22 +221,24 @@ export class FigniViewerElement extends ModelViewerElement {
     this.shadowIntensity = 1
     this.minimumRenderScale = 0.25
     this.animationCrossfadeDuration = 0
-    this.maxCameraOrbit = FigniViewerElement.#MAX_CAMERA_ORBIT
-    this.minCameraOrbit = FigniViewerElement.#MIN_CAMERA_ORBIT
+    this.maxCameraOrbit = FIGNI_SETTINGS.MAX_CAMERA_ORBIT
+    this.minCameraOrbit = FIGNI_SETTINGS.MIN_CAMERA_ORBIT
 
     this.itemId = this.getAttribute('item-id')
     this.token = this.getAttribute('token')
     this.modelTag = this.getAttribute('model-tag') || ''
 
     this.#initCameraTarget =
-      this.getAttribute('target') || FigniViewerElement.#DEFAULT_CAMERA_TARGET
+      this.getAttribute('target') || FIGNI_SETTINGS.DEFAULT_CAMERA_TARGET
     this.#initCameraOrbit =
-      this.getAttribute('orbit') || FigniViewerElement.#DEFAULT_CAMERA_ORBIT
+      this.getAttribute('orbit') || FIGNI_SETTINGS.DEFAULT_CAMERA_ORBIT
     this.state = this.getAttribute('state') || this.state
 
     this.#enableInteractionCursor()
     // TODO: インタラクションプロンプトやる
     // this.#enableInteractionPrompt()
+    this.#enableHelpButton()
+    this.#enableHelpPanel()
     this.#enableArButton()
 
     const hotspots = this.querySelectorAll('[slot^="hotspot"]')
@@ -262,51 +306,37 @@ export class FigniViewerElement extends ModelViewerElement {
     })
   }
 
-  static get observedAttributes() {
-    return super.observedAttributes.concat(
-      FigniViewerElement.#FIGNI_OBSERBED_ATTRIBUTES.MODEL,
-      FigniViewerElement.#FIGNI_OBSERBED_ATTRIBUTES.TOOL
-    )
-  }
-
   async attributeChangedCallback(name, oldValue, newValue) {
     super.attributeChangedCallback(name, oldValue, newValue)
     if (oldValue != newValue) {
-      if (FigniViewerElement.#FIGNI_OBSERBED_ATTRIBUTES.MODEL.includes(name)) {
-        switch (name) {
-          case 'item-id':
-            this.itemId = newValue
-            break
-          case 'token':
-            this.token = newValue
-            break
-          case 'model-tag':
-            this.modelTag = newValue
-            break
-        }
-        if (oldValue !== null) {
+      switch (name) {
+        case 'item-id':
+          this.itemId = newValue
           this.#requestModel()
+          break
+        case 'token':
+          this.token = newValue
+          this.#requestModel()
+          break
+        case 'model-tag':
+          this.modelTag = newValue
+          this.#requestModel()
+          break
+        case 'screenshot': {
+          if (newValue == '') {
+            this.#enableDownloadScreenshotButton()
+          } else {
+            this.#disableDownloadScreenshotButton()
+          }
+          break
         }
-      } else if (
-        FigniViewerElement.#FIGNI_OBSERBED_ATTRIBUTES.TOOL.includes(name)
-      ) {
-        switch (name) {
-          case 'screenshot': {
-            if (newValue == '') {
-              this.#enableDownloadScreenshotButton()
-            } else {
-              this.#disableDownloadScreenshotButton()
-            }
-            break
+        case 'toggle-caption': {
+          if (newValue == '') {
+            this.#enableToggleVisibleHotspotButton()
+          } else {
+            this.#enableToggleVisibleHotspotButton()
           }
-          case 'toggle-caption': {
-            if (newValue == '') {
-              this.#enableToggleVisibleHotspotButton()
-            } else {
-              this.#enableToggleVisibleHotspotButton()
-            }
-            break
-          }
+          break
         }
       }
     }
@@ -418,12 +448,12 @@ export class FigniViewerElement extends ModelViewerElement {
     const hotspot = document.createElement('button')
     hotspot.setAttribute(
       'position',
-      position || FigniViewerElement.#DEFAULT_HOTSPOT_POSITION
+      position || FIGNI_SETTINGS.DEFAULT_HOTSPOT_POSITION
     )
     if (normal) {
       hotspot.setAttribute(
         'normal',
-        normal || FigniViewerElement.#DEFAULT_HOTSPOT_NORMAL
+        normal || FIGNI_SETTINGS.DEFAULT_HOTSPOT_NORMAL
       )
     }
     hotspot.setAttribute('slot', `hotspot-${name}`)
@@ -481,13 +511,13 @@ export class FigniViewerElement extends ModelViewerElement {
     if (position) {
       hotspot.setAttribute(
         'position',
-        position || FigniViewerElement.#DEFAULT_HOTSPOT_POSITION
+        position || FIGNI_SETTINGS.DEFAULT_HOTSPOT_POSITION
       )
     }
     if (normal) {
       hotspot.setAttribute(
         'normal',
-        normal || FigniViewerElement.#DEFAULT_HOTSPOT_NORMAL
+        normal || FIGNI_SETTINGS.DEFAULT_HOTSPOT_NORMAL
       )
     }
     if (options) {
@@ -559,7 +589,7 @@ export class FigniViewerElement extends ModelViewerElement {
     hotspot.setAttribute(
       'position',
       hotspot.getAttribute('position') ||
-        FigniViewerElement.#DEFAULT_HOTSPOT_POSITION
+        FIGNI_SETTINGS.DEFAULT_HOTSPOT_POSITION
     )
     if (hotspot.getAttribute('normal')) {
       this.updateHotspot({
@@ -622,7 +652,7 @@ export class FigniViewerElement extends ModelViewerElement {
           const target =
             hotspot.getAttribute('target') ||
             hotspot.getAttribute('position') ||
-            FigniViewerElement.#DEFAULT_HOTSPOT_POSITION
+            FIGNI_SETTINGS.DEFAULT_HOTSPOT_POSITION
           const orbit = hotspot.getAttribute('orbit') || this.#initCameraOrbit
           if (this.cameraTarget == target && this.cameraOrbit == orbit) {
             this.setCameraTarget(this.#initCameraTarget)
@@ -692,7 +722,7 @@ export class FigniViewerElement extends ModelViewerElement {
   #modifyPanel(panel) {
     panel.classList.add('figni-viewer-panel')
     const place =
-      panel.getAttribute('place') || FigniViewerElement.#DEFAULT_PANEL_PLACE
+      panel.getAttribute('place') || FIGNI_SETTINGS.DEFAULT_PANEL_PLACE
     const array = place.split(' ')
     let vertical = ''
     let horizontal = ''
@@ -888,6 +918,72 @@ export class FigniViewerElement extends ModelViewerElement {
   #disableQRCodePanel() {
     if (this.#qrCodePanel) {
       this.#qrCodePanel.style.display = 'none'
+    }
+  }
+
+  #enableHelpButton() {
+    if (!this.#helpButton) {
+      this.#helpButton = document.createElement('button')
+      this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
+      this.#helpButton.classList.add('figni-viewer-help-button')
+      const opened = false
+      this.#helpButton.addEventListener('click', () => {
+        if (opened) {
+          this.#helpButton.classList.add('figni-viewer-help-button-hidden')
+          this.#helpButton.classList.remove('figni-viewer-help-button-cancel')
+          this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
+          this.#disableHelpPanel()
+        } else {
+          this.#helpButton.classList.remove('figni-viewer-help-button-hidden')
+          this.#helpButton.classList.add('figni-viewer-help-button-cancel')
+          this.#helpButton.innerHTML = `${SVG_CLOSE_ICON}`
+          this.#enableHelpPanel()
+        }
+      })
+      this.appendChild(this.#helpButton)
+    } else {
+      this.#helpButton.style.display = 'block'
+    }
+  }
+
+  #disableHelpButton() {
+    if (this.#helpButton) {
+      this.#helpButton.style.display = 'none'
+    }
+  }
+
+  #enableHelpPanel() {
+    if (!this.#helpPanel) {
+      this.#helpPanel = document.createElement('div')
+      this.#helpPanel.classList.add(
+        'figni-viewer-help-panel',
+        'figni-viewer-help-panel-hidden'
+      )
+      this.#helpPanel.innerHTML = `
+        <div class="figni-viewer-help-panel-content">
+          <div class="figni-viewer-help-panel-content-title">
+            <span>使い方</span>
+          </div>
+          <div class="figni-viewer-help-panel-content-body">
+            <p>
+              スマホ版では、
+              <a href="https://www.google.com/chrome/browser/desktop/index.html" target="_blank">Chrome</a>
+              または
+              <a href="https://www.mozilla.org/ja/firefox/new/" target="_blank">Firefox</a>
+              で閲覧してください。
+            </p>
+          </div>
+        </div>
+      `
+      this.appendChild(this.#helpPanel)
+    } else {
+      this.#helpPanel.classList.remove('figni-viewer-help-panel-hidden')
+    }
+  }
+
+  #disableHelpPanel() {
+    if (this.#helpPanel) {
+      this.#helpPanel.classList.add('figni-viewer-help-panel-hidden')
     }
   }
 
@@ -1190,5 +1286,3 @@ export class FigniViewerElement extends ModelViewerElement {
     )
   }
 }
-
-customElements.define('figni-viewer', FigniViewerElement)

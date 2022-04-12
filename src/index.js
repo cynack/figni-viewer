@@ -47,7 +47,7 @@ export class FigniViewerElement extends HTMLElement {
     this.attachShadow({ mode: 'open' })
 
     // Figni Viewer Base
-    this.#figniViewerBase = new FigniViewerBaseElement()
+    this.#figniViewerBase = document.createElement('figni-viewer-base')
     this.#figniViewerBase.style = {
       flex: '1',
     }
@@ -67,7 +67,6 @@ export class FigniViewerElement extends HTMLElement {
     this.#figniViewerBase.attributeChangedCallback(name, oldValue, newValue)
   }
 }
-customElements.define('figni-viewer', FigniViewerElement)
 
 export class FigniViewerBaseElement extends ModelViewerElement {
   // 公開する値
@@ -307,7 +306,6 @@ export class FigniViewerBaseElement extends ModelViewerElement {
   }
 
   async attributeChangedCallback(name, oldValue, newValue) {
-    super.attributeChangedCallback(name, oldValue, newValue)
     if (oldValue != newValue) {
       switch (name) {
         case 'item-id':
@@ -1286,3 +1284,5 @@ export class FigniViewerBaseElement extends ModelViewerElement {
     )
   }
 }
+
+customElements.define('figni-viewer', FigniViewerBaseElement)

@@ -10,6 +10,10 @@ const OBSERBED_ATTRIBUTES = [
   'environment-image',
   'debug-hotspot',
 ]
+const FIGNI_SETTINGS = {
+  DEFAULT_CAMERA_TARGET: 'auto auto auto',
+  DEFAULT_CAMERA_ORBIT: '0deg 75deg 105%',
+}
 
 export default class FigniViewerElement extends HTMLElement {
   // html element
@@ -38,6 +42,7 @@ export default class FigniViewerElement extends HTMLElement {
     this.shadowRoot.appendChild(this.#figniHelpPanel)
 
     this.#figniViewerBase.loadModel(this.itemId, this.token, this.modelTag)
+
     this.#completedInitialModelLoad = true
   }
 
@@ -76,6 +81,30 @@ export default class FigniViewerElement extends HTMLElement {
     }
   }
 
+  /**
+   * カメラ位置の基準となる座標を設定する
+   * @param {string} target 座標("x y z")
+   */
+  setCameraTarget(target) {
+    if (this.#figniViewerBase.cameraTarget !== target) {
+      // TODO: カメラを初期位置に戻すボタンを表示
+    }
+    this.#figniViewerBase.setCameraTarget(target)
+    this.target = target
+  }
+
+  /**
+   * カメラ位置の基準となる座標からの極座標を設定する
+   * @param {string} orbit 極座標("deg deg %", "rad rad m", etc.)
+   */
+  setCameraOrbit(orbit) {
+    if (this.#figniViewerBase.cameraOrbit !== orbit) {
+      // TODO: カメラを初期位置に戻すボタンを表示
+    }
+    this.#figniViewerBase.setCameraOrbit(orbit)
+    this.orbit = orbit
+  }
+
   get itemId() {
     return this.getAttribute('item-id')
   }
@@ -98,5 +127,21 @@ export default class FigniViewerElement extends HTMLElement {
 
   set modelTag(value) {
     this.setAttribute('model-tag', value)
+  }
+
+  get target() {
+    return this.getAttribute('target') || FIGNI_SETTINGS.DEFAULT_CAMERA_TARGET
+  }
+
+  set target(value) {
+    this.setAttribute('target', value)
+  }
+
+  get orbit() {
+    return this.getAttribute('orbit') || FIGNI_SETTINGS.DEFAULT_CAMERA_ORBIT
+  }
+
+  set orbit(value) {
+    this.setAttribute('orbit', value)
   }
 }

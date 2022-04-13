@@ -43,6 +43,12 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       .forEach((d) => (d.style.outline = 'none'))
   }
 
+  /**
+   * アイテムIDとトークン(とタグ)から3DモデルのURLを取得して model-viewer にセットする
+   * @param {string} itemId アイテムID
+   * @param {string} token トークン
+   * @param {string} modelTag モデルのタグ
+   */
   async loadModel(itemId, token, modelTag = null) {
     if (itemId && token) {
       const tag = modelTag ? `?tag=${modelTag}` : ''
@@ -75,6 +81,22 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     } else {
       throw new ReferenceError('item-id or token is not set.')
     }
+  }
+
+  /**
+   * カメラ位置の基準となる座標を設定する
+   * @param {string} target 座標("x y z")
+   */
+  setCameraTarget(target) {
+    this.cameraTarget = target
+  }
+
+  /**
+   * カメラ位置の基準となる座標からの極座標を設定する
+   * @param {string} orbit 極座標("deg deg %", "rad rad m", etc.)
+   */
+  setCameraOrbit(orbit) {
+    this.cameraOrbit = orbit
   }
 
   #setupModelViewer() {

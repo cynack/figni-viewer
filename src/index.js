@@ -74,114 +74,8 @@ export class __FigniViewerElement extends ModelViewerElement {
   #panels = []
   #hotspots = []
 
-  async initializeDataConnection() {
-    if (this.#ws) {
-      this.#ws.close()
-    }
-
-    const { data } = await axios.get(`${API_BASE}/config`, {
-      headers: {
-        'X-Figni-Client-Token': this.token,
-      },
-    })
-
-    if (data?.analytics) {
-      this.#ws = new WebSocket(WEBSOCKET_BASE)
-
-      this.#initTime = performance.now()
-      this.#wasInViewport = this.#isInViewport
-      if (this.#isInViewport) {
-        this.#appearedTime = performance.now()
-      }
-
-      setInterval(() => {
-        if (this.#ws.readyState === WebSocket.OPEN) {
-          this.#ws.send(
-            JSON.stringify({
-              item_id: this.itemId,
-              client_token: this.token,
-              client_version: VERSION,
-              stay_time: this.#stayTime,
-              view_time: this.#viewTime,
-              interaction_time: this.#interactionTime,
-              model_view_time: this.#modelViewTime,
-              ar_count: this.#arCount,
-              ar_view_time: this.#arViewTime,
-              hotspot_click: this.#hotspotClickCount,
-              animation_play: this.#animationPlayCount,
-            })
-          )
-        } else {
-          console.error("Can't send analytics data. Reconnecting...")
-          this.#ws = new WebSocket(WEBSOCKET_BASE)
-        }
-      }, 1000)
-
-      window.addEventListener('scroll', () => {
-        if (!this.#wasInViewport && this.#isInViewport) {
-          this.#appearedTime = performance.now()
-        } else if (this.#wasInViewport && !this.#isInViewport) {
-          this.#sumViewTime += performance.now() - this.#appearedTime
-        }
-        this.#wasInViewport = this.#isInViewport
-      })
-
-      let cb = null
-      let flag = false
-      const interactionStartEvent = new CustomEvent('interaction-start')
-      const interactionEndEvent = new CustomEvent('interaction-end')
-      this.addEventListener('camera-change', (e) => {
-        if (e.detail.source === 'user-interaction') {
-          if (cb) {
-            clearTimeout(cb)
-          }
-          if (!flag) {
-            this.dispatchEvent(interactionStartEvent)
-          }
-          flag = true
-          cb = setTimeout(() => {
-            this.dispatchEvent(interactionEndEvent)
-            flag = false
-          }, 50)
-        }
-      })
-
-      this.addEventListener('interaction-start', () => {
-        this.#isInteracting = true
-        this.#interactedTime = performance.now()
-      })
-      this.addEventListener('interaction-end', () => {
-        this.#isInteracting = false
-        this.#sumInteractionTime += performance.now() - this.#interactedTime
-      })
-    }
-  }
-
   async connectedCallback() {
     super.connectedCallback()
-
-    // 輪郭線を削除
-    this.shadowRoot
-      .querySelectorAll(':not(style[outline="none"])')
-      .forEach((d) => (d.style.outline = 'none'))
-
-    // model-viewerのセットアップ
-    this.loading = 'lazy'
-    this.cameraControls = true
-    this.ar = true
-    this.arModes = 'webxr scene-viewer quick-look'
-    this.arScale = 'fixed'
-    this.arPlacement = 'floor'
-    this.interactionPrompt = 'auto'
-    this.interactionPromptStyle = 'basic'
-    this.interactionPromptThreshold = 0
-    this.autoRotate = true
-    this.autoRotateDelay = 0
-    this.shadowIntensity = 1
-    this.minimumRenderScale = 0.25
-    this.animationCrossfadeDuration = 0
-    this.maxCameraOrbit = FIGNI_SETTINGS.MAX_CAMERA_ORBIT
-    this.minCameraOrbit = FIGNI_SETTINGS.MIN_CAMERA_ORBIT
 
     this.itemId = this.getAttribute('item-id')
     this.token = this.getAttribute('token')
@@ -257,8 +151,6 @@ export class __FigniViewerElement extends ModelViewerElement {
         true
       )
     }
-
-    await this.initializeDataConnection()
 
     this.addEventListener('pointerdown', (e) => {
       this.autoRotate = false

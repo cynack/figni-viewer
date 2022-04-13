@@ -3,6 +3,8 @@ import Lottie from 'lottie-web'
 import QRCode from 'qrcode'
 import { LOADING_ANIMATION_MINI } from './animation'
 import { getErrorMessage } from './error'
+import FigniViewerElement from './figni-viewer'
+import FigniViewerBaseElement from './figni-viewer-base'
 import { ModelViewerElement } from './model-viewer'
 import './style.scss'
 import {
@@ -16,18 +18,6 @@ import {
 } from './svg'
 
 const VIEW_THRESHOLD = 0.7
-const OBSERBED_ATTRIBUTES = [
-  'item-id',
-  'token',
-  'model-tag',
-  'target',
-  'orbit',
-  'screenshot',
-  'toggle-caption',
-  'state',
-  'environment-image',
-  'debug-hotspot',
-]
 const FIGNI_SETTINGS = {
   DEFAULT_CAMERA_TARGET: 'auto auto auto',
   DEFAULT_CAMERA_ORBIT: '0deg 75deg 105%',
@@ -38,37 +28,7 @@ const FIGNI_SETTINGS = {
   MIN_CAMERA_ORBIT: 'auto 0deg auto',
 }
 
-export class FigniViewerElement extends HTMLElement {
-  #figniViewerBase = null
-  #figniHelpPanel = null
-
-  constructor() {
-    super()
-    this.attachShadow({ mode: 'open' })
-
-    // Figni Viewer Base
-    this.#figniViewerBase = document.createElement('figni-viewer-base')
-    this.#figniViewerBase.style = {
-      flex: '1',
-    }
-    this.shadowRoot.appendChild(this.#figniViewerBase)
-
-    // Figni Help Panel
-    this.#figniHelpPanel = document.createElement('div')
-    this.#figniHelpPanel.style.width = '100px'
-    this.shadowRoot.appendChild(this.#figniHelpPanel)
-  }
-
-  static get observedAttributes() {
-    return OBSERBED_ATTRIBUTES
-  }
-
-  async attributeChangedCallback(name, oldValue, newValue) {
-    this.#figniViewerBase.attributeChangedCallback(name, oldValue, newValue)
-  }
-}
-
-export class FigniViewerBaseElement extends ModelViewerElement {
+export class __FigniViewerElement extends ModelViewerElement {
   // 公開する値
   itemId
   token
@@ -1285,4 +1245,5 @@ export class FigniViewerBaseElement extends ModelViewerElement {
   }
 }
 
-customElements.define('figni-viewer', FigniViewerBaseElement)
+customElements.define('figni-viewer-base', FigniViewerBaseElement)
+customElements.define('figni-viewer', FigniViewerElement)

@@ -19,9 +19,50 @@ export default class FigniViewerElement extends HTMLElement {
   // html element
   #figniViewerBase
   #figniHelpPanel
+  #initCameraButton
 
   // private field
   #completedInitialModelLoad = false
+
+  get itemId() {
+    return this.getAttribute('item-id')
+  }
+
+  set itemId(value) {
+    this.setAttribute('item-id', value)
+  }
+
+  get token() {
+    return this.getAttribute('token')
+  }
+
+  set token(value) {
+    this.setAttribute('token', value)
+  }
+
+  get modelTag() {
+    return this.getAttribute('model-tag')
+  }
+
+  set modelTag(value) {
+    this.setAttribute('model-tag', value)
+  }
+
+  get target() {
+    return this.getAttribute('target') || FIGNI_SETTINGS.DEFAULT_CAMERA_TARGET
+  }
+
+  set target(value) {
+    this.setAttribute('target', value)
+  }
+
+  get orbit() {
+    return this.getAttribute('orbit') || FIGNI_SETTINGS.DEFAULT_CAMERA_ORBIT
+  }
+
+  set orbit(value) {
+    this.setAttribute('orbit', value)
+  }
 
   constructor() {
     super()
@@ -87,7 +128,7 @@ export default class FigniViewerElement extends HTMLElement {
    */
   setCameraTarget(target) {
     if (this.#figniViewerBase.cameraTarget !== target) {
-      // TODO: カメラを初期位置に戻すボタンを表示
+      this.#showInitCameraButton()
     }
     this.#figniViewerBase.setCameraTarget(target)
     this.target = target
@@ -99,49 +140,44 @@ export default class FigniViewerElement extends HTMLElement {
    */
   setCameraOrbit(orbit) {
     if (this.#figniViewerBase.cameraOrbit !== orbit) {
-      // TODO: カメラを初期位置に戻すボタンを表示
+      this.#showInitCameraButton()
     }
     this.#figniViewerBase.setCameraOrbit(orbit)
     this.orbit = orbit
   }
 
-  get itemId() {
-    return this.getAttribute('item-id')
+  /**
+   * カメラ位置を初期位置に戻す
+   */
+  resetCameraTargetAndOrbit() {
+    this.setCameraTarget(this.target)
+    this.setCameraOrbit(this.orbit)
+    this.#hideInitCameraButton()
   }
 
-  set itemId(value) {
-    this.setAttribute('item-id', value)
+  /**
+   * カメラ位置を戻すボタンを表示する
+   */
+  #showInitCameraButton() {
+    if (!this.#initCameraButton) {
+      this.#initCameraButton = document.createElement('button')
+      this.#initCameraButton.classList.add('figni-viewer-init-camera-btn')
+      this.#initCameraButton.innerText = 'カメラ位置を戻す'
+      this.#initCameraButton.addEventListener('click', () =>
+        this.resetCameraTargetAndOrbit()
+      )
+      this.#figniViewerBase.appendChild(this.#initCameraButton)
+    } else {
+      this.#initCameraButton.style.display = 'block'
+    }
   }
 
-  get token() {
-    return this.getAttribute('token')
-  }
-
-  set token(value) {
-    this.setAttribute('token', value)
-  }
-
-  get modelTag() {
-    return this.getAttribute('model-tag')
-  }
-
-  set modelTag(value) {
-    this.setAttribute('model-tag', value)
-  }
-
-  get target() {
-    return this.getAttribute('target') || FIGNI_SETTINGS.DEFAULT_CAMERA_TARGET
-  }
-
-  set target(value) {
-    this.setAttribute('target', value)
-  }
-
-  get orbit() {
-    return this.getAttribute('orbit') || FIGNI_SETTINGS.DEFAULT_CAMERA_ORBIT
-  }
-
-  set orbit(value) {
-    this.setAttribute('orbit', value)
+  /**
+   * カメラ位置を戻すボタンを非表示にする
+   */
+  #hideInitCameraButton() {
+    if (this.#initCameraButton) {
+      this.#initCameraButton.style.display = 'none'
+    }
   }
 }

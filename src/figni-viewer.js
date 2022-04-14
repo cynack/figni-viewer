@@ -14,9 +14,12 @@ const OBSERBED_ATTRIBUTES = [
   'environment-image',
   'debug-hotspot',
 ]
-const FIGNI_SETTINGS = {
+const SETTINGS = {
   DEFAULT_CAMERA_TARGET: 'auto auto auto',
   DEFAULT_CAMERA_ORBIT: '0deg 75deg 105%',
+  DEFAULT_HOTSPOT_POSITION: '0m 0m 0m',
+  DEFAULT_HOTSPOT_NORMAL: '0m 1m 0m',
+  DEFAULT_PANEL_PLACE: 'left middle',
 }
 
 export default class FigniViewerElement extends HTMLElement {
@@ -54,7 +57,7 @@ export default class FigniViewerElement extends HTMLElement {
   }
 
   get target() {
-    return this.getAttribute('target') || FIGNI_SETTINGS.DEFAULT_CAMERA_TARGET
+    return this.getAttribute('target') || SETTINGS.DEFAULT_CAMERA_TARGET
   }
 
   set target(value) {
@@ -62,7 +65,7 @@ export default class FigniViewerElement extends HTMLElement {
   }
 
   get orbit() {
-    return this.getAttribute('orbit') || FIGNI_SETTINGS.DEFAULT_CAMERA_ORBIT
+    return this.getAttribute('orbit') || SETTINGS.DEFAULT_CAMERA_ORBIT
   }
 
   set orbit(value) {
@@ -90,6 +93,7 @@ export default class FigniViewerElement extends HTMLElement {
 
     // TODO: Hotspot処理変える
     this.querySelectorAll('[slot^="hotspot"]').forEach((hotspot) => {
+      this.#modifyHotspot(hotspot)
       this.#figniViewerBase.appendChild(hotspot)
     })
 
@@ -153,7 +157,6 @@ export default class FigniViewerElement extends HTMLElement {
    * モデルを読み込む
    */
   async loadModel() {
-    console.log('loadModel')
     this.#hideErrorPanel()
     try {
       await this.#figniViewerBase.loadModel(
@@ -164,6 +167,16 @@ export default class FigniViewerElement extends HTMLElement {
     } catch (e) {
       this.#showErrorPanel(getErrorMessage(e))
     }
+  }
+
+  #modifyHotspot(hotspot) {
+    hotspot.classList.add('figni-viewer-hotspot')
+
+    hotspot.setAttribute(
+      'position',
+      hotspot.getAttribute('position') || SETTINGS.DEFAULT_HOTSPOT_POSITION
+    )
+    // TODO: hotspotに処理を追加など
   }
 
   /**
@@ -197,7 +210,6 @@ export default class FigniViewerElement extends HTMLElement {
    * @param {string} message エラーメッセージ
    */
   #showErrorPanel(message) {
-    console.log('showErrorPanel')
     if (!this.#errorPanel) {
       this.#errorPanel = document.createElement('div')
       this.#errorPanel.classList.add('figni-viewer-error-panel')
@@ -226,9 +238,7 @@ export default class FigniViewerElement extends HTMLElement {
    * エラー画面を非表示にする
    */
   #hideErrorPanel() {
-    console.log('hideErrorPanel')
     if (this.#errorPanel) {
-      console.log('none')
       this.#errorPanel.style.display = 'none'
     }
   }

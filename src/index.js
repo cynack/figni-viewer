@@ -1,4 +1,3 @@
-import axios from 'axios'
 import Lottie from 'lottie-web'
 import QRCode from 'qrcode'
 import { LOADING_ANIMATION_MINI } from './animation'
@@ -98,7 +97,6 @@ export class __FigniViewerElement extends ModelViewerElement {
       this.#modifyHotspot(hotspot)
     })
 
-    this.#requestModel()
     this.setCameraTarget(this.#initCameraTarget)
     this.setCameraOrbit(this.#initCameraOrbit)
     this.#disableInitCameraButton()
@@ -158,18 +156,6 @@ export class __FigniViewerElement extends ModelViewerElement {
   async attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue != newValue) {
       switch (name) {
-        case 'item-id':
-          this.itemId = newValue
-          this.#requestModel()
-          break
-        case 'token':
-          this.token = newValue
-          this.#requestModel()
-          break
-        case 'model-tag':
-          this.modelTag = newValue
-          this.#requestModel()
-          break
         case 'screenshot': {
           if (newValue == '') {
             this.#enableDownloadScreenshotButton()
@@ -190,57 +176,7 @@ export class __FigniViewerElement extends ModelViewerElement {
     }
   }
 
-  async #requestModel() {
-    if (this.itemId && this.token) {
-      // this.#disableErrorPanel()
-      this.#enableLoadingPanel()
-      const tag = this.modelTag ? `?tag=${this.modelTag}` : ''
-      try {
-        const res = await axios.get(
-          `${API_BASE}/item/${this.itemId}/model_search${tag}`,
-          {
-            headers: {
-              accept: 'application/json',
-              'X-Figni-Client-Token': this.token,
-              'X-Figni-Client-Version': VERSION,
-            },
-          }
-        )
-        const glb = res.data.filter((item) => item.format == 'glb')
-        if (glb.length > 0) {
-          this.src = glb[0].url
-        }
-        const usdz = res.data.filter((item) => item.format == 'usdz')
-        if (usdz.length > 0) {
-          this.iosSrc = usdz[0].url
-        } else {
-          this.iosSrc = ''
-        }
-      } catch (e) {
-        // this.#enableErrorPanel(getErrorMessage(e))
-      }
-    } else {
-      throw new ReferenceError('item-id or token is not set.')
-    }
-  }
-
-  setCameraOrbit(orbit) {
-    if (this.cameraOrbit !== orbit) {
-      this.#enableInitCameraButton()
-    }
-    this.cameraOrbit = orbit
-  }
-
-  setCameraTarget(target) {
-    if (this.cameraTarget !== target) {
-      this.#enableInitCameraButton()
-    }
-    this.cameraTarget = target
-  }
-
   resetCameraTargetAndOrbit() {
-    this.setCameraTarget(this.#initCameraTarget)
-    this.setCameraOrbit(this.#initCameraOrbit)
     this.closeAllPanels()
     this.#disableInitCameraButton()
   }

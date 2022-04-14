@@ -2,12 +2,7 @@ import axios from 'axios'
 import { ModelViewerElement } from './model-viewer'
 
 const VIEW_THRESHOLD = 0.7
-const FIGNI_SETTINGS = {
-  DEFAULT_CAMERA_TARGET: 'auto auto auto',
-  DEFAULT_CAMERA_ORBIT: '0deg 75deg 105%',
-  DEFAULT_HOTSPOT_POSITION: '0m 0m 0m',
-  DEFAULT_HOTSPOT_NORMAL: '0m 1m 0m',
-  DEFAULT_PANEL_PLACE: 'left middle',
+const SETTINGS = {
   MAX_CAMERA_ORBIT: 'auto 180deg 200%',
   MIN_CAMERA_ORBIT: 'auto 0deg auto',
 }
@@ -110,8 +105,8 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     this.shadowIntensity = 1
     this.minimumRenderScale = 0.25
     this.animationCrossfadeDuration = 0
-    this.maxCameraOrbit = FIGNI_SETTINGS.MAX_CAMERA_ORBIT
-    this.minCameraOrbit = FIGNI_SETTINGS.MIN_CAMERA_ORBIT
+    this.maxCameraOrbit = SETTINGS.MAX_CAMERA_ORBIT
+    this.minCameraOrbit = SETTINGS.MIN_CAMERA_ORBIT
   }
 
   async #initializeWebSocket(itemId, token) {

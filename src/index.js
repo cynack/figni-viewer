@@ -2,7 +2,6 @@ import axios from 'axios'
 import Lottie from 'lottie-web'
 import QRCode from 'qrcode'
 import { LOADING_ANIMATION_MINI } from './animation'
-import { getErrorMessage } from './error'
 import FigniViewerElement from './figni-viewer'
 import FigniViewerBaseElement from './figni-viewer-base'
 import { ModelViewerElement } from './model-viewer'
@@ -11,7 +10,6 @@ import {
   SVG_AR_BUTTON,
   SVG_CLOSE_ICON,
   SVG_DOWNLOAD_SCREENSHOT_BUTTON,
-  SVG_ERROR_ICON,
   SVG_HELP_ICON,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
@@ -194,7 +192,7 @@ export class __FigniViewerElement extends ModelViewerElement {
 
   async #requestModel() {
     if (this.itemId && this.token) {
-      this.#disableErrorPanel()
+      // this.#disableErrorPanel()
       this.#enableLoadingPanel()
       const tag = this.modelTag ? `?tag=${this.modelTag}` : ''
       try {
@@ -219,7 +217,7 @@ export class __FigniViewerElement extends ModelViewerElement {
           this.iosSrc = ''
         }
       } catch (e) {
-        this.#enableErrorPanel(getErrorMessage(e))
+        // this.#enableErrorPanel(getErrorMessage(e))
       }
     } else {
       throw new ReferenceError('item-id or token is not set.')
@@ -840,7 +838,7 @@ export class __FigniViewerElement extends ModelViewerElement {
   #enableInitCameraButton() {
     if (!this.#initCameraButton) {
       this.#initCameraButton = document.createElement('button')
-      this.#initCameraButton.classList.add('figni-viewer-init-camera-btn')
+      this.#initCameraButton.classList.add('figni-viewer-init-camera-button')
       this.#initCameraButton.innerText = 'カメラ位置を戻す'
       this.#initCameraButton.addEventListener('click', () =>
         this.resetCameraTargetAndOrbit()
@@ -861,7 +859,7 @@ export class __FigniViewerElement extends ModelViewerElement {
     if (!this.#downloadScreenshotButton) {
       this.#downloadScreenshotButton = document.createElement('button')
       this.#downloadScreenshotButton.classList.add(
-        'figni-viewer-download-screenshot-btn'
+        'figni-viewer-download-screenshot-button'
       )
       this.#downloadScreenshotButton.innerHTML = SVG_DOWNLOAD_SCREENSHOT_BUTTON
       this.#downloadScreenshotButton.addEventListener('click', () => {
@@ -883,7 +881,7 @@ export class __FigniViewerElement extends ModelViewerElement {
     if (!this.#toggleVisibleHotspotButton) {
       this.#toggleVisibleHotspotButton = document.createElement('button')
       this.#toggleVisibleHotspotButton.classList.add(
-        'figni-viewer-toggle-visible-hotspot-btn'
+        'figni-viewer-toggle-visible-hotspot-button'
       )
       this.#toggleVisibleHotspotButton.addEventListener('click', () => {
         this.#visibleAllHotspots = !this.#visibleAllHotspots
@@ -947,41 +945,6 @@ export class __FigniViewerElement extends ModelViewerElement {
   #disableLoadingPanel() {
     if (this.#loadingPanel) {
       this.#loadingPanel.style.display = 'none'
-    }
-  }
-
-  #enableErrorPanel(message) {
-    if (!this.#errorPanel) {
-      this.#errorPanel = document.createElement('div')
-      this.#errorPanel.classList.add('figni-viewer-error-panel')
-      // エラーアイコン
-      const icon = document.createElement('div')
-      icon.innerHTML = SVG_ERROR_ICON
-      icon.classList.add('figni-viewer-error-icon')
-      this.#errorPanel.appendChild(icon)
-      // エラーテキスト
-      const errorText = document.createElement('span')
-      errorText.innerText = message
-      errorText.classList.add('figni-viewer-error-text')
-      this.#errorPanel.appendChild(errorText)
-      this.appendChild(this.#errorPanel)
-      // 再読み込みボタン
-      const errorReload = document.createElement('span')
-      errorReload.innerText = '再読み込み'
-      errorReload.classList.add('figni-viewer-error-reload')
-      errorReload.addEventListener('click', () => {
-        this.#requestModel()
-      })
-      this.#errorPanel.appendChild(errorReload)
-      this.appendChild(this.#errorPanel)
-    } else {
-      this.#errorPanel.style.display = ''
-    }
-  }
-
-  #disableErrorPanel() {
-    if (this.#errorPanel) {
-      this.#errorPanel.style.display = 'none'
     }
   }
 

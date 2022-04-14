@@ -1,3 +1,7 @@
+import { getErrorMessage } from './error'
+import './style.scss'
+import { SVG_ERROR_ICON } from './svg'
+
 const OBSERBED_ATTRIBUTES = [
   'item-id',
   'token',
@@ -20,6 +24,7 @@ export default class FigniViewerElement extends HTMLElement {
   #figniViewerBase
   #figniHelpPanel
   #initCameraButton
+  #errorPanel
 
   // private field
   #completedInitialModelLoad = false
@@ -66,7 +71,6 @@ export default class FigniViewerElement extends HTMLElement {
 
   constructor() {
     super()
-    this.attachShadow({ mode: 'open' })
     this.#completedInitialModelLoad = false
   }
 
@@ -75,14 +79,19 @@ export default class FigniViewerElement extends HTMLElement {
     this.#figniViewerBase = document.createElement('figni-viewer-base')
     this.#figniViewerBase.style.flex = '1'
     this.#figniViewerBase.style.height = '100%'
-    this.shadowRoot.appendChild(this.#figniViewerBase)
+    this.appendChild(this.#figniViewerBase)
 
     // Figni Help Panel
     this.#figniHelpPanel = document.createElement('div')
-    this.#figniHelpPanel.style.width = '100px'
-    this.shadowRoot.appendChild(this.#figniHelpPanel)
+    this.#figniHelpPanel.style.width = '0px'
+    this.appendChild(this.#figniHelpPanel)
 
-    this.#figniViewerBase.loadModel(this.itemId, this.token, this.modelTag)
+    this.loadModel(this.itemId, this.token, this.modelTag)
+
+    // TODO: Hotspot処理変える
+    this.querySelectorAll('[slot^="hotspot"]').forEach((hotspot) => {
+      this.#figniViewerBase.appendChild(hotspot)
+    })
 
     this.#completedInitialModelLoad = true
   }
@@ -95,28 +104,13 @@ export default class FigniViewerElement extends HTMLElement {
     if (oldValue !== newValue) {
       switch (name) {
         case 'item-id':
-          if (this.#completedInitialModelLoad)
-            this.#figniViewerBase?.loadModel(
-              this.itemId,
-              this.token,
-              this.modelTag
-            )
+          if (this.#completedInitialModelLoad) this.loadModel()
           break
         case 'token':
-          if (this.#completedInitialModelLoad)
-            this.#figniViewerBase?.loadModel(
-              this.itemId,
-              this.token,
-              this.modelTag
-            )
+          if (this.#completedInitialModelLoad) this.loadModel()
           break
         case 'model-tag':
-          if (this.#completedInitialModelLoad)
-            this.#figniViewerBase?.loadModel(
-              this.itemId,
-              this.token,
-              this.modelTag
-            )
+          if (this.#completedInitialModelLoad) this.loadModel()
           break
       }
     }
@@ -156,12 +150,29 @@ export default class FigniViewerElement extends HTMLElement {
   }
 
   /**
+   * モデルを読み込む
+   */
+  async loadModel() {
+    console.log('loadModel')
+    this.#hideErrorPanel()
+    try {
+      await this.#figniViewerBase.loadModel(
+        this.itemId,
+        this.token,
+        this.modelTag
+      )
+    } catch (e) {
+      this.#showErrorPanel(getErrorMessage(e))
+    }
+  }
+
+  /**
    * カメラ位置を戻すボタンを表示する
    */
   #showInitCameraButton() {
     if (!this.#initCameraButton) {
       this.#initCameraButton = document.createElement('button')
-      this.#initCameraButton.classList.add('figni-viewer-init-camera-btn')
+      this.#initCameraButton.classList.add('figni-viewer-init-camera-button')
       this.#initCameraButton.innerText = 'カメラ位置を戻す'
       this.#initCameraButton.addEventListener('click', () =>
         this.resetCameraTargetAndOrbit()
@@ -178,6 +189,47 @@ export default class FigniViewerElement extends HTMLElement {
   #hideInitCameraButton() {
     if (this.#initCameraButton) {
       this.#initCameraButton.style.display = 'none'
+    }
+  }
+
+  /**
+   * エラー画面を表示する
+   * @param {string} message エラーメッセージ
+   */
+  #showErrorPanel(message) {
+    console.log('showErrorPanel')
+    if (!this.#errorPanel) {
+      this.#errorPanel = document.createElement('div')
+      this.#errorPanel.classList.add('figni-viewer-error-panel')
+      const icon = document.createElement('div')
+      icon.innerHTML = SVG_ERROR_ICON
+      icon.classList.add('figni-viewer-error-icon')
+      this.#errorPanel.appendChild(icon)
+      const errorText = document.createElement('span')
+      errorText.innerText = message
+      errorText.classList.add('figni-viewer-error-text')
+      this.#errorPanel.appendChild(errorText)
+      const reloadButton = document.createElement('span')
+      reloadButton.innerText = '再読み込み'
+      reloadButton.classList.add('figni-viewer-error-reload-button')
+      reloadButton.addEventListener('click', () => {
+        this.#figniViewerBase.loadModel(this.itemId, this.token, this.modelTag)
+      })
+      this.#errorPanel.appendChild(reloadButton)
+      this.appendChild(this.#errorPanel)
+    } else {
+      this.#errorPanel.style.display = ''
+    }
+  }
+
+  /**
+   * エラー画面を非表示にする
+   */
+  #hideErrorPanel() {
+    console.log('hideErrorPanel')
+    if (this.#errorPanel) {
+      console.log('none')
+      this.#errorPanel.style.display = 'none'
     }
   }
 }

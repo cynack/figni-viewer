@@ -52,32 +52,28 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   async loadModel(itemId, token, modelTag = null) {
     if (itemId && token) {
       const tag = modelTag ? `?tag=${modelTag}` : ''
-      try {
-        const res = await axios.get(
-          `${API_BASE}/item/${itemId}/model_search${tag}`,
-          {
-            headers: {
-              accept: 'application/json',
-              'X-Figni-Client-Token': token,
-              'X-Figni-Client-Version': VERSION,
-            },
-          }
-        )
-        const glb = res.data.filter((item) => item.format == 'glb')
-        if (glb.length > 0) {
-          this.src = glb[0].url
+      const res = await axios.get(
+        `${API_BASE}/item/${itemId}/model_search${tag}`,
+        {
+          headers: {
+            accept: 'application/json',
+            'X-Figni-Client-Token': token,
+            'X-Figni-Client-Version': VERSION,
+          },
         }
-        const usdz = res.data.filter((item) => item.format == 'usdz')
-        if (usdz.length > 0) {
-          this.iosSrc = usdz[0].url
-        } else {
-          this.iosSrc = ''
-        }
-
-        this.#initializeWebSocket(itemId, token)
-      } catch (e) {
-        // this.#enableErrorPanel(getErrorMessage(e))
+      )
+      const glb = res.data.filter((item) => item.format == 'glb')
+      if (glb.length > 0) {
+        this.src = glb[0].url
       }
+      const usdz = res.data.filter((item) => item.format == 'usdz')
+      if (usdz.length > 0) {
+        this.iosSrc = usdz[0].url
+      } else {
+        this.iosSrc = ''
+      }
+
+      this.#initializeWebSocket(itemId, token)
     } else {
       throw new ReferenceError('item-id or token is not set.')
     }
@@ -131,7 +127,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       this.#websocket = new WebSocket(WEBSOCKET_BASE)
 
       this.#initializeTime = performance.now()
-      const wasInViewport = this.#isInViewport
+      let wasInViewport = this.#isInViewport
       if (wasInViewport) {
         this.#appearedTime = performance.now()
       }

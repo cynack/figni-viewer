@@ -517,12 +517,6 @@ figni-viewer::part(default-ar-button) {
   font-weight: bold;
 }
 
-.figni-viewer-help-button-cancel {
-  padding: 0;
-  right: calc(30% + 0.5rem);
-  transform: translateX(-100%);
-}
-
 .figni-viewer-help-panel {
   position: absolute;
   display: flex;

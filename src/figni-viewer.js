@@ -5,8 +5,10 @@ import { getErrorMessage } from './error'
 import './style.scss'
 import {
   SVG_AR_BUTTON,
+  SVG_CLOSE_ICON,
   SVG_DOWNLOAD_SCREENSHOT_BUTTON,
   SVG_ERROR_ICON,
+  SVG_HELP_ICON,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
 } from './svg'
@@ -33,11 +35,12 @@ const SETTINGS = {
 export default class FigniViewerElement extends HTMLElement {
   // html element
   #figniViewerBase
-  #figniHelpPanel
+  #helpPanelBase
   #initCameraButton
   #loadingPanel
   #errorPanel
   #qrCodePanel
+  #helpButton
   #arButton
   #toggleVisibleHotspotButton
   #downloadScreenshotButton
@@ -109,9 +112,9 @@ export default class FigniViewerElement extends HTMLElement {
     this.appendChild(this.#figniViewerBase)
 
     // Figni Help Panel
-    this.#figniHelpPanel = document.createElement('div')
-    this.#figniHelpPanel.style.width = '0px'
-    this.appendChild(this.#figniHelpPanel)
+    this.#helpPanelBase = document.createElement('div')
+    this.#helpPanelBase.style.width = '0px'
+    this.appendChild(this.#helpPanelBase)
 
     this.#completedInitialModelLoad = false
   }
@@ -131,6 +134,7 @@ export default class FigniViewerElement extends HTMLElement {
     this.#closeAllPanels()
     this.#setupInteractionCursor()
     this.#showArButton()
+    this.#showHelpButton()
 
     this.#completedInitialModelLoad = true
   }
@@ -935,6 +939,29 @@ export default class FigniViewerElement extends HTMLElement {
   #hideDownloadScreenshotButton() {
     if (this.#downloadScreenshotButton) {
       this.#downloadScreenshotButton.style.display = 'none'
+    }
+  }
+
+  /**
+   * ヘルプ画面を表示するボタンを表示する
+   */
+  #showHelpButton() {
+    if (!this.#helpButton) {
+      this.#helpButton = document.createElement('button')
+      this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
+      this.#helpButton.classList.add('figni-viewer-help-button')
+      let opened = false
+      this.#helpButton.addEventListener('click', () => {
+        if (opened) {
+          this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
+        } else {
+          this.#helpButton.innerHTML = `${SVG_CLOSE_ICON}`
+        }
+        opened = !opened
+      })
+      this.#figniViewerBase.appendChild(this.#helpButton)
+    } else {
+      this.#helpButton.style.display = ''
     }
   }
 }

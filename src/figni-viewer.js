@@ -196,7 +196,6 @@ export default class FigniViewerElement extends HTMLElement {
     this.setCameraTarget(this.target)
     this.setCameraOrbit(this.orbit)
     this.#hideInitCameraButton()
-    this.#closeAllPanels()
   }
 
   /**
@@ -458,7 +457,6 @@ export default class FigniViewerElement extends HTMLElement {
     this.#interactionCursorPool.push(
       ...[...Array(3)].map(() => this.#createCursor())
     )
-    console.log(this.#interactionCursorPool)
     this.#figniViewerBase.addEventListener('pointerdown', (e) => {
       if (!this.#interactionCursors[e.pointerId]) {
         const rect = e.currentTarget.getBoundingClientRect()
@@ -529,6 +527,7 @@ export default class FigniViewerElement extends HTMLElement {
   }
 
   #closeAllPanels(excludePanels = []) {
+    console.log(excludePanels)
     this.#panels.forEach((panel) => {
       if (!excludePanels.includes(panel)) {
         panel.classList.add('figni-viewer-panel-hide')
@@ -612,6 +611,7 @@ export default class FigniViewerElement extends HTMLElement {
             this.#figniViewerBase.cameraOrbit === orbit
           ) {
             this.resetCameraTargetAndOrbit()
+            this.#closeAllPanels()
           } else {
             this.setCameraTarget(target)
             this.setCameraOrbit(orbit)
@@ -661,7 +661,7 @@ export default class FigniViewerElement extends HTMLElement {
             }
             panel.classList.toggle('figni-viewer-panel-hide')
           })
-          this.#closeAllPanels(Array.from(panels))
+          // this.#closeAllPanels(Array.from(panels))
         }
       }
     }
@@ -774,9 +774,10 @@ export default class FigniViewerElement extends HTMLElement {
       this.#initCameraButton = document.createElement('button')
       this.#initCameraButton.classList.add('figni-viewer-init-camera-button')
       this.#initCameraButton.innerText = 'カメラ位置を戻す'
-      this.#initCameraButton.addEventListener('click', () =>
+      this.#initCameraButton.addEventListener('click', () => {
         this.resetCameraTargetAndOrbit()
-      )
+        this.#closeAllPanels()
+      })
       this.#figniViewerBase.appendChild(this.#initCameraButton)
     } else {
       this.#initCameraButton.style.display = 'block'

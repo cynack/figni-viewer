@@ -176,11 +176,6 @@ export class __FigniViewerElement extends ModelViewerElement {
     }
   }
 
-  resetCameraTargetAndOrbit() {
-    this.closeAllPanels()
-    this.#disableInitCameraButton()
-  }
-
   closeAllPanels(excludePanels = []) {
     this.#panels.forEach((panel) => {
       if (!excludePanels.includes(panel)) {

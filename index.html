@@ -14,23 +14,87 @@
     <div>
       <h1>テストページ</h1>
       <figni-viewer
-        id="view"
-        item-id="9IuDxlQF"
+        item-id="jX8I8IVG"
         token="ZRZYCb22MFWG7ha4"
-        orbit="40deg 75deg 150%"
+        state="opened"
+        id="viewer"
+        toggle-caption
       >
+        <div
+          slot="hotspot-1"
+          position="-0.12m 0.63m -0.05m"
+          normal="0m 1m 0.3m"
+          closeup
+          orbit="-15deg 75deg 0.8m"
+        >
+          <div slot="panel">
+            <img src="https://admin.figni.io/sample/suitcase/caption_1.png" />
+            <h4>耐久力のあるハンドル</h4>
+            <p>
+              軽くて頑丈なカーボンファイバーを採用したことにより、100kgの荷重にも耐える構造を実現しました。
+            </p>
+            <button id="toggle">ハンドルを閉じる</button>
+          </div>
+        </div>
         <button
-          slot="hotspot-anime"
-          data-position="0m 0m 0m"
-          data-normal="0m 0m 1m"
-        ></button>
+          slot="hotspot-2"
+          position="-0.25m 0.28m 0m"
+          normal="-1m 0m 0.5m"
+          closeup
+          orbit="-45deg 90deg 0.5m"
+        >
+          <div slot="panel">
+            <img src="https://admin.figni.io//sample/suitcase/caption_2.png" />
+            <h4>大容量収納と専用ポケットを完備</h4>
+            <p>
+              45リットルの大容量収納に加え、小物を入れられるメッシュポケット、コードなどを通せる専用ポケットなどの収納機能が搭載されています。
+            </p>
+          </div>
+        </button>
+        <button
+          slot="hotspot-3"
+          position="0.15m 0.5m 0.15m"
+          normal="0 0 1m"
+          closeup
+          orbit="30deg 75deg 0.3m"
+        >
+          <div slot="panel" place="right middle">
+            <img src="https://admin.figni.io//sample/suitcase/caption_3.png" />
+            <h4>軽量で頑丈なABS樹脂を採用</h4>
+            <p>
+              1000万回の耐久テストにも耐えた頑丈設計。重量は3kgで女性でも楽に持ち運ぶことが可能です。
+            </p>
+          </div>
+        </button>
+        <button
+          slot="hotspot-4"
+          position="0.25m 0.05m 0m"
+          normal="1m 0 0.3m"
+          orbit="45deg 135deg 0.8m"
+          closeup
+        >
+          <div slot="panel" place="right middle">
+            <img src="https://admin.figni.io//sample/suitcase/caption_4.png" />
+            <h4>静音性能の優れたキャスター</h4>
+            <p>
+              接地面に発生する移動中の衝撃をゴムが吸収するため、静穏性に優れています。ゴムには耐摩耗性があるので、耐久性にも優れています。
+            </p>
+          </div>
+        </button>
       </figni-viewer>
+      <button
+        onclick="viewer.addHotspot('test', '0.5 0 0', null, { anime: { clip: 'Pull_out' } })"
+      >
+        追加
+      </button>
+      <button
+        onclick="viewer.editHotspot('test', '-0.2 0.1 0', '0 0 1', { anime: { clip: 'Push_in', loopCount: 2 } })"
+      >
+        編集
+      </button>
     </div>
-    <script>
-      const view = document.querySelector('figni-viewer')
-    </script>
     <style>
-      #view {
+      #viewer {
         margin-top: 3000px;
         width: 100%;
         height: 480px;
@@ -42,5 +106,35 @@
         height: 5000px;
       }
     </style>
+    <script defer>
+      const viewer = document.getElementById('viewer')
+      const toggle = document.getElementById('toggle')
+      toggle.addEventListener('click', (event) => {
+        event.stopPropagation()
+        if (viewer.state === 'opened') {
+          viewer.playAnimation('Push_in', {
+            toState: 'closed',
+            onStart: () => {
+              viewer.toggleVisibleHotspot(false)
+            },
+            onEnd: () => {
+              viewer.toggleVisibleHotspot(true)
+              toggle.innerHTML = 'ハンドルを開く'
+            },
+          })
+        } else if (viewer.state === 'closed') {
+          viewer.playAnimation('Pull_out', {
+            toState: 'opened',
+            onStart: () => {
+              viewer.toggleVisibleHotspot(false)
+            },
+            onEnd: () => {
+              viewer.toggleVisibleHotspot(true)
+              toggle.innerHTML = 'ハンドルを閉じる'
+            },
+          })
+        }
+      })
+    </script>
   </body>
 </html>

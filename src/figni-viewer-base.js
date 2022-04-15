@@ -12,7 +12,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   #websocket
   #initializeTime = 0
   #initializeModelTime = Infinity
-  #initializeArViewTIme = Infinity
+  #initializeArViewTime = Infinity
   #appearedTime = 0
   #sumViewTime = 0
   #isInteracting = false
@@ -32,10 +32,16 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   async connectedCallback() {
     super.connectedCallback()
 
-    // delete outline
-    this.shadowRoot
-      .querySelectorAll(':not(style[outline="none"])')
-      .forEach((d) => (d.style.outline = 'none'))
+    const style = document.createElement('style')
+    style.textContent = `
+      :not(style[outline="none"]) {
+        outline: none !important;
+      }
+      ::part(default-progress-bar) {
+        display: none;
+      }
+    `
+    this.appendChild(style)
   }
 
   /**
@@ -68,6 +74,14 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         this.iosSrc = ''
       }
 
+      const progress = (e) => {
+        if (e.detail.progress == 1) {
+          this.#initializeModelTime = performance.now()
+          this.removeEventListener('progress', progress)
+        }
+      }
+      this.addEventListener('progress', progress)
+
       this.#initializeWebSocket(itemId, token)
     } else {
       throw new ReferenceError('item-id or token is not set.')
@@ -90,6 +104,97 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     this.cameraOrbit = orbit
   }
 
+  /**
+   * キャプションのクリック回数をカウントする
+   * @param {string} hotspotId キャプション名
+   */
+  incrementHotspotClickCount(hotspotId) {
+    if (this.#hotspotClickCount[hotspotId]) {
+      this.#hotspotClickCount[hotspotId]++
+    } else {
+      this.#hotspotClickCount[hotspotId] = 1
+    }
+  }
+
+  /**
+   * アニメーションの再生回数をカウントする
+   * @param {string} animationId アニメーション名
+   */
+  incrementAnimationPlayCount(animationId) {
+    if (this.#animationPlayCount[animationId]) {
+      this.#animationPlayCount[animationId]++
+    } else {
+      this.#animationPlayCount[animationId] = 1
+    }
+  }
+
+  /**
+   * アニメーションを再生する
+   * @param {string} clip 再生するアニメーション名
+   * @param {{ loopCount: number, reverse: boolean, toState: string, onStart: Function, onEnd: Function }} options オプション
+   */
+  async playAnimation(clip = null, options = {}) {
+    if (!clip) {
+      if (this.availableAnimations.length > 0) {
+        clip = this.availableAnimations[0]
+      }
+    }
+    if (clip == null) {
+      throw new ReferenceError(`${clip} should be specified`)
+    }
+    if (!this.availableAnimations.includes(clip)) {
+      throw new ReferenceError(`${clip} is not available`)
+    }
+    if (this.timeScale === 0) {
+      throw new RangeError(`Animation timeScale is 0`)
+    }
+    if (this.paused || this.loop) {
+      this.animationName = clip
+      this.currentTime = 0
+      await this.updateComplete
+      if (options.onStart) {
+        if (typeof options.onStart === 'function') {
+          options.onStart()
+        } else {
+          throw new TypeError('onStart must be a function')
+        }
+      }
+      const loopCount = options.loopCount || 1
+      const isLoop = loopCount === Infinity
+      if (options.reverse === true) {
+        this.timeScale = -this.timeScale
+      }
+      if (this.timeScale < 0) {
+        this.play({ repetitions: loopCount + 1 })
+        this.addEventListener('loop', () => {
+          this.play({ repetitions: loopCount })
+        })
+      } else {
+        this.play({ repetitions: loopCount })
+      }
+      const onFinishFunc = () => {
+        if (!isLoop) {
+          if (options.onEnd) {
+            if (typeof options.onEnd === 'function') {
+              options.onEnd()
+            } else {
+              throw new TypeError('onEnd must be a function')
+            }
+          }
+        }
+        if (options.reverse === true) {
+          this.timeScale = -this.timeScale
+        }
+      }
+      if (!this.loop) {
+        this.addEventListener('finished', onFinishFunc, { once: true })
+      } else {
+        onFinishFunc()
+      }
+      this.incrementAnimationPlayCount(clip)
+    }
+  }
+
   #setupModelViewer() {
     this.loading = 'lazy'
     this.cameraControls = true
@@ -97,11 +202,9 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     this.arModes = 'webxr scene-viewer quick-look'
     this.arScale = 'fixed'
     this.arPlacement = 'floor'
-    this.interactionPrompt = 'auto'
-    this.interactionPromptStyle = 'basic'
-    this.interactionPromptThreshold = 0
-    this.autoRotate = true
-    this.autoRotateDelay = 0
+    // this.interactionPrompt = 'auto'
+    // this.interactionPromptStyle = 'basic'
+    // this.interactionPromptThreshold = 0
     this.shadowIntensity = 1
     this.minimumRenderScale = 0.25
     this.animationCrossfadeDuration = 0
@@ -122,6 +225,8 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       this.#websocket = new WebSocket(WEBSOCKET_BASE)
 
       this.#initializeTime = performance.now()
+      this.#initializeArViewTime = Infinity
+      this.#initializeModelTime = Infinity
       let wasInViewport = this.#isInViewport
       if (wasInViewport) {
         this.#appearedTime = performance.now()
@@ -216,7 +321,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     return Number(
       Math.min(
         Math.max(performance.now() - this.#initializeTime, 0),
-        this.#initializeModelTime
+        this.#initializeModelTime - this.#initializeTime
       ).toFixed(2)
     )
   }
@@ -225,7 +330,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     return Number(
       Math.min(
         Math.max(performance.now() - this.#initializeTime, 0),
-        this.#initializeArViewTIme
+        this.#initializeArViewTime - this.#initializeTime
       ).toFixed(2)
     )
   }

@@ -1,8 +1,10 @@
 import Lottie from 'lottie-web'
+import QRCode from 'qrcode'
 import { LOADING_ANIMATION_MINI } from './animation'
 import { getErrorMessage } from './error'
 import './style.scss'
 import {
+  SVG_AR_BUTTON,
   SVG_DOWNLOAD_SCREENSHOT_BUTTON,
   SVG_ERROR_ICON,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF,
@@ -35,6 +37,8 @@ export default class FigniViewerElement extends HTMLElement {
   #initCameraButton
   #loadingPanel
   #errorPanel
+  #qrCodePanel
+  #arButton
   #toggleVisibleHotspotButton
   #downloadScreenshotButton
   #interactionCursors = {}
@@ -126,6 +130,7 @@ export default class FigniViewerElement extends HTMLElement {
     this.resetCameraTargetAndOrbit()
     this.#closeAllPanels()
     this.#setupInteractionCursor()
+    this.#showArButton()
 
     this.#completedInitialModelLoad = true
   }
@@ -447,8 +452,9 @@ export default class FigniViewerElement extends HTMLElement {
 
   #setupInteractionCursor() {
     this.#interactionCursorPool.push(
-      ...[Array(3)].map(() => this.#createCursor())
+      ...[...Array(3)].map(() => this.#createCursor())
     )
+    console.log(this.#interactionCursorPool)
     this.#figniViewerBase.addEventListener('pointerdown', (e) => {
       if (!this.#interactionCursors[e.pointerId]) {
         const rect = e.currentTarget.getBoundingClientRect()
@@ -698,6 +704,61 @@ export default class FigniViewerElement extends HTMLElement {
       panel.classList.add('figni-viewer-panel-place-center-bottom')
     } else if (horizontal == 'right' && vertical == 'bottom') {
       panel.classList.add('figni-viewer-panel-place-right-bottom')
+    }
+  }
+
+  /**
+   * ARボタンを表示する
+   */
+  #showArButton() {
+    if (!this.#arButton) {
+      this.#arButton = document.createElement('button')
+      this.#arButton.innerHTML = `${SVG_AR_BUTTON}<span>実物大で見る</span>`
+      this.#arButton.classList.add('figni-viewer-ar-button')
+      this.#arButton.addEventListener('click', () => {
+        if (this.#figniViewerBase.canActivateAR) {
+          this.#figniViewerBase.activateARMode()
+        } else {
+          this.#showQRCodePanel()
+        }
+      })
+      this.#figniViewerBase.appendChild(this.#arButton)
+    } else {
+      this.#arButton.style.display = ''
+    }
+  }
+
+  #showQRCodePanel() {
+    if (!this.#qrCodePanel) {
+      this.#qrCodePanel = document.createElement('div')
+      this.#qrCodePanel.classList.add('figni-viewer-qrcode-panel')
+      this.#qrCodePanel.addEventListener('click', () => {
+        this.#hideQRCodePanel()
+      })
+      QRCode.toString(window.top.location.href, { width: 100 }, (err, str) => {
+        if (!err) {
+          const text = document.createElement('span')
+          text.innerText =
+            'QRコードを読み取ってスマホ版で\nサイトを閲覧してください'
+          this.#qrCodePanel.appendChild(text)
+          this.#qrCodePanel.innerHTML += str.replace('#000000', '#222428')
+        } else {
+          const text = document.createElement('span')
+          text.style.color = 'var(--figni-viewer-red)'
+          text.innerText = 'QRコードの生成に失敗しました...'
+          this.#qrCodePanel.appendChild(text)
+          console.error(err)
+        }
+      })
+      this.#figniViewerBase.appendChild(this.#qrCodePanel)
+    } else {
+      this.#qrCodePanel.style.display = ''
+    }
+  }
+
+  #hideQRCodePanel() {
+    if (this.#qrCodePanel) {
+      this.#qrCodePanel.style.display = 'none'
     }
   }
 

@@ -40,6 +40,9 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       ::part(default-progress-bar) {
         display: none;
       }
+      ::part(default-ar-button) {
+        display: none;
+      }
     `
     this.appendChild(style)
   }
@@ -125,6 +128,19 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       this.#animationPlayCount[animationId]++
     } else {
       this.#animationPlayCount[animationId] = 1
+    }
+  }
+
+  /**
+   * ARを起動する
+   */
+  activateARMode() {
+    if (this.canActivateAR) {
+      this.#arCount++
+      if (this.#arCount == 1) {
+        this.#initializeArViewTime = performance.now()
+      }
+      this.activateAR()
     }
   }
 

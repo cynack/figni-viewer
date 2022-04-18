@@ -570,6 +570,7 @@ export default class FigniViewerElement extends HTMLElement {
     const clickEvent = () => {
       if (this.#clickableHotspot(hotspot)) {
         this.#figniViewerBase.incrementHotspotClickCount(name)
+        this.#figniViewerBase.disableInteractionPrompt()
       }
     }
     hotspot.addEventListener('click', clickEvent)
@@ -837,7 +838,7 @@ export default class FigniViewerElement extends HTMLElement {
           `${Math.ceil(p * 100)}%`
         )
         if (p === 1) {
-          // this.#hideLoadingPanel()
+          this.#hideLoadingPanel()
           this.#figniViewerBase.removeEventListener('progress', progress)
         }
       }

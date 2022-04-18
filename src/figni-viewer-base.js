@@ -145,6 +145,13 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   }
 
   /**
+   * カメラ操作ができることを強調するプロンプトを消す
+   */
+  disableInteractionPrompt() {
+    this.interactionPrompt = 'none'
+  }
+
+  /**
    * アニメーションを再生する
    * @param {string} clip 再生するアニメーション名
    * @param {{ loopCount: number, reverse: boolean, toState: string, onStart: Function, onEnd: Function }} options オプション

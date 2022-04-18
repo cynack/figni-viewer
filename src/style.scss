@@ -207,6 +207,9 @@ figni-viewer * {
 
 .figni-viewer-init-camera-button {
   position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 2rem;
   height: 2rem;
   bottom: 0.5rem;
@@ -216,7 +219,6 @@ figni-viewer * {
   color: white;
   background-color: var(--figni-viewer-primary);
   z-index: 9995;
-  padding: 0.5rem;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
@@ -227,8 +229,9 @@ figni-viewer * {
 }
 
 .figni-viewer-init-camera-button svg {
-  width: 100%;
-  height: 100%;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-top: 0.1rem;
 }
 
 figni-viewer::part(default-ar-button) {
@@ -372,7 +375,7 @@ figni-viewer::part(default-ar-button) {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 0.2rem 0.5rem;
+  padding: 0.3rem 0.5rem;
   background: linear-gradient(
     90deg,
     #fff1ec 0%,
@@ -385,8 +388,9 @@ figni-viewer::part(default-ar-button) {
 }
 
 .figni-viewer-loading-animation-mini {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  padding-right: 0.5rem;
 }
 
 .figni-viewer-loading-text {

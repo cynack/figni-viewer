@@ -9,6 +9,7 @@ import {
   SVG_DOWNLOAD_SCREENSHOT_BUTTON,
   SVG_ERROR_ICON,
   SVG_HELP_ICON,
+  SVG_INTERACTION_PROMPT,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
 } from './svg'
@@ -41,6 +42,7 @@ export default class FigniViewerElement extends HTMLElement {
   #errorPanel
   #qrCodePanel
   #helpButton
+  #interactionPrompt
   #arButton
   #toggleVisibleHotspotButton
   #downloadScreenshotButton
@@ -132,8 +134,10 @@ export default class FigniViewerElement extends HTMLElement {
     this.loadModel(this.itemId, this.token, this.modelTag)
     this.resetCameraTargetAndOrbit()
     this.#closeAllPanels()
+    this.updateState(this.state)
     this.#setupInteractionCursor()
     this.#showArButton()
+    this.#showInteractionPrompt()
     // TODO: ヘルプページの実装
     // this.#showHelpButton()
 
@@ -712,6 +716,30 @@ export default class FigniViewerElement extends HTMLElement {
   }
 
   /**
+   * インタラクションプロンプトを表示する
+   */
+  #showInteractionPrompt() {
+    if (!this.#interactionPrompt) {
+      this.#interactionPrompt = document.createElement('div')
+      this.#interactionPrompt.classList.add('figni-viewer-interaction-prompt')
+      this.#interactionPrompt.innerHTML = SVG_INTERACTION_PROMPT
+      this.#interactionPrompt.setAttribute('slot', 'interaction-prompt')
+      this.#figniViewerBase.appendChild(this.#interactionPrompt)
+    } else {
+      this.#interactionPrompt.style.display = ''
+    }
+  }
+
+  /**
+   * インタラクションプロンプトを非表示にする
+   */
+  #hideInteractionPrompt() {
+    if (this.#interactionPrompt) {
+      this.#interactionPrompt.style.display = 'none'
+    }
+  }
+
+  /**
    * ARボタンを表示する
    */
   #showArButton() {
@@ -735,26 +763,29 @@ export default class FigniViewerElement extends HTMLElement {
   #showQRCodePanel() {
     if (!this.#qrCodePanel) {
       this.#qrCodePanel = document.createElement('div')
-      this.#qrCodePanel.classList.add('figni-viewer-qrcode-panel')
+      this.#qrCodePanel.classList.add('figni-viewer-qrcode-panel-bg')
       this.#qrCodePanel.addEventListener('click', () => {
         this.#hideQRCodePanel()
       })
+      this.#figniViewerBase.appendChild(this.#qrCodePanel)
+      const panel = document.createElement('div')
+      panel.classList.add('figni-viewer-qrcode-panel')
       QRCode.toString(window.top.location.href, { width: 100 }, (err, str) => {
         if (!err) {
           const text = document.createElement('span')
           text.innerText =
             'QRコードを読み取ってスマホ版で\nサイトを閲覧してください'
-          this.#qrCodePanel.appendChild(text)
-          this.#qrCodePanel.innerHTML += str.replace('#000000', '#222428')
+          panel.appendChild(text)
+          panel.innerHTML += str.replace('#000000', '#222428')
         } else {
           const text = document.createElement('span')
           text.style.color = 'var(--figni-viewer-red)'
           text.innerText = 'QRコードの生成に失敗しました...'
-          this.#qrCodePanel.appendChild(text)
+          panel.appendChild(text)
           console.error(err)
         }
       })
-      this.#figniViewerBase.appendChild(this.#qrCodePanel)
+      this.#qrCodePanel.appendChild(panel)
     } else {
       this.#qrCodePanel.style.display = ''
     }

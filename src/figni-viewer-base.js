@@ -225,9 +225,6 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     this.arModes = 'webxr scene-viewer quick-look'
     this.arScale = 'fixed'
     this.arPlacement = 'floor'
-    // this.interactionPrompt = 'auto'
-    // this.interactionPromptStyle = 'basic'
-    // this.interactionPromptThreshold = 0
     this.shadowIntensity = 1
     this.minimumRenderScale = 0.25
     this.animationCrossfadeDuration = 0
@@ -307,6 +304,8 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
               ar_view_time: this.#arViewTime,
               hotspot_click: this.#hotspotClickCount,
               animation_play: this.#animationPlayCount,
+              current_camera_target: this.#currentCameraTarget,
+              current_camera_orbit: this.#currentCameraOrbit,
             })
           )
         } else {
@@ -386,5 +385,19 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         ))
     const ratio = viewArea / area
     return ratio > VIEW_THRESHOLD
+  }
+
+  get #currentCameraTarget() {
+    const { x, y, z } = this.getCameraTarget()
+    return { x, y, z }
+  }
+
+  get #currentCameraOrbit() {
+    const { theta, phi, radius } = this.getCameraOrbit()
+    return {
+      theta: theta * (180 / Math.PI),
+      phi: phi * (180 / Math.PI),
+      radius,
+    }
   }
 }

@@ -20,20 +20,24 @@
         id="viewer"
       >
         <div
-          slot="hotspot-1"
+          slot="hotspot-close"
           position="-0.12m 0.63m -0.05m"
           normal="0m 1m 0.3m"
-          closeup
-          orbit="-15deg 75deg 0.8m"
+          clip="Push_in"
+          to-state="closed"
+          visible-state="opened"
         >
-          <div slot="panel">
-            <img src="https://admin.figni.io/sample/suitcase/caption_1.png" />
-            <h4>耐久力のあるハンドル</h4>
-            <p>
-              軽くて頑丈なカーボンファイバーを採用したことにより、100kgの荷重にも耐える構造を実現しました。
-            </p>
-            <button id="toggle">ハンドルを閉じる</button>
-          </div>
+          ハンドルを閉じる
+        </div>
+        <div
+          slot="hotspot-open"
+          position="-0.12m 0.63m -0.05m"
+          normal="0m 1m 0.3m"
+          clip="Pull_out"
+          to-state="opened"
+          visible-state="closed"
+        >
+          ハンドルを開く
         </div>
         <button
           slot="hotspot-2"
@@ -105,35 +109,5 @@
         height: 5000px;
       }
     </style>
-    <script defer>
-      const viewer = document.getElementById('viewer')
-      const toggle = document.getElementById('toggle')
-      toggle.addEventListener('click', (event) => {
-        event.stopPropagation()
-        if (viewer.state === 'opened') {
-          viewer.playAnimation('Push_in', {
-            toState: 'closed',
-            onStart: () => {
-              viewer.toggleVisibleHotspot(false)
-            },
-            onEnd: () => {
-              viewer.toggleVisibleHotspot(true)
-              toggle.innerHTML = 'ハンドルを開く'
-            },
-          })
-        } else if (viewer.state === 'closed') {
-          viewer.playAnimation('Pull_out', {
-            toState: 'opened',
-            onStart: () => {
-              viewer.toggleVisibleHotspot(false)
-            },
-            onEnd: () => {
-              viewer.toggleVisibleHotspot(true)
-              toggle.innerHTML = 'ハンドルを閉じる'
-            },
-          })
-        }
-      })
-    </script>
   </body>
 </html>

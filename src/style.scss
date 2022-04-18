@@ -234,10 +234,6 @@ figni-viewer * {
   margin-top: 0.1rem;
 }
 
-figni-viewer::part(default-ar-button) {
-  display: none;
-}
-
 .figni-viewer-ar-button {
   position: absolute;
   display: flex;
@@ -273,6 +269,7 @@ figni-viewer::part(default-ar-button) {
   font-size: 12px;
   font-family: var(--figni-viewer-ui-font);
   font-weight: bold;
+  margin-bottom: 0.1rem;
 }
 
 .figni-viewer-toggle-visible-hotspot-button {
@@ -462,8 +459,16 @@ figni-viewer::part(default-ar-button) {
 }
 
 .figni-viewer-interaction-prompt {
-  width: 400px;
-  height: 400px;
+  width: 5rem;
+}
+
+.figni-viewer-qrcode-panel-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
   background-color: var(--figni-viewer-gray-300-tp);
 }
 
@@ -471,13 +476,14 @@ figni-viewer::part(default-ar-button) {
   position: absolute;
   display: flex;
   flex-flow: column;
-  justify-content: center;
+  justify-content: start;
   align-items: center;
   border-radius: 0.5rem;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  padding: 1rem;
+  padding: 1.5rem;
+  padding-bottom: 1rem;
   width: 200px;
   height: 200px;
   z-index: 9999;
@@ -487,7 +493,14 @@ figni-viewer::part(default-ar-button) {
 .figni-viewer-qrcode-panel > span {
   font-family: var(--figni-viewer-ui-font);
   font-size: 12px;
+  font-weight: 700;
+  color: var(--figni-viewer-primary);
   text-align: center;
+}
+
+.figni-viewer-qrcode-panel > svg {
+  flex: 1;
+  width: 100%;
 }
 
 .figni-viewer-help-button {

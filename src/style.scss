@@ -207,22 +207,16 @@ figni-viewer * {
 
 .figni-viewer-init-camera-button {
   position: absolute;
-  display: flex;
-  -webkit-box-align: center;
-  align-items: center;
-  -webkit-box-pack: center;
-  justify-content: center;
-  height: 2.5rem;
-  padding: 0rem 1rem;
-  top: 0.5rem;
-  left: 0.5rem;
-  white-space: nowrap;
-  border-radius: 1.25rem;
+  width: 2rem;
+  height: 2rem;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  border-radius: 0.5rem;
   border: none;
   color: white;
-  font-weight: bold;
-  background-color: var(--figni-viewer-secondary);
+  background-color: var(--figni-viewer-primary);
   z-index: 9995;
+  padding: 0.5rem;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
@@ -230,6 +224,11 @@ figni-viewer * {
 
 .figni-viewer-init-camera-button:active {
   box-shadow: 0 0 0 0.3rem var(--figni-viewer-secondary-tp);
+}
+
+.figni-viewer-init-camera-button svg {
+  width: 100%;
+  height: 100%;
 }
 
 figni-viewer::part(default-ar-button) {

@@ -772,7 +772,7 @@ export default class FigniViewerElement extends HTMLElement {
     if (!this.#initCameraButton) {
       this.#initCameraButton = document.createElement('button')
       this.#initCameraButton.classList.add('figni-viewer-init-camera-button')
-      this.#initCameraButton.innerText = 'カメラ位置を戻す'
+      this.#initCameraButton.innerHTML = SVG_CLOSE_ICON
       this.#initCameraButton.addEventListener('click', () => {
         this.resetCameraTargetAndOrbit()
         this.#closeAllPanels()

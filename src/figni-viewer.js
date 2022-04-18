@@ -134,7 +134,8 @@ export default class FigniViewerElement extends HTMLElement {
     this.#closeAllPanels()
     this.#setupInteractionCursor()
     this.#showArButton()
-    this.#showHelpButton()
+    // TODO: ヘルプページの実装
+    // this.#showHelpButton()
 
     this.#completedInitialModelLoad = true
   }
@@ -527,7 +528,6 @@ export default class FigniViewerElement extends HTMLElement {
   }
 
   #closeAllPanels(excludePanels = []) {
-    console.log(excludePanels)
     this.#panels.forEach((panel) => {
       if (!excludePanels.includes(panel)) {
         panel.classList.add('figni-viewer-panel-hide')
@@ -611,7 +611,6 @@ export default class FigniViewerElement extends HTMLElement {
             this.#figniViewerBase.cameraOrbit === orbit
           ) {
             this.resetCameraTargetAndOrbit()
-            this.#closeAllPanels()
           } else {
             this.setCameraTarget(target)
             this.setCameraOrbit(orbit)
@@ -661,7 +660,7 @@ export default class FigniViewerElement extends HTMLElement {
             }
             panel.classList.toggle('figni-viewer-panel-hide')
           })
-          // this.#closeAllPanels(Array.from(panels))
+          this.#closeAllPanels(Array.from(panels))
         }
       }
     }

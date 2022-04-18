@@ -18,7 +18,7 @@
   --figni-viewer-button: rgb(59, 94, 255);
   --figni-viewer-button-tp: rgba(59, 94, 255, 0.8);
   --figni-viewer-contents-font: 'Noto Sans JP', sans-serif;
-  --figni-viewer-ui-font: 'Spartan', 'Noto Sans JP', sans-serif;
+  --figni-viewer-ui-font: 'Noto Sans JP', sans-serif;
 }
 
 figni-viewer {
@@ -369,7 +369,10 @@ figni-viewer::part(default-ar-button) {
 
 .figni-viewer-loading-progress-bar {
   bottom: 2rem;
-  display: block;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
   background: linear-gradient(
     90deg,
     #fff1ec 0%,
@@ -381,12 +384,16 @@ figni-viewer::part(default-ar-button) {
   transition: all 0.5s cubic-bezier(0, 1, 0.3, 1);
 }
 
+.figni-viewer-loading-animation-mini {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
 .figni-viewer-loading-text {
-  display: inline-block;
-  margin: 0.25rem 1rem;
   color: var(--figni-viewer-primary);
   font-family: var(--figni-viewer-ui-font);
   font-size: 0.75rem;
+  font-weight: 700;
 }
 
 @keyframes animation-text-blinking {

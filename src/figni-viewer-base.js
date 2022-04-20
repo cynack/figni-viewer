@@ -262,7 +262,6 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         } else if (wasInViewport && !this.#isInViewport) {
           this.#sumViewTime += performance.now() - this.#appearedTime
         }
-        console.log(this.#appearedTime)
         wasInViewport = this.#isInViewport
       })
 

@@ -387,7 +387,6 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
           window.innerWidth || document.documentElement.clientWidth
         ))
     const ratio = viewArea / area
-    console.log(this.getBoundingClientRect())
     return ratio > VIEW_THRESHOLD
   }
 

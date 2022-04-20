@@ -1,6 +1,6 @@
 import Lottie from 'lottie-web'
 import QRCode from 'qrcode'
-import { LOADING_ANIMATION, LOADING_ANIMATION_MINI } from './animation'
+import { LOADING_ANIMATION, LOADING_ANIMATION_RING } from './animation'
 import { getErrorMessage } from './error'
 import './style.scss'
 import {
@@ -853,9 +853,9 @@ export default class FigniViewerElement extends HTMLElement {
         renderer: 'svg',
         loop: true,
         autoplay: true,
-        animationData: LOADING_ANIMATION_MINI,
+        animationData: LOADING_ANIMATION_RING,
       })
-      loadingIcon.classList.add('figni-viewer-loading-animation-mini')
+      loadingIcon.classList.add('figni-viewer-loading-animation-ring')
       loadingProgressBar.appendChild(loadingIcon)
       const loadingText = document.createElement('span')
       loadingText.innerText = '3Dモデルを読み込み中'

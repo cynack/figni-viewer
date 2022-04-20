@@ -337,7 +337,8 @@ export const LOADING_ANIMATION = {
       ddd: 0,
       ind: 1,
       ty: 4,
-      nm: 'effect',
+      nm: '.tap_effect',
+      cl: 'tap_effect',
       sr: 1,
       ks: {
         o: { a: 0, k: 100, ix: 11 },
@@ -1257,7 +1258,8 @@ export const LOADING_ANIMATION = {
       ddd: 0,
       ind: 2,
       ty: 4,
-      nm: 'hand',
+      nm: '.hand',
+      cl: 'hand',
       sr: 0.75,
       ks: {
         o: {
@@ -1572,7 +1574,8 @@ export const LOADING_ANIMATION = {
       ddd: 0,
       ind: 3,
       ty: 4,
-      nm: 'シェイプレイヤー 1',
+      nm: '.tap_fb',
+      cl: 'tap_fb',
       parent: 2,
       sr: 0.75,
       ks: {
@@ -1782,7 +1785,8 @@ export const LOADING_ANIMATION = {
       ddd: 1,
       ind: 5,
       ty: 4,
-      nm: 'cube0',
+      nm: '.cube',
+      cl: 'cube',
       parent: 4,
       sr: 1,
       ks: {
@@ -1838,7 +1842,8 @@ export const LOADING_ANIMATION = {
       ddd: 1,
       ind: 6,
       ty: 4,
-      nm: 'cube1',
+      nm: '.cube',
+      cl: 'cube',
       parent: 4,
       sr: 1,
       ks: {
@@ -1846,7 +1851,7 @@ export const LOADING_ANIMATION = {
           a: 0,
           k: 100,
           ix: 11,
-          x: "var $bm_rt;\n$bm_rt = thisComp.layer('cube0').transform.opacity;",
+          x: "var $bm_rt;\n$bm_rt = thisComp.layer('.cube').transform.opacity;",
         },
         rx: { a: 0, k: 0, ix: 8 },
         ry: { a: 0, k: 90, ix: 9 },
@@ -1894,7 +1899,8 @@ export const LOADING_ANIMATION = {
       ddd: 1,
       ind: 7,
       ty: 4,
-      nm: 'cube2',
+      nm: '.cube',
+      cl: 'cube',
       parent: 4,
       sr: 1,
       ks: {
@@ -1902,7 +1908,7 @@ export const LOADING_ANIMATION = {
           a: 0,
           k: 100,
           ix: 11,
-          x: "var $bm_rt;\n$bm_rt = thisComp.layer('cube0').transform.opacity;",
+          x: "var $bm_rt;\n$bm_rt = thisComp.layer('.cube').transform.opacity;",
         },
         rx: { a: 0, k: 180, ix: 8 },
         ry: { a: 0, k: 0, ix: 9 },
@@ -1950,7 +1956,8 @@ export const LOADING_ANIMATION = {
       ddd: 1,
       ind: 8,
       ty: 4,
-      nm: 'cube3',
+      nm: '.cube',
+      cl: 'cube',
       parent: 4,
       sr: 1,
       ks: {
@@ -1958,7 +1965,7 @@ export const LOADING_ANIMATION = {
           a: 0,
           k: 100,
           ix: 11,
-          x: "var $bm_rt;\n$bm_rt = thisComp.layer('cube0').transform.opacity;",
+          x: "var $bm_rt;\n$bm_rt = thisComp.layer('.cube').transform.opacity;",
         },
         rx: { a: 0, k: 90, ix: 8 },
         ry: { a: 0, k: 0, ix: 9 },
@@ -2006,7 +2013,8 @@ export const LOADING_ANIMATION = {
       ddd: 1,
       ind: 9,
       ty: 4,
-      nm: 'cube4',
+      nm: '.cube',
+      cl: 'cube',
       parent: 4,
       sr: 1,
       ks: {
@@ -2014,7 +2022,7 @@ export const LOADING_ANIMATION = {
           a: 0,
           k: 100,
           ix: 11,
-          x: "var $bm_rt;\n$bm_rt = thisComp.layer('cube0').transform.opacity;",
+          x: "var $bm_rt;\n$bm_rt = thisComp.layer('.cube').transform.opacity;",
         },
         rx: { a: 0, k: 90, ix: 8 },
         ry: { a: 0, k: 0, ix: 9 },
@@ -2062,7 +2070,8 @@ export const LOADING_ANIMATION = {
       ddd: 1,
       ind: 10,
       ty: 4,
-      nm: 'cube5',
+      nm: '.cube',
+      cl: 'cube',
       parent: 4,
       sr: 1,
       ks: {
@@ -2070,7 +2079,7 @@ export const LOADING_ANIMATION = {
           a: 0,
           k: 100,
           ix: 11,
-          x: "var $bm_rt;\n$bm_rt = thisComp.layer('cube0').transform.opacity;",
+          x: "var $bm_rt;\n$bm_rt = thisComp.layer('.cube').transform.opacity;",
         },
         rx: { a: 0, k: 90, ix: 8 },
         ry: { a: 0, k: 0, ix: 9 },
@@ -2118,7 +2127,8 @@ export const LOADING_ANIMATION = {
       ddd: 1,
       ind: 11,
       ty: 4,
-      nm: 'grid',
+      nm: '.grid',
+      cl: 'grid',
       sr: 1,
       ks: {
         o: {
@@ -2589,7 +2599,7 @@ export const LOADING_ANIMATION = {
   ],
   markers: [],
 }
-export const LOADING_ANIMATION_MINI = {
+export const LOADING_ANIMATION_RING = {
   v: '5.9.1',
   fr: 29.9700012207031,
   ip: 1.00000004073083,
@@ -2604,7 +2614,8 @@ export const LOADING_ANIMATION_MINI = {
       ddd: 0,
       ind: 1,
       ty: 4,
-      nm: 'シェイプレイヤー 1',
+      nm: '.ring',
+      cl: 'ring',
       sr: 1,
       ks: {
         o: { a: 0, k: 100, ix: 11 },

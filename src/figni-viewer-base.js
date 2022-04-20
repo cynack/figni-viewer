@@ -77,13 +77,16 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         this.iosSrc = ''
       }
 
-      const progress = (e) => {
-        if (e.detail.progress == 1) {
+      const p = (e) => {
+        if (e.detail.totalProgress == 1) {
+          if (this.#isInViewport) {
+            this.#appearedTime = performance.now()
+          }
           this.#initializeModelTime = performance.now()
-          this.removeEventListener('progress', progress)
+          this.removeEventListener('progress', p)
         }
       }
-      this.addEventListener('progress', progress)
+      this.addEventListener('progress', p)
 
       this.#initializeWebSocket(itemId, token)
     } else {
@@ -259,6 +262,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         } else if (wasInViewport && !this.#isInViewport) {
           this.#sumViewTime += performance.now() - this.#appearedTime
         }
+        console.log(this.#appearedTime)
         wasInViewport = this.#isInViewport
       })
 

@@ -241,7 +241,8 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       headers: { 'X-Figni-Client-Token': token },
     })
 
-    if (data?.analytics) {
+    const canAnalytics = data?.analytics === true
+    if (canAnalytics) {
       this.#websocket = new WebSocket(WEBSOCKET_BASE)
 
       this.#initializeTime = performance.now()
@@ -289,7 +290,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         this.#sumInteractedTime += performance.now() - this.#interactedTime
       })
 
-      const sendAnalyticsData = setInterval(() => {
+      setInterval(() => {
         if (this.#websocket.readyState === WebSocket.OPEN) {
           this.#websocket.send(
             JSON.stringify({
@@ -310,8 +311,10 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
           )
         } else {
           console.error('Cannot send analytics data. Reconnecting...')
-          clearInterval(sendAnalyticsData)
-          this.#initializeWebSocket(itemId, token)
+          if (canAnalytics) {
+            this.#websocket.close()
+            this.#websocket = new WebSocket(WEBSOCKET_BASE)
+          }
         }
       }, 1000)
     }
@@ -384,6 +387,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
           window.innerWidth || document.documentElement.clientWidth
         ))
     const ratio = viewArea / area
+    console.log(this.getBoundingClientRect())
     return ratio > VIEW_THRESHOLD
   }
 

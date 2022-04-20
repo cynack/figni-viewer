@@ -869,7 +869,7 @@ export default class FigniViewerElement extends HTMLElement {
           `${Math.ceil(p * 100)}%`
         )
         if (p === 1) {
-          this.#hideLoadingPanel()
+          // this.#hideLoadingPanel()
           this.#figniViewerBase.removeEventListener('progress', progress)
         }
       }

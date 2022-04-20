@@ -346,6 +346,7 @@ figni-viewer * {
 }
 
 .figni-viewer-loading-panel {
+  position: relative;
   flex: 0 0 100%;
   display: flex;
   flex-direction: column;
@@ -361,13 +362,12 @@ figni-viewer * {
 
 .figni-viewer-loading-animation {
   position: relative;
-  width: 80%;
-  height: 80%;
-  margin-top: 2rem;
-  margin-bottom: 2rem;
+  width: 100%;
+  height: 100%;
 }
 
 .figni-viewer-loading-progress-bar {
+  position: absolute;
   bottom: 2rem;
   display: flex;
   justify-content: center;

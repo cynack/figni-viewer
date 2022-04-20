@@ -57,7 +57,7 @@ figni-viewer * {
   }
 }
 
-.figni-viewer-hotspot-highlight::before {
+.figni-viewer-hotspot::before {
   content: '';
   display: block;
   position: absolute;
@@ -68,6 +68,11 @@ figni-viewer * {
   left: 50%;
   transform: translate(-50%, -50%);
   -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 0 0 0.4rem var(--figni-viewer-primary);
+  opacity: 0.2;
+}
+
+.figni-viewer-hotspot-highlight::before {
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
   animation: highlight-hotspot 1.5s ease-out infinite running;
 }

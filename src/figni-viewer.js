@@ -1,6 +1,6 @@
 import Lottie from 'lottie-web'
 import QRCode from 'qrcode'
-import { LOADING_ANIMATION, LOADING_ANIMATION_RING } from './animation'
+import { LOADING_ANIMATION } from './animation'
 import { getErrorMessage } from './error'
 import './style.scss'
 import {
@@ -541,6 +541,7 @@ export default class FigniViewerElement extends HTMLElement {
 
   #modifyHotspot(hotspot) {
     hotspot.classList.add('figni-viewer-hotspot')
+    hotspot.classList.add('figni-viewer-hotspot-highlight')
 
     hotspot.setAttribute(
       'position',
@@ -575,6 +576,7 @@ export default class FigniViewerElement extends HTMLElement {
       if (this.#clickableHotspot(hotspot)) {
         this.#figniViewerBase.incrementHotspotClickCount(name)
         this.#figniViewerBase.disableInteractionPrompt()
+        hotspot.classList.remove('figni-viewer-hotspot-highlight')
       }
     }
     hotspot.addEventListener('click', clickEvent)
@@ -763,11 +765,14 @@ export default class FigniViewerElement extends HTMLElement {
   #showQRCodePanel() {
     if (!this.#qrCodePanel) {
       this.#qrCodePanel = document.createElement('div')
-      this.#qrCodePanel.classList.add('figni-viewer-qrcode-panel-bg')
+      this.#qrCodePanel.classList.add('figni-viewer-qrcode-panel-base')
       this.#qrCodePanel.addEventListener('click', () => {
         this.#hideQRCodePanel()
       })
       this.#figniViewerBase.appendChild(this.#qrCodePanel)
+      const bg = document.createElement('div')
+      bg.classList.add('figni-viewer-qrcode-panel-bg')
+      this.#qrCodePanel.appendChild(bg)
       const panel = document.createElement('div')
       panel.classList.add('figni-viewer-qrcode-panel')
       QRCode.toString(window.top.location.href, { width: 100 }, (err, str) => {
@@ -779,7 +784,7 @@ export default class FigniViewerElement extends HTMLElement {
           panel.innerHTML += str.replace('#000000', '#222428')
         } else {
           const text = document.createElement('span')
-          text.style.color = 'var(--figni-viewer-red)'
+          text.style.color = 'var(--figni-viewer-error)'
           text.innerText = 'QRコードの生成に失敗しました...'
           panel.appendChild(text)
           console.error(err)
@@ -847,16 +852,6 @@ export default class FigniViewerElement extends HTMLElement {
       const loadingProgressBar = document.createElement('span')
       loadingProgressBar.classList.add('figni-viewer-loading-progress-bar')
       this.#loadingPanel.appendChild(loadingProgressBar)
-      const loadingIcon = document.createElement('span')
-      Lottie.loadAnimation({
-        container: loadingIcon,
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        animationData: LOADING_ANIMATION_RING,
-      })
-      loadingIcon.classList.add('figni-viewer-loading-animation-ring')
-      loadingProgressBar.appendChild(loadingIcon)
       const loadingText = document.createElement('span')
       loadingText.innerText = '3Dモデルを読み込み中'
       loadingText.classList.add('figni-viewer-loading-text')
@@ -869,7 +864,7 @@ export default class FigniViewerElement extends HTMLElement {
           `${Math.ceil(p * 100)}%`
         )
         if (p === 1) {
-          // this.#hideLoadingPanel()
+          this.#hideLoadingPanel()
           this.#figniViewerBase.removeEventListener('progress', progress)
         }
       }

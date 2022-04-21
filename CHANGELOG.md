@@ -28,11 +28,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- ローディングアニメーションを変更
+- AR 開始ボタンの位置とデザインを変更
+- カメラを初期位置に戻すボタンの位置とデザインを変更
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- 利用データの取得に関して正しい値を返すように修正
 
 ## [1.3.0] - 2022-03-23
 

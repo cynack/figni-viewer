@@ -330,7 +330,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.4.0...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.4.2...HEAD
+[1.4.2]: https://github.com/cynack/figni-viewer/compare/v1.4.1...v1.4.2
+[1.4.1]: https://github.com/cynack/figni-viewer/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/cynack/figni-viewer/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/cynack/figni-viewer/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/cynack/figni-viewer/compare/v1.1.0...v1.2.0

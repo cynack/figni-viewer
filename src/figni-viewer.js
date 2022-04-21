@@ -106,22 +106,25 @@ export default class FigniViewerElement extends HTMLElement {
 
   constructor() {
     super()
-
-    // Figni Viewer Base
-    this.#figniViewerBase = document.createElement('figni-viewer-base')
-    this.#figniViewerBase.style.flex = '1'
-    this.#figniViewerBase.style.height = '100%'
-    this.appendChild(this.#figniViewerBase)
-
-    // Figni Help Panel
-    this.#helpPanelBase = document.createElement('div')
-    this.#helpPanelBase.style.width = '0px'
-    this.appendChild(this.#helpPanelBase)
-
     this.#completedInitialModelLoad = false
   }
 
   async connectedCallback() {
+    // Figni Viewer Base
+    if (!this.#figniViewerBase) {
+      this.#figniViewerBase = document.createElement('figni-viewer-base')
+      this.#figniViewerBase.style.flex = '1'
+      this.#figniViewerBase.style.height = '100%'
+      this.appendChild(this.#figniViewerBase)
+    }
+
+    // Figni Help Panel
+    if (!this.#helpPanelBase) {
+      this.#helpPanelBase = document.createElement('div')
+      this.#helpPanelBase.style.width = '0px'
+      this.appendChild(this.#helpPanelBase)
+    }
+
     // Hotspot
     this.querySelectorAll('[slot^="hotspot"]').forEach((hotspot) => {
       this.#hotspots.push(this.#figniViewerBase.appendChild(hotspot))

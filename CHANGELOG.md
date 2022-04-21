@@ -31,6 +31,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [1.4.1] - 2022-04-21
+
+### Added
+
+- figni-viwer-base へアクセスできるプロパティを追加
+
+### Fixed
+
+- 初期化時にまれに発生するエラーを修正
+
 ## [1.4.0] - 2022-04-21
 
 ### Added

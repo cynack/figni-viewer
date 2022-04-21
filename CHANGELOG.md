@@ -23,6 +23,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [1.4.0] - 2022-04-21
+
+### Added
+
 - *hotspot*に強調アニメーションを追加
 - タッチ(クリック)している位置を強調するカーソルを追加
 
@@ -31,10 +43,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - ローディングアニメーションを変更
 - AR 開始ボタンの位置とデザインを変更
 - カメラを初期位置に戻すボタンの位置とデザインを変更
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -306,7 +314,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.3.0...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/cynack/figni-viewer/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/cynack/figni-viewer/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/cynack/figni-viewer/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/cynack/figni-viewer/compare/v1.0.4...v1.1.0

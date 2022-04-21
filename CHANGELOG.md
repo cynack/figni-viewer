@@ -31,6 +31,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [1.4.3] - 2022-04-22
+
+### Removed
+
+- WebXR での起動をサポートしないように変更
+
+### Fixed
+
+- 軽微な修正
+
 ## [1.4.2] - 2022-04-22
 
 ### Fixed
@@ -330,7 +340,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.4.2...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.4.3...HEAD
+[1.4.3]: https://github.com/cynack/figni-viewer/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/cynack/figni-viewer/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/cynack/figni-viewer/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/cynack/figni-viewer/compare/v1.3.0...v1.4.0

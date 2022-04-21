@@ -25,6 +25,7 @@ figni-viewer {
   display: -ms-flexbox;
   display: flex;
   background-color: var(--figni-viewer-gray-50);
+  overflow: hidden;
 }
 
 figni-viewer * {

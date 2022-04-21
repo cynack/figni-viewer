@@ -260,6 +260,7 @@ export default class FigniViewerElement extends HTMLElement {
         this.toggleVisibleHotspot(true)
       }
       if (options.toState) {
+        console.log(options.toState)
         this.updateState(options.toState)
       }
     }

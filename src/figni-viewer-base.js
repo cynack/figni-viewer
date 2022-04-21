@@ -176,7 +176,6 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     }
     if (this.paused || this.loop) {
       this.animationName = clip
-      this.currentTime = 0
       await this.updateComplete
       if (options.onStart) {
         if (typeof options.onStart === 'function') {
@@ -187,17 +186,9 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       }
       const loopCount = options.loopCount || 1
       const isLoop = loopCount === Infinity
-      if (options.reverse === true) {
-        this.timeScale = -this.timeScale
-      }
-      if (this.timeScale < 0) {
-        this.play({ repetitions: loopCount + 1 })
-        this.addEventListener('loop', () => {
-          this.play({ repetitions: loopCount })
-        })
-      } else {
-        this.play({ repetitions: loopCount })
-      }
+      this.timeScale = options.reverse ? -1 : 1
+      console.log(this.timeScale, options.loopCount)
+      this.play({ repetitions: loopCount })
       const onFinishFunc = () => {
         if (!isLoop) {
           if (options.onEnd) {
@@ -207,9 +198,6 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
               throw new TypeError('onEnd must be a function')
             }
           }
-        }
-        if (options.reverse === true) {
-          this.timeScale = -this.timeScale
         }
       }
       if (!this.loop) {
@@ -225,7 +213,8 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     this.loading = 'lazy'
     this.cameraControls = true
     this.ar = true
-    this.arModes = 'webxr scene-viewer quick-look'
+    // ! 一時的にWebXRを起動しないようにします
+    this.arModes = 'scene-viewer quick-look'
     this.arScale = 'fixed'
     this.arPlacement = 'floor'
     this.shadowIntensity = 1

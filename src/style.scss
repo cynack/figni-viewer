@@ -2,26 +2,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Spartan:wght@700&display=swap');
 
 :root {
-  --figni-viewer-primary: rgb(255, 115, 59);
-  --figni-viewer-primary-tp: rgba(255, 115, 59, 0.3);
-  --figni-viewer-secondary: rgb(59, 94, 255);
-  --figni-viewer-secondary-tp: rgba(59, 94, 255, 0.3);
-  --figni-viewer-gray-50: rgb(241, 242, 247);
-  --figni-viewer-gray-100: rgb(230, 232, 239);
-  --figni-viewer-gray-300: rgb(120, 125, 147);
-  --figni-viewer-gray-300-tp: rgba(120, 125, 147, 0.3);
-  --figni-viewer-gray-500: rgb(120, 125, 147);
-  --figni-viewer-black: rgb(34, 36, 40);
-  --figni-viewer-red: rgb(255, 63, 59);
-  --figni-viewer-link: rgb(59, 94, 255);
-  --figni-viewer-button: rgb(59, 94, 255);
-  --figni-viewer-button-tp: rgba(59, 94, 255, 0.8);
+  --figni-viewer-primary: #ff733b;
+  --figni-viewer-secondary: #3b5eff;
+  --figni-viewer-white: #ffffff;
+  --figni-viewer-gray-50: #f1f2f7;
+  --figni-viewer-gray-100: #e6e8ef;
+  --figni-viewer-gray-200: #c1c4cf;
+  --figni-viewer-gray-300: #aeb1bf;
+  --figni-viewer-gray-500: #787d93;
+  --figni-viewer-black: #222428;
+  --figni-viewer-error: #ff3f3b;
+  --figni-viewer-link: #3b5eff;
+  --figni-viewer-button: #3b5eff;
+  --figni-viewer-prompt-hand: #ffab3b;
   --figni-viewer-contents-font: 'Noto Sans JP', sans-serif;
-  --figni-viewer-ui-font: 'Spartan', 'Noto Sans JP', sans-serif;
+  --figni-viewer-ui-font: 'Noto Sans JP', sans-serif;
 }
 
 figni-viewer {
   --poster-color: transparent;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
   background-color: var(--figni-viewer-gray-50);
 }
 
@@ -41,12 +43,41 @@ figni-viewer * {
   background-color: var(--figni-viewer-primary);
   font-size: 0.75rem;
   color: white;
-  box-shadow: 0 0 0 0.3rem var(--figni-viewer-primary-tp);
   backdrop-filter: blur(3px);
   position: relative;
-  transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
   --min-hotspot-opacity: 0;
   -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes highlight-hotspot {
+  0% {
+    box-shadow: 0 0 0 0rem var(--figni-viewer-primary);
+    opacity: 0.4;
+  }
+  100% {
+    box-shadow: 0 0 0 1rem var(--figni-viewer-primary);
+    opacity: 0;
+  }
+}
+
+.figni-viewer-hotspot::before {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 2.5rem;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 0 0 0.4rem var(--figni-viewer-primary);
+  opacity: 0.2;
+}
+
+.figni-viewer-hotspot-highlight::before {
+  transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
+  animation: highlight-hotspot 1.5s ease-out 0.1s infinite running;
 }
 
 .figni-viewer-hotspot::after {
@@ -61,10 +92,6 @@ figni-viewer * {
   left: 50%;
   transform: translate(-50%, -50%);
   -webkit-tap-highlight-color: transparent;
-}
-
-.figni-viewer-hotspot:active {
-  box-shadow: 0 0 0 0.8rem var(--figni-viewer-primary-tp);
 }
 
 .figni-viewer-hotspot-hide {
@@ -133,10 +160,6 @@ figni-viewer * {
     transition: 0.3s ease-out all;
     font-size: 0.875em;
   }
-
-  button:hover {
-    background-color: var(--figni-viewer-button-tp);
-  }
 }
 
 .figni-viewer-panel-place-left-top {
@@ -193,47 +216,57 @@ figni-viewer * {
   transform: translateX(100%) translateY(100%);
 }
 
-.figni-viewer-init-camera-btn {
+.figni-viewer-init-camera-button {
   position: absolute;
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-  align-items: center;
   -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
   justify-content: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 2.5rem;
   height: 2.5rem;
-  padding: 0rem 1rem;
-  top: 0.5rem;
-  left: 0.5rem;
-  white-space: nowrap;
-  border-radius: 1.25rem;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  border-radius: 0.5rem;
   border: none;
   color: white;
-  font-weight: bold;
-  background-color: var(--figni-viewer-secondary);
+  background-color: var(--figni-viewer-primary);
   z-index: 9995;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
 }
 
-.figni-viewer-init-camera-btn:active {
-  box-shadow: 0 0 0 0.3rem var(--figni-viewer-secondary-tp);
+.figni-viewer-init-camera-button svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-top: 0.2rem;
 }
 
 .figni-viewer-ar-button {
   position: absolute;
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
   -webkit-box-align: center;
+  -ms-flex-align: center;
   align-items: center;
   -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
   justify-content: center;
   height: 2.5rem;
-  right: 0.5rem;
+  left: 0.5rem;
   bottom: 0.5rem;
   background-color: white;
   border: none;
-  border-radius: 1.25rem;
-  padding: 0 1rem;
+  border-radius: 2rem;
+  padding: 0 1.25rem;
   font-weight: bold;
   z-index: 9998;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
@@ -241,11 +274,22 @@ figni-viewer * {
   cursor: pointer;
 }
 
-.figni-viewer-ar-button:active {
-  box-shadow: 0 0 0 0.3rem var(--figni-viewer-primary-tp);
+.figni-viewer-ar-button svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-right: 0.3rem;
 }
 
-.figni-viewer-toggle-visible-hotspot-btn {
+.figni-viewer-ar-button span {
+  display: block;
+  color: var(--figni-viewer-primary);
+  font-size: 12px;
+  font-family: var(--figni-viewer-ui-font);
+  font-weight: bold;
+  margin-bottom: 0.1rem;
+}
+
+.figni-viewer-toggle-visible-hotspot-button {
   position: absolute;
   display: block;
   -webkit-box-align: center;
@@ -267,11 +311,7 @@ figni-viewer * {
   cursor: pointer;
 }
 
-.figni-viewer-toggle-visible-hotspot-btn:active {
-  box-shadow: 0 0 0 0.3rem var(--figni-viewer-gray-300-tp);
-}
-
-.figni-viewer-toggle-visible-hotspot-btn svg {
+.figni-viewer-toggle-visible-hotspot-button svg {
   width: 1.25rem;
   height: 1.25rem;
   top: 50%;
@@ -281,34 +321,26 @@ figni-viewer * {
     translateY(-0.1px);
 }
 
-.figni-viewer-ar-button svg {
-  width: 1.25rem;
-  margin-top: 0.05rem;
-  margin-right: 0.325rem;
-}
-
-.figni-viewer-ar-button span {
-  display: block;
-  color: rgb(255, 115, 59);
-  font-family: var(--figni-viewer-ui-font);
-}
-
 .figni-viewer-panel-hide {
   opacity: 0;
   display: none;
 }
 
-.figni-viewer-download-screenshot-btn {
+.figni-viewer-download-screenshot-button {
   position: absolute;
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
   -webkit-box-align: center;
+  -ms-flex-align: center;
   align-items: center;
   -webkit-box-pack: center;
+  -ms-flex-pack: center;
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
   padding: 0;
-  left: 3.5rem;
+  left: 0.5rem;
   bottom: 0.5rem;
   white-space: nowrap;
   border-radius: 50%;
@@ -316,33 +348,47 @@ figni-viewer * {
   background-color: white;
   z-index: 9997;
   transition: 0.1s ease-out all;
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-.figni-viewer-download-screenshot-btn:active {
-  box-shadow: 0 0 0 0.3rem var(--figni-viewer-gray-300-tp);
-}
-
-.figni-viewer-download-screenshot-btn svg {
+.figni-viewer-download-screenshot-button svg {
   width: 1.1rem;
   height: 1.1rem;
   transform: translateX(-0.5px) translateY(-0.5px);
 }
 
 .figni-viewer-loading-panel {
+  position: relative;
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
-  position: absolute;
+  flex: 0 0 100%;
+  -webkit-flex-grow: 0;
+  -ms-flex-positive: 0;
+  flex-grow: 0;
+  -webkit-flex-shrink: 0;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  -webkit-flex-basis: 100%;
+  -ms-flex-preferred-size: 100%;
+  flex-basis: 100%;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
   flex-direction: column;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
   align-items: center;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
-  top: 50%;
-  left: 50%;
   padding: 2rem;
   background-color: var(--figni-viewer-gray-50);
   box-sizing: border-box;
-  transform: translate(-50%, -50%);
   z-index: 9999;
   pointer-events: none;
   transition: opacity 0.3s ease-out;
@@ -350,119 +396,84 @@ figni-viewer * {
 
 .figni-viewer-loading-animation {
   position: relative;
-  width: 100px;
-  height: 60px;
-  margin-top: 2rem;
-  margin-bottom: 2rem;
-}
-
-.figni-viewer-loading-animation-cubes {
-  position: absolute;
-}
-
-$w: 40px;
-$h: 46.6px;
-$xspace: 20px;
-$yspace: 10.65px;
-$speed: 2s;
-$ease: cubic-bezier(0, 1, 0.3, 1);
-
-.figni-viewer-loading-animation-cube {
-  width: $w;
-  height: $h;
-  position: absolute;
-  transition: all ease-out 0.3s;
-}
-.figni-viewer-loading-animation-cube1 {
-  animation: animation-cube1 $speed $ease infinite;
-}
-.figni-viewer-loading-animation-cube2 {
-  animation: animation-cube2 $speed $ease infinite;
-}
-.figni-viewer-loading-animation-cube3 {
-  animation: animation-cube3 $speed $ease infinite;
-  z-index: 2;
-}
-.figni-viewer-loading-animation-cube4 {
-  animation: animation-cube4 $speed $ease infinite;
-}
-
-@keyframes animation-cube1 {
-  0% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate($xspace, -$yspace);
-  }
-  100% {
-    transform: translate($xspace * 2, 0);
-  }
-}
-
-@keyframes animation-cube2 {
-  0%,
-  50% {
-    transform: translate($xspace * 2, 0px);
-  }
-  100% {
-    transform: translate($xspace * 3, $yspace);
-  }
-}
-
-@keyframes animation-cube3 {
-  0% {
-    transform: translate($xspace * 3, $yspace);
-  }
-  50% {
-    transform: translate($xspace * 2, $yspace * 2);
-  }
-  100% {
-    transform: translate($xspace, $yspace);
-  }
-}
-
-@keyframes animation-cube4 {
-  0%,
-  50% {
-    transform: translate($xspace, $yspace);
-  }
-  100% {
-    transform: translate(0, 0);
-  }
-}
-
-.figni-viewer-loading-cube-svg {
-  fill: var(--figni-viewer-gray-500);
-}
-
-.figni-viewer-loading-cube-svg-window {
-  fill: var(--figni-viewer-gray-50);
-}
-
-.figni-viewer-loading-progress-bar-base {
-  display: block;
-  max-width: 10rem;
   width: 100%;
-  height: 0.5rem;
-  background-color: var(--figni-viewer-gray-300-tp);
-  overflow: hidden;
-  border-radius: 0.25rem;
+  height: 100%;
+  .grid path {
+    fill: var(--figni-viewer-gray-200);
+  }
+  .cube path {
+    stroke: var(--figni-viewer-gray-200);
+  }
+  .tap_fb path {
+    fill: var(--figni-viewer-gray-500);
+  }
+  .hand path {
+    fill: var(--figni-viewer-gray-300);
+  }
+  .tap_effect path {
+    fill: var(--figni-viewer-gray-300);
+  }
 }
 
 .figni-viewer-loading-progress-bar {
-  display: block;
-  width: var(--progress-bar-width);
-  height: 100%;
-  background-color: var(--figni-viewer-gray-300);
+  position: absolute;
+  bottom: 2rem;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+  padding: 0.3rem 1rem;
+  background-color: white;
+  border-radius: 1.5rem;
+  overflow: hidden;
   transition: all 0.5s cubic-bezier(0, 1, 0.3, 1);
 }
 
+.figni-viewer-loading-progress-bar::before {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 102%;
+  height: 102%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(
+    90deg,
+    var(--figni-viewer-primary) 0%,
+    var(--figni-viewer-primary) var(--figni-viewer-progress, 0%),
+    var(--figni-viewer-white) var(--figni-viewer-progress, 0%),
+    var(--figni-viewer-white) 100%
+  );
+  opacity: 0.1;
+}
+
+.figni-viewer-loading-animation-ring {
+  margin-bottom: 0.1rem;
+  margin-right: 0.5rem;
+  .ring path {
+    stroke: var(--figni-viewer-primary);
+  }
+}
+
+.figni-viewer-loading-animation-ring svg {
+  width: 0.75rem !important;
+  height: 0.75rem !important;
+}
+
 .figni-viewer-loading-text {
-  margin-top: 1.5rem;
-  color: var(--figni-viewer-gray-300);
+  color: var(--figni-viewer-primary);
   font-family: var(--figni-viewer-ui-font);
   font-size: 0.75rem;
-  animation: animation-text-blinking 2s infinite ease-in-out;
+  font-weight: 700;
+  margin-bottom: 2px;
 }
 
 @keyframes animation-text-blinking {
@@ -478,42 +489,212 @@ $ease: cubic-bezier(0, 1, 0.3, 1);
 }
 
 .figni-viewer-error-panel {
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
-  position: absolute;
+  -webkit-flex-grow: 0;
+  -ms-flex-positive: 0;
+  flex-grow: 0;
+  -webkit-flex-shrink: 0;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  -webkit-flex-basis: 100%;
+  -ms-flex-preferred-size: 100%;
+  flex-basis: 100%;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
   flex-direction: column;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
   align-items: center;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
-  top: 50%;
-  left: 50%;
   padding: 2rem;
   background-color: var(--figni-viewer-gray-50);
   box-sizing: border-box;
-  transform: translate(-50%, -50%);
   z-index: 9999;
   transition: opacity 0.3s ease-out;
 }
 
 .figni-viewer-error-icon {
-  width: $w;
-  height: $h;
+  width: 40px;
+  height: 46.6px;
   margin-bottom: 0.75rem;
 }
 
 .figni-viewer-error-icon-svg {
-  fill: var(--figni-viewer-red);
+  fill: var(--figni-viewer-error);
 }
 
 .figni-viewer-error-text {
-  color: var(--figni-viewer-red);
+  color: var(--figni-viewer-error);
   font-family: var(--figni-viewer-ui-font);
   font-size: 0.75rem;
 }
 
-.figni-viewer-error-reload {
+.figni-viewer-error-reload-button {
   cursor: pointer;
   text-decoration: underline;
   color: var(--figni-viewer-link);
   font-size: 0.5rem;
+}
+
+.figni-viewer-interaction-cursor {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--figni-viewer-gray-500);
+  pointer-events: none;
+  mix-blend-mode: difference;
+  transition: opacity 0.2s ease-out, width 0.2s ease-out, height 0.2s ease-out;
+}
+
+.figni-viewer-interaction-prompt {
+  width: 5rem;
+  circle.d {
+    fill: var(--figni-viewer-gray-500);
+  }
+  path.e {
+    fill: var(--figni-viewer-prompt-hand);
+  }
+}
+
+.figni-viewer-qrcode-panel-base {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+}
+
+.figni-viewer-qrcode-panel-bg {
+  width: 100%;
+  height: 100%;
+  background-color: var(--figni-viewer-gray-300);
+  opacity: 0.5;
+}
+
+.figni-viewer-qrcode-panel {
+  position: absolute;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 0.5rem;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 1.5rem;
+  padding-bottom: 1rem;
+  width: 200px;
+  height: 200px;
+  z-index: 9999;
+  background-color: var(--figni-viewer-white);
+}
+
+.figni-viewer-qrcode-panel > span {
+  font-family: var(--figni-viewer-ui-font);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--figni-viewer-primary);
+  text-align: center;
+}
+
+.figni-viewer-qrcode-panel > svg {
+  -webkit-box-flex: 1;
+  -webkit-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  width: 100%;
+}
+
+.figni-viewer-help-button {
+  position: absolute;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  height: 1.5rem;
+  right: 0.5rem;
+  padding: 0 0.5rem;
+  top: 0.5rem;
+  background-color: var(--figni-viewer-secondary);
+  border: none;
+  border-radius: 1.25rem;
+  font-weight: bold;
+  z-index: 9998;
+  transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+.figni-viewer-help-button svg {
+  width: 1.25rem;
+}
+
+.figni-viewer-help-button span {
+  display: block;
+  color: var(--figni-viewer-white);
+  font-size: 12px;
+  font-family: var(--figni-viewer-ui-font);
+  font-weight: bold;
+}
+
+.figni-viewer-help-panel {
+  position: absolute;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+  right: 0;
+  padding: 1rem;
+  width: 30%;
+  height: 100%;
+  z-index: 9999;
+  background-color: var(--figni-viewer-white);
+  transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
+}
+
+.figni-viewer-help-panel-hidden {
+  transform: translateX(100%);
 }

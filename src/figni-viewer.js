@@ -104,6 +104,10 @@ export default class FigniViewerElement extends HTMLElement {
     this.setAttribute('state', value)
   }
 
+  get base() {
+    return this.#figniViewerBase
+  }
+
   constructor() {
     super()
     this.#completedInitialModelLoad = false

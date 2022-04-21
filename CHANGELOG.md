@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [1.4.2] - 2022-04-22
+
+### Fixed
+
+- 軽微な修正
+
 ## [1.4.1] - 2022-04-21
 
 ### Added

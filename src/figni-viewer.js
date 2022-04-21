@@ -782,7 +782,7 @@ export default class FigniViewerElement extends HTMLElement {
       this.#qrCodePanel.appendChild(bg)
       const panel = document.createElement('div')
       panel.classList.add('figni-viewer-qrcode-panel')
-      QRCode.toString(window.top.location.href, { width: 100 }, (err, str) => {
+      QRCode.toString(window.location.href, { width: 100 }, (err, str) => {
         if (!err) {
           const text = document.createElement('span')
           text.innerText =

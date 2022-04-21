@@ -331,7 +331,7 @@ export default class FigniViewerElement extends HTMLElement {
     if (existHotspot) {
       throw new Error(`Hotspot ${name} was already exists`)
     }
-    const hotspot = document.createElement('button')
+    const hotspot = document.createElement('span')
     hotspot.setAttribute(
       'position',
       position || SETTINGS.DEFAULT_HOTSPOT_POSITION
@@ -753,7 +753,7 @@ export default class FigniViewerElement extends HTMLElement {
    */
   #showArButton() {
     if (!this.#arButton) {
-      this.#arButton = document.createElement('button')
+      this.#arButton = document.createElement('span')
       this.#arButton.innerHTML = `${SVG_AR_BUTTON}<span>実物大で見る</span>`
       this.#arButton.classList.add('figni-viewer-ar-button')
       this.#arButton.addEventListener('click', () => {
@@ -814,7 +814,7 @@ export default class FigniViewerElement extends HTMLElement {
    */
   #showInitCameraButton() {
     if (!this.#initCameraButton) {
-      this.#initCameraButton = document.createElement('button')
+      this.#initCameraButton = document.createElement('span')
       this.#initCameraButton.classList.add('figni-viewer-init-camera-button')
       this.#initCameraButton.innerHTML = SVG_CLOSE_ICON
       this.#initCameraButton.addEventListener('click', () => {
@@ -823,7 +823,7 @@ export default class FigniViewerElement extends HTMLElement {
       })
       this.#figniViewerBase.appendChild(this.#initCameraButton)
     } else {
-      this.#initCameraButton.style.display = 'block'
+      this.#initCameraButton.style.display = ''
     }
   }
 
@@ -943,7 +943,7 @@ export default class FigniViewerElement extends HTMLElement {
    */
   #showToggleVisibleHotspotButton() {
     if (!this.#toggleVisibleHotspotButton) {
-      this.#toggleVisibleHotspotButton = document.createElement('button')
+      this.#toggleVisibleHotspotButton = document.createElement('span')
       this.#toggleVisibleHotspotButton.classList.add(
         'figni-viewer-toggle-visible-hotspot-button'
       )
@@ -972,7 +972,7 @@ export default class FigniViewerElement extends HTMLElement {
    */
   #showDownloadScreenshotButton() {
     if (!this.#downloadScreenshotButton) {
-      this.#downloadScreenshotButton = document.createElement('button')
+      this.#downloadScreenshotButton = document.createElement('span')
       this.#downloadScreenshotButton.classList.add(
         'figni-viewer-download-screenshot-button'
       )
@@ -1000,7 +1000,7 @@ export default class FigniViewerElement extends HTMLElement {
    */
   #showHelpButton() {
     if (!this.#helpButton) {
-      this.#helpButton = document.createElement('button')
+      this.#helpButton = document.createElement('span')
       this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
       this.#helpButton.classList.add('figni-viewer-help-button')
       let opened = false

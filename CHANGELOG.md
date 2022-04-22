@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- *panel*をクリックしても*hotspot*をクリックしたときと同じ動作をしてしまう問題を修正
+
 ## [1.4.3] - 2022-04-22
 
 ### Removed

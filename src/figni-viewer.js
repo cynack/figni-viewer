@@ -469,15 +469,6 @@ export default class FigniViewerElement extends HTMLElement {
     this.#interactionCursorPool.push(
       ...[...Array(3)].map(() => this.#createCursor())
     )
-    this.#figniViewerBase.addEventListener('pointercancel', () => {
-      alert('pointercancel')
-    })
-    this.#figniViewerBase.addEventListener('pointerout', () => {
-      alert('pointerout')
-    })
-    this.#figniViewerBase.addEventListener('pointerleave', () => {
-      alert('pointerleave')
-    })
     this.#figniViewerBase.addEventListener('pointerdown', (e) => {
       if (!this.#interactionCursors[e.pointerId]) {
         const rect = e.currentTarget.getBoundingClientRect()
@@ -499,6 +490,12 @@ export default class FigniViewerElement extends HTMLElement {
       }
     })
     this.#figniViewerBase.addEventListener('pointerup', (e) => {
+      if (this.#interactionCursors[e.pointerId]) {
+        this.#deleteCursor(this.#interactionCursors[e.pointerId])
+        delete this.#interactionCursors[e.pointerId]
+      }
+    })
+    this.#figniViewerBase.addEventListener('pointerout', (e) => {
       if (this.#interactionCursors[e.pointerId]) {
         this.#deleteCursor(this.#interactionCursors[e.pointerId])
         delete this.#interactionCursors[e.pointerId]

@@ -13,33 +13,19 @@
   <body>
     <div>
       <h1>テストページ</h1>
-      <figni-viewer item-id="esUI25hX" token="ZRZYCb22MFWG7ha4" state="neutral">
-        <span
-          slot="hotspot-open"
-          clip="openAnimation"
-          position="0m 0.6m 0.4m"
-          normal="0m 0m 1m"
-          to-state="opened"
-          visible-state="neutral"
-          >扉を開く</span
-        >
-        <span
-          slot="hotspot-close"
-          clip="openAnimation"
-          reverse
-          position="0m 0.6m 0.4m"
-          normal="0m 0m 1m"
-          to-state="neutral"
-          visible-state="opened"
-          >閉じる</span
-        >
+      <figni-viewer
+        id="viewer"
+        item-id="esUI25hX"
+        token="ZRZYCb22MFWG7ha4"
+        state="neutral"
+      >
         <span
           slot="hotspot-store"
           clip="storeAnimation"
           position="0m 1.2m -0.4m"
           to-state="stored"
           visible-state="neutral"
-          >折りたたむ</span
+          >アニメーションする</span
         >
         <span
           slot="hotspot-expand"
@@ -48,96 +34,54 @@
           position="0m 1.2m -0.4m"
           to-state="neutral"
           visible-state="stored"
-          >開く</span
+          >逆再生</span
         >
-      </figni-viewer>
-      <figni-viewer
-        item-id="jX8I8IVG"
-        token="ZRZYCb22MFWG7ha4"
-        state="opened"
-        id="viewer"
-      >
-        <div
-          slot="hotspot-close"
-          position="-0.12m 0.63m -0.05m"
-          normal="0m 1m 0.3m"
-          clip="Push_in"
-          to-state="closed"
-          visible-state="opened"
-        >
-          ハンドルを閉じる
-        </div>
-        <div
-          slot="hotspot-open"
-          position="-0.12m 0.63m -0.05m"
-          normal="0m 1m 0.3m"
-          clip="Push_in"
-          reverse
-          to-state="opened"
-          visible-state="closed"
-        >
-          ハンドルを開く
-        </div>
-        <button
-          slot="hotspot-2"
+        <span
+          slot="hotspot-panel"
           position="-0.25m 0.28m 0m"
           normal="-1m 0m 0.5m"
           closeup
           orbit="-45deg 90deg 0.5m"
+          visible-state="neutral"
         >
+          クローズアップ
           <div slot="panel">
             <img src="https://admin.figni.io//sample/suitcase/caption_2.png" />
-            <h4>大容量収納と専用ポケットを完備</h4>
-            <p>
-              45リットルの大容量収納に加え、小物を入れられるメッシュポケット、コードなどを通せる専用ポケットなどの収納機能が搭載されています。
-            </p>
+            <h4>タイトル</h4>
+            <p>文章</p>
+            <button>ボタン</button>
           </div>
-        </button>
-        <button
-          slot="hotspot-3"
-          position="0.15m 0.5m 0.15m"
-          normal="0 0 1m"
+        </span>
+        <span
+          slot="hotspot-panel2"
+          position="0.25m 0.28m 0m"
           closeup
-          orbit="30deg 75deg 0.3m"
+          orbit="45deg 90deg 0.2m"
+          visible-state="neutral"
         >
-          <div slot="panel" place="right middle">
-            <img src="https://admin.figni.io//sample/suitcase/caption_3.png" />
-            <h4>軽量で頑丈なABS樹脂を採用</h4>
-            <p>
-              1000万回の耐久テストにも耐えた頑丈設計。重量は3kgで女性でも楽に持ち運ぶことが可能です。
-            </p>
+          クローズアップ2
+          <div slot="panel" place="right top">
+            <img src="https://admin.figni.io//sample/suitcase/caption_1.png" />
+            <h4>タイトル</h4>
+            <p>文章</p>
+            <button>ボタン</button>
           </div>
-        </button>
-        <button
-          slot="hotspot-4"
-          position="0.25m 0.05m 0m"
-          normal="1m 0 0.3m"
-          orbit="45deg 135deg 0.8m"
-          closeup
-        >
-          <div slot="panel" place="right middle">
-            <img src="https://admin.figni.io//sample/suitcase/caption_4.png" />
-            <h4>静音性能の優れたキャスター</h4>
-            <p>
-              接地面に発生する移動中の衝撃をゴムが吸収するため、静穏性に優れています。ゴムには耐摩耗性があるので、耐久性にも優れています。
-            </p>
-          </div>
-        </button>
+        </span>
       </figni-viewer>
       <button
-        onclick="viewer.addHotspot('test', '0.5 0 0', null, { anime: { clip: 'Pull_out' } })"
+        onclick="viewer.addHotspot('test', '0.5 0 0', null, { anime: { clip: 'openAnimation' } })"
       >
         追加
       </button>
       <button
-        onclick="viewer.editHotspot('test', '-0.2 0.1 0', '0 0 1', { anime: { clip: 'Push_in', loopCount: 2 } })"
+        onclick="viewer.editHotspot('test', '-0.2 0.1 0', '0 0 1', { anime: { clip: 'openAnimation', loopCount: 2, reverse: true } })"
       >
         編集
       </button>
     </div>
     <style>
       #viewer {
-        margin-top: 3000px;
+        margin-top: 1000px;
       }
       figni-viewer:not(:defined) {
         display: none;
@@ -148,7 +92,7 @@
       }
       body {
         height: 5000px;
-        /*--figni-viewer-primary: #3b5eff;*/
+        --figni-viewer-primary: #3b5eff;
       }
     </style>
   </body>

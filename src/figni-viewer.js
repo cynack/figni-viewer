@@ -260,7 +260,6 @@ export default class FigniViewerElement extends HTMLElement {
         this.toggleVisibleHotspot(true)
       }
       if (options.toState) {
-        console.log(options.toState)
         this.updateState(options.toState)
       }
     }
@@ -547,6 +546,12 @@ export default class FigniViewerElement extends HTMLElement {
     })
   }
 
+  #subscribeEventLinstener(element, eventName, tag, callback) {
+    element.removeEventListener(eventName, this.#events[tag])
+    element.addEventListener(eventName, callback)
+    this.#events[tag] = callback
+  }
+
   #modifyHotspot(hotspot) {
     hotspot.classList.add('figni-viewer-hotspot')
     hotspot.classList.add('figni-viewer-hotspot-highlight')
@@ -579,75 +584,78 @@ export default class FigniViewerElement extends HTMLElement {
       hotspot.getAttribute('closeup') == ''
     const isVisible = hotspot.getAttribute('to-state') != null
 
-    hotspot.removeEventListener('click', this.#events[`${name}-data`])
-    const clickEvent = () => {
+    this.#subscribeEventLinstener(hotspot, 'click', `${name}-data`, (e) => {
       if (this.#clickableHotspot(hotspot)) {
-        this.#figniViewerBase.incrementHotspotClickCount(name)
-        this.#figniViewerBase.disableInteractionPrompt()
-        hotspot.classList.remove('figni-viewer-hotspot-highlight')
+        if (e.target === hotspot) {
+          this.#figniViewerBase.incrementHotspotClickCount(name)
+          this.#figniViewerBase.disableInteractionPrompt()
+          hotspot.classList.remove('figni-viewer-hotspot-highlight')
+        }
       }
-    }
-    hotspot.addEventListener('click', clickEvent)
-    this.#events[`${name}-data`] = clickEvent
+    })
 
     if (isAnime) {
-      hotspot.removeEventListener('click', this.#events[`${name}-anime`])
-      const e = () => {
+      this.#subscribeEventLinstener(hotspot, 'click', `${name}-anime`, (e) => {
         if (this.#clickableHotspot(hotspot)) {
-          const clip = hotspot.getAttribute('clip') || null
-          const loopCount = Number(hotspot.getAttribute('loopCount')) || 1
-          const reverse = hotspot.getAttribute('reverse') == '' || false
-          const toState = hotspot.getAttribute('to-state')
-          const onStart = Function(hotspot.getAttribute('onstart'))
-          const onEnd = Function(hotspot.getAttribute('onend'))
-          this.playAnimation(clip, {
-            loopCount,
-            reverse,
-            toState,
-            onStart,
-            onEnd,
-          })
-        }
-      }
-      hotspot.addEventListener('click', e)
-      this.#events[`${name}-anime`] = e
-    }
-    if (isCloseup) {
-      hotspot.removeEventListener('click', this.#events[`${name}-closeup`])
-      const e = () => {
-        if (this.#clickableHotspot(hotspot)) {
-          const target =
-            hotspot.getAttribute('target') ||
-            hotspot.getAttribute('position') ||
-            SETTINGS.DEFAULT_HOTSPOT_POSITION
-          const orbit = hotspot.getAttribute('orbit') || this.orbit
-          if (
-            this.#figniViewerBase.cameraTarget === target &&
-            this.#figniViewerBase.cameraOrbit === orbit
-          ) {
-            this.resetCameraTargetAndOrbit()
-          } else {
-            this.setCameraTarget(target)
-            this.setCameraOrbit(orbit)
+          if (e.target === hotspot) {
+            const clip = hotspot.getAttribute('clip') || null
+            const loopCount = Number(hotspot.getAttribute('loopCount')) || 1
+            const reverse = hotspot.getAttribute('reverse') == '' || false
+            const toState = hotspot.getAttribute('to-state')
+            const onStart = Function(hotspot.getAttribute('onstart'))
+            const onEnd = Function(hotspot.getAttribute('onend'))
+            this.playAnimation(clip, {
+              loopCount,
+              reverse,
+              toState,
+              onStart,
+              onEnd,
+            })
           }
         }
-      }
-      hotspot.addEventListener('click', e)
-      this.#events[`${name}-closeup`] = e
+      })
+    }
+    if (isCloseup) {
+      this.#subscribeEventLinstener(
+        hotspot,
+        'click',
+        `${name}-closeup`,
+        (e) => {
+          if (this.#clickableHotspot(hotspot)) {
+            if (e.target === hotspot) {
+              const target =
+                hotspot.getAttribute('target') ||
+                hotspot.getAttribute('position') ||
+                SETTINGS.DEFAULT_HOTSPOT_POSITION
+              const orbit = hotspot.getAttribute('orbit') || this.orbit
+              if (
+                this.#figniViewerBase.cameraTarget === target &&
+                this.#figniViewerBase.cameraOrbit === orbit
+              ) {
+                this.resetCameraTargetAndOrbit()
+              } else {
+                this.setCameraTarget(target)
+                this.setCameraOrbit(orbit)
+              }
+            }
+          }
+        }
+      )
     }
     if (!isAnime && isVisible) {
       const state = hotspot.getAttribute('to-state')
-      hotspot.removeEventListener(
+      this.#subscribeEventLinstener(
+        hotspot,
         'click',
-        this.#events[`${hotspot.getAttribute('slot')}-visible`]
-      )
-      const e = () => {
-        if (this.#clickableHotspot(hotspot)) {
-          this.updateState(state)
+        `${name}-visible`,
+        (e) => {
+          if (this.#clickableHotspot(hotspot)) {
+            if (e.target === hotspot) {
+              this.updateState(state)
+            }
+          }
         }
-      }
-      hotspot.addEventListener('click', e)
-      this.#events[`${name}-visible`] = e
+      )
     }
 
     const panels = hotspot.querySelectorAll('[slot^="panel"]')
@@ -655,32 +663,30 @@ export default class FigniViewerElement extends HTMLElement {
     this.#panels.forEach((panel) => {
       this.#modifyPanel(panel)
     })
-
-    hotspot.removeEventListener('click', this.#events[`${name}-panel`])
-    const e = () => {
+    this.#subscribeEventLinstener(hotspot, 'click', `${name}-panel`, (e) => {
       if (this.#clickableHotspot(hotspot)) {
-        if (panels.length > 0) {
-          panels.forEach((panel) => {
-            panel.style.maxWidth = `${
-              Number(window.getComputedStyle(this).width.slice(0, -2)) * 0.4
-            }px`
-            if (panel.dataset.vertical == 'middle') {
-              panel.style.maxHeight = `calc(${Number(
-                window.getComputedStyle(this).height.slice(0, -2)
-              )}px - 5rem )`
-            } else {
-              panel.style.maxHeight = `calc(${
-                Number(window.getComputedStyle(this).height.slice(0, -2)) / 2
-              }px - 3rem )`
-            }
-            panel.classList.toggle('figni-viewer-panel-hide')
-          })
-          this.#closeAllPanels(Array.from(panels))
+        if (e.target == hotspot) {
+          if (panels.length > 0) {
+            panels.forEach((panel) => {
+              panel.style.maxWidth = `${
+                Number(window.getComputedStyle(this).width.slice(0, -2)) * 0.4
+              }px`
+              if (panel.dataset.vertical == 'middle') {
+                panel.style.maxHeight = `calc(${Number(
+                  window.getComputedStyle(this).height.slice(0, -2)
+                )}px - 5rem )`
+              } else {
+                panel.style.maxHeight = `calc(${
+                  Number(window.getComputedStyle(this).height.slice(0, -2)) / 2
+                }px - 3rem )`
+              }
+              panel.classList.toggle('figni-viewer-panel-hide')
+            })
+            this.#closeAllPanels(Array.from(panels))
+          }
         }
       }
-    }
-    hotspot.addEventListener('click', e)
-    this.#events[`${name}-panel`] = e
+    })
   }
 
   #clickableHotspot(hotspot) {
@@ -690,6 +696,7 @@ export default class FigniViewerElement extends HTMLElement {
   #modifyPanel(panel) {
     panel.classList.add('figni-viewer-panel')
     const place = panel.getAttribute('place') || SETTINGS.DEFAULT_PANEL_PLACE
+    console.log(place)
     const array = place.split(' ')
     let vertical = ''
     let horizontal = ''

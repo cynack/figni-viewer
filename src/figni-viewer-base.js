@@ -187,7 +187,6 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       const loopCount = options.loopCount || 1
       const isLoop = loopCount === Infinity
       this.timeScale = options.reverse ? -1 : 1
-      console.log(this.timeScale, options.loopCount)
       this.play({ repetitions: loopCount })
       const onFinishFunc = () => {
         if (!isLoop) {

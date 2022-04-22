@@ -469,6 +469,15 @@ export default class FigniViewerElement extends HTMLElement {
     this.#interactionCursorPool.push(
       ...[...Array(3)].map(() => this.#createCursor())
     )
+    this.#figniViewerBase.addEventListener('pointercancel', () => {
+      alert('pointercancel')
+    })
+    this.#figniViewerBase.addEventListener('pointerout', () => {
+      alert('pointerout')
+    })
+    this.#figniViewerBase.addEventListener('pointerleave', () => {
+      alert('pointerleave')
+    })
     this.#figniViewerBase.addEventListener('pointerdown', (e) => {
       if (!this.#interactionCursors[e.pointerId]) {
         const rect = e.currentTarget.getBoundingClientRect()
@@ -696,7 +705,6 @@ export default class FigniViewerElement extends HTMLElement {
   #modifyPanel(panel) {
     panel.classList.add('figni-viewer-panel')
     const place = panel.getAttribute('place') || SETTINGS.DEFAULT_PANEL_PLACE
-    console.log(place)
     const array = place.split(' ')
     let vertical = ''
     let horizontal = ''

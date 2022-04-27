@@ -32,6 +32,13 @@ const SETTINGS = {
   DEFAULT_HOTSPOT_NORMAL: '0m 1m 0m',
   DEFAULT_PANEL_PLACE: 'left middle',
 }
+const HELP = {
+  TOP: 'top',
+  CONTENT: 'content',
+  CAPTION: 'caption',
+  AR: 'ar',
+  UNKNOWN: 'unknown',
+}
 
 export default class FigniViewerElement extends HTMLElement {
   // html element
@@ -123,11 +130,7 @@ export default class FigniViewerElement extends HTMLElement {
     }
 
     // Figni Help Panel
-    if (!this.#helpPanelBase) {
-      this.#helpPanelBase = document.createElement('div')
-      this.#helpPanelBase.style.width = '0px'
-      this.appendChild(this.#helpPanelBase)
-    }
+    this.#showHelpPanel()
 
     // Hotspot
     this.querySelectorAll('[slot^="hotspot"]').forEach((hotspot) => {
@@ -146,7 +149,7 @@ export default class FigniViewerElement extends HTMLElement {
     this.#showArButton()
     this.#showInteractionPrompt()
     // TODO: ヘルプページの実装
-    // this.#showHelpButton()
+    this.#showHelpButton()
 
     this.#completedInitialModelLoad = true
   }
@@ -463,6 +466,60 @@ export default class FigniViewerElement extends HTMLElement {
       `[slot="hotspot-${name}"]`
     )
     hotspot?.remove()
+  }
+
+  #currentHelpPage
+  #prevHelpPage
+  /**
+   * ヘルプページを開く。
+   * @param {string} page ページ
+   */
+  openHelpPanel(page = HELP.TOP) {
+    this.#helpPanelBase.classList.remove('figni-viewer-help-panel-hidden')
+    let openPage = null
+    switch (page) {
+      case HELP.TOP:
+        openPage = this.#createOrGetHelpTopPage()
+        break
+      case HELP.CONTENT:
+        openPage = this.#createOrGetHelpContentPage()
+        break
+    }
+    if (openPage) {
+      if (this.#prevHelpPage === openPage) {
+        this.#currentHelpPage.style.left = '100%'
+        this.#prevHelpPage.style.left = 0
+        this.#currentHelpPage = this.#prevHelpPage
+        this.#prevHelpPage = null
+      } else {
+        if (!this.#currentHelpPage) {
+          openPage.style.left = 0
+        } else {
+          openPage.style.left = '100%'
+        }
+        this.#helpPanelBase.appendChild(openPage)
+        this.#prevHelpPage = this.#currentHelpPage
+        this.#currentHelpPage = openPage
+        setTimeout(() => {
+          if (this.#prevHelpPage) {
+            this.#prevHelpPage.style.left = '-100%'
+          }
+          this.#currentHelpPage.style.left = 0
+        }, 1)
+      }
+    }
+  }
+
+  /**
+   * ヘルプページを閉じる。
+   */
+  closeHelpPanel() {
+    this.#helpPanelBase.classList.add('figni-viewer-help-panel-hidden')
+    while (this.#helpPanelBase.firstChild) {
+      this.#helpPanelBase.firstChild.remove()
+    }
+    this.#currentHelpPage = null
+    this.#prevHelpPage = null
   }
 
   #setupInteractionCursor() {
@@ -1016,18 +1073,69 @@ export default class FigniViewerElement extends HTMLElement {
       this.#helpButton = document.createElement('span')
       this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
       this.#helpButton.classList.add('figni-viewer-help-button')
-      let opened = false
       this.#helpButton.addEventListener('click', () => {
-        if (opened) {
-          this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
-        } else {
+        if (
+          this.#helpPanelBase.classList.contains(
+            'figni-viewer-help-panel-hidden'
+          )
+        ) {
           this.#helpButton.innerHTML = `${SVG_CLOSE_ICON}`
+          this.openHelpPanel()
+        } else {
+          this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
+          this.closeHelpPanel()
         }
-        opened = !opened
       })
       this.#figniViewerBase.appendChild(this.#helpButton)
     } else {
       this.#helpButton.style.display = ''
     }
+  }
+
+  #showHelpPanel() {
+    if (!this.#helpPanelBase) {
+      this.#helpPanelBase = document.createElement('div')
+      this.#helpPanelBase.classList.add('figni-viewer-help-panel')
+      this.#helpPanelBase.classList.add('figni-viewer-help-panel-hidden')
+      this.appendChild(this.#helpPanelBase)
+    }
+  }
+
+  #helpTopPage
+  #createOrGetHelpTopPage() {
+    if (!this.#helpTopPage) {
+      this.#helpTopPage = document.createElement('div')
+      this.#helpTopPage.classList.add('figni-viewer-help-page')
+      const title = document.createElement('h1')
+      title.innerText = '使い方'
+      this.#helpTopPage.appendChild(title)
+      const btn = document.createElement('span')
+      btn.innerText = '次へ'
+      btn.onclick = () => {
+        this.openHelpPanel(HELP.CONTENT)
+      }
+      this.#helpTopPage.appendChild(btn)
+    }
+    return this.#helpTopPage
+  }
+  #helpContentPage
+  #createOrGetHelpContentPage() {
+    if (!this.#helpContentPage) {
+      this.#helpContentPage = document.createElement('div')
+      this.#helpContentPage.classList.add('figni-viewer-help-page')
+      const title = document.createElement('h1')
+      title.innerText = '使い方'
+      this.#helpContentPage.appendChild(title)
+      const content = document.createElement('div')
+      content.innerText = 'このページは使い方を示しています。'
+      this.#helpContentPage.appendChild(content)
+      const btn = document.createElement('span')
+      btn.innerText = '戻る'
+      btn.onclick = () => {
+        this.openHelpPanel(HELP.TOP)
+      }
+      this.#helpContentPage.appendChild(btn)
+    }
+    return this.#helpContentPage
   }
 }

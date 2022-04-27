@@ -669,32 +669,21 @@ figni-viewer * {
 }
 
 .figni-viewer-help-panel {
-  position: absolute;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
-  align-items: center;
-  right: 0;
-  padding: 1rem;
+  position: relative;
   width: 30%;
-  height: 100%;
+  overflow: hidden;
   z-index: 9999;
   background-color: var(--figni-viewer-white);
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
 }
 
 .figni-viewer-help-panel-hidden {
-  transform: translateX(100%);
+  width: 0;
+}
+
+.figni-viewer-help-page {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
 }

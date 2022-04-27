@@ -8,6 +8,7 @@ import {
   SVG_CLOSE_ICON,
   SVG_DOWNLOAD_SCREENSHOT_BUTTON,
   SVG_ERROR_ICON,
+  SVG_HELP_CLOSE_ICON,
   SVG_HELP_ICON,
   SVG_INTERACTION_PROMPT,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF,
@@ -124,7 +125,7 @@ export default class FigniViewerElement extends HTMLElement {
     // Figni Viewer Base
     if (!this.#figniViewerBase) {
       this.#figniViewerBase = document.createElement('figni-viewer-base')
-      this.#figniViewerBase.style.flex = '1'
+      this.#figniViewerBase.style.flexGrow = '1'
       this.#figniViewerBase.style.height = '100%'
       this.appendChild(this.#figniViewerBase)
     }
@@ -1079,7 +1080,7 @@ export default class FigniViewerElement extends HTMLElement {
             'figni-viewer-help-panel-hidden'
           )
         ) {
-          this.#helpButton.innerHTML = `${SVG_CLOSE_ICON}`
+          this.#helpButton.innerHTML = `${SVG_HELP_CLOSE_ICON}`
           this.openHelpPanel()
         } else {
           this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`

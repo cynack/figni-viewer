@@ -4,6 +4,7 @@ import {
   CAPTION_TAP_ANIMATION,
   CONTENT_OPERATION_ANIMATION,
   CONTENT_PINCH_ANIMATION,
+  HOW_TO_AR_ANIMATION,
   LOADING_ANIMATION,
   LOADING_ANIMATION_RING,
   MOVE_AR_CONTENT_ANIMATION,
@@ -1134,6 +1135,10 @@ export default class FigniViewerElement extends HTMLElement {
       const title = document.createElement('h3')
       title.innerText = '使い方ヘルプ'
       this.#helpTopPage.appendChild(title)
+      // ページアイテムを包含するdivを追加
+      const helpItemContainer = document.createElement('div')
+      helpItemContainer.classList.add('figni-viewer-help-page-item-container')
+      this.#helpTopPage.appendChild(helpItemContainer)
       // ボタンを生成する関数を設定
       const createButton = (text, animationData, link) => {
         // ボタンを追加
@@ -1169,7 +1174,7 @@ export default class FigniViewerElement extends HTMLElement {
         helpBtn.onclick = () => {
           this.openHelpPanel(link)
         }
-        this.#helpTopPage.appendChild(helpBtn)
+        helpItemContainer.appendChild(helpBtn)
       }
       // 「コンテンツの操作」ボタンを生成
       createButton(
@@ -1180,7 +1185,7 @@ export default class FigniViewerElement extends HTMLElement {
       // 「キャプションの操作」ボタンを生成
       createButton('キャプションの操作', CAPTION_TAP_ANIMATION, HELP.CAPTION)
       // 「実物大で見る」ボタンを生成
-      createButton('実物大で見る', CONTENT_OPERATION_ANIMATION, HELP.AR)
+      createButton('実物大で見る', HOW_TO_AR_ANIMATION, HELP.AR)
       // 「上手く行かない場合」ボタンを生成
       const unknownBtn = document.createElement('div')
       unknownBtn.classList.add(
@@ -1263,20 +1268,25 @@ export default class FigniViewerElement extends HTMLElement {
       const title = document.createElement('h3')
       title.innerText = 'コンテンツの操作'
       this.#helpContentPage.appendChild(title)
-      const content1 = this.#createHelpItem(
-        CONTENT_OPERATION_ANIMATION,
-        1,
-        '指を置いてモデルを回転させる',
-        'ビューワー内をドラッグすると、薄い円が表示されます。その状態で指を動かすと、コンテンツを回転することができます。画面をスクロールしてしまう場合、一度左右に動かしてから上下に動かすことでコンテンツを回転させることができます。'
+      const helpItemContainer = document.createElement('div')
+      helpItemContainer.classList.add('figni-viewer-help-page-item-container')
+      this.#helpContentPage.appendChild(helpItemContainer)
+      helpItemContainer.appendChild(
+        this.#createHelpItem(
+          CONTENT_OPERATION_ANIMATION,
+          1,
+          '指を置いてモデルを回転させる',
+          'ビューワー内をドラッグすると、薄い円が表示されます。その状態で指を動かすと、コンテンツを回転することができます。画面をスクロールしてしまう場合、一度左右に動かしてから上下に動かすことでコンテンツを回転させることができます。'
+        )
       )
-      this.#helpContentPage.appendChild(content1)
-      const content2 = this.#createHelpItem(
-        CONTENT_PINCH_ANIMATION,
-        2,
-        'コンテンツをピンチして拡大縮小する',
-        '二本指で広げるようにドラッグすると、コンテンツを拡大して見ることができます。縮小したい場合は、逆に二本指で縮めるようにドラッグしてください。'
+      helpItemContainer.appendChild(
+        this.#createHelpItem(
+          CONTENT_PINCH_ANIMATION,
+          2,
+          'コンテンツをピンチして拡大縮小する',
+          '二本指で広げるようにドラッグすると、コンテンツを拡大して見ることができます。縮小したい場合は、逆に二本指で縮めるようにドラッグしてください。'
+        )
       )
-      this.#helpContentPage.appendChild(content2)
       // 「上手く行かない場合」ボタンを生成
       const unknownBtn = document.createElement('div')
       unknownBtn.classList.add('figni-viewer-help-page-unknown-btn')
@@ -1321,20 +1331,25 @@ export default class FigniViewerElement extends HTMLElement {
       const title = document.createElement('h3')
       title.innerText = 'キャプションの操作'
       this.#helpCaptionPage.appendChild(title)
-      const content1 = this.#createHelpItem(
-        CAPTION_TAP_ANIMATION,
-        1,
-        'エフェクトが出ている点をタップする',
-        'コンテンツの各所にあるエフェクトが出ている点をタップすると、その点をよく見たり、説明を閲覧したり、その部位の動作などを見るたりすることができます。'
+      const helpItemContainer = document.createElement('div')
+      helpItemContainer.classList.add('figni-viewer-help-page-item-container')
+      this.#helpCaptionPage.appendChild(helpItemContainer)
+      helpItemContainer.appendChild(
+        this.#createHelpItem(
+          CAPTION_TAP_ANIMATION,
+          1,
+          'エフェクトが出ている点をタップする',
+          'コンテンツの各所にあるエフェクトが出ている点をタップすると、その点をよく見たり、説明を閲覧したり、その部位の動作などを見るたりすることができます。'
+        )
       )
-      this.#helpCaptionPage.appendChild(content1)
-      const content2 = this.#createHelpItem(
-        null,
-        2,
-        '左下のボタンでコンテンツの位置をリセットする',
-        '元の位置・角度にコンテンツを戻したい場合は、左下のボタンをタップして下さい。'
+      helpItemContainer.appendChild(
+        this.#createHelpItem(
+          null,
+          2,
+          '左下のボタンでコンテンツの位置をリセットする',
+          '元の位置・角度にコンテンツを戻したい場合は、左下のボタンをタップして下さい。'
+        )
       )
-      this.#helpCaptionPage.appendChild(content2)
       // 「上手く行かない場合」ボタンを生成
       const unknownBtn = document.createElement('div')
       unknownBtn.classList.add('figni-viewer-help-page-unknown-btn')
@@ -1379,34 +1394,41 @@ export default class FigniViewerElement extends HTMLElement {
       const title = document.createElement('h3')
       title.innerText = '実物大で見る'
       this.#helpArPage.appendChild(title)
-      const content1 = this.#createHelpItem(
-        null,
-        1,
-        '"実物大で見る"ボタンをタップ',
-        '左下の"実物大で見る"をタップすると、スマートフォンのカメラ映像を通してコンテンツを実物大で見ることができます。'
+      const helpItemContainer = document.createElement('div')
+      helpItemContainer.classList.add('figni-viewer-help-page-item-container')
+      this.#helpArPage.appendChild(helpItemContainer)
+      helpItemContainer.appendChild(
+        this.#createHelpItem(
+          null,
+          1,
+          '"実物大で見る"ボタンをタップ',
+          '左下の"実物大で見る"をタップすると、スマートフォンのカメラ映像を通してコンテンツを実物大で見ることができます。'
+        )
       )
-      this.#helpArPage.appendChild(content1)
-      const content2 = this.#createHelpItem(
-        CAPTION_TAP_ANIMATION,
-        2,
-        'スマホを動かしながらできる限り多くの床面をカメラに映す',
-        'カメラであたりを見回すようにして 、できる限り多くの床面をカメラに映します。カメラが空間を認識すると、自然とコンテンツが現れます。'
+      helpItemContainer.appendChild(
+        this.#createHelpItem(
+          HOW_TO_AR_ANIMATION,
+          2,
+          'スマホを動かしながらできる限り多くの床面をカメラに映す',
+          'カメラであたりを見回すようにして 、できる限り多くの床面をカメラに映します。カメラが空間を認識すると、自然とコンテンツが現れます。'
+        )
       )
-      this.#helpArPage.appendChild(content2)
-      const content3 = this.#createHelpItem(
-        MOVE_AR_CONTENT_ANIMATION,
-        3,
-        'コンテンツをドラッグして移動させる',
-        '一本指でコンテンツをドラッグすると、コンテンツを移動させることができます。'
+      helpItemContainer.appendChild(
+        this.#createHelpItem(
+          MOVE_AR_CONTENT_ANIMATION,
+          3,
+          'コンテンツをドラッグして移動させる',
+          '一本指でコンテンツをドラッグすると、コンテンツを移動させることができます。'
+        )
       )
-      this.#helpArPage.appendChild(content3)
-      const content4 = this.#createHelpItem(
-        ROTATE_AR_CONTENT_ANIMATION,
-        4,
-        '二本指でコンテンツを回転させる',
-        '二本指でコンテンツをドラッグして回転させると、コンテンツの向きを回転させることができます。'
+      helpItemContainer.appendChild(
+        this.#createHelpItem(
+          ROTATE_AR_CONTENT_ANIMATION,
+          4,
+          '二本指でコンテンツを回転させる',
+          '二本指でコンテンツをドラッグして回転させると、コンテンツの向きを回転させることができます。'
+        )
       )
-      this.#helpArPage.appendChild(content4)
       // 「上手く行かない場合」ボタンを生成
       const unknownBtn = document.createElement('div')
       unknownBtn.classList.add('figni-viewer-help-page-unknown-btn')
@@ -1443,6 +1465,21 @@ export default class FigniViewerElement extends HTMLElement {
     }
     return this.#helpArPage
   }
+  #createHelpUnknownItem(title, description) {
+    const item = document.createElement('div')
+    item.classList.add('figni-viewer-help-page-item')
+    // タイトルを追加
+    const itemTitle = document.createElement('h5')
+    itemTitle.innerText = title
+    itemTitle.classList.add('figni-viewer-help-page-item-title')
+    item.appendChild(itemTitle)
+    // 説明を追加
+    const itemDescription = document.createElement('p')
+    itemDescription.classList.add('figni-viewer-help-page-item-description')
+    itemDescription.innerText = description
+    item.appendChild(itemDescription)
+    return item
+  }
   #helpUnknownPage
   #createOrGetHelpUnknownPage() {
     if (!this.#helpUnknownPage) {
@@ -1451,15 +1488,43 @@ export default class FigniViewerElement extends HTMLElement {
       const title = document.createElement('h3')
       title.innerText = '上手く行かない場合'
       this.#helpUnknownPage.appendChild(title)
-      const content = document.createElement('div')
-      content.innerText = 'このページは上手く行かない場合について示しています。'
-      this.#helpUnknownPage.appendChild(content)
-      const btn = document.createElement('div')
-      btn.innerText = '戻る'
-      btn.onclick = () => {
+      const helpItemContainer = document.createElement('div')
+      helpItemContainer.classList.add('figni-viewer-help-page-item-container')
+      this.#helpUnknownPage.appendChild(helpItemContainer)
+      helpItemContainer.appendChild(
+        this.#createHelpUnknownItem(
+          'コンテンツを回転させようとするとスクロールしてしまう',
+          'コンテンツを上下に動かしたい場合は、はじめに左右に動かしてから上下に動かしてください。'
+        )
+      )
+      helpItemContainer.appendChild(
+        this.#createHelpUnknownItem(
+          '実物大コンテンツを表示できない',
+          '明るく広い場所で機能を使用してください。また、床面をカメラに映す際に遮るものがないか確認してください。'
+        )
+      )
+      helpItemContainer.appendChild(
+        this.#createHelpUnknownItem(
+          '表示がおかしくなってしまう',
+          '一度機能を終了し、「実物大で見る」ボタンからもう一度機能を起動してください。'
+        )
+      )
+      // フッター追加
+      const footer = document.createElement('div')
+      footer.classList.add('figni-viewer-help-page-footer')
+      // コピーライトの追加
+      const copyRight = document.createElement('small')
+      copyRight.innerText = '© 2022 Cynack Inc.'
+      footer.appendChild(copyRight)
+      this.#helpUnknownPage.appendChild(footer)
+      // 戻るボタンの追加
+      const backBtn = document.createElement('div')
+      backBtn.classList.add('figni-viewer-help-page-item-back-btn')
+      backBtn.innerHTML = `${SVG_HELP_BACK}<span>戻る</span>`
+      backBtn.onclick = () => {
         this.backHelpPanel()
       }
-      this.#helpUnknownPage.appendChild(btn)
+      this.#helpUnknownPage.appendChild(backBtn)
     }
     return this.#helpUnknownPage
   }

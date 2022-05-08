@@ -14,7 +14,7 @@
   --figni-viewer-error: #ff3f3b;
   --figni-viewer-link: #3b5eff;
   --figni-viewer-button: #3b5eff;
-  --figni-viewer-prompt-hand: #ffab3b;
+  --figni-viewer-prompt-hand: #ffce3b;
   --figni-viewer-contents-font: 'Noto Sans JP', sans-serif;
   --figni-viewer-ui-font: 'Noto Sans JP', sans-serif;
 }
@@ -656,13 +656,9 @@ figni-viewer * {
   cursor: pointer;
 }
 
-.figni-viewer-help-button svg {
-  // width: 1.25rem;
-}
-
 .figni-viewer-help-button span {
   display: block;
-  color: var(--figni-viewer-white);
+  color: #ffffff;
   font-size: 0.75rem;
   font-family: var(--figni-viewer-ui-font);
   font-weight: bold;
@@ -678,12 +674,13 @@ figni-viewer * {
   overflow-x: hidden;
   overflow-y: scroll;
   z-index: 9999;
-  background-color: var(--figni-viewer-white);
+  background-color: #ffffff;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
   h3 {
-    color: var(--figni-viewer-secondary);
+    color: #3b5eff;
     font-size: 1.25rem;
     margin: 0;
+    margin-bottom: 1rem;
   }
 }
 
@@ -701,16 +698,24 @@ figni-viewer * {
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
   flex-direction: column;
-  gap: 1rem;
   width: calc(100% - 1rem);
   min-height: 100%;
-  padding: 0.75rem 0.5rem 0.25rem;
-  background-color: var(--figni-viewer-white);
+  padding: 0.5rem 0.5rem 0;
+  background-color: white;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
 }
 
+.figni-viewer-help-page-item-container {
+  margin-bottom: 1.5rem;
+}
+
 .figni-viewer-help-page-btn {
+  margin-bottom: 1rem;
   cursor: pointer;
+}
+
+.figni-viewer-help-page-btn:last-of-type {
+  margin-bottom: 0;
 }
 
 .figni-viewer-help-page-animation-holder {
@@ -728,25 +733,15 @@ figni-viewer * {
   justify-content: center;
   width: 100%;
   height: 5rem;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.3rem;
   border-radius: 0.25rem;
+  background-color: #f5f7ff;
   overflow: hidden;
 }
 
 .figni-viewer-help-page-animation-holder svg {
   width: 100% !important;
   height: auto !important;
-}
-
-.figni-viewer-help-page-animation-holder::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--figni-viewer-secondary);
-  opacity: 0.05;
 }
 
 .figni-viewer-help-page-btn-title-holder {
@@ -760,8 +755,9 @@ figni-viewer * {
   -ms-flex-align: center;
   align-items: center;
   h4 {
-    color: var(--figni-viewer-secondary);
+    color: #3b5eff;
     font-size: 0.75rem;
+    font-weight: 400;
     margin: 0;
   }
 }
@@ -776,26 +772,30 @@ figni-viewer * {
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  margin-top: 0.5rem;
+  margin-bottom: 1rem;
   cursor: pointer;
 }
 
 .figni-viewer-help-page-unknown-btn h4 {
-  color: var(--figni-viewer-primary);
+  color: #ff733b;
   font-size: 0.75rem;
   margin: 0;
   margin-left: 0.5rem;
 }
 
 .figni-viewer-help-page-footer small {
-  color: var(--figni-viewer-gray-500);
+  color: #787d93;
   font-size: 0.75rem;
-  font-family: var(--figni-viewer-ui-font);
+  font-family: 'Noto Sans JP', sans-serif;
   margin: 0;
 }
 
 .figni-viewer-help-page-item {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.figni-viewer-help-page-item:last-of-type {
+  margin-bottom: 0;
 }
 
 .figni-viewer-help-page-item-animation-holder {
@@ -812,37 +812,29 @@ figni-viewer * {
   -ms-flex-pack: center;
   justify-content: center;
   width: 100%;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
   border-radius: 0.25rem;
+  background-color: #f5f7ff;
   overflow: hidden;
 }
 
-.figni-viewer-help-page-item-animation-holder::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--figni-viewer-secondary);
-  opacity: 0.05;
-}
-
 .figni-viewer-help-page-item-step {
-  color: var(--figni-viewer-black);
+  display: block;
+  margin-bottom: 0.125rem;
+  color: #222428;
   font-size: 0.6rem;
   font-weight: 700;
   opacity: 0.5;
 }
 
 .figni-viewer-help-page-item-title {
-  color: var(--figni-viewer-black);
+  color: #222428;
   font-size: 0.875rem;
   margin: 0 0 0.5rem 0;
 }
 
 .figni-viewer-help-page-item-description {
-  color: var(--figni-viewer-black);
+  color: #222428;
   font-size: 0.75rem;
   margin: 0;
 }
@@ -865,20 +857,10 @@ figni-viewer * {
   margin-right: auto;
   padding: 0.2rem 0.5rem;
   border-radius: 1rem;
+  box-shadow: 0 0.5rem 1.5rem -0.5rem #222428;
   overflow: hidden;
-  background-color: var(--figni-viewer-white);
+  background-color: #f5f7ff;
   cursor: pointer;
-}
-
-.figni-viewer-help-page-item-back-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--figni-viewer-secondary);
-  opacity: 0.05;
 }
 
 .figni-viewer-help-page-item-back-btn svg {
@@ -887,8 +869,12 @@ figni-viewer * {
 }
 
 .figni-viewer-help-page-item-back-btn span {
-  color: var(--figni-viewer-secondary);
+  color: #3b5eff;
   font-size: 0.875rem;
   font-weight: 700;
   margin-bottom: 0.1rem;
+}
+
+.figni-viewer-help-page-footer {
+  padding-bottom: 0.5rem;
 }

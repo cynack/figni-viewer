@@ -1095,7 +1095,7 @@ export default class FigniViewerElement extends HTMLElement {
    */
   #showHelpButton() {
     if (!this.#helpButton) {
-      this.#helpButton = document.createElement('span')
+      this.#helpButton = document.createElement('div')
       this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
       this.#helpButton.classList.add('figni-viewer-help-button')
       this.#helpButton.addEventListener('click', () => {
@@ -1112,6 +1112,36 @@ export default class FigniViewerElement extends HTMLElement {
         }
       })
       this.#figniViewerBase.appendChild(this.#helpButton)
+      // 最初の操作方法の表示を追加
+      const operatingInstructionPanel = document.createElement('div')
+      operatingInstructionPanel.classList.add(
+        'figni-viewer-help-operating-instruction-panel'
+      )
+      const operatingInstructionContent = document.createElement('div')
+      operatingInstructionContent.classList.add(
+        'figni-viewer-help-operating-instruction-content'
+      )
+      const operatingInstructionText = document.createElement('p')
+      operatingInstructionText.innerText =
+        'ドラッグするとコンテンツを回転できます'
+      operatingInstructionText.classList.add(
+        'figni-viewer-help-operating-instruction-text'
+      )
+      operatingInstructionContent.appendChild(operatingInstructionText)
+      operatingInstructionPanel.appendChild(operatingInstructionContent)
+      const operatingInstructionAnimationHolder = document.createElement('div')
+      operatingInstructionAnimationHolder.classList.add(
+        'figni-viewer-help-operating-instruction-animation-holder'
+      )
+      Lottie.loadAnimation({
+        container: operatingInstructionAnimationHolder,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        animationData: CONTENT_OPERATION_ANIMATION,
+      })
+      operatingInstructionPanel.appendChild(operatingInstructionAnimationHolder)
+      this.#helpButton.appendChild(operatingInstructionPanel)
     } else {
       this.#helpButton.style.display = ''
     }

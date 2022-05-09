@@ -53,11 +53,15 @@ const HELP = {
   AR: 'ar',
   UNKNOWN: 'unknown',
 }
+const TIPS = {
+  DRAG: 'drag',
+}
 
 export default class FigniViewerElement extends HTMLElement {
   // html element
   #figniViewerBase
   #helpPanelBase
+  #tipsPanel
   #initCameraButton
   #loadingPanel
   #errorPanel
@@ -147,6 +151,9 @@ export default class FigniViewerElement extends HTMLElement {
     // Figni Help Panel
     this.#showHelpPanel()
 
+    // Figni Tips Panel
+    this.#showTipsPanel()
+
     // Hotspot
     this.querySelectorAll('[slot^="hotspot"]').forEach((hotspot) => {
       this.#hotspots.push(this.#figniViewerBase.appendChild(hotspot))
@@ -163,7 +170,6 @@ export default class FigniViewerElement extends HTMLElement {
     this.#setupInteractionCursor()
     this.#showArButton()
     this.#showInteractionPrompt()
-    // TODO: ヘルプページの実装
     this.#showHelpButton()
 
     this.#completedInitialModelLoad = true
@@ -489,6 +495,7 @@ export default class FigniViewerElement extends HTMLElement {
    * @param {string} page ページ
    */
   openHelpPanel(page = HELP.TOP) {
+    this.closeTipsPanel()
     this.#helpPanelBase.classList.remove('figni-viewer-help-panel-hidden')
     let openPage = null
     switch (page) {
@@ -509,6 +516,9 @@ export default class FigniViewerElement extends HTMLElement {
         break
     }
     if (openPage) {
+      this.#helpButton.innerHTML = `${SVG_HELP_CLOSE_ICON}`
+      this.#closeAllPanels()
+      this.resetCameraTargetAndOrbit()
       if (this.#openedHelpPages.length === 0) {
         openPage.style.left = 0
       } else {
@@ -546,6 +556,65 @@ export default class FigniViewerElement extends HTMLElement {
       this.#helpPanelBase.firstChild.remove()
     }
     this.#openedHelpPages = []
+    this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
+  }
+
+  /**
+   * Tipsを開く。
+   * @param {string} tips Tips
+   * @param {number} delay 表示時間(ms)
+   */
+  openTipsPanel(tips, delay = 6000) {
+    this.closeHelpPanel()
+    this.#helpButton.innerHTML = `${SVG_HELP_ICON}`
+    this.#tipsPanel.classList.remove('figni-viewer-tips-panel-hidden')
+    let text = null
+    let animation = null
+    let help = HELP.TOP
+    switch (tips) {
+      case TIPS.DRAG: {
+        text = 'ドラッグするとコンテンツを回転できます'
+        animation = CONTENT_OPERATION_ANIMATION
+        help = HELP.CONTENT
+        break
+      }
+    }
+    if (text && animation) {
+      this.#tipsPanel.querySelector('.figni-viewer-tips-panel-text').innerHTML =
+        text
+      Lottie.loadAnimation({
+        container: this.#tipsPanel.querySelector(
+          '.figni-viewer-tips-panel-animation'
+        ),
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        animationData: animation,
+      })
+      const hide = setTimeout(() => {
+        this.closeTipsPanel()
+      }, delay)
+      this.#tipsPanel.addEventListener(
+        'click',
+        () => {
+          this.openHelpPanel(help)
+          clearTimeout(hide)
+        },
+        { once: true }
+      )
+      this.#helpButton.addEventListener(
+        'click',
+        () => {
+          clearTimeout(hide)
+        },
+        { once: true }
+      )
+    }
+  }
+
+  closeTipsPanel() {
+    this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
+    this.#tipsPanel.classList.add('figni-viewer-tips-panel-hidden')
   }
 
   #setupInteractionCursor() {
@@ -988,6 +1057,7 @@ export default class FigniViewerElement extends HTMLElement {
         )
         if (p === 1) {
           this.#hideLoadingPanel()
+          this.openTipsPanel(TIPS.DRAG)
           this.#figniViewerBase.removeEventListener('progress', progress)
         }
       }
@@ -1115,46 +1185,12 @@ export default class FigniViewerElement extends HTMLElement {
             'figni-viewer-help-panel-hidden'
           )
         ) {
-          this.#helpButton.innerHTML = `${SVG_HELP_CLOSE_ICON}`
           this.openHelpPanel()
         } else {
-          this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
           this.closeHelpPanel()
         }
       })
       this.#figniViewerBase.appendChild(this.#helpButton)
-      /*
-      // 最初の操作方法の表示を追加
-      const operatingInstructionPanel = document.createElement('div')
-      operatingInstructionPanel.classList.add(
-        'figni-viewer-help-operating-instruction-panel'
-      )
-      const operatingInstructionContent = document.createElement('div')
-      operatingInstructionContent.classList.add(
-        'figni-viewer-help-operating-instruction-content'
-      )
-      const operatingInstructionText = document.createElement('p')
-      operatingInstructionText.innerText =
-        'ドラッグするとコンテンツを回転できます'
-      operatingInstructionText.classList.add(
-        'figni-viewer-help-operating-instruction-text'
-      )
-      operatingInstructionContent.appendChild(operatingInstructionText)
-      operatingInstructionPanel.appendChild(operatingInstructionContent)
-      const operatingInstructionAnimationHolder = document.createElement('div')
-      operatingInstructionAnimationHolder.classList.add(
-        'figni-viewer-help-operating-instruction-animation-holder'
-      )
-      Lottie.loadAnimation({
-        container: operatingInstructionAnimationHolder,
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        animationData: CONTENT_OPERATION_ANIMATION,
-      })
-      operatingInstructionPanel.appendChild(operatingInstructionAnimationHolder)
-      this.#helpButton.appendChild(operatingInstructionPanel)
-      */
     } else {
       this.#helpButton.style.display = ''
     }
@@ -1585,5 +1621,23 @@ export default class FigniViewerElement extends HTMLElement {
       page.appendChild(backBtn)
     }
     return this.#helpUnknownPage
+  }
+
+  #showTipsPanel() {
+    if (!this.#tipsPanel) {
+      this.#tipsPanel = document.createElement('div')
+      this.#tipsPanel.classList.add('figni-viewer-tips-panel')
+      this.#tipsPanel.classList.add('figni-viewer-tips-panel-hidden')
+      const content = document.createElement('div')
+      content.classList.add('figni-viewer-tips-panel-content')
+      this.#tipsPanel.appendChild(content)
+      const text = document.createElement('p')
+      text.classList.add('figni-viewer-tips-panel-text')
+      content.appendChild(text)
+      const animation = document.createElement('div')
+      animation.classList.add('figni-viewer-tips-panel-animation')
+      this.#tipsPanel.appendChild(animation)
+      this.#figniViewerBase.appendChild(this.#tipsPanel)
+    }
   }
 }

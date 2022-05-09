@@ -677,10 +677,10 @@ figni-viewer * {
   margin-bottom: 1px;
 }
 
-.figni-viewer-help-operating-instruction-panel {
+.figni-viewer-tips-panel {
   position: absolute;
-  top: 0.25rem;
-  right: 0.25rem;
+  top: 0.75rem;
+  right: 0.75rem;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -690,9 +690,19 @@ figni-viewer * {
   flex-direction: row;
   border-radius: 0.5rem;
   background-color: var(--figni-viewer-white);
+  transition: 0.5s cubic-bezier(0.65, 0.05, 0.36, 1) all;
+  z-index: 9997;
+  transform-origin: top right;
+  transform: scale(1);
+  cursor: pointer;
 }
 
-.figni-viewer-help-operating-instruction-content {
+.figni-viewer-tips-panel-hidden {
+  transform: scale(0);
+  pointer-events: none;
+}
+
+.figni-viewer-tips-panel-content {
   width: 8rem;
   display: -webkit-box;
   display: -ms-flexbox;
@@ -709,14 +719,15 @@ figni-viewer * {
   padding: 0.75rem;
 }
 
-.figni-viewer-help-operating-instruction-text {
+.figni-viewer-tips-panel-text {
   color: var(--figni-viewer-secondary);
   font-size: 0.5rem;
+  font-weight: 700;
   font-family: var(--figni-viewer-ui-font);
   margin: 0;
 }
 
-.figni-viewer-help-operating-instruction-animation-holder {
+.figni-viewer-tips-panel-animation {
   height: 4rem;
   width: 4rem;
   border-left: 1px solid var(--figni-viewer-gray-100);

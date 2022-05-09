@@ -726,8 +726,6 @@ figni-viewer * {
   position: relative;
   width: 160px;
   height: 100%;
-  overflow-x: hidden;
-  overflow-y: scroll;
   z-index: 9999;
   background-color: #ffffff;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
@@ -741,6 +739,16 @@ figni-viewer * {
 
 .figni-viewer-help-panel-hidden {
   width: 0;
+}
+
+.figni-viewer-help-page-base {
+  position: absolute;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  width: 160px;
+  height: 100%;
+  background-color: white;
+  transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
 }
 
 .figni-viewer-help-page {
@@ -757,7 +765,6 @@ figni-viewer * {
   min-height: 100%;
   padding: 0.5rem 0.5rem 0;
   background-color: white;
-  transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
 }
 
 .figni-viewer-help-page-item-container {

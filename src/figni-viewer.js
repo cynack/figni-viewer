@@ -1112,6 +1112,7 @@ export default class FigniViewerElement extends HTMLElement {
         }
       })
       this.#figniViewerBase.appendChild(this.#helpButton)
+      /*
       // 最初の操作方法の表示を追加
       const operatingInstructionPanel = document.createElement('div')
       operatingInstructionPanel.classList.add(
@@ -1142,6 +1143,7 @@ export default class FigniViewerElement extends HTMLElement {
       })
       operatingInstructionPanel.appendChild(operatingInstructionAnimationHolder)
       this.#helpButton.appendChild(operatingInstructionPanel)
+      */
     } else {
       this.#helpButton.style.display = ''
     }
@@ -1160,20 +1162,23 @@ export default class FigniViewerElement extends HTMLElement {
   #createOrGetHelpTopPage() {
     if (!this.#helpTopPage) {
       this.#helpTopPage = document.createElement('div')
-      this.#helpTopPage.classList.add('figni-viewer-help-page')
+      this.#helpTopPage.classList.add('figni-viewer-help-page-base')
+      const page = document.createElement('div')
+      page.classList.add('figni-viewer-help-page')
+      this.#helpTopPage.appendChild(page)
       // ページタイトル
       const title = document.createElement('h3')
       title.innerText = '使い方ヘルプ'
-      this.#helpTopPage.appendChild(title)
+      page.appendChild(title)
       // ページアイテムを包含するdivを追加
       const helpItemContainer = document.createElement('div')
       helpItemContainer.classList.add('figni-viewer-help-page-item-container')
-      this.#helpTopPage.appendChild(helpItemContainer)
+      page.appendChild(helpItemContainer)
       // ボタンを生成する関数を設定
       const createButton = (text, animationData, link) => {
         // ボタンを追加
         const helpBtn = document.createElement('div')
-        this.#helpTopPage.appendChild(helpBtn)
+        page.appendChild(helpBtn)
         helpBtn.classList.add('figni-viewer-help-page-btn')
         // アニメーションのホルダーを追加
         const animationHolder = document.createElement('div')
@@ -1235,7 +1240,7 @@ export default class FigniViewerElement extends HTMLElement {
       unknownBtn.onclick = () => {
         this.openHelpPanel(HELP.UNKNOWN)
       }
-      this.#helpTopPage.appendChild(unknownBtn)
+      page.appendChild(unknownBtn)
       // フッター追加
       const footer = document.createElement('div')
       footer.classList.add('figni-viewer-help-page-footer')
@@ -1250,7 +1255,7 @@ export default class FigniViewerElement extends HTMLElement {
       const copyRight = document.createElement('small')
       copyRight.innerText = '© 2022 Cynack Inc.'
       footer.appendChild(copyRight)
-      this.#helpTopPage.appendChild(footer)
+      page.appendChild(footer)
     }
     return this.#helpTopPage
   }
@@ -1294,13 +1299,16 @@ export default class FigniViewerElement extends HTMLElement {
   #createOrGetHelpContentPage() {
     if (!this.#helpContentPage) {
       this.#helpContentPage = document.createElement('div')
-      this.#helpContentPage.classList.add('figni-viewer-help-page')
+      this.#helpContentPage.classList.add('figni-viewer-help-page-base')
+      const page = document.createElement('div')
+      page.classList.add('figni-viewer-help-page')
+      this.#helpContentPage.appendChild(page)
       const title = document.createElement('h3')
       title.innerText = 'コンテンツの操作'
-      this.#helpContentPage.appendChild(title)
+      page.appendChild(title)
       const helpItemContainer = document.createElement('div')
       helpItemContainer.classList.add('figni-viewer-help-page-item-container')
-      this.#helpContentPage.appendChild(helpItemContainer)
+      page.appendChild(helpItemContainer)
       helpItemContainer.appendChild(
         this.#createHelpItem(
           CONTENT_OPERATION_ANIMATION,
@@ -1333,7 +1341,7 @@ export default class FigniViewerElement extends HTMLElement {
       unknownBtn.onclick = () => {
         this.openHelpPanel(HELP.UNKNOWN)
       }
-      this.#helpContentPage.appendChild(unknownBtn)
+      page.appendChild(unknownBtn)
       // フッター追加
       const footer = document.createElement('div')
       footer.classList.add('figni-viewer-help-page-footer')
@@ -1341,7 +1349,7 @@ export default class FigniViewerElement extends HTMLElement {
       const copyRight = document.createElement('small')
       copyRight.innerText = '© 2022 Cynack Inc.'
       footer.appendChild(copyRight)
-      this.#helpContentPage.appendChild(footer)
+      page.appendChild(footer)
       // 戻るボタンの追加
       const backBtn = document.createElement('div')
       backBtn.classList.add('figni-viewer-help-page-item-back-btn')
@@ -1349,7 +1357,7 @@ export default class FigniViewerElement extends HTMLElement {
       backBtn.onclick = () => {
         this.backHelpPanel()
       }
-      this.#helpContentPage.appendChild(backBtn)
+      page.appendChild(backBtn)
     }
     return this.#helpContentPage
   }
@@ -1357,13 +1365,16 @@ export default class FigniViewerElement extends HTMLElement {
   #createOrGetHelpCaptionPage() {
     if (!this.#helpCaptionPage) {
       this.#helpCaptionPage = document.createElement('div')
-      this.#helpCaptionPage.classList.add('figni-viewer-help-page')
+      this.#helpCaptionPage.classList.add('figni-viewer-help-page-base')
+      const page = document.createElement('div')
+      page.classList.add('figni-viewer-help-page')
+      this.#helpCaptionPage.appendChild(page)
       const title = document.createElement('h3')
       title.innerText = 'キャプションの操作'
-      this.#helpCaptionPage.appendChild(title)
+      page.appendChild(title)
       const helpItemContainer = document.createElement('div')
       helpItemContainer.classList.add('figni-viewer-help-page-item-container')
-      this.#helpCaptionPage.appendChild(helpItemContainer)
+      page.appendChild(helpItemContainer)
       helpItemContainer.appendChild(
         this.#createHelpItem(
           CAPTION_TAP_ANIMATION,
@@ -1396,7 +1407,7 @@ export default class FigniViewerElement extends HTMLElement {
       unknownBtn.onclick = () => {
         this.openHelpPanel(HELP.UNKNOWN)
       }
-      this.#helpCaptionPage.appendChild(unknownBtn)
+      page.appendChild(unknownBtn)
       // フッター追加
       const footer = document.createElement('div')
       footer.classList.add('figni-viewer-help-page-footer')
@@ -1404,7 +1415,7 @@ export default class FigniViewerElement extends HTMLElement {
       const copyRight = document.createElement('small')
       copyRight.innerText = '© 2022 Cynack Inc.'
       footer.appendChild(copyRight)
-      this.#helpCaptionPage.appendChild(footer)
+      page.appendChild(footer)
       // 戻るボタンの追加
       const backBtn = document.createElement('div')
       backBtn.classList.add('figni-viewer-help-page-item-back-btn')
@@ -1412,7 +1423,7 @@ export default class FigniViewerElement extends HTMLElement {
       backBtn.onclick = () => {
         this.backHelpPanel()
       }
-      this.#helpCaptionPage.appendChild(backBtn)
+      page.appendChild(backBtn)
     }
     return this.#helpCaptionPage
   }
@@ -1420,13 +1431,16 @@ export default class FigniViewerElement extends HTMLElement {
   #createOrGetHelpArPage() {
     if (!this.#helpArPage) {
       this.#helpArPage = document.createElement('div')
-      this.#helpArPage.classList.add('figni-viewer-help-page')
+      this.#helpArPage.classList.add('figni-viewer-help-page-base')
+      const page = document.createElement('div')
+      page.classList.add('figni-viewer-help-page')
+      this.#helpArPage.appendChild(page)
       const title = document.createElement('h3')
       title.innerText = '実物大で見る'
-      this.#helpArPage.appendChild(title)
+      page.appendChild(title)
       const helpItemContainer = document.createElement('div')
       helpItemContainer.classList.add('figni-viewer-help-page-item-container')
-      this.#helpArPage.appendChild(helpItemContainer)
+      page.appendChild(helpItemContainer)
       helpItemContainer.appendChild(
         this.#createHelpItem(
           null,
@@ -1475,7 +1489,7 @@ export default class FigniViewerElement extends HTMLElement {
       unknownBtn.onclick = () => {
         this.openHelpPanel(HELP.UNKNOWN)
       }
-      this.#helpArPage.appendChild(unknownBtn)
+      page.appendChild(unknownBtn)
       // フッター追加
       const footer = document.createElement('div')
       footer.classList.add('figni-viewer-help-page-footer')
@@ -1483,7 +1497,7 @@ export default class FigniViewerElement extends HTMLElement {
       const copyRight = document.createElement('small')
       copyRight.innerText = '© 2022 Cynack Inc.'
       footer.appendChild(copyRight)
-      this.#helpArPage.appendChild(footer)
+      page.appendChild(footer)
       // 戻るボタンの追加
       const backBtn = document.createElement('div')
       backBtn.classList.add('figni-viewer-help-page-item-back-btn')
@@ -1491,7 +1505,7 @@ export default class FigniViewerElement extends HTMLElement {
       backBtn.onclick = () => {
         this.backHelpPanel()
       }
-      this.#helpArPage.appendChild(backBtn)
+      page.appendChild(backBtn)
     }
     return this.#helpArPage
   }
@@ -1514,13 +1528,16 @@ export default class FigniViewerElement extends HTMLElement {
   #createOrGetHelpUnknownPage() {
     if (!this.#helpUnknownPage) {
       this.#helpUnknownPage = document.createElement('div')
-      this.#helpUnknownPage.classList.add('figni-viewer-help-page')
+      this.#helpUnknownPage.classList.add('figni-viewer-help-page-base')
+      const page = document.createElement('div')
+      page.classList.add('figni-viewer-help-page')
+      this.#helpUnknownPage.appendChild(page)
       const title = document.createElement('h3')
       title.innerText = '上手く行かない場合'
-      this.#helpUnknownPage.appendChild(title)
+      page.appendChild(title)
       const helpItemContainer = document.createElement('div')
       helpItemContainer.classList.add('figni-viewer-help-page-item-container')
-      this.#helpUnknownPage.appendChild(helpItemContainer)
+      page.appendChild(helpItemContainer)
       helpItemContainer.appendChild(
         this.#createHelpUnknownItem(
           'コンテンツを回転させようとするとスクロールしてしまう',
@@ -1546,7 +1563,7 @@ export default class FigniViewerElement extends HTMLElement {
       const copyRight = document.createElement('small')
       copyRight.innerText = '© 2022 Cynack Inc.'
       footer.appendChild(copyRight)
-      this.#helpUnknownPage.appendChild(footer)
+      page.appendChild(footer)
       // 戻るボタンの追加
       const backBtn = document.createElement('div')
       backBtn.classList.add('figni-viewer-help-page-item-back-btn')
@@ -1554,7 +1571,7 @@ export default class FigniViewerElement extends HTMLElement {
       backBtn.onclick = () => {
         this.backHelpPanel()
       }
-      this.#helpUnknownPage.appendChild(backBtn)
+      page.appendChild(backBtn)
     }
     return this.#helpUnknownPage
   }

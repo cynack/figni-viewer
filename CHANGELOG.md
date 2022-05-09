@@ -31,6 +31,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [1.4.5] - 2022-05-09
+
+### Fixed
+
 - *panel*をクリックしても*hotspot*をクリックしたときと同じ動作をしてしまう問題を修正
 
 ## [1.4.3] - 2022-04-22
@@ -342,7 +346,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.4.3...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.4.5...HEAD
+[1.4.5]: https://github.com/cynack/figni-viewer/compare/v1.4.3...v1.4.5
 [1.4.3]: https://github.com/cynack/figni-viewer/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/cynack/figni-viewer/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/cynack/figni-viewer/compare/v1.4.0...v1.4.1

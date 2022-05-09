@@ -18,7 +18,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   #isInteracting = false
   #interactedTime = 0
   #sumInteractedTime = 0
-  #arCount
+  #arCount = 0
   #hotspotClickCount = {}
   #animationPlayCount = {}
 

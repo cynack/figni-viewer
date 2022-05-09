@@ -514,6 +514,7 @@ export default class FigniViewerElement extends HTMLElement {
       } else {
         openPage.style.left = '100%'
       }
+      openPage.scrollTop = 0
       this.#helpPanelBase.appendChild(openPage)
       this.#openedHelpPages.push(openPage)
       setTimeout(() => {
@@ -757,15 +758,25 @@ export default class FigniViewerElement extends HTMLElement {
           if (panels.length > 0) {
             panels.forEach((panel) => {
               panel.style.maxWidth = `${
-                Number(window.getComputedStyle(this).width.slice(0, -2)) * 0.4
+                Number(
+                  window
+                    .getComputedStyle(this.#figniViewerBase)
+                    .width.slice(0, -2)
+                ) * 0.4
               }px`
               if (panel.dataset.vertical == 'middle') {
                 panel.style.maxHeight = `calc(${Number(
-                  window.getComputedStyle(this).height.slice(0, -2)
+                  window
+                    .getComputedStyle(this.#figniViewerBase)
+                    .height.slice(0, -2)
                 )}px - 5rem )`
               } else {
                 panel.style.maxHeight = `calc(${
-                  Number(window.getComputedStyle(this).height.slice(0, -2)) / 2
+                  Number(
+                    window
+                      .getComputedStyle(this.#figniViewerBase)
+                      .height.slice(0, -2)
+                  ) / 2
                 }px - 3rem )`
               }
               panel.classList.toggle('figni-viewer-panel-hide')

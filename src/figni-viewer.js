@@ -826,27 +826,44 @@ export default class FigniViewerElement extends HTMLElement {
         if (e.target == hotspot) {
           if (panels.length > 0) {
             panels.forEach((panel) => {
-              panel.style.maxWidth = `${
-                Number(
-                  window
-                    .getComputedStyle(this.#figniViewerBase)
-                    .width.slice(0, -2)
-                ) * 0.4
-              }px`
-              if (panel.dataset.vertical == 'middle') {
-                panel.style.maxHeight = `calc(${Number(
-                  window
-                    .getComputedStyle(this.#figniViewerBase)
-                    .height.slice(0, -2)
-                )}px - 5rem )`
-              } else {
-                panel.style.maxHeight = `calc(${
-                  Number(
-                    window
-                      .getComputedStyle(this.#figniViewerBase)
-                      .height.slice(0, -2)
-                  ) / 2
-                }px - 3rem )`
+              const baseWidth = Number(
+                window
+                  .getComputedStyle(this.#figniViewerBase)
+                  .width.slice(0, -2)
+              )
+              const baseHeight = Number(
+                window
+                  .getComputedStyle(this.#figniViewerBase)
+                  .height.slice(0, -2)
+              )
+              const hotspotWidth = Number(
+                window.getComputedStyle(hotspot).width.slice(0, -2)
+              )
+              const hotspotHeight = Number(
+                window.getComputedStyle(hotspot).height.slice(0, -2)
+              )
+              console.log(panel.dataset)
+              switch (panel.dataset.vertical) {
+                case 'top':
+                case 'bottom':
+                  panel.style.maxHeight = `calc(${
+                    (baseHeight - hotspotHeight) / 2
+                  }px - 2.5rem)`
+                  break
+                case 'middle':
+                  panel.style.maxHeight = `calc(${baseHeight / 2}px)`
+                  break
+              }
+              switch (panel.dataset.horizontal) {
+                case 'left':
+                case 'right':
+                  panel.style.maxWidth = `calc(${
+                    (baseWidth - hotspotWidth) / 2
+                  }px - 1.25rem)`
+                  break
+                case 'center':
+                  panel.style.maxWidth = `calc(${baseWidth / 2}px)`
+                  break
               }
               panel.classList.toggle('figni-viewer-panel-hide')
             })

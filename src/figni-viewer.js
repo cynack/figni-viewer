@@ -224,6 +224,7 @@ export default class FigniViewerElement extends HTMLElement {
         this.modelTag
       )
     } catch (e) {
+      this.#hideLoadingPanel()
       this.#showErrorPanel(getErrorMessage(e))
     }
   }

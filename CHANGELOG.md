@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- エラー画面が表示されない問題を修正
+
 ## [1.4.5] - 2022-05-09
 
 ### Fixed

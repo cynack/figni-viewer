@@ -517,10 +517,10 @@ export default class FigniViewerElement extends HTMLElement {
     }
     if (openPage) {
       this.#helpButton.innerHTML = `${SVG_HELP_CLOSE_ICON}`
-      this.#closeAllPanels()
-      this.resetCameraTargetAndOrbit()
       if (this.#openedHelpPages.length === 0) {
         openPage.style.left = 0
+        this.#closeAllPanels()
+        this.resetCameraTargetAndOrbit()
       } else {
         openPage.style.left = '100%'
       }
@@ -551,6 +551,8 @@ export default class FigniViewerElement extends HTMLElement {
    * ヘルプページを閉じる。
    */
   closeHelpPanel() {
+    this.#closeAllPanels()
+    this.resetCameraTargetAndOrbit()
     this.#helpPanelBase.classList.add('figni-viewer-help-panel-hidden')
     while (this.#helpPanelBase.firstChild) {
       this.#helpPanelBase.firstChild.remove()
@@ -842,28 +844,40 @@ export default class FigniViewerElement extends HTMLElement {
               const hotspotHeight = Number(
                 window.getComputedStyle(hotspot).height.slice(0, -2)
               )
-              console.log(panel.dataset)
-              switch (panel.dataset.vertical) {
-                case 'top':
-                case 'bottom':
-                  panel.style.maxHeight = `calc(${
-                    (baseHeight - hotspotHeight) / 2
-                  }px - 2.5rem)`
-                  break
-                case 'middle':
-                  panel.style.maxHeight = `calc(${baseHeight / 2}px)`
-                  break
-              }
-              switch (panel.dataset.horizontal) {
-                case 'left':
-                case 'right':
-                  panel.style.maxWidth = `calc(${
-                    (baseWidth - hotspotWidth) / 2
-                  }px - 1.25rem)`
-                  break
-                case 'center':
-                  panel.style.maxWidth = `calc(${baseWidth / 2}px)`
-                  break
+              const v = panel.dataset.vertical
+              const h = panel.dataset.horizontal
+              if (v === 'top' && h == 'center') {
+                panel.style.maxWidth = `${baseWidth / 2}px`
+                panel.style.maxHeight = `calc(${
+                  (baseHeight - hotspotHeight) / 2
+                }px - 1rem)`
+              } else if (v === 'top' && (h === 'left' || h === 'right')) {
+                panel.style.maxWidth = `calc(${
+                  (baseWidth - hotspotWidth) / 2
+                }px - 0.5rem)`
+                panel.style.maxHeight = `calc(${
+                  (baseHeight - hotspotHeight) / 2
+                }px - 0.75rem)`
+              } else if (v === 'middle' && h == 'center') {
+                panel.style.maxWidth = `${baseWidth / 2}px`
+                panel.style.maxHeight = `calc(${baseHeight}px - 4rem)`
+              } else if (v === 'middle' && (h === 'left' || h === 'right')) {
+                panel.style.maxWidth = `calc(${
+                  (baseWidth - hotspotWidth) / 2
+                }px - 1.5rem)`
+                panel.style.maxHeight = `calc(${baseHeight}px - 4rem)`
+              } else if (v === 'bottom' && h == 'center') {
+                panel.style.maxWidth = `${baseWidth / 2}px`
+                panel.style.maxHeight = `calc(${
+                  (baseHeight - hotspotHeight) / 2
+                }px - 1rem)`
+              } else if (v === 'bottom' && (h === 'left' || h === 'right')) {
+                panel.style.maxWidth = `calc(${
+                  (baseWidth - hotspotWidth) / 2
+                }px - 0.5rem)`
+                panel.style.maxHeight = `calc(${
+                  (baseHeight - hotspotHeight) / 2
+                }px - 0.75rem)`
               }
               panel.classList.toggle('figni-viewer-panel-hide')
             })

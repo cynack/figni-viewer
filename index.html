@@ -45,7 +45,7 @@
           visible-state="neutral"
         >
           クローズアップ
-          <div slot="panel">
+          <div slot="panel" place="bottom left">
             <img src="https://admin.figni.io//sample/suitcase/caption_2.png" />
             <h4>タイトル</h4>
             <p>文章</p>
@@ -60,7 +60,7 @@
           visible-state="neutral"
         >
           クローズアップ2
-          <div slot="panel" place="right top">
+          <div slot="panel" place="middle center">
             <img src="https://admin.figni.io//sample/suitcase/caption_1.png" />
             <h4>タイトル</h4>
             <p>文章</p>
@@ -80,12 +80,14 @@
       </button>
     </div>
     <div>
+      <!--
       <iframe
         src="http://100.67.174.172:3000/#/contents/sample/iframe"
         width="100%"
         height="480"
         scrolling="no"
       ></iframe>
+      -->
     </div>
     <style>
       #viewer {
@@ -100,7 +102,8 @@
       }
       body {
         height: 5000px;
-        --figni-viewer-primary: #3b5eff;
+        --figni-viewer-primary: #35e644;
+        --figni-viewer-secondary: #ffce3b;
       }
     </style>
   </body>

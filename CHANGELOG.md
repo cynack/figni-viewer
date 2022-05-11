@@ -23,7 +23,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- 使い方を紹介しているヘルプページを追加
+
 ### Changed
+
+- *panel*のサイズを調整
 
 ### Deprecated
 

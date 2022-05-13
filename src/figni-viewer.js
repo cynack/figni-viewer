@@ -1,5 +1,6 @@
 import Lottie from 'lottie-web'
 import QRCode from 'qrcode'
+import Values from 'values.js'
 import {
   CAPTION_TAP_ANIMATION,
   CONTENT_OPERATION_ANIMATION,
@@ -192,6 +193,8 @@ export default class FigniViewerElement extends HTMLElement {
     this.#showHelpButton()
 
     this.#completedInitialModelLoad = true
+
+    this.updateColorSettings()
   }
 
   static get observedAttributes() {
@@ -637,6 +640,51 @@ export default class FigniViewerElement extends HTMLElement {
   closeTipsPanel() {
     this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
     this.#tipsPanel.classList.add('figni-viewer-tips-panel-hidden')
+  }
+
+  /**
+   * CSSの変数で指定した値を元に色の設定を行う。
+   */
+  updateColorSettings() {
+    const root = document.documentElement
+    const style = window.getComputedStyle(root)
+    const primary = new Values(
+      style.getPropertyValue('--figni-viewer-primary').replace(' ', '')
+    )
+    const secondary = new Values(
+      style.getPropertyValue('--figni-viewer-secondary').replace(' ', '')
+    )
+    const background = new Values(
+      style.getPropertyValue('--figni-viewer-background').replace(' ', '')
+    )
+    root.style.setProperty(
+      '--figni-viewer-primary-tint-95',
+      primary.tint(95).hexString()
+    )
+    root.style.setProperty(
+      '--figni-viewer-secondary-tint-95',
+      secondary.tint(95).hexString()
+    )
+    root.style.setProperty(
+      '--figni-viewer-secondary-tint-90',
+      secondary.tint(90).hexString()
+    )
+    root.style.setProperty(
+      '--figni-viewer-gray-shade-10',
+      background.shade(10).hexString()
+    )
+    root.style.setProperty(
+      '--figni-viewer-gray-shade-20',
+      background.shade(20).hexString()
+    )
+    root.style.setProperty(
+      '--figni-viewer-gray-shade-30',
+      background.shade(30).hexString()
+    )
+    root.style.setProperty(
+      '--figni-viewer-gray-shade-50',
+      background.shade(50).hexString()
+    )
   }
 
   #setupInteractionCursor() {

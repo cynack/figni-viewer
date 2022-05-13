@@ -4,19 +4,11 @@
 :root {
   --figni-viewer-primary: #ff733b;
   --figni-viewer-secondary: #3b5eff;
-  --figni-viewer-white: #ffffff;
-  --figni-viewer-gray-50: #f1f2f7;
-  --figni-viewer-gray-100: #e6e8ef;
-  --figni-viewer-gray-200: #c1c4cf;
-  --figni-viewer-gray-300: #aeb1bf;
-  --figni-viewer-gray-500: #787d93;
-  --figni-viewer-black: #222428;
-  --figni-viewer-error: #ff3f3b;
-  --figni-viewer-link: #3b5eff;
-  --figni-viewer-button: #3b5eff;
   --figni-viewer-prompt-hand: #ffce3b;
-  --figni-viewer-contents-font: 'Noto Sans JP', sans-serif;
-  --figni-viewer-ui-font: 'Noto Sans JP', sans-serif;
+  --figni-viewer-error: #ff3f3b;
+  --figni-viewer-text: #222428;
+  --figni-viewer-background: #f1f2f7;
+  --figni-viewer-font: 'Noto Sans JP', sans-serif;
 }
 
 figni-viewer {
@@ -24,13 +16,13 @@ figni-viewer {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  background-color: var(--figni-viewer-gray-50);
+  background-color: var(--figni-viewer-background);
   overflow: hidden;
 }
 
 figni-viewer * {
-  font-family: var(--figni-viewer-contents-font);
-  color: var(--figni-viewer-black);
+  font-family: var(--figni-viewer-font);
+  color: var(--figni-viewer-text);
 }
 
 .figni-viewer-hotspot {
@@ -129,18 +121,18 @@ figni-viewer * {
   h6,
   strong {
     font-weight: 700;
-    color: var(--figni-viewer-black);
+    color: var(--figni-viewer-text);
     margin: 0.5rem;
   }
 
   p,
   i {
-    color: var(--figni-viewer-gray-300);
+    color: var(--figni-viewer-gray-shade-30);
     margin: 0.5rem;
   }
 
   a {
-    color: var(--figni-viewer-link);
+    color: var(--figni-viewer-secondary);
     margin: 0.5rem;
   }
 
@@ -153,7 +145,7 @@ figni-viewer * {
     width: calc(100% - 1rem);
     padding: 0.5rem;
     margin: 0.5rem;
-    background-color: var(--figni-viewer-button);
+    background-color: var(--figni-viewer-secondary);
     border-radius: 0.25rem;
     border: none;
     cursor: pointer;
@@ -284,7 +276,7 @@ figni-viewer * {
   display: block;
   color: var(--figni-viewer-primary);
   font-size: 12px;
-  font-family: var(--figni-viewer-ui-font);
+  font-family: var(--figni-viewer-font);
   font-weight: bold;
   margin-bottom: 0.1rem;
 }
@@ -387,7 +379,7 @@ figni-viewer * {
   -ms-flex-pack: center;
   justify-content: center;
   padding: 2rem;
-  background-color: var(--figni-viewer-gray-50);
+  background-color: var(--figni-viewer-background);
   box-sizing: border-box;
   z-index: 9999;
   pointer-events: none;
@@ -399,19 +391,19 @@ figni-viewer * {
   width: 100%;
   height: 100%;
   .grid path {
-    fill: var(--figni-viewer-gray-200);
+    fill: var(--figni-viewer-gray-shade-20);
   }
   .cube path {
-    stroke: var(--figni-viewer-gray-200);
+    stroke: var(--figni-viewer-gray-shade-20);
   }
   .tap_fb path {
-    fill: var(--figni-viewer-gray-500);
+    fill: var(--figni-viewer-gray-shade-50);
   }
   .hand path {
-    fill: var(--figni-viewer-gray-300);
+    fill: var(--figni-viewer-gray-shade-30);
   }
   .tap_effect path {
-    fill: var(--figni-viewer-gray-300);
+    fill: var(--figni-viewer-gray-shade-30);
   }
 }
 
@@ -449,8 +441,8 @@ figni-viewer * {
     90deg,
     var(--figni-viewer-primary) 0%,
     var(--figni-viewer-primary) var(--figni-viewer-progress, 0%),
-    var(--figni-viewer-white) var(--figni-viewer-progress, 0%),
-    var(--figni-viewer-white) 100%
+    #ffffff var(--figni-viewer-progress, 0%),
+    #ffffff 100%
   );
   opacity: 0.1;
 }
@@ -470,7 +462,7 @@ figni-viewer * {
 
 .figni-viewer-loading-text {
   color: var(--figni-viewer-primary);
-  font-family: var(--figni-viewer-ui-font);
+  font-family: var(--figni-viewer-font);
   font-size: 0.75rem;
   font-weight: 700;
   margin-bottom: 2px;
@@ -515,7 +507,7 @@ figni-viewer * {
   -ms-flex-pack: center;
   justify-content: center;
   padding: 2rem;
-  background-color: var(--figni-viewer-gray-50);
+  background-color: var(--figni-viewer-background);
   box-sizing: border-box;
   z-index: 9999;
   transition: opacity 0.3s ease-out;
@@ -533,14 +525,14 @@ figni-viewer * {
 
 .figni-viewer-error-text {
   color: var(--figni-viewer-error);
-  font-family: var(--figni-viewer-ui-font);
+  font-family: var(--figni-viewer-font);
   font-size: 0.75rem;
 }
 
 .figni-viewer-error-reload-button {
   cursor: pointer;
   text-decoration: underline;
-  color: var(--figni-viewer-link);
+  color: var(--figni-viewer-secondary);
   font-size: 0.5rem;
 }
 
@@ -551,7 +543,7 @@ figni-viewer * {
   opacity: 0;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  background-color: var(--figni-viewer-gray-500);
+  background-color: var(--figni-viewer-gray-shade-50);
   pointer-events: none;
   mix-blend-mode: difference;
   transition: opacity 0.2s ease-out, width 0.2s ease-out, height 0.2s ease-out;
@@ -560,7 +552,7 @@ figni-viewer * {
 .figni-viewer-interaction-prompt {
   width: 5rem;
   circle.d {
-    fill: var(--figni-viewer-gray-500);
+    fill: var(--figni-viewer-gray-shade-50);
   }
   path.e {
     fill: var(--figni-viewer-prompt-hand);
@@ -579,7 +571,7 @@ figni-viewer * {
 .figni-viewer-qrcode-panel-bg {
   width: 100%;
   height: 100%;
-  background-color: var(--figni-viewer-gray-300);
+  background-color: var(--figni-viewer-gray-shade-30);
   opacity: 0.5;
 }
 
@@ -610,11 +602,11 @@ figni-viewer * {
   width: 200px;
   height: 200px;
   z-index: 9999;
-  background-color: var(--figni-viewer-white);
+  background-color: #ffffff;
 }
 
 .figni-viewer-qrcode-panel > span {
-  font-family: var(--figni-viewer-ui-font);
+  font-family: var(--figni-viewer-font);
   font-size: 12px;
   font-weight: 700;
   color: var(--figni-viewer-primary);
@@ -670,7 +662,7 @@ figni-viewer * {
   display: block;
   color: #ffffff;
   font-size: 0.75rem;
-  font-family: var(--figni-viewer-ui-font);
+  font-family: var(--figni-viewer-font);
   font-weight: bold;
   line-height: 1;
   margin-left: 0.25rem;
@@ -689,7 +681,7 @@ figni-viewer * {
   -ms-flex-direction: row;
   flex-direction: row;
   border-radius: 0.5rem;
-  background-color: var(--figni-viewer-white);
+  background-color: #ffffff;
   transition: 0.5s cubic-bezier(0.65, 0.05, 0.36, 1) all;
   z-index: 9997;
   transform-origin: top right;
@@ -723,14 +715,14 @@ figni-viewer * {
   color: var(--figni-viewer-secondary);
   font-size: 0.5rem;
   font-weight: 700;
-  font-family: var(--figni-viewer-ui-font);
+  font-family: var(--figni-viewer-font);
   margin: 0;
 }
 
 .figni-viewer-tips-panel-animation {
   height: 4rem;
   width: 4rem;
-  border-left: 1px solid var(--figni-viewer-gray-100);
+  border-left: 1px solid var(--figni-viewer-gray-shade-10);
 }
 
 .figni-viewer-help-panel {
@@ -741,7 +733,7 @@ figni-viewer * {
   background-color: #ffffff;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
   h3 {
-    color: #3b5eff;
+    color: var(--figni-viewer-primary);
     font-size: 1.25rem;
     margin: 0;
     margin-bottom: 1rem;
@@ -808,7 +800,7 @@ figni-viewer * {
   height: 5rem;
   margin-bottom: 0.3rem;
   border-radius: 0.25rem;
-  background-color: #f5f7ff;
+  background-color: var(--figni-viewer-primary-tint-95);
   overflow: hidden;
 }
 
@@ -828,7 +820,7 @@ figni-viewer * {
   -ms-flex-align: center;
   align-items: center;
   h4 {
-    color: #3b5eff;
+    color: var(--figni-viewer-primary);
     font-size: 0.75rem;
     font-weight: 400;
     margin: 0;
@@ -850,7 +842,7 @@ figni-viewer * {
 }
 
 .figni-viewer-help-page-unknown-btn h4 {
-  color: #ff733b;
+  color: var(--figni-viewer-secondary);
   font-size: 0.75rem;
   margin: 0;
   margin-left: 0.5rem;
@@ -887,27 +879,27 @@ figni-viewer * {
   width: 100%;
   margin-bottom: 0.5rem;
   border-radius: 0.25rem;
-  background-color: #f5f7ff;
+  background-color: var(--figni-viewer-primary-tint-95);
   overflow: hidden;
 }
 
 .figni-viewer-help-page-item-step {
   display: block;
   margin-bottom: 0.125rem;
-  color: #222428;
+  color: var(--figni-viewer-text);
   font-size: 0.6rem;
   font-weight: 700;
   opacity: 0.5;
 }
 
 .figni-viewer-help-page-item-title {
-  color: #222428;
+  color: var(--figni-viewer-text);
   font-size: 0.875rem;
   margin: 0 0 0.5rem 0;
 }
 
 .figni-viewer-help-page-item-description {
-  color: #222428;
+  color: var(--figni-viewer-text);
   font-size: 0.75rem;
   margin: 0;
 }
@@ -930,9 +922,9 @@ figni-viewer * {
   margin-right: auto;
   padding: 0.2rem 0.5rem;
   border-radius: 1rem;
-  box-shadow: 0 0.5rem 1.5rem -0.5rem #222428;
+  box-shadow: 0 0.5rem 1.5rem -0.5rem #222222;
   overflow: hidden;
-  background-color: #f5f7ff;
+  background-color: var(--figni-viewer-secondary-tint-95);
   cursor: pointer;
 }
 
@@ -942,7 +934,7 @@ figni-viewer * {
 }
 
 .figni-viewer-help-page-item-back-btn span {
-  color: #3b5eff;
+  color: var(--figni-viewer-secondary);
   font-size: 0.875rem;
   font-weight: 700;
   margin-bottom: 0.1rem;

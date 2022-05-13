@@ -643,7 +643,7 @@ export default class FigniViewerElement extends HTMLElement {
   }
 
   /**
-   * CSSの変数で指定した値を元に色の設定を行う。
+   * CSSの変数で指定した値を元に色を初期化する。
    */
   updateColorSettings() {
     const root = document.documentElement

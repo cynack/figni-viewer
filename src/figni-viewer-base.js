@@ -21,6 +21,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   #arCount = 0
   #hotspotClickCount = {}
   #animationPlayCount = {}
+  #abtest = {}
 
   constructor() {
     super()
@@ -208,6 +209,15 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     }
   }
 
+  /**
+   * ABテストの結果を設定する
+   * @param {string} testName テストの名前
+   * @param {string|number} result 結果
+   */
+  registerABTestResult(testName, result) {
+    this.#abtest[testName] = result
+  }
+
   #setupModelViewer() {
     this.loading = 'lazy'
     this.cameraControls = true
@@ -298,6 +308,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
               animation_play: this.#animationPlayCount,
               current_camera_target: this.#currentCameraTarget,
               current_camera_orbit: this.#currentCameraOrbit,
+              abtest: this.#abtest,
             })
           )
         } else {

@@ -945,7 +945,7 @@ export default class FigniViewerElement extends HTMLElement {
                 }px - 0.5rem)`
                 panel.style.maxHeight = `calc(${
                   (baseHeight - hotspotHeight) / 2
-                }px - 0.75rem)`
+                }px - 3.25rem)`
               }
               panel.classList.toggle('figni-viewer-panel-hide')
             })

@@ -648,9 +648,9 @@ export default class FigniViewerElement extends HTMLElement {
   updateColorSettings() {
     const root = document.documentElement
     const style = window.getComputedStyle(root)
-    const primary = new Values(
-      style.getPropertyValue('--figni-viewer-primary').replace(' ', '')
-    )
+    // const primary = new Values(
+    //   style.getPropertyValue('--figni-viewer-primary').replace(' ', '')
+    // )
     const secondary = new Values(
       style.getPropertyValue('--figni-viewer-secondary').replace(' ', '')
     )
@@ -658,36 +658,8 @@ export default class FigniViewerElement extends HTMLElement {
       style.getPropertyValue('--figni-viewer-background').replace(' ', '')
     )
     root.style.setProperty(
-      '--figni-viewer-primary-tint-10',
-      primary.tint(10).hexString()
-    )
-    root.style.setProperty(
-      '--figni-viewer-primary-tint-95',
-      primary.tint(95).hexString()
-    )
-    root.style.setProperty(
-      '--figni-viewer-primary-tint-85',
-      primary.tint(85).hexString()
-    )
-    root.style.setProperty(
-      '--figni-viewer-primary-tint-75',
-      primary.tint(75).hexString()
-    )
-    root.style.setProperty(
-      '--figni-viewer-primary-tint-65',
-      primary.tint(65).hexString()
-    )
-    root.style.setProperty(
-      '--figni-viewer-primary-shade-10',
-      primary.shade(10).hexString()
-    )
-    root.style.setProperty(
       '--figni-viewer-secondary-tint-95',
       secondary.tint(95).hexString()
-    )
-    root.style.setProperty(
-      '--figni-viewer-secondary-tint-90',
-      secondary.tint(90).hexString()
     )
     root.style.setProperty(
       '--figni-viewer-gray-shade-10',

@@ -290,7 +290,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         this.#sumInteractedTime += performance.now() - this.#interactedTime
       })
 
-      setInterval(() => {
+      const sender = setInterval(() => {
         if (this.#websocket.readyState === WebSocket.OPEN) {
           this.#websocket.send(
             JSON.stringify({
@@ -311,10 +311,10 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
             })
           )
         } else {
-          console.error('Cannot send analytics data. Reconnecting...')
+          console.error('Disconnect analytics server.')
           if (canAnalytics) {
             this.#websocket.close()
-            this.#websocket = new WebSocket(WEBSOCKET_BASE)
+            clearInterval(sender)
           }
         }
       }, 1000)

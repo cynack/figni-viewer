@@ -648,18 +648,18 @@ export default class FigniViewerElement extends HTMLElement {
   updateColorSettings() {
     const root = document.documentElement
     const style = window.getComputedStyle(root)
-    // const primary = new Values(
-    //   style.getPropertyValue('--figni-viewer-primary').replace(' ', '')
-    // )
-    const secondary = new Values(
-      style.getPropertyValue('--figni-viewer-secondary').replace(' ', '')
+    const primary = new Values(
+      style.getPropertyValue('--figni-viewer-primary').replace(' ', '')
     )
+    // const secondary = new Values(
+    //   style.getPropertyValue('--figni-viewer-secondary').replace(' ', '')
+    // )
     const background = new Values(
       style.getPropertyValue('--figni-viewer-background').replace(' ', '')
     )
     root.style.setProperty(
-      '--figni-viewer-secondary-tint-95',
-      secondary.tint(95).hexString()
+      '--figni-viewer-primary-tint-95',
+      primary.tint(95).hexString()
     )
     root.style.setProperty(
       '--figni-viewer-gray-shade-10',

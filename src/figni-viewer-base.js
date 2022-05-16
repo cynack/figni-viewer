@@ -222,8 +222,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     this.loading = 'lazy'
     this.cameraControls = true
     this.ar = true
-    // ! 一時的にWebXRを起動しないようにします
-    this.arModes = 'scene-viewer quick-look'
+    this.arModes = 'webxr scene-viewer quick-look'
     this.arScale = 'fixed'
     this.arPlacement = 'floor'
     this.shadowIntensity = 1

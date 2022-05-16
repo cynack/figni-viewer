@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - 使い方を紹介しているヘルプページを追加
+- WebXR の起動をサポート
 
 ### Changed
 

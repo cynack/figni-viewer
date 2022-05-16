@@ -222,8 +222,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     this.loading = 'lazy'
     this.cameraControls = true
     this.ar = true
-    // ! 一時的にWebXRを起動しないようにします
-    this.arModes = 'scene-viewer quick-look'
+    this.arModes = 'webxr scene-viewer quick-look'
     this.arScale = 'fixed'
     this.arPlacement = 'floor'
     this.shadowIntensity = 1
@@ -291,7 +290,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         this.#sumInteractedTime += performance.now() - this.#interactedTime
       })
 
-      setInterval(() => {
+      const sender = setInterval(() => {
         if (this.#websocket.readyState === WebSocket.OPEN) {
           this.#websocket.send(
             JSON.stringify({
@@ -312,10 +311,10 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
             })
           )
         } else {
-          console.error('Cannot send analytics data. Reconnecting...')
+          console.error('Disconnect analytics server.')
           if (canAnalytics) {
             this.#websocket.close()
-            this.#websocket = new WebSocket(WEBSOCKET_BASE)
+            clearInterval(sender)
           }
         }
       }, 1000)

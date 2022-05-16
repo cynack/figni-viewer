@@ -881,6 +881,36 @@ figni-viewer * {
   border-radius: 0.25rem;
   background-color: var(--figni-viewer-primary-tint-95);
   overflow: hidden;
+  .smartphone-top path {
+    fill: var(--figni-viewer-primary-tint-10);
+  }
+  .smartphone-right path {
+    fill: var(--figni-viewer-primary-shade-10);
+  }
+  .smartphone-front path {
+    fill: var(--figni-viewer-primary);
+  }
+  .tint-1 path {
+    fill: var(--figni-viewer-primary-tint-95);
+  }
+  .tint-2 path {
+    fill: var(--figni-viewer-primary-tint-85);
+  }
+  .tint-3 path {
+    fill: var(--figni-viewer-primary-tint-75);
+  }
+  .tint-4 path {
+    fill: var(--figni-viewer-primary-tint-65);
+  }
+  .cube path {
+    stroke: var(--figni-viewer-primary);
+  }
+  .hand path {
+    fill: var(--figni-viewer-prompt-hand);
+  }
+  .press-effect path {
+    fill: var(--figni-viewer-primary-shade-10);
+  }
 }
 
 .figni-viewer-help-page-item-step {

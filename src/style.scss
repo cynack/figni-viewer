@@ -971,6 +971,30 @@ figni-viewer * {
   }
 }
 
-.figni-viewer-help-page-footer {
-  padding-bottom: 0.5rem;
+.figni-viewer-help-page-item-footer {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.1rem 0.25rem;
+  margin-bottom: 0.5rem;
+  border-radius: 2rem;
+  gap: 0.3rem;
+  background-color: #f6f6f6;
+  small {
+    font-size: 0.625rem;
+    opacity: 0.5;
+  }
+  a {
+    width: 3rem;
+    margin-top: 0.1rem;
+  }
 }

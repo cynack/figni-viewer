@@ -264,21 +264,22 @@ figni-viewer * {
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
-}
-
-.figni-viewer-ar-button svg {
-  width: 0.875rem;
-  height: 0.875rem;
-  margin-right: 0.3rem;
-}
-
-.figni-viewer-ar-button span {
-  display: block;
-  color: var(--figni-viewer-primary);
-  font-size: 12px;
-  font-family: var(--figni-viewer-font);
-  font-weight: bold;
-  margin-bottom: 0.1rem;
+  svg {
+    width: 0.875rem;
+    height: 0.875rem;
+    margin-right: 0.3rem;
+    path {
+      fill: var(--figni-viewer-primary);
+    }
+  }
+  span {
+    display: block;
+    color: var(--figni-viewer-primary);
+    font-size: 12px;
+    font-family: var(--figni-viewer-font);
+    font-weight: bold;
+    margin-bottom: 0.1rem;
+  }
 }
 
 .figni-viewer-toggle-visible-hotspot-button {
@@ -301,16 +302,18 @@ figni-viewer * {
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
-}
-
-.figni-viewer-toggle-visible-hotspot-button svg {
-  width: 1.25rem;
-  height: 1.25rem;
-  top: 50%;
-  left: 50%;
-  position: absolute;
-  transform: translateX(-50%) translateY(-50%) translateX(-0.1px)
-    translateY(-0.1px);
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    top: 50%;
+    left: 50%;
+    position: absolute;
+    transform: translateX(-50%) translateY(-50%) translateX(-0.1px)
+      translateY(-0.1px);
+    path {
+      fill: var(--figni-viewer-gray-shade-50);
+    }
+  }
 }
 
 .figni-viewer-panel-hide {
@@ -832,6 +835,15 @@ figni-viewer * {
     margin: 0;
     opacity: 0.5;
   }
+  span svg {
+    path {
+      fill: var(--figni-viewer-primary);
+    }
+    circle {
+      fill: var(--figni-viewer-primary);
+      fill-opacity: 0.1;
+    }
+  }
 }
 
 .figni-viewer-help-page-unknown-btn {
@@ -846,13 +858,21 @@ figni-viewer * {
   align-items: center;
   margin-bottom: 1rem;
   cursor: pointer;
-}
-
-.figni-viewer-help-page-unknown-btn h4 {
-  color: var(--figni-viewer-primary);
-  font-size: 0.75rem;
-  margin: 0;
-  margin-left: 0.5rem;
+  h4 {
+    color: var(--figni-viewer-primary);
+    font-size: 0.75rem;
+    margin: 0;
+    margin-left: 0.5rem;
+  }
+  span svg {
+    rect {
+      fill: var(--figni-viewer-primary);
+      fill-opacity: 0.1;
+    }
+    path {
+      fill: var(--figni-viewer-primary);
+    }
+  }
 }
 
 .figni-viewer-help-page-footer small {

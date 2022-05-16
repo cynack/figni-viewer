@@ -982,11 +982,15 @@ export default class FigniViewerElement extends HTMLElement {
       this.#arButton = document.createElement('span')
       this.#arButton.innerHTML = `${SVG_AR_BUTTON}<span>${this.ABTEST.AR_BUTTON_TEST}</span>`
       this.#arButton.classList.add('figni-viewer-ar-button')
-      alert(this.#figniViewerBase.canActivateAR)
-      this.#arButton.addEventListener('click', () => {
+      this.#figniViewerBase.addEventListener('load', (e) => {
         if (this.#figniViewerBase.canActivateAR) {
-          this.#figniViewerBase.activateARMode()
+          this.#arButton.setAttribute('slot', 'ar-button')
         } else {
+          this.#arButton.removeAttribute('slot')
+        }
+      })
+      this.#arButton.addEventListener('click', () => {
+        if (!this.#figniViewerBase.canActivateAR) {
           this.#showQRCodePanel()
         }
       })

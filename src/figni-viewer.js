@@ -1,5 +1,6 @@
 import Lottie from 'lottie-web'
 import QRCode from 'qrcode'
+import Values from 'values.js'
 import {
   CAPTION_TAP_ANIMATION,
   CONTENT_OPERATION_ANIMATION,
@@ -192,6 +193,8 @@ export default class FigniViewerElement extends HTMLElement {
     this.#showHelpButton()
 
     this.#completedInitialModelLoad = true
+
+    this.updateColorSettings()
   }
 
   static get observedAttributes() {
@@ -639,6 +642,43 @@ export default class FigniViewerElement extends HTMLElement {
     this.#tipsPanel.classList.add('figni-viewer-tips-panel-hidden')
   }
 
+  /**
+   * CSSの変数で指定した値を元に色を初期化する。
+   */
+  updateColorSettings() {
+    const root = document.documentElement
+    const style = window.getComputedStyle(root)
+    const primary = new Values(
+      style.getPropertyValue('--figni-viewer-primary').replace(' ', '')
+    )
+    // const secondary = new Values(
+    //   style.getPropertyValue('--figni-viewer-secondary').replace(' ', '')
+    // )
+    const background = new Values(
+      style.getPropertyValue('--figni-viewer-background').replace(' ', '')
+    )
+    root.style.setProperty(
+      '--figni-viewer-primary-tint-95',
+      primary.tint(95).hexString()
+    )
+    root.style.setProperty(
+      '--figni-viewer-gray-shade-10',
+      background.shade(10).hexString()
+    )
+    root.style.setProperty(
+      '--figni-viewer-gray-shade-20',
+      background.shade(20).hexString()
+    )
+    root.style.setProperty(
+      '--figni-viewer-gray-shade-30',
+      background.shade(30).hexString()
+    )
+    root.style.setProperty(
+      '--figni-viewer-gray-shade-50',
+      background.shade(50).hexString()
+    )
+  }
+
   #setupInteractionCursor() {
     this.#interactionCursorPool.push(
       ...[...Array(3)].map(() => this.#createCursor())
@@ -897,7 +937,7 @@ export default class FigniViewerElement extends HTMLElement {
                 }px - 0.5rem)`
                 panel.style.maxHeight = `calc(${
                   (baseHeight - hotspotHeight) / 2
-                }px - 0.75rem)`
+                }px - 3.25rem)`
               }
               panel.classList.toggle('figni-viewer-panel-hide')
             })
@@ -1260,7 +1300,6 @@ export default class FigniViewerElement extends HTMLElement {
       this.appendChild(this.#helpPanelBase)
     }
   }
-
   #helpTopPage
   #createOrGetHelpTopPage() {
     if (!this.#helpTopPage) {
@@ -1344,20 +1383,20 @@ export default class FigniViewerElement extends HTMLElement {
         this.openHelpPanel(HELP.UNKNOWN)
       }
       page.appendChild(unknownBtn)
-      // フッター追加
+      // フッターの追加
       const footer = document.createElement('div')
-      footer.classList.add('figni-viewer-help-page-footer')
+      footer.classList.add('figni-viewer-help-page-item-footer')
+      // Powerd byの追加
+      const powerd = document.createElement('small')
+      powerd.innerText = 'Powerd by'
+      footer.appendChild(powerd)
       // Figniロゴの追加
       const figniLogo = document.createElement('a')
       figniLogo.innerHTML = SVG_FIGNI_LOGO
       figniLogo.style.display = 'block'
-      figniLogo.style.width = '4rem'
+      figniLogo.style.width = '3rem'
       figniLogo.setAttribute('href', 'https://figni.io')
       footer.appendChild(figniLogo)
-      // コピーライトの追加
-      const copyRight = document.createElement('small')
-      copyRight.innerText = '© 2022 Cynack Inc.'
-      footer.appendChild(copyRight)
       page.appendChild(footer)
     }
     return this.#helpTopPage
@@ -1445,14 +1484,6 @@ export default class FigniViewerElement extends HTMLElement {
         this.openHelpPanel(HELP.UNKNOWN)
       }
       page.appendChild(unknownBtn)
-      // フッター追加
-      const footer = document.createElement('div')
-      footer.classList.add('figni-viewer-help-page-footer')
-      // コピーライトの追加
-      const copyRight = document.createElement('small')
-      copyRight.innerText = '© 2022 Cynack Inc.'
-      footer.appendChild(copyRight)
-      page.appendChild(footer)
       // 戻るボタンの追加
       const backBtn = document.createElement('div')
       backBtn.classList.add('figni-viewer-help-page-item-back-btn')
@@ -1511,14 +1542,6 @@ export default class FigniViewerElement extends HTMLElement {
         this.openHelpPanel(HELP.UNKNOWN)
       }
       page.appendChild(unknownBtn)
-      // フッター追加
-      const footer = document.createElement('div')
-      footer.classList.add('figni-viewer-help-page-footer')
-      // コピーライトの追加
-      const copyRight = document.createElement('small')
-      copyRight.innerText = '© 2022 Cynack Inc.'
-      footer.appendChild(copyRight)
-      page.appendChild(footer)
       // 戻るボタンの追加
       const backBtn = document.createElement('div')
       backBtn.classList.add('figni-viewer-help-page-item-back-btn')
@@ -1593,14 +1616,6 @@ export default class FigniViewerElement extends HTMLElement {
         this.openHelpPanel(HELP.UNKNOWN)
       }
       page.appendChild(unknownBtn)
-      // フッター追加
-      const footer = document.createElement('div')
-      footer.classList.add('figni-viewer-help-page-footer')
-      // コピーライトの追加
-      const copyRight = document.createElement('small')
-      copyRight.innerText = '© 2022 Cynack Inc.'
-      footer.appendChild(copyRight)
-      page.appendChild(footer)
       // 戻るボタンの追加
       const backBtn = document.createElement('div')
       backBtn.classList.add('figni-viewer-help-page-item-back-btn')
@@ -1659,14 +1674,6 @@ export default class FigniViewerElement extends HTMLElement {
           `一度機能を終了し、"${this.ABTEST.AR_BUTTON_TEST}"ボタンからもう一度機能を起動してください。`
         )
       )
-      // フッター追加
-      const footer = document.createElement('div')
-      footer.classList.add('figni-viewer-help-page-footer')
-      // コピーライトの追加
-      const copyRight = document.createElement('small')
-      copyRight.innerText = '© 2022 Cynack Inc.'
-      footer.appendChild(copyRight)
-      page.appendChild(footer)
       // 戻るボタンの追加
       const backBtn = document.createElement('div')
       backBtn.classList.add('figni-viewer-help-page-item-back-btn')

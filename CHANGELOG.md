@@ -24,11 +24,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - 使い方を紹介しているヘルプページを追加
+- CSS で指定できるカスタム色を追加
 - WebXR の起動をサポート
 
 ### Changed
 
 - *panel*のサイズを調整
+- CSS で指定したカスタム色が影響を及ぼす範囲を拡大
 
 ### Deprecated
 

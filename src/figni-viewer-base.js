@@ -341,6 +341,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
               client_token: token,
               client_version: VERSION,
               stay_time: this.#stayTime,
+              view_time: this.#viewTime,
               display_time: this.#displayTime,
               interaction_time: this.#interactionTime,
               model_display_time: this.#modelViewTime,
@@ -375,6 +376,10 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         (this.#isInViewport ? performance.now() - this.#appearedTime : 0)
       ).toFixed(2)
     )
+  }
+
+  get #viewTime() {
+    return 0
   }
 
   get #interactionTime() {

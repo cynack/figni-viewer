@@ -14,7 +14,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   #initializeModelTime = Infinity
   #initializeArViewTime = Infinity
   #appearedTime = 0
-  #sumViewTime = 0
+  #sumDisplayTime = 0
   #isInteracting = false
   #interactedTime = 0
   #sumInteractedTime = 0
@@ -257,7 +257,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         if (!wasInViewport && this.#isInViewport) {
           this.#appearedTime = performance.now()
         } else if (wasInViewport && !this.#isInViewport) {
-          this.#sumViewTime += performance.now() - this.#appearedTime
+          this.#sumDisplayTime += performance.now() - this.#appearedTime
         }
         wasInViewport = this.#isInViewport
       })
@@ -298,11 +298,11 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
               client_token: token,
               client_version: VERSION,
               stay_time: this.#stayTime,
-              view_time: this.#viewTime,
+              display_time: this.#displayTime,
               interaction_time: this.#interactionTime,
-              model_view_time: this.#modelViewTime,
+              model_display_time: this.#modelViewTime,
               ar_count: this.#arCount,
-              ar_view_time: this.#arViewTime,
+              ar_display_time: this.#arViewTime,
               hotspot_click: this.#hotspotClickCount,
               animation_play: this.#animationPlayCount,
               current_camera_target: this.#currentCameraTarget,
@@ -325,10 +325,10 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     return Number((performance.now() - this.#initializeTime).toFixed(2))
   }
 
-  get #viewTime() {
+  get #displayTime() {
     return Number(
       (
-        this.#sumViewTime +
+        this.#sumDisplayTime +
         (this.#isInViewport ? performance.now() - this.#appearedTime : 0)
       ).toFixed(2)
     )

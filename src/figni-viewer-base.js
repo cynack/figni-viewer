@@ -15,6 +15,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   #initializeArViewTime = Infinity
   #appearedTime = 0
   #sumDisplayTime = 0
+  #interacted = false
   #isInteracting = false
   #interactedTime = 0
   #sumInteractedTime = 0
@@ -22,6 +23,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   #hotspotClickCount = {}
   #animationPlayCount = {}
   #abtest = {}
+  #events = {}
 
   constructor() {
     super()
@@ -87,7 +89,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
           this.removeEventListener('progress', p)
         }
       }
-      this.addEventListener('progress', p)
+      this.#registerEventListener('progress', p)
 
       this.#initializeWebSocket(itemId, token)
     } else {
@@ -201,7 +203,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         }
       }
       if (!this.loop) {
-        this.addEventListener('finished', onFinishFunc, { once: true })
+        this.#registerEventListener('finished', onFinishFunc, { once: true })
       } else {
         onFinishFunc()
       }
@@ -232,10 +234,38 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     this.minCameraOrbit = SETTINGS.MIN_CAMERA_ORBIT
   }
 
+  #registerEventListener(eventName, callback, options, target = this) {
+    const id =
+      Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15)
+    target.addEventListener(eventName, callback, options)
+    this.#events[id] = { eventName, callback, target }
+  }
+
+  #unregisterEventListener(id = null) {
+    if (id) {
+      this.#events[id].target.removeEventListener(
+        this.#events[id].eventName,
+        this.#events[id].callback
+      )
+      delete this.#events[id]
+    } else {
+      Object.keys(this.#events).forEach((key) => {
+        this.#events[key].target.removeEventListener(
+          this.#events[key].eventName,
+          this.#events[key].callback
+        )
+      })
+      this.#events = {}
+    }
+  }
+
   async #initializeWebSocket(itemId, token) {
     if (this.#websocket) {
       this.#websocket.close()
     }
+
+    this.#unregisterEventListener()
 
     const { data } = await axios.get(`${API_BASE}/config`, {
       headers: { 'X-Figni-Client-Token': token },
@@ -253,20 +283,25 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         this.#appearedTime = performance.now()
       }
 
-      window.addEventListener('scroll', () => {
-        if (!wasInViewport && this.#isInViewport) {
-          this.#appearedTime = performance.now()
-        } else if (wasInViewport && !this.#isInViewport) {
-          this.#sumDisplayTime += performance.now() - this.#appearedTime
-        }
-        wasInViewport = this.#isInViewport
-      })
+      this.#registerEventListener(
+        'scroll',
+        () => {
+          if (!wasInViewport && this.#isInViewport) {
+            this.#appearedTime = performance.now()
+          } else if (wasInViewport && !this.#isInViewport) {
+            this.#sumDisplayTime += performance.now() - this.#appearedTime
+          }
+          wasInViewport = this.#isInViewport
+        },
+        {},
+        window
+      )
 
       let callback = null
       let flag = false
       const interactionStartEvent = new CustomEvent('interaction-start')
       const interactionEndEvent = new CustomEvent('interaction-end')
-      this.addEventListener('camera-change', (e) => {
+      this.#registerEventListener('camera-change', (e) => {
         if (e.detail.source === 'user-interaction') {
           if (callback) {
             clearTimeout(callback)
@@ -281,11 +316,19 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
           }, 50)
         }
       })
-      this.addEventListener('interaction-start', () => {
+      this.#interacted = false
+      this.#registerEventListener(
+        'interaction-start',
+        () => {
+          this.#interacted = true
+        },
+        { once: true }
+      )
+      this.#registerEventListener('interaction-start', () => {
         this.#isInteracting = true
         this.#interactedTime = performance.now()
       })
-      this.addEventListener('interaction-end', () => {
+      this.#registerEventListener('interaction-end', () => {
         this.#isInteracting = false
         this.#sumInteractedTime += performance.now() - this.#interactedTime
       })

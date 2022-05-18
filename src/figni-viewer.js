@@ -1055,9 +1055,14 @@ export default class FigniViewerElement extends HTMLElement {
       panel.classList.add('figni-viewer-qrcode-panel')
       QRCode.toString(window.location.href, { width: 100 }, (err, str) => {
         if (!err) {
-          const text = document.createElement('span')
+          const title = document.createElement('div')
+          title.innerText = '実物大で見る'
+          title.classList.add('figni-viewer-qrcode-panel-title')
+          panel.appendChild(title)
+          const text = document.createElement('div')
           text.innerText =
-            'QRコードを読み取ってスマホ版で\nサイトを閲覧してください'
+            'この機能はスマートフォンでのみ利用可能です。下記QRコードを読み取るとスマートフォンで閲覧できます。'
+          text.classList.add('figni-viewer-qrcode-panel-text')
           panel.appendChild(text)
           panel.innerHTML += str.replace('#000000', '#222428')
         } else {
@@ -1070,13 +1075,14 @@ export default class FigniViewerElement extends HTMLElement {
       })
       this.#qrCodePanel.appendChild(panel)
     } else {
+      this.#qrCodePanel.classList.remove('figni-viewer-qrcode-panel-base-hide')
       this.#qrCodePanel.style.display = ''
     }
   }
 
   #hideQRCodePanel() {
     if (this.#qrCodePanel) {
-      this.#qrCodePanel.style.display = 'none'
+      this.#qrCodePanel.classList.add('figni-viewer-qrcode-panel-base-hide')
     }
   }
 

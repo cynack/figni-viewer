@@ -15,8 +15,10 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   #initializeArViewTime = Infinity
   #appearedTime = 0
   #sumDisplayTime = 0
-  #interacted = false
+  #sumViewTime = 0
+  #inteteractedTime = 0
   #isInteracting = false
+  #wasInteracted = false
   #interactedTime = 0
   #sumInteractedTime = 0
   #arCount = 0
@@ -80,16 +82,17 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         this.iosSrc = ''
       }
 
-      const p = (e) => {
+      this.#unregisterEventListener()
+
+      const id = this.#registerEventListener('progress', (e) => {
         if (e.detail.totalProgress == 1) {
           if (this.#isInViewport) {
             this.#appearedTime = performance.now()
           }
           this.#initializeModelTime = performance.now()
-          this.removeEventListener('progress', p)
+          this.#unregisterEventListener(id)
         }
-      }
-      this.#registerEventListener('progress', p)
+      })
 
       this.#initializeWebSocket(itemId, token)
     } else {
@@ -240,6 +243,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       Math.random().toString(36).substring(2, 15)
     target.addEventListener(eventName, callback, options)
     this.#events[id] = { eventName, callback, target }
+    return id
   }
 
   #unregisterEventListener(id = null) {
@@ -265,8 +269,6 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       this.#websocket.close()
     }
 
-    this.#unregisterEventListener()
-
     const { data } = await axios.get(`${API_BASE}/config`, {
       headers: { 'X-Figni-Client-Token': token },
     })
@@ -280,9 +282,9 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       this.#initializeModelTime = Infinity
       let wasInViewport = this.#isInViewport
       if (wasInViewport) {
-        this.#appearedTime = performance.now()
+        this.#appearedTime = this.#initializeTime
       }
-
+      this.#wasInteracted = false
       this.#registerEventListener(
         'scroll',
         () => {
@@ -290,6 +292,10 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
             this.#appearedTime = performance.now()
           } else if (wasInViewport && !this.#isInViewport) {
             this.#sumDisplayTime += performance.now() - this.#appearedTime
+            if (this.#wasInteracted) {
+              this.#sumViewTime += performance.now() - this.#interactedTime
+            }
+            this.#wasInteracted = false
           }
           wasInViewport = this.#isInViewport
         },
@@ -316,16 +322,9 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
           }, 50)
         }
       })
-      this.#interacted = false
-      this.#registerEventListener(
-        'interaction-start',
-        () => {
-          this.#interacted = true
-        },
-        { once: true }
-      )
       this.#registerEventListener('interaction-start', () => {
         this.#isInteracting = true
+        this.#wasInteracted = true
         this.#interactedTime = performance.now()
       })
       this.#registerEventListener('interaction-end', () => {
@@ -379,7 +378,10 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   }
 
   get #viewTime() {
-    return 0
+    return Number(
+      this.#sumViewTime +
+        (this.#wasInteracted ? performance.now() - this.#interactedTime : 0)
+    )
   }
 
   get #interactionTime() {
@@ -410,7 +412,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   }
 
   get #isInViewport() {
-    const rect = this.getBoundingClientRect()
+    const rect = this.parentElement.getBoundingClientRect()
     const area = rect.width * rect.height
     const viewArea =
       (Math.max(

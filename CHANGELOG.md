@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - *panel*のサイズを調整
 - CSS で指定したカスタム色が影響を及ぼす範囲を拡大
+- カメラの位置を初期位置に戻すボタンのスタイルを変更
 
 ### Deprecated
 

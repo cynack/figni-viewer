@@ -14,7 +14,11 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   #initializeModelTime = Infinity
   #initializeArViewTime = Infinity
   #appearedTime = 0
+  #sumDisplayTime = 0
+  #viewedTime = 0
+  #wasViewed = false
   #sumViewTime = 0
+  #inteteractedTime = 0
   #isInteracting = false
   #interactedTime = 0
   #sumInteractedTime = 0
@@ -22,6 +26,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   #hotspotClickCount = {}
   #animationPlayCount = {}
   #abtest = {}
+  #events = {}
 
   constructor() {
     super()
@@ -78,16 +83,17 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         this.iosSrc = ''
       }
 
-      const p = (e) => {
+      this.#unregisterEventListener()
+
+      const id = this.#registerEventListener('progress', (e) => {
         if (e.detail.totalProgress == 1) {
           if (this.#isInViewport) {
             this.#appearedTime = performance.now()
           }
           this.#initializeModelTime = performance.now()
-          this.removeEventListener('progress', p)
+          this.#unregisterEventListener(id)
         }
-      }
-      this.addEventListener('progress', p)
+      })
 
       this.#initializeWebSocket(itemId, token)
     } else {
@@ -121,6 +127,10 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     } else {
       this.#hotspotClickCount[hotspotId] = 1
     }
+    if (!this.#wasViewed) {
+      this.#wasViewed = true
+      this.#viewedTime = performance.now()
+    }
   }
 
   /**
@@ -132,6 +142,10 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       this.#animationPlayCount[animationId]++
     } else {
       this.#animationPlayCount[animationId] = 1
+    }
+    if (!this.#wasViewed) {
+      this.#wasViewed = true
+      this.#viewedTime = performance.now()
     }
   }
 
@@ -201,7 +215,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         }
       }
       if (!this.loop) {
-        this.addEventListener('finished', onFinishFunc, { once: true })
+        this.#registerEventListener('finished', onFinishFunc, { once: true })
       } else {
         onFinishFunc()
       }
@@ -232,6 +246,33 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     this.minCameraOrbit = SETTINGS.MIN_CAMERA_ORBIT
   }
 
+  #registerEventListener(eventName, callback, options, target = this) {
+    const id =
+      Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15)
+    target.addEventListener(eventName, callback, options)
+    this.#events[id] = { eventName, callback, target }
+    return id
+  }
+
+  #unregisterEventListener(id = null) {
+    if (id) {
+      this.#events[id].target.removeEventListener(
+        this.#events[id].eventName,
+        this.#events[id].callback
+      )
+      delete this.#events[id]
+    } else {
+      Object.keys(this.#events).forEach((key) => {
+        this.#events[key].target.removeEventListener(
+          this.#events[key].eventName,
+          this.#events[key].callback
+        )
+      })
+      this.#events = {}
+    }
+  }
+
   async #initializeWebSocket(itemId, token) {
     if (this.#websocket) {
       this.#websocket.close()
@@ -250,23 +291,32 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       this.#initializeModelTime = Infinity
       let wasInViewport = this.#isInViewport
       if (wasInViewport) {
-        this.#appearedTime = performance.now()
+        this.#appearedTime = this.#initializeTime
       }
-
-      window.addEventListener('scroll', () => {
-        if (!wasInViewport && this.#isInViewport) {
-          this.#appearedTime = performance.now()
-        } else if (wasInViewport && !this.#isInViewport) {
-          this.#sumViewTime += performance.now() - this.#appearedTime
-        }
-        wasInViewport = this.#isInViewport
-      })
+      this.#wasViewed = false
+      this.#registerEventListener(
+        'scroll',
+        () => {
+          if (!wasInViewport && this.#isInViewport) {
+            this.#appearedTime = performance.now()
+          } else if (wasInViewport && !this.#isInViewport) {
+            this.#sumDisplayTime += performance.now() - this.#appearedTime
+            if (this.#wasViewed) {
+              this.#sumViewTime += performance.now() - this.#viewedTime
+            }
+            this.#wasViewed = false
+          }
+          wasInViewport = this.#isInViewport
+        },
+        {},
+        window
+      )
 
       let callback = null
       let flag = false
       const interactionStartEvent = new CustomEvent('interaction-start')
       const interactionEndEvent = new CustomEvent('interaction-end')
-      this.addEventListener('camera-change', (e) => {
+      this.#registerEventListener('camera-change', (e) => {
         if (e.detail.source === 'user-interaction') {
           if (callback) {
             clearTimeout(callback)
@@ -281,11 +331,13 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
           }, 50)
         }
       })
-      this.addEventListener('interaction-start', () => {
+      this.#registerEventListener('interaction-start', () => {
         this.#isInteracting = true
         this.#interactedTime = performance.now()
+        this.#wasViewed = true
+        this.#viewedTime = this.#interactedTime
       })
-      this.addEventListener('interaction-end', () => {
+      this.#registerEventListener('interaction-end', () => {
         this.#isInteracting = false
         this.#sumInteractedTime += performance.now() - this.#interactedTime
       })
@@ -299,10 +351,11 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
               client_version: VERSION,
               stay_time: this.#stayTime,
               view_time: this.#viewTime,
+              display_time: this.#displayTime,
               interaction_time: this.#interactionTime,
-              model_view_time: this.#modelViewTime,
+              model_display_time: this.#modelViewTime,
               ar_count: this.#arCount,
-              ar_view_time: this.#arViewTime,
+              ar_display_time: this.#arViewTime,
               hotspot_click: this.#hotspotClickCount,
               animation_play: this.#animationPlayCount,
               current_camera_target: this.#currentCameraTarget,
@@ -325,12 +378,19 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     return Number((performance.now() - this.#initializeTime).toFixed(2))
   }
 
-  get #viewTime() {
+  get #displayTime() {
     return Number(
       (
-        this.#sumViewTime +
+        this.#sumDisplayTime +
         (this.#isInViewport ? performance.now() - this.#appearedTime : 0)
       ).toFixed(2)
+    )
+  }
+
+  get #viewTime() {
+    return Number(
+      this.#sumViewTime +
+        (this.#wasViewed ? performance.now() - this.#viewedTime : 0)
     )
   }
 
@@ -362,7 +422,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   }
 
   get #isInViewport() {
-    const rect = this.getBoundingClientRect()
+    const rect = this.parentElement.getBoundingClientRect()
     const area = rect.width * rect.height
     const viewArea =
       (Math.max(

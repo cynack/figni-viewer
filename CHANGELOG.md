@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - 使い方を紹介しているヘルプページを追加
 - CSS で指定できるカスタム色を追加
 - WebXR の起動をサポート
+- QR コード表示パネルにアニメーションを追加
 
 ### Changed
 

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { getElapsedTime, startMesure } from './mesure'
+import { endMesure, getElapsedTime, startMesure } from './mesure'
 import { ModelViewerElement } from './model-viewer'
 
 const VIEW_THRESHOLD = 0.7
@@ -11,18 +11,6 @@ const SETTINGS = {
 export default class FigniViewerBaseElement extends ModelViewerElement {
   // analytics data
   #websocket
-  #initializeTime = 0
-  #initializeModelTime = Infinity
-  #initializeArViewTime = Infinity
-  #appearedTime = 0
-  #sumDisplayTime = 0
-  #viewedTime = 0
-  #wasViewed = false
-  #sumViewTime = 0
-  #inteteractedTime = 0
-  #isInteracting = false
-  #interactedTime = 0
-  #sumInteractedTime = 0
   #arCount = 0
   #hotspotClickCount = {}
   #animationPlayCount = {}
@@ -88,10 +76,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
 
       const id = this.#registerEventListener('progress', (e) => {
         if (e.detail.totalProgress == 1) {
-          if (this.#isInViewport) {
-            this.#appearedTime = performance.now()
-          }
-          this.#initializeModelTime = performance.now()
+          endMesure('initial-model-view-time')
           this.#unregisterEventListener(id)
         }
       })
@@ -128,10 +113,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     } else {
       this.#hotspotClickCount[hotspotId] = 1
     }
-    if (!this.#wasViewed) {
-      this.#wasViewed = true
-      this.#viewedTime = performance.now()
-    }
+    startMesure('view-time')
   }
 
   /**
@@ -144,10 +126,6 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     } else {
       this.#animationPlayCount[animationId] = 1
     }
-    if (!this.#wasViewed) {
-      this.#wasViewed = true
-      this.#viewedTime = performance.now()
-    }
   }
 
   /**
@@ -157,8 +135,9 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     if (this.canActivateAR) {
       this.#arCount++
       if (this.#arCount == 1) {
-        this.#initializeArViewTime = performance.now()
+        endMesure('initial-ar-view-time')
       }
+      startMesure('view-time')
       this.activateAR()
     }
   }
@@ -288,25 +267,20 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       this.#websocket = new WebSocket(WEBSOCKET_BASE)
 
       startMesure('stay-time')
-      this.#initializeTime = performance.now()
-      this.#initializeArViewTime = Infinity
-      this.#initializeModelTime = Infinity
+      startMesure('initial-model-view-time')
+      startMesure('initial-ar-view-time')
       let wasInViewport = this.#isInViewport
       if (wasInViewport) {
-        this.#appearedTime = this.#initializeTime
+        startMesure('display-time')
       }
-      this.#wasViewed = false
       this.#registerEventListener(
         'scroll',
         () => {
           if (!wasInViewport && this.#isInViewport) {
-            this.#appearedTime = performance.now()
+            startMesure('display-time')
           } else if (wasInViewport && !this.#isInViewport) {
-            this.#sumDisplayTime += performance.now() - this.#appearedTime
-            if (this.#wasViewed) {
-              this.#sumViewTime += performance.now() - this.#viewedTime
-            }
-            this.#wasViewed = false
+            endMesure('display-time')
+            endMesure('view-time')
           }
           wasInViewport = this.#isInViewport
         },
@@ -334,14 +308,11 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         }
       })
       this.#registerEventListener('interaction-start', () => {
-        this.#isInteracting = true
-        this.#interactedTime = performance.now()
-        this.#wasViewed = true
-        this.#viewedTime = this.#interactedTime
+        startMesure('view-time')
+        startMesure('interaction-time')
       })
       this.#registerEventListener('interaction-end', () => {
-        this.#isInteracting = false
-        this.#sumInteractedTime += performance.now() - this.#interactedTime
+        endMesure('interaction-time')
       })
 
       const sender = setInterval(() => {
@@ -381,46 +352,23 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   }
 
   get #displayTime() {
-    return Number(
-      (
-        this.#sumDisplayTime +
-        (this.#isInViewport ? performance.now() - this.#appearedTime : 0)
-      ).toFixed(2)
-    )
+    return Number(getElapsedTime('display-time').toFixed(2))
   }
 
   get #viewTime() {
-    return Number(
-      this.#sumViewTime +
-        (this.#wasViewed ? performance.now() - this.#viewedTime : 0)
-    )
+    return Number(getElapsedTime('view-time').toFixed(2))
   }
 
   get #interactionTime() {
-    return Number(
-      (
-        this.#sumInteractedTime +
-        (this.#isInteracting ? performance.now() - this.#interactedTime : 0)
-      ).toFixed(2)
-    )
+    return Number(getElapsedTime('interaction-time').toFixed(2))
   }
 
   get #modelViewTime() {
-    return Number(
-      Math.min(
-        Math.max(performance.now() - this.#initializeTime, 0),
-        this.#initializeModelTime - this.#initializeTime
-      ).toFixed(2)
-    )
+    return Number(getElapsedTime('initial-model-view-time').toFixed(2))
   }
 
   get #arViewTime() {
-    return Number(
-      Math.min(
-        Math.max(performance.now() - this.#initializeTime, 0),
-        this.#initializeArViewTime - this.#initializeTime
-      ).toFixed(2)
-    )
+    return Number(getElapsedTime('initial-ar-view-time').toFixed(2))
   }
 
   get #isInViewport() {

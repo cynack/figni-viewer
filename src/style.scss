@@ -517,8 +517,7 @@ figni-viewer * {
 }
 
 .figni-viewer-error-icon {
-  width: 40px;
-  height: 46.6px;
+  width: 64px;
   margin-bottom: 0.75rem;
 }
 
@@ -529,14 +528,37 @@ figni-viewer * {
 .figni-viewer-error-text {
   color: var(--figni-viewer-error);
   font-family: var(--figni-viewer-font);
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.figni-viewer-error-code {
+  color: var(--figni-viewer-error);
+  font-family: var(--figni-viewer-font);
   font-size: 0.75rem;
+  margin-bottom: 2rem;
 }
 
 .figni-viewer-error-reload-button {
   cursor: pointer;
-  text-decoration: underline;
-  color: var(--figni-viewer-secondary);
-  font-size: 0.5rem;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #ffffff;
+  background-color: var(--figni-viewer-primary);
+  width: 8rem;
+  height: 2rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .figni-viewer-interaction-cursor {

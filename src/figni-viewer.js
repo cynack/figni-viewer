@@ -11,7 +11,7 @@ import {
   MOVE_AR_CONTENT_ANIMATION,
   ROTATE_AR_CONTENT_ANIMATION,
 } from './animation'
-import { getErrorMessage } from './error'
+import { getError } from './error'
 import './style.scss'
 import {
   SVG_AR_BUTTON,
@@ -271,7 +271,7 @@ export default class FigniViewerElement extends HTMLElement {
       )
     } catch (e) {
       this.#hideLoadingPanel()
-      this.#showErrorPanel(getErrorMessage(e))
+      this.#showErrorPanel(getError(e))
     }
   }
 
@@ -1180,9 +1180,9 @@ export default class FigniViewerElement extends HTMLElement {
 
   /**
    * エラー画面を表示する
-   * @param {string} message エラーメッセージ
+   * @param {{message: string, code: string}} obj エラーオブジェクト
    */
-  #showErrorPanel(message) {
+  #showErrorPanel(obj) {
     if (!this.#errorPanel) {
       this.#errorPanel = document.createElement('div')
       this.#errorPanel.classList.add('figni-viewer-error-panel')
@@ -1191,9 +1191,13 @@ export default class FigniViewerElement extends HTMLElement {
       icon.classList.add('figni-viewer-error-icon')
       this.#errorPanel.appendChild(icon)
       const errorText = document.createElement('span')
-      errorText.innerText = message
+      errorText.innerText = obj.message
       errorText.classList.add('figni-viewer-error-text')
       this.#errorPanel.appendChild(errorText)
+      const errorCode = document.createElement('span')
+      errorCode.innerText = obj.code
+      errorCode.classList.add('figni-viewer-error-code')
+      this.#errorPanel.appendChild(errorCode)
       const reloadButton = document.createElement('span')
       reloadButton.innerText = '再読み込み'
       reloadButton.classList.add('figni-viewer-error-reload-button')
@@ -1203,6 +1207,10 @@ export default class FigniViewerElement extends HTMLElement {
       this.#errorPanel.appendChild(reloadButton)
       this.appendChild(this.#errorPanel)
     } else {
+      this.#errorPanel.querySelector('.figni-viewer-error-text').innerText =
+        obj.message
+      this.#errorPanel.querySelector('.figni-viewer-error-code').innerText =
+        obj.code
       this.#errorPanel.style.display = ''
     }
   }

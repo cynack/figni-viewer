@@ -15,10 +15,11 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   #initializeArViewTime = Infinity
   #appearedTime = 0
   #sumDisplayTime = 0
+  #viewedTime = 0
+  #wasViewed = false
   #sumViewTime = 0
   #inteteractedTime = 0
   #isInteracting = false
-  #wasInteracted = false
   #interactedTime = 0
   #sumInteractedTime = 0
   #arCount = 0
@@ -126,6 +127,10 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     } else {
       this.#hotspotClickCount[hotspotId] = 1
     }
+    if (!this.#wasViewed) {
+      this.#wasViewed = true
+      this.#viewedTime = performance.now()
+    }
   }
 
   /**
@@ -137,6 +142,10 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       this.#animationPlayCount[animationId]++
     } else {
       this.#animationPlayCount[animationId] = 1
+    }
+    if (!this.#wasViewed) {
+      this.#wasViewed = true
+      this.#viewedTime = performance.now()
     }
   }
 
@@ -284,7 +293,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       if (wasInViewport) {
         this.#appearedTime = this.#initializeTime
       }
-      this.#wasInteracted = false
+      this.#wasViewed = false
       this.#registerEventListener(
         'scroll',
         () => {
@@ -292,10 +301,10 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
             this.#appearedTime = performance.now()
           } else if (wasInViewport && !this.#isInViewport) {
             this.#sumDisplayTime += performance.now() - this.#appearedTime
-            if (this.#wasInteracted) {
-              this.#sumViewTime += performance.now() - this.#interactedTime
+            if (this.#wasViewed) {
+              this.#sumViewTime += performance.now() - this.#viewedTime
             }
-            this.#wasInteracted = false
+            this.#wasViewed = false
           }
           wasInViewport = this.#isInViewport
         },
@@ -324,8 +333,9 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       })
       this.#registerEventListener('interaction-start', () => {
         this.#isInteracting = true
-        this.#wasInteracted = true
         this.#interactedTime = performance.now()
+        this.#wasViewed = true
+        this.#viewedTime = this.#interactedTime
       })
       this.#registerEventListener('interaction-end', () => {
         this.#isInteracting = false
@@ -380,7 +390,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   get #viewTime() {
     return Number(
       this.#sumViewTime +
-        (this.#wasInteracted ? performance.now() - this.#interactedTime : 0)
+        (this.#wasViewed ? performance.now() - this.#viewedTime : 0)
     )
   }
 

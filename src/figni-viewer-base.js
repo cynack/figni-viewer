@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { getElapsedTime, startMesure } from './mesure'
 import { ModelViewerElement } from './model-viewer'
 
 const VIEW_THRESHOLD = 0.7
@@ -286,6 +287,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     if (canAnalytics) {
       this.#websocket = new WebSocket(WEBSOCKET_BASE)
 
+      startMesure('stay-time')
       this.#initializeTime = performance.now()
       this.#initializeArViewTime = Infinity
       this.#initializeModelTime = Infinity
@@ -375,7 +377,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   }
 
   get #stayTime() {
-    return Number((performance.now() - this.#initializeTime).toFixed(2))
+    return Number(getElapsedTime('stay-time').toFixed(2))
   }
 
   get #displayTime() {

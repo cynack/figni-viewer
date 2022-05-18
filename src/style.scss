@@ -223,12 +223,12 @@ figni-viewer * {
   align-items: center;
   width: 2.5rem;
   height: 2.5rem;
-  bottom: 0.5rem;
-  right: 0.5rem;
+  top: 0.5rem;
+  left: 0.5rem;
   border-radius: 0.5rem;
   border: none;
   color: white;
-  background-color: var(--figni-viewer-primary);
+  background-color: var(--figni-viewer-error);
   z-index: 9995;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
   -webkit-tap-highlight-color: transparent;

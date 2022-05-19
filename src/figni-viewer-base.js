@@ -237,6 +237,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
    */
   endMesureHelpPage(helpPageName) {
     endMesure('help-page-view-time-' + helpPageName)
+    console.log(helpPageName)
   }
 
   #setupModelViewer() {
@@ -346,22 +347,22 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         if (this.#websocket.readyState === WebSocket.OPEN) {
           this.#websocket.send(
             JSON.stringify({
-              ii: itemId,
-              ct: token,
-              cv: VERSION,
-              st: this.#stayTime,
-              vt: this.#viewTime,
-              dt: this.#displayTime,
-              it: this.#interactionTime,
-              imvt: this.#initialModelViewTime,
-              ac: this.#arCount,
-              iaut: this.#initialArUseTime,
-              hc: this.#hotspotClickCount,
-              ap: this.#animationPlayCount,
-              cct: this.#currentCameraTarget,
-              cco: this.#currentCameraOrbit,
-              ab: this.#abtest,
-              hp: this.#helpPageViewCount,
+              item_id: itemId,
+              client_token: token,
+              client_version: VERSION,
+              stay_time: this.#stayTime,
+              display_time: this.#displayTime,
+              view_time: this.#viewTime,
+              interaction_time: this.#interactionTime,
+              initial_model_view_time: this.#initialModelViewTime,
+              ar_count: this.#arCount,
+              initial_ar_use_time: this.#initialArUseTime,
+              hotspot_click: this.#hotspotClickCount,
+              animation_play: this.#animationPlayCount,
+              current_camera_target: this.#currentCameraTarget,
+              current_camera_orbit: this.#currentCameraOrbit,
+              abtest: this.#abtest,
+              help_page_view: this.#helpPageViewCount,
             })
           )
         } else {

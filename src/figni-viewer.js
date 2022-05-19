@@ -547,13 +547,16 @@ export default class FigniViewerElement extends HTMLElement {
       } else {
         openPage.style.left = '100%'
         this.#figniViewerBase.endMesureHelpPage(
-          this.#openedHelpPages[this.#openedHelpPages.lenth - 1]
+          this.#openedHelpPages[this.#openedHelpPages.length - 1].name
         )
       }
       this.#figniViewerBase.startMesureHelpPage(page)
       openPage.scrollTop = 0
       this.#helpPanelBase.appendChild(openPage)
-      this.#openedHelpPages.push(openPage)
+      this.#openedHelpPages.push({
+        name: page,
+        page: openPage,
+      })
       setTimeout(() => {
         openPage.style.left = 0
       }, 1)
@@ -565,10 +568,10 @@ export default class FigniViewerElement extends HTMLElement {
   backHelpPanel() {
     if (this.#openedHelpPages.length > 1) {
       const openedPage = this.#openedHelpPages.pop()
-      openedPage.style.left = '100%'
-      this.#figniViewerBase.endMesureHelpPage(openedPage)
+      openedPage.page.style.left = '100%'
+      this.#figniViewerBase.endMesureHelpPage(openedPage.name)
       setTimeout(() => {
-        openedPage.remove()
+        openedPage.page.remove()
       }, 300)
     } else {
       this.closeHelpPanel()
@@ -585,9 +588,11 @@ export default class FigniViewerElement extends HTMLElement {
     while (this.#helpPanelBase.firstChild) {
       this.#helpPanelBase.firstChild.remove()
     }
-    this.#figniViewerBase.endMesureHelpPage(
-      this.#openedHelpPages[this.#openedHelpPages.lenth - 1]
-    )
+    if (this.#openedHelpPages.length > 0) {
+      this.#figniViewerBase.endMesureHelpPage(
+        this.#openedHelpPages[this.#openedHelpPages.lenth - 1].name
+      )
+    }
     this.#openedHelpPages = []
     this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
   }

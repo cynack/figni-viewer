@@ -237,7 +237,6 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
    */
   endMesureHelpPage(helpPageName) {
     endMesure('help-page-view-time-' + helpPageName)
-    console.log(helpPageName)
   }
 
   #setupModelViewer() {
@@ -371,12 +370,6 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
           clearInterval(sender)
         }
       }, 1000)
-      this.#websocket.addEventListener('close', (e) => {
-        console.log('close', e)
-      })
-      this.#websocket.addEventListener('error', (e) => {
-        console.log('error', e)
-      })
     }
   }
 

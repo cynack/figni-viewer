@@ -14,6 +14,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   #arCount = 0
   #hotspotClickCount = {}
   #animationPlayCount = {}
+  #helpPageViewCount = {}
   #abtest = {}
   #events = {}
 
@@ -135,7 +136,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     if (this.canActivateAR) {
       this.#arCount++
       if (this.#arCount == 1) {
-        endMesure('initial-ar-view-time')
+        endMesure('initial-ar-use-time')
       }
       startMesure('view-time')
       this.activateAR()
@@ -212,6 +213,32 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     this.#abtest[testName] = result
   }
 
+  /**
+   * ヘルプページの閲覧時間の計測を始める
+   * @param {string} helpPageName ヘルプページ名
+   */
+  startMesureHelpPage(helpPageName) {
+    startMesure('help-page-view-time-' + helpPageName)
+    if (!this.#helpPageViewCount[helpPageName]) {
+      this.#helpPageViewCount[helpPageName] = {
+        views: 1,
+        get length() {
+          return getElapsedTime('help-page-view-time-' + helpPageName)
+        },
+      }
+    } else {
+      this.#helpPageViewCount[helpPageName].views++
+    }
+  }
+
+  /**
+   * ヘルプページの閲覧時間の計測を終わる
+   * @param {string} helpPageName ヘルプページ名
+   */
+  endMesureHelpPage(helpPageName) {
+    endMesure('help-page-view-time-' + helpPageName)
+  }
+
   #setupModelViewer() {
     this.loading = 'lazy'
     this.cameraControls = true
@@ -268,7 +295,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
 
       startMesure('stay-time')
       startMesure('initial-model-view-time')
-      startMesure('initial-ar-view-time')
+      startMesure('initial-ar-use-time')
       let wasInViewport = this.#isInViewport
       if (wasInViewport) {
         startMesure('display-time')
@@ -319,31 +346,36 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         if (this.#websocket.readyState === WebSocket.OPEN) {
           this.#websocket.send(
             JSON.stringify({
-              item_id: itemId,
-              client_token: token,
-              client_version: VERSION,
-              stay_time: this.#stayTime,
-              view_time: this.#viewTime,
-              display_time: this.#displayTime,
-              interaction_time: this.#interactionTime,
-              model_display_time: this.#modelViewTime,
-              ar_count: this.#arCount,
-              ar_display_time: this.#arViewTime,
-              hotspot_click: this.#hotspotClickCount,
-              animation_play: this.#animationPlayCount,
-              current_camera_target: this.#currentCameraTarget,
-              current_camera_orbit: this.#currentCameraOrbit,
-              abtest: this.#abtest,
+              ii: itemId,
+              ct: token,
+              cv: VERSION,
+              st: this.#stayTime,
+              vt: this.#viewTime,
+              dt: this.#displayTime,
+              it: this.#interactionTime,
+              imvt: this.#initialModelViewTime,
+              ac: this.#arCount,
+              iaut: this.#initialArUseTime,
+              hc: this.#hotspotClickCount,
+              ap: this.#animationPlayCount,
+              cct: this.#currentCameraTarget,
+              cco: this.#currentCameraOrbit,
+              ab: this.#abtest,
+              hp: this.#helpPageViewCount,
             })
           )
         } else {
           console.error('Disconnect analytics server.')
-          if (canAnalytics) {
-            this.#websocket.close()
-            clearInterval(sender)
-          }
+          this.#websocket.close()
+          clearInterval(sender)
         }
       }, 1000)
+      this.#websocket.addEventListener('close', (e) => {
+        console.log('close', e)
+      })
+      this.#websocket.addEventListener('error', (e) => {
+        console.log('error', e)
+      })
     }
   }
 
@@ -363,12 +395,12 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     return Number(getElapsedTime('interaction-time').toFixed(2))
   }
 
-  get #modelViewTime() {
+  get #initialModelViewTime() {
     return Number(getElapsedTime('initial-model-view-time').toFixed(2))
   }
 
-  get #arViewTime() {
-    return Number(getElapsedTime('initial-ar-view-time').toFixed(2))
+  get #initialArUseTime() {
+    return Number(getElapsedTime('initial-ar-use-time').toFixed(2))
   }
 
   get #isInViewport() {

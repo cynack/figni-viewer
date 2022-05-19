@@ -546,7 +546,11 @@ export default class FigniViewerElement extends HTMLElement {
         this.resetCameraTargetAndOrbit()
       } else {
         openPage.style.left = '100%'
+        this.#figniViewerBase.endMesureHelpPage(
+          this.#openedHelpPages[this.#openedHelpPages.lenth - 1]
+        )
       }
+      this.#figniViewerBase.startMesureHelpPage(page)
       openPage.scrollTop = 0
       this.#helpPanelBase.appendChild(openPage)
       this.#openedHelpPages.push(openPage)
@@ -562,6 +566,7 @@ export default class FigniViewerElement extends HTMLElement {
     if (this.#openedHelpPages.length > 1) {
       const openedPage = this.#openedHelpPages.pop()
       openedPage.style.left = '100%'
+      this.#figniViewerBase.endMesureHelpPage(openedPage)
       setTimeout(() => {
         openedPage.remove()
       }, 300)
@@ -580,6 +585,9 @@ export default class FigniViewerElement extends HTMLElement {
     while (this.#helpPanelBase.firstChild) {
       this.#helpPanelBase.firstChild.remove()
     }
+    this.#figniViewerBase.endMesureHelpPage(
+      this.#openedHelpPages[this.#openedHelpPages.lenth - 1]
+    )
     this.#openedHelpPages = []
     this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
   }

@@ -590,7 +590,7 @@ export default class FigniViewerElement extends HTMLElement {
     }
     if (this.#openedHelpPages.length > 0) {
       this.#figniViewerBase.endMesureHelpPage(
-        this.#openedHelpPages[this.#openedHelpPages.lenth - 1].name
+        this.#openedHelpPages[this.#openedHelpPages.length - 1].name
       )
     }
     this.#openedHelpPages = []

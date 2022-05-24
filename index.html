@@ -20,49 +20,50 @@
         state="neutral"
       >
         <span
-          slot="hotspot-store"
+          slot="hotspot-test1"
+          position="-0.5m 0m 0.5m"
+          target="0.1m 0.1m 0m"
+          orbit="-45deg 90deg 0.5m"
+          >1</span
+        >
+        <!-- positionがない場合は"0 0 0"を指定した場合と同義、targetがない場合はpositionの値が使用される -->
+        <span slot="hotspot-test2" orbit="-45deg 90deg 0.5m">2</span>
+        <span
+          slot="hotspot-test3"
+          position="-0.4m 0m 0.5m"
           clip="storeAnimation"
-          position="0m 1.2m -0.4m"
           to-state="stored"
           visible-state="neutral"
-          >アニメーションする</span
+          normal="0m 0m 1m"
+          >3</span
         >
         <span
-          slot="hotspot-expand"
+          slot="hotspot-test4"
+          position="-0.3m 0m 0.5m"
           clip="storeAnimation"
           reverse
-          position="0m 1.2m -0.4m"
           to-state="neutral"
           visible-state="stored"
-          >逆再生</span
+          >4</span
         >
         <span
-          slot="hotspot-panel"
-          position="-0.25m 0.28m 0m"
-          normal="-1m 0m 0.5m"
-          orbit="-45deg 90deg 0.5m"
-          visible-state="neutral"
+          slot="hotspot-test5"
+          position="-0.2m 0m 0.5m"
+          orbit="45deg 90deg 0.5m"
         >
-          クローズアップ
-          <div slot="panel" place="bottom left">
+          5
+          <div slot="panel" place="right bottom">
             <img src="https://admin.figni.io//sample/suitcase/caption_2.png" />
             <h4>タイトル</h4>
             <p>文章</p>
-            <button>ボタン</button>
-          </div>
-        </span>
-        <span
-          slot="hotspot-panel2"
-          position="0.25m 0.28m 0m"
-          orbit="45deg 90deg 0.2m"
-          visible-state="neutral"
-        >
-          クローズアップ2
-          <div slot="panel" place="right bottom">
-            <img src="https://admin.figni.io//sample/suitcase/caption_1.png" />
-            <h4>タイトル</h4>
-            <p>文章</p>
-            <button>ボタン</button>
+            <button onclick="viewer.playAnimation('openAnimation')">
+              開く
+            </button>
+            <button
+              onclick="viewer.playAnimation('openAnimation', { reverse: true, loopCount: 3, onStart: ()=>{console.log('start')}, onEnd: ()=>{console.log('end')} })"
+            >
+              閉じる
+            </button>
           </div>
         </span>
       </figni-viewer>
@@ -76,8 +77,23 @@
       >
         編集
       </button>
+      <button onclick="viewer.removeHotspot('test')">削除</button>
+      <button onclick="viewer.toggleVisibleHotspot(i++ % 2)">
+        キャプション非表示
+      </button>
+      <button
+        onclick="viewer.setCameraTarget('-1m 1m -0.5m'); viewer.setCameraOrbit('30deg -20deg 0.1m');"
+      >
+        カメラ位置変更
+      </button>
+      <button onclick="viewer.resetCameraTargetAndOrbit()">
+        カメラ位置初期化
+      </button>
+      <button onclick="viewer.updateState('stored')">状態変化</button>
     </div>
-    <div>
+    <script>
+      let i = 0
+    </script>
     <style>
       #viewer {
         margin-top: 1000px;
@@ -93,7 +109,8 @@
         height: 5000px;
         --figni-viewer-primary: #e7b56a;
         --figni-viewer-secondary: #51a2ff;
-        --figni-viewer-background: #f3f3f3;
+        --figni-viewer-background: #faeac9;
+        --figni-viewer-prompt-hand: #9deaf0;
       }
     </style>
   </body>

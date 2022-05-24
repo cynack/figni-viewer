@@ -787,6 +787,9 @@ figni-viewer * {
   .cube path {
     stroke: var(--figni-viewer-primary);
   }
+  .hand path {
+    fill: var(--figni-viewer-prompt-hand);
+  }
 }
 
 .figni-viewer-help-panel {

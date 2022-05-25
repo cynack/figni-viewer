@@ -597,12 +597,14 @@ export default class FigniViewerElement extends HTMLElement {
     this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
   }
 
+  #tipsHideCallback = null
   /**
    * Tipsを開く。
    * @param {string} tips Tips
    * @param {number} delay 表示時間(ms)
    */
   openTipsPanel(tips, delay = 6000) {
+    this.closeTipsPanel()
     this.closeHelpPanel()
     this.#helpButton.innerHTML = `${SVG_HELP_ICON}`
     this.#tipsPanel.classList.remove('figni-viewer-tips-panel-hidden')
@@ -620,37 +622,30 @@ export default class FigniViewerElement extends HTMLElement {
     if (text && animation) {
       this.#tipsPanel.querySelector('.figni-viewer-tips-panel-text').innerHTML =
         text
+      const animationElement = this.#tipsPanel.querySelector(
+        '.figni-viewer-tips-panel-animation'
+      )
+      animationElement.innerHTML = ''
       Lottie.loadAnimation({
-        container: this.#tipsPanel.querySelector(
-          '.figni-viewer-tips-panel-animation'
-        ),
+        container: animationElement,
         renderer: 'svg',
         loop: true,
         autoplay: true,
         animationData: animation,
       })
-      const hide = setTimeout(() => {
-        this.closeTipsPanel()
-      }, delay)
+      this.#tipsHideCallback = setTimeout(() => this.closeTipsPanel(), delay)
       this.#tipsPanel.addEventListener(
         'click',
-        () => {
-          this.openHelpPanel(help)
-          clearTimeout(hide)
-        },
-        { once: true }
-      )
-      this.#helpButton.addEventListener(
-        'click',
-        () => {
-          clearTimeout(hide)
-        },
-        { once: true }
+        () => this.openHelpPanel(help),
+        {
+          once: true,
+        }
       )
     }
   }
 
   closeTipsPanel() {
+    if (this.#tipsHideCallback) clearTimeout(this.#tipsHideCallback)
     this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
     this.#tipsPanel.classList.add('figni-viewer-tips-panel-hidden')
   }

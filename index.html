@@ -105,9 +105,17 @@
       </button>
       <button onclick="viewer.backHelpPanel()">ヘルプを戻る</button>
       <button onclick="viewer.closeHelpPanel()">ヘルプを閉じる</button>
+      <input type="text" id="color" value="#ff0000" />
+      <button onclick="colorChange()">色の適用</button>
     </div>
-    <script>
+    <script defer>
       let i = 0
+      function colorChange() {
+        const root = document.documentElement
+        const color = document.getElementById('color').value
+        root.style.setProperty('--figni-viewer-primary', color)
+        viewer.updateColorSettings()
+      }
     </script>
     <style>
       #viewer {

@@ -26,6 +26,22 @@ export function getError(err) {
       }
     }
   }
+  if (err.message) {
+    switch (err.message) {
+      case 'ErrNotSetItemIdOrClientToken': {
+        return {
+          message: '商品IDまたはトークンが設定されていません',
+          code: 'ERR_NOT_SET_ITEM_ID_OR_CLIENT_TOKEN',
+        }
+      }
+      case 'ErrNoModelFound': {
+        return {
+          message: 'モデルが見つかりませんでした',
+          code: 'ERR_NO_MODEL_FOUND',
+        }
+      }
+    }
+  }
   console.error(err)
   return { message: 'エラーが発生しました', code: 'ERR_UNKNOWN' }
 }

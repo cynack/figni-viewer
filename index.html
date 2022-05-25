@@ -90,6 +90,21 @@
         カメラ位置初期化
       </button>
       <button onclick="viewer.updateState('stored')">状態変化</button>
+      <button onclick="viewer.openTipsPanel('drag')">操作のTipsを開く</button>
+      <button onclick="viewer.closeTipsPanel()">Tipsを閉じる</button>
+      <button onclick="viewer.openHelpPanel('top')">ヘルプのTOPを開く</button>
+      <button onclick="viewer.openHelpPanel('content')">
+        コンテンツのヘルプを開く
+      </button>
+      <button onclick="viewer.openHelpPanel('caption')">
+        キャプションのヘルプを開く
+      </button>
+      <button onclick="viewer.openHelpPanel('ar')">ARのヘルプを開く</button>
+      <button onclick="viewer.openHelpPanel('unknown')">
+        不明なヘルプを開く
+      </button>
+      <button onclick="viewer.backHelpPanel()">ヘルプを戻る</button>
+      <button onclick="viewer.closeHelpPanel()">ヘルプを閉じる</button>
     </div>
     <script>
       let i = 0
@@ -111,6 +126,7 @@
         --figni-viewer-secondary: #51a2ff;
         --figni-viewer-background: #faeac9;
         --figni-viewer-prompt-hand: #9deaf0;
+        --figni-viewer-error: #ff0080;
       }
     </style>
   </body>

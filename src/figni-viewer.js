@@ -9,7 +9,7 @@ import {
   LOADING_ANIMATION,
   LOADING_ANIMATION_RING,
   MOVE_AR_CONTENT_ANIMATION,
-  ROTATE_AR_CONTENT_ANIMATION,
+  ROTATE_AR_CONTENT_ANIMATION
 } from './animation'
 import { getError } from './error'
 import './style.scss'
@@ -26,7 +26,7 @@ import {
   SVG_HELP_UNKNOWN_ICON,
   SVG_INTERACTION_PROMPT,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF,
-  SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
+  SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON
 } from './svg'
 
 const OBSERBED_ATTRIBUTES = [
@@ -570,6 +570,9 @@ export default class FigniViewerElement extends HTMLElement {
       const openedPage = this.#openedHelpPages.pop()
       openedPage.page.style.left = '100%'
       this.#figniViewerBase.endMesureHelpPage(openedPage.name)
+      if (this.#openedHelpPages[this.#openedHelpPages.length - 1]) {
+        this.#figniViewerBase.startMesureHelpPage(this.#openedHelpPages[this.#openedHelpPages.length - 1].name)
+      }
       setTimeout(() => {
         openedPage.page.remove()
       }, 300)

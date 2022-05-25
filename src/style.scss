@@ -18,6 +18,13 @@ figni-viewer {
   display: flex;
   background-color: var(--figni-viewer-background);
   overflow: hidden;
+  figni-viewer-base {
+    -webkit-box-flex: 1;
+    -ms-flex-positive: 1;
+    flex-grow: 1;
+    height: 100%;
+    width: auto;
+  }
 }
 
 figni-viewer * {
@@ -25,7 +32,7 @@ figni-viewer * {
   color: var(--figni-viewer-text);
 }
 
-.figni-viewer-hotspot {
+figni-viewer .figni-viewer-hotspot {
   display: block;
   box-sizing: border-box;
   min-width: 1.25rem;

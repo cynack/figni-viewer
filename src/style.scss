@@ -13,17 +13,14 @@
 
 figni-viewer {
   --poster-color: transparent;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
   background-color: var(--figni-viewer-background);
   overflow: hidden;
   figni-viewer-base {
-    -webkit-box-flex: 1;
-    -ms-flex-positive: 1;
-    flex-grow: 1;
+    flex: 1;
+    flex-direction: column;
     height: 100%;
-    width: auto;
+    width: 0;
   }
 }
 
@@ -218,15 +215,8 @@ figni-viewer .figni-viewer-hotspot {
 
 .figni-viewer-init-camera-button {
   position: absolute;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
   justify-content: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   width: 2.5rem;
   height: 2.5rem;
@@ -249,15 +239,8 @@ figni-viewer .figni-viewer-hotspot {
 
 .figni-viewer-ar-button {
   position: absolute;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
   justify-content: center;
   height: 2.5rem;
   left: 0.5rem;
@@ -292,9 +275,7 @@ figni-viewer .figni-viewer-hotspot {
 .figni-viewer-toggle-visible-hotspot-button {
   position: absolute;
   display: block;
-  -webkit-box-align: center;
   align-items: center;
-  -webkit-box-pack: center;
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
@@ -330,14 +311,8 @@ figni-viewer .figni-viewer-hotspot {
 
 .figni-viewer-download-screenshot-button {
   position: absolute;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
@@ -362,31 +337,10 @@ figni-viewer .figni-viewer-hotspot {
 
 .figni-viewer-loading-panel {
   position: relative;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  flex: 0 0 100%;
-  -webkit-flex-grow: 0;
-  -ms-flex-positive: 0;
-  flex-grow: 0;
-  -webkit-flex-shrink: 0;
-  -ms-flex-negative: 0;
-  flex-shrink: 0;
-  -webkit-flex-basis: 100%;
-  -ms-flex-preferred-size: 100%;
-  flex-basis: 100%;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
+  flex: 0 1 100%;
   flex-direction: column;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
   align-items: center;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
   justify-content: center;
   padding: 2rem;
   background-color: var(--figni-viewer-background);
@@ -415,21 +369,20 @@ figni-viewer .figni-viewer-hotspot {
   .tap_effect path {
     fill: var(--figni-viewer-gray-shade-30);
   }
+  @media not all and (min-resolution: 0.001dpcm) {
+    @supports (-webkit-appearance: none) {
+      svg {
+        height: -webkit-fill-available !important;
+      }
+    }
+  }
 }
 
 .figni-viewer-loading-progress-bar {
   position: absolute;
   bottom: 2rem;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
   justify-content: center;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
   align-items: center;
   padding: 0.3rem 1rem;
   background-color: white;
@@ -491,30 +444,12 @@ figni-viewer .figni-viewer-hotspot {
 }
 
 .figni-viewer-error-panel {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-grow: 0;
-  -ms-flex-positive: 0;
   flex-grow: 0;
-  -webkit-flex-shrink: 0;
-  -ms-flex-negative: 0;
   flex-shrink: 0;
-  -webkit-flex-basis: 100%;
-  -ms-flex-preferred-size: 100%;
   flex-basis: 100%;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
   flex-direction: column;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
   align-items: center;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
   justify-content: center;
   padding: 2rem;
   background-color: var(--figni-viewer-background);
@@ -549,15 +484,8 @@ figni-viewer .figni-viewer-hotspot {
 
 .figni-viewer-error-reload-button {
   cursor: pointer;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
   justify-content: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   color: #ffffff;
   background-color: var(--figni-viewer-primary);
@@ -615,21 +543,9 @@ figni-viewer .figni-viewer-hotspot {
 
 .figni-viewer-qrcode-panel {
   position: absolute;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
   flex-direction: column;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
   justify-content: flex-start;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
   align-items: center;
   border-radius: 0.5rem;
   top: 50%;
@@ -674,33 +590,19 @@ figni-viewer .figni-viewer-hotspot {
 }
 
 .figni-viewer-qrcode-panel > svg {
-  -webkit-box-flex: 1;
-  -webkit-flex: 1;
-  -ms-flex: 1;
   flex: 1;
   width: 100%;
 }
 
 .figni-viewer-qrcode-panel > svg {
-  -webkit-box-flex: 1;
-  -webkit-flex: 1;
-  -ms-flex: 1;
   flex: 1;
   width: 100%;
 }
 
 .figni-viewer-help-button {
   position: absolute;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
   align-items: center;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
   justify-content: center;
   height: 1.5rem;
   padding: 0 0.5rem;
@@ -741,12 +643,7 @@ figni-viewer .figni-viewer-hotspot {
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-  -ms-flex-direction: row;
   flex-direction: row;
   border-radius: 0.5rem;
   background-color: #ffffff;
@@ -764,17 +661,8 @@ figni-viewer .figni-viewer-hotspot {
 
 .figni-viewer-tips-panel-content {
   width: 8rem;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
   flex-direction: column;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
   justify-content: center;
   padding: 0.75rem;
 }
@@ -830,13 +718,7 @@ figni-viewer .figni-viewer-hotspot {
 
 .figni-viewer-help-page {
   position: absolute;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
   flex-direction: column;
   width: calc(100% - 1rem);
   min-height: 100%;
@@ -859,16 +741,8 @@ figni-viewer .figni-viewer-hotspot {
 
 .figni-viewer-help-page-animation-holder {
   position: relative;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
   align-items: center;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
   justify-content: center;
   width: 100%;
   height: 5rem;
@@ -887,14 +761,8 @@ figni-viewer .figni-viewer-hotspot {
 }
 
 .figni-viewer-help-page-btn-title-holder {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-pack: justify;
-  -ms-flex-pack: justify;
   justify-content: space-between;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   h4 {
     color: var(--figni-viewer-text);
@@ -915,14 +783,8 @@ figni-viewer .figni-viewer-hotspot {
 }
 
 .figni-viewer-help-page-unknown-btn {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-pack: justify;
-  -ms-flex-pack: justify;
   justify-content: space-between;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   margin-bottom: 1rem;
   cursor: pointer;
@@ -960,16 +822,8 @@ figni-viewer .figni-viewer-hotspot {
 
 .figni-viewer-help-page-item-animation-holder {
   position: relative;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
   align-items: center;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
   justify-content: center;
   width: 100%;
   margin-bottom: 0.5rem;
@@ -1004,16 +858,8 @@ figni-viewer .figni-viewer-hotspot {
 
 .figni-viewer-help-page-item-back-btn {
   position: sticky;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
   align-items: center;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
   justify-content: center;
   bottom: 0.5rem;
   left: 0.5rem;
@@ -1040,16 +886,8 @@ figni-viewer .figni-viewer-hotspot {
 }
 
 .figni-viewer-help-page-item-footer {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
   align-items: center;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
   justify-content: center;
   width: 100%;
   padding: 0.1rem 0.25rem;

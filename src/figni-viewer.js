@@ -80,7 +80,6 @@ export default class FigniViewerElement extends HTMLElement {
   // private field
   #completedInitialModelLoad = false
   #visibleAllHotspots = true
-  #events = {}
 
   #ABTEST = {
     AR_BUTTON_TEST: '実物大で見る',
@@ -147,6 +146,20 @@ export default class FigniViewerElement extends HTMLElement {
     // Figni Viewer Base
     if (!this.#figniViewerBase) {
       this.#figniViewerBase = document.createElement('figni-viewer-base')
+      // イベントの登録
+      this.#figniViewerBase.addEventListener('load', () => {
+        this.dispatchEvent(new CustomEvent('load'))
+      })
+      this.#figniViewerBase.addEventListener('progress', (e) => {
+        this.dispatchEvent(
+          new CustomEvent('progress', {
+            detail: { progress: e.detail.totalProgress },
+          })
+        )
+      })
+      this.#figniViewerBase.addEventListener('finished', () => {
+        this.dispatchEvent(new CustomEvent('finished'))
+      })
       this.appendChild(this.#figniViewerBase)
     }
 
@@ -316,7 +329,7 @@ export default class FigniViewerElement extends HTMLElement {
       }
     }
     if (!isLoop) {
-      this.#figniViewerBase.addEventListener('finished', onFinishFunc, {
+      this.addEventListener('animation-finished', onFinishFunc, {
         once: true,
       })
     } else {
@@ -783,12 +796,6 @@ export default class FigniViewerElement extends HTMLElement {
     })
   }
 
-  #subscribeEventLinstener(element, eventName, tag, callback) {
-    element.removeEventListener(eventName, this.#events[tag])
-    element.addEventListener(eventName, callback)
-    this.#events[tag] = callback
-  }
-
   #modifyHotspot(hotspot) {
     hotspot.classList.add('figni-viewer-hotspot')
     hotspot.classList.add('figni-viewer-hotspot-highlight')
@@ -821,7 +828,7 @@ export default class FigniViewerElement extends HTMLElement {
       hotspot.getAttribute('closeup') == ''
     const isVisible = hotspot.getAttribute('to-state') != null
 
-    this.#subscribeEventLinstener(hotspot, 'click', `${name}-data`, (e) => {
+    hotspot.addEventListener('click', (e) => {
       if (this.#clickableHotspot(hotspot)) {
         if (e.target === hotspot) {
           this.#figniViewerBase.incrementHotspotClickCount(name)
@@ -832,7 +839,7 @@ export default class FigniViewerElement extends HTMLElement {
     })
 
     if (isAnime) {
-      this.#subscribeEventLinstener(hotspot, 'click', `${name}-anime`, (e) => {
+      hotspot.addEventListener('click', (e) => {
         if (this.#clickableHotspot(hotspot)) {
           if (e.target === hotspot) {
             const clip = hotspot.getAttribute('clip') || null
@@ -853,46 +860,36 @@ export default class FigniViewerElement extends HTMLElement {
       })
     }
     if (isCloseup) {
-      this.#subscribeEventLinstener(
-        hotspot,
-        'click',
-        `${name}-closeup`,
-        (e) => {
-          if (this.#clickableHotspot(hotspot)) {
-            if (e.target === hotspot) {
-              const target =
-                hotspot.getAttribute('target') ||
-                hotspot.getAttribute('position') ||
-                SETTINGS.DEFAULT_HOTSPOT_POSITION
-              const orbit = hotspot.getAttribute('orbit') || this.orbit
-              if (
-                this.#figniViewerBase.cameraTarget === target &&
-                this.#figniViewerBase.cameraOrbit === orbit
-              ) {
-                this.resetCameraTargetAndOrbit()
-              } else {
-                this.setCameraTarget(target)
-                this.setCameraOrbit(orbit)
-              }
+      hotspot.addEventListener('click', (e) => {
+        if (this.#clickableHotspot(hotspot)) {
+          if (e.target === hotspot) {
+            const target =
+              hotspot.getAttribute('target') ||
+              hotspot.getAttribute('position') ||
+              SETTINGS.DEFAULT_HOTSPOT_POSITION
+            const orbit = hotspot.getAttribute('orbit') || this.orbit
+            if (
+              this.#figniViewerBase.cameraTarget === target &&
+              this.#figniViewerBase.cameraOrbit === orbit
+            ) {
+              this.resetCameraTargetAndOrbit()
+            } else {
+              this.setCameraTarget(target)
+              this.setCameraOrbit(orbit)
             }
           }
         }
-      )
+      })
     }
     if (!isAnime && isVisible) {
       const state = hotspot.getAttribute('to-state')
-      this.#subscribeEventLinstener(
-        hotspot,
-        'click',
-        `${name}-visible`,
-        (e) => {
-          if (this.#clickableHotspot(hotspot)) {
-            if (e.target === hotspot) {
-              this.updateState(state)
-            }
+      hotspot.addEventListener('click', (e) => {
+        if (this.#clickableHotspot(hotspot)) {
+          if (e.target === hotspot) {
+            this.updateState(state)
           }
         }
-      )
+      })
     }
 
     const panels = hotspot.querySelectorAll('[slot^="panel"]')
@@ -900,7 +897,7 @@ export default class FigniViewerElement extends HTMLElement {
     this.#panels.forEach((panel) => {
       this.#modifyPanel(panel)
     })
-    this.#subscribeEventLinstener(hotspot, 'click', `${name}-panel`, (e) => {
+    hotspot.addEventListener('click', (e) => {
       if (this.#clickableHotspot(hotspot)) {
         if (e.target == hotspot) {
           if (panels.length > 0) {
@@ -1041,7 +1038,7 @@ export default class FigniViewerElement extends HTMLElement {
         this.#ABTEST.AR_BUTTON_TEST
       }</span>`
       this.#arButton.classList.add('figni-viewer-ar-button')
-      this.#figniViewerBase.addEventListener('load', () => {
+      this.addEventListener('load', () => {
         if (this.#figniViewerBase.canActivateAR) {
           this.#arButton.setAttribute('slot', 'ar-button')
         } else {
@@ -1171,7 +1168,7 @@ export default class FigniViewerElement extends HTMLElement {
       loadingProgressBar.appendChild(loadingText)
       this.appendChild(this.#loadingPanel)
       const progress = (e) => {
-        const p = e.detail.totalProgress
+        const p = e.detail.progress
         loadingProgressBar.style.setProperty(
           '--figni-viewer-progress',
           `${Math.ceil(p * 100)}%`
@@ -1179,10 +1176,10 @@ export default class FigniViewerElement extends HTMLElement {
         if (p === 1) {
           this.#hideLoadingPanel()
           this.openTipsPanel(TIPS.DRAG)
-          this.#figniViewerBase.removeEventListener('progress', progress)
+          this.removeEventListener('progress', progress)
         }
       }
-      this.#figniViewerBase.addEventListener('progress', progress)
+      this.addEventListener('progress', progress)
     } else {
       this.#loadingPanel.style.display = ''
     }

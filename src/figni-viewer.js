@@ -288,6 +288,14 @@ export default class FigniViewerElement extends HTMLElement {
   }
 
   /**
+   * 現在有効なアニメーションを全て列挙して返す
+   * @return {string[]} アニメーション名の配列
+   */
+  get availableAnimations() {
+    return this.#figniViewerBase.availableAnimations
+  }
+
+  /**
    * アニメーションを再生する
    * @param {string} clip 再生するアニメーション名
    * @param {{ loopCount: number, reverse: boolean, toState: string, onStart: Function, onEnd: Function }} options オプション

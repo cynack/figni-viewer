@@ -1,16 +1,6 @@
 @use 'sass:math';
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Spartan:wght@700&display=swap');
 
-:root {
-  --figni-viewer-primary: #ff733b;
-  --figni-viewer-secondary: #3b5eff;
-  --figni-viewer-prompt-hand: #ffce3b;
-  --figni-viewer-error: #ff3f3b;
-  --figni-viewer-text: #222428;
-  --figni-viewer-background: #f6f6f6;
-  --figni-viewer-font: 'Noto Sans JP', sans-serif;
-}
-
 figni-viewer {
   --poster-color: transparent;
   display: flex;
@@ -22,6 +12,13 @@ figni-viewer {
     height: 100%;
     width: 0;
   }
+  --figni-viewer-primary: #ff733b;
+  --figni-viewer-secondary: #3b5eff;
+  --figni-viewer-prompt-hand: #ffce3b;
+  --figni-viewer-error: #ff3f3b;
+  --figni-viewer-text: #222428;
+  --figni-viewer-background: #f6f6f6;
+  --figni-viewer-font: 'Noto Sans JP', sans-serif;
 }
 
 figni-viewer * {

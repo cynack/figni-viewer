@@ -656,8 +656,7 @@ export default class FigniViewerElement extends HTMLElement {
    * CSSの変数で指定した値を元に色を初期化する。
    */
   updateColorSettings() {
-    const root = document.documentElement
-    const style = window.getComputedStyle(root)
+    const style = window.getComputedStyle(this)
     const primary = new Values(
       style.getPropertyValue('--figni-viewer-primary').replace(' ', '')
     )
@@ -667,23 +666,23 @@ export default class FigniViewerElement extends HTMLElement {
     const background = new Values(
       style.getPropertyValue('--figni-viewer-background').replace(' ', '')
     )
-    root.style.setProperty(
+    this.style.setProperty(
       '--figni-viewer-primary-tint-95',
       primary.tint(95).hexString()
     )
-    root.style.setProperty(
+    this.style.setProperty(
       '--figni-viewer-gray-shade-10',
       background.shade(10).hexString()
     )
-    root.style.setProperty(
+    this.style.setProperty(
       '--figni-viewer-gray-shade-20',
       background.shade(20).hexString()
     )
-    root.style.setProperty(
+    this.style.setProperty(
       '--figni-viewer-gray-shade-30',
       background.shade(30).hexString()
     )
-    root.style.setProperty(
+    this.style.setProperty(
       '--figni-viewer-gray-shade-50',
       background.shade(50).hexString()
     )

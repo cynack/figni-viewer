@@ -57,11 +57,6 @@ const HELP = {
 const TIPS = {
   DRAG: 'drag',
 }
-const EVENT = {
-  LOAD: new CustomEvent('load'),
-  PROGRESS: new CustomEvent('progress'),
-  ANIMATION_FINISHED: new CustomEvent('animation-finished'),
-}
 
 export default class FigniViewerElement extends HTMLElement {
   // html element
@@ -153,15 +148,17 @@ export default class FigniViewerElement extends HTMLElement {
       this.#figniViewerBase = document.createElement('figni-viewer-base')
       // イベントの登録
       this.#figniViewerBase.addEventListener('load', () => {
-        this.dispatchEvent(EVENT.LOAD)
+        this.dispatchEvent(new CustomEvent('load'))
       })
-      this.#figniViewerBase.addEventListener('progress', (event) => {
-        this.dispatchEvent(EVENT.PROGRESS, {
-          detail: { progress: event.detail.totalProgress },
-        })
+      this.#figniViewerBase.addEventListener('progress', (e) => {
+        this.dispatchEvent(
+          new CustomEvent('progress', {
+            detail: { progress: e.detail.totalProgress },
+          })
+        )
       })
       this.#figniViewerBase.addEventListener('finished', () => {
-        this.dispatchEvent(EVENT.ANIMATION_FINISHED)
+        this.dispatchEvent(new CustomEvent('finished'))
       })
       this.appendChild(this.#figniViewerBase)
     }
@@ -1171,7 +1168,7 @@ export default class FigniViewerElement extends HTMLElement {
       loadingProgressBar.appendChild(loadingText)
       this.appendChild(this.#loadingPanel)
       const progress = (e) => {
-        const p = e.detail.totalProgress
+        const p = e.detail.progress
         loadingProgressBar.style.setProperty(
           '--figni-viewer-progress',
           `${Math.ceil(p * 100)}%`

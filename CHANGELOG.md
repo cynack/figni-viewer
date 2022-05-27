@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - WebXR の起動をサポート
 - QR コード表示パネルにアニメーションを追加
 - 有効なアニメーションの一覧を取得できるプロパティ(`availableAnimations`)を追加
+- `load`, `progress`, `finished` イベントを追加
 
 ### Changed
 

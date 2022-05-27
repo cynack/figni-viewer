@@ -158,7 +158,7 @@ export default class FigniViewerElement extends HTMLElement {
         )
       })
       this.#figniViewerBase.addEventListener('finished', () => {
-        this.dispatchEvent(new CustomEvent('finished'))
+        this.dispatchEvent(new CustomEvent('animation-finished'))
       })
       this.appendChild(this.#figniViewerBase)
     }

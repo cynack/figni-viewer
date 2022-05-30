@@ -1,6 +1,6 @@
 {
   "name": "@cynack/figni-viewer",
-  "version": "1.4.5",
+  "version": "1.5.0",
   "description": "",
   "main": "./dist/figni-viewer.min.js",
   "files": [
@@ -10,7 +10,8 @@
   "keywords": [
     "model-viewer",
     "cynack",
-    "ar"
+    "ar",
+    "3d"
   ],
   "scripts": {
     "test": "http-server ./test -p 9100",

@@ -23,6 +23,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [1.5.0] - 2022-05-30
+
+### Added
+
 - 使い方を紹介しているヘルプページを追加
 - CSS で指定できるカスタム色を追加
 - QR コード表示パネルにアニメーションを追加
@@ -35,10 +47,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - CSS で指定したカスタム色が影響を及ぼす範囲を拡大
 - カメラの位置を初期位置に戻すボタンのスタイルを変更
 - エラー画面のスタイルを変更
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -359,7 +367,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *hotspot*の表示非表示を変化させる`to-state`属性を追加
 - *hotspot*の表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.4.5...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/cynack/figni-viewer/compare/v1.4.5...v1.5.0
 [1.4.5]: https://github.com/cynack/figni-viewer/compare/v1.4.3...v1.4.5
 [1.4.3]: https://github.com/cynack/figni-viewer/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/cynack/figni-viewer/compare/v1.4.1...v1.4.2

@@ -25,10 +25,13 @@ export function endMesure(name) {
   if (!db[name]) {
     return
   }
-  const { mark, sum } = db[name]
-  const elapsed = performance.now() - mark
-  db[name].sum = sum + elapsed
-  db[name].mark = 0
+  if (db[name].mesuring) {
+    const { mark, sum } = db[name]
+    const elapsed = performance.now() - mark
+    db[name].sum = sum + elapsed
+    db[name].mark = 0
+  }
+  db[name].mesuring = false
 }
 
 /**

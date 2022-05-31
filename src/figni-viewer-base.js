@@ -118,6 +118,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       this.#hotspotClickCount[hotspotId] = 1
     }
     startMesure('view-time')
+    endMesure('initial-interaction-time')
   }
 
   /**
@@ -299,6 +300,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       startMesure('stay-time')
       startMesure('initial-model-view-time')
       startMesure('initial-ar-use-time')
+      startMesure('initial-interaction-time')
       let wasInViewport = this.#isInViewport
       if (wasInViewport) {
         startMesure('display-time')
@@ -340,6 +342,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       this.#registerEventListener('interaction-start', () => {
         startMesure('view-time')
         startMesure('interaction-time')
+        endMesure('initial-interaction-time')
       })
       this.#registerEventListener('interaction-end', () => {
         endMesure('interaction-time')
@@ -357,6 +360,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
               view_time: this.#viewTime,
               interaction_time: this.#interactionTime,
               initial_model_view_time: this.#initialModelViewTime,
+              initial_interaction_time: this.#initialInteractionTime,
               ar_count: this.#arCount,
               initial_ar_use_time: this.#initialArUseTime,
               hotspot_click: this.#hotspotClickCount,
@@ -398,6 +402,10 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
 
   get #initialArUseTime() {
     return Number(getElapsedTime('initial-ar-use-time').toFixed(2))
+  }
+
+  get #initialInteractionTime() {
+    return Number(getElapsedTime('initial-interaction-time').toFixed(2))
   }
 
   get #isInViewport() {

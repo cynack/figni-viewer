@@ -1046,6 +1046,7 @@ export default class FigniViewerElement extends HTMLElement {
         }
       })
       this.#arButton.addEventListener('click', () => {
+        this.#figniViewerBase.tryActivateAR()
         if (!this.#figniViewerBase.canActivateAR) {
           this.#showQRCodePanel()
         }

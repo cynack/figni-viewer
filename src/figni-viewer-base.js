@@ -12,6 +12,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   // analytics data
   #websocket
   #arCount = 0
+  #wantUseArCount = 0
   #hotspotClickCount = {}
   #animationPlayCount = {}
   #helpPageViewCount = {}
@@ -134,16 +135,16 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   }
 
   /**
-   * ARを起動する
+   * ARの起動を試みる
    */
-  activateARMode() {
+  tryActivateAR() {
+    this.#wantUseArCount++
+    startMesure('view-time')
     if (this.canActivateAR) {
       this.#arCount++
       if (this.#arCount == 1) {
         endMesure('initial-ar-use-time')
       }
-      startMesure('view-time')
-      this.activateAR()
     }
   }
 
@@ -362,6 +363,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
               initial_model_view_time: this.#initialModelViewTime,
               initial_interaction_time: this.#initialInteractionTime,
               ar_count: this.#arCount,
+              want_use_ar_count: this.#wantUseArCount,
               initial_ar_use_time: this.#initialArUseTime,
               hotspot_click: this.#hotspotClickCount,
               animation_play: this.#animationPlayCount,

@@ -9,9 +9,12 @@ const db = {}
  */
 export function startMesure(name) {
   if (!db[name]) {
-    db[name] = { mark: 0, sum: 0 }
+    db[name] = { mark: 0, sum: 0, mesuring: false }
   }
-  db[name].mark = performance.now()
+  if (!db[name].mesuring) {
+    db[name].mark = performance.now()
+  }
+  db[name].mesuring = true
 }
 
 /**

@@ -31,6 +31,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [1.5.1] - 2022-05-31
+
+### Added
+
+- データ取得する項目を追加
+
+### Fixed
+
+- データ取得に関する軽微なバグを修正
+
 ## [1.5.0] - 2022-05-30
 
 ### Added

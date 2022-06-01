@@ -77,9 +77,13 @@ export default class FigniViewerElement extends HTMLElement {
   #hotspots = []
   #panels = []
 
-  // private field
   #completedInitialModelLoad = false
   #visibleAllHotspots = true
+  #currentCloseupedHotspot = {
+    name: '',
+    target: null,
+    text: '',
+  }
 
   #ABTEST = {
     AR_BUTTON_TEST: '実物大で見る',
@@ -263,6 +267,7 @@ export default class FigniViewerElement extends HTMLElement {
   resetCameraTargetAndOrbit() {
     this.setCameraTarget(this.target)
     this.setCameraOrbit(this.orbit)
+    this.#showTemporaryHidedHotspot()
     this.#hideInitCameraButton()
   }
 
@@ -876,6 +881,7 @@ export default class FigniViewerElement extends HTMLElement {
             } else {
               this.setCameraTarget(target)
               this.setCameraOrbit(orbit)
+              this.#temporaryHideHotspot(name, hotspot)
             }
           }
         }
@@ -1738,6 +1744,54 @@ export default class FigniViewerElement extends HTMLElement {
       animation.classList.add('figni-viewer-tips-panel-animation')
       this.#tipsPanel.appendChild(animation)
       this.#figniViewerBase.appendChild(this.#tipsPanel)
+    }
+  }
+
+  #closeHotspotButton
+  #tempHidedHotspot = null
+  #temporaryHideHotspot(name, hotspot) {
+    if (this.#tempHidedHotspot && this.#tempHidedHotspot.name !== name) {
+      this.#showTemporaryHidedHotspot()
+    }
+
+    // 一時保存
+    this.#tempHidedHotspot = {
+      name: name,
+      target: hotspot,
+      text: [],
+    }
+
+    hotspot.childNodes.forEach((child) => {
+      if (child.nodeType === Node.TEXT_NODE) {
+        this.#tempHidedHotspot.text.push(child.nodeValue)
+        child.nodeValue = ''
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        if (!(child.getAttribute('slot') ?? '').match(/^panel/)) {
+          child.style.display = 'none'
+        }
+      }
+    })
+
+    if (!this.#closeHotspotButton) {
+      this.#closeHotspotButton = document.createElement('div')
+      this.#closeHotspotButton.classList.add(
+        'figni-viewer-hotspot-close-button'
+      )
+      this.#closeHotspotButton.innerHTML = SVG_CLOSE_ICON
+    }
+    hotspot.appendChild(this.#closeHotspotButton)
+  }
+  #showTemporaryHidedHotspot() {
+    if (this.#tempHidedHotspot) {
+      this.#tempHidedHotspot.target.removeChild(this.#closeHotspotButton)
+      this.#tempHidedHotspot.target.childNodes.forEach((child) => {
+        if (child.nodeType === Node.TEXT_NODE) {
+          child.nodeValue = this.#tempHidedHotspot.text.shift()
+        } else if (child.nodeType === Node.ELEMENT_NODE) {
+          child.style.display = ''
+        }
+      })
+      this.#tempHidedHotspot = null
     }
   }
 }

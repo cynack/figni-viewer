@@ -961,8 +961,8 @@ export default class FigniViewerElement extends HTMLElement {
               }
               panel.classList.toggle('figni-viewer-panel-hide')
             })
-            this.#closeAllPanels(Array.from(panels))
           }
+          this.#closeAllPanels(Array.from(panels))
         }
       }
     })

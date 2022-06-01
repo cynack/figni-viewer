@@ -906,8 +906,8 @@ export default class FigniViewerElement extends HTMLElement {
     hotspot.addEventListener('click', (e) => {
       if (this.#clickableHotspot(hotspot)) {
         if (e.target == hotspot) {
-          if (panels.length > 0) {
-            panels.forEach((panel) => {
+          panels.forEach((panel) => {
+            if (panel.classList.contains('figni-viewer-panel-hide')) {
               const baseWidth = Number(
                 window
                   .getComputedStyle(this.#figniViewerBase)
@@ -959,9 +959,11 @@ export default class FigniViewerElement extends HTMLElement {
                   (baseHeight - hotspotHeight) / 2
                 }px - 2.25rem)`
               }
-              panel.classList.toggle('figni-viewer-panel-hide')
-            })
-          }
+              panel.classList.remove('figni-viewer-panel-hide')
+            } else {
+              panel.classList.add('figni-viewer-panel-hide')
+            }
+          })
           this.#closeAllPanels(Array.from(panels))
         }
       }

@@ -247,6 +247,10 @@ export default class FigniViewerElement extends HTMLElement {
     if (this.#figniViewerBase.cameraTarget !== target) {
       this.#showInitCameraButton()
     }
+    this.#setCameraTarget(target)
+  }
+
+  #setCameraTarget(target) {
     this.#figniViewerBase.setCameraTarget(target)
   }
 
@@ -258,6 +262,10 @@ export default class FigniViewerElement extends HTMLElement {
     if (this.#figniViewerBase.cameraOrbit !== orbit) {
       this.#showInitCameraButton()
     }
+    this.#setCameraOrbit(orbit)
+  }
+
+  #setCameraOrbit(orbit) {
     this.#figniViewerBase.setCameraOrbit(orbit)
   }
 
@@ -879,8 +887,8 @@ export default class FigniViewerElement extends HTMLElement {
             ) {
               this.resetCameraTargetAndOrbit()
             } else {
-              this.setCameraTarget(target)
-              this.setCameraOrbit(orbit)
+              this.#setCameraTarget(target)
+              this.#setCameraOrbit(orbit)
               this.#temporaryHideHotspot(name, hotspot)
             }
           }

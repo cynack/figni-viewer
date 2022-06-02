@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- キャプションを押してカメラの位置が変更されたときに、キャプションを戻るボタンとして使用できるように変更
+
 ### Deprecated
 
 ### Removed
@@ -41,7 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-- *panel*のサイズを調整
+- パネルのサイズを調整
 - CSS で指定したカスタム色が影響を及ぼす範囲を拡大
 - カメラの位置を初期位置に戻すボタンのスタイルを変更
 - エラー画面のスタイルを変更
@@ -54,7 +56,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-- *panel*をクリックしても*hotspot*をクリックしたときと同じ動作をしてしまう問題を修正
+- パネルをクリックしてもキャプションをクリックしたときと同じ動作をしてしまう問題を修正
 
 ## [1.4.3] - 2022-04-22
 
@@ -86,7 +88,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- *hotspot*に強調アニメーションを追加
+- キャプションに強調アニメーションを追加
 - タッチ(クリック)している位置を強調するカーソルを追加
 
 ### Changed
@@ -127,7 +129,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - 属性`visible-state`において複数の値を設定できるように変更
 - `playAnimation()`の引数を(`clip`, `loopCount`, `toState`, `onstart`, `onend`)から(`clip`, `options`)に変更
-- *hotspot*において属性`normal`を指定しなかった場合、常に見えるように変更
+- キャプションにおいて属性`normal`を指定しなかった場合、常に見えるように変更
 
 ### Fixed
 
@@ -159,7 +161,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-- *hotspot*に関して、完全に可視化されるまでクリックできない問題を修正
+- キャプションに関して、完全に可視化されるまでクリックできない問題を修正
 
 ## [1.0.2] - 2022-01-25
 
@@ -203,7 +205,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-- 消えた*hotspot*にクリック判定が残っていた問題を修正
+- 消えたキャプションにクリック判定が残っていた問題を修正
 
 ## [0.0.33] - 2021-12-28
 
@@ -245,7 +247,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - `onstart`, `onend`が正しく動作しない問題を修正
-- *hotspot*の表示非表示が正しく切り替わらない問題を修正
+- キャプションの表示非表示が正しく切り替わらない問題を修正
 
 ## [0.0.29] - 2021-12-13
 
@@ -265,18 +267,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - `orbit`の指定が正しく反映されていない問題を修正
-- *panel*のデザインを修正
-- `addHotspot()`で名前が重複した*hotspot*を追加した場合にエラーを起こす問題を修正
+- パネルのデザインを修正
+- `addHotspot()`で名前が重複したキャプションを追加した場合にエラーを起こす問題を修正
 
 ## [0.0.26] - 2021-12-06
 
 ### Added
 
-- *panel*の位置を指定することができる属性`place`を追加
+- パネルの位置を指定することができる属性`place`を追加
 
 ### Fixed
 
-- *panel*のデザインを修正
+- パネルのデザインを修正
 
 ## [0.0.25] - 2021-12-06
 
@@ -289,7 +291,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - `model-tag`を利用した 3D モデルの読み込みが正しく行われていない問題を修正
-- `visible`の設定されていない*hotspot*の表示非表示が正しく行われていない問題を修正
+- `visible`の設定されていないキャプションの表示非表示が正しく行われていない問題を修正
 
 ## [0.0.23] - 2021-12-01
 
@@ -299,13 +301,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-- *hotspot*が存在しない場合*hotspot*の表示非表示を切り替えるボタンが出ないように修正
+- キャプションが存在しない場合キャプションの表示非表示を切り替えるボタンが出ないように修正
 
 ## [0.0.22] - 2021-12-01
 
 ### Fixed
 
-- *hotspot*の機能およびスタイルが適切に適用されない場合がある問題を修正
+- キャプションの機能およびスタイルが適切に適用されない場合がある問題を修正
 
 ## [0.0.21] - 2021-11-30
 
@@ -328,16 +330,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- *hotspot*の表示非表示を切り替えるボタンを追加
-- *hotspot*の表示非表示を切り替える`toggleVisibleHotspot()`関数を追加
+- キャプションの表示非表示を切り替えるボタンを追加
+- キャプションの表示非表示を切り替える`toggleVisibleHotspot()`関数を追加
 
 ## [0.0.18] - 2021-11-24
 
 ### Added
 
-- *hotspot*を追加する`addHotspot()`関数を追加
-- *hotspot*の位置や機能を編集する`editHotspot()`関数を追加
-- *hotspot*を削除する`removeHotspot()`関数を追加
+- キャプションを追加する`addHotspot()`関数を追加
+- キャプションの位置や機能を編集する`editHotspot()`関数を追加
+- キャプションを削除する`removeHotspot()`関数を追加
 
 ### Fixed
 
@@ -349,8 +351,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-- *hotspot*のスタイルを上書きできるように変更
-- *panel*のスタイルを上書きできるように変更
+- キャプションのスタイルを上書きできるように変更
+- パネルのスタイルを上書きできるように変更
 - カメラを初期位置に戻すボタンのスタイルを上書きできるように変更
 - スクリーンショットボタンのスタイルを上書きできるように変更
 
@@ -362,8 +364,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- *hotspot*の表示非表示を変化させる`to-state`属性を追加
-- *hotspot*の表示非表示を決定する`visible`属性を追加
+- キャプションの表示非表示を変化させる`to-state`属性を追加
+- キャプションの表示非表示を決定する`visible`属性を追加
 
 [unreleased]: https://github.com/cynack/figni-viewer/compare/v1.5.0...HEAD
 [1.5.0]: https://github.com/cynack/figni-viewer/compare/v1.4.5...v1.5.0

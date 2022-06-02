@@ -164,8 +164,23 @@ export default class FigniViewerElement extends HTMLElement {
       this.#figniViewerBase.addEventListener('finished', () => {
         this.dispatchEvent(new CustomEvent('animation-finished'))
       })
+      this.#figniViewerBase.addEventListener('camera-change', (e) => {
+        this.dispatchEvent(
+          new CustomEvent('camera-change', { detail: e.detail })
+        )
+      })
       this.appendChild(this.#figniViewerBase)
     }
+
+    this.addEventListener('camera-change', (e) => {
+      if (this.#tempHidedHotspot) {
+        if (!this.#clickableHotspot(this.#tempHidedHotspot.target)) {
+          this.#showInitCameraButton()
+        } else {
+          this.#hideInitCameraButton()
+        }
+      }
+    })
 
     // AB TEST
     if (Math.random() > 0.5) {
@@ -981,7 +996,20 @@ export default class FigniViewerElement extends HTMLElement {
   }
 
   #clickableHotspot(hotspot) {
-    return window.getComputedStyle(hotspot).opacity > 0.5
+    const isClickableOpacity = window.getComputedStyle(hotspot).opacity > 0.5
+    const isClickablePosition = (function (_this) {
+      const viewerRect = _this.#figniViewerBase.getBoundingClientRect()
+      const hotspotRect = hotspot.getBoundingClientRect()
+      const hotspotRectSize = hotspotRect.width * hotspotRect.height
+      const viewHotspotRectSize =
+        (Math.min(hotspotRect.right, viewerRect.right) -
+          Math.max(hotspotRect.left, viewerRect.left)) *
+        (Math.min(hotspotRect.bottom, viewerRect.bottom) -
+          Math.max(hotspotRect.top, viewerRect.top))
+      const ratio = viewHotspotRectSize / hotspotRectSize
+      return ratio > 0.5
+    })(this)
+    return isClickableOpacity && isClickablePosition
   }
 
   #modifyPanel(panel) {

@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- 誤字を修正
+
 ## [1.5.1] - 2022-05-31
 
 ### Added

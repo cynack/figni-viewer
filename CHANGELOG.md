@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Figni Viewer の利用ページを特定できる`tag`属性を追加
+
 ### Changed
 
 ### Deprecated

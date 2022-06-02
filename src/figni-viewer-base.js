@@ -49,12 +49,13 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
    * @param {string} itemId アイテムID
    * @param {string} token トークン
    * @param {string} modelTag モデルのタグ
+   * @param {string[]} tag タグの配列
    */
-  async loadModel(itemId, token, modelTag = null) {
+  async loadModel(itemId, token, modelTag = null, tag = []) {
     if (itemId && token) {
-      const tag = modelTag ? `?tag=${modelTag}` : ''
+      const tagStr = modelTag ? `?tag=${modelTag}` : ''
       const res = await axios.get(
-        `${API_BASE}/item/${itemId}/model_search${tag}`,
+        `${API_BASE}/item/${itemId}/model_search${tagStr}`,
         {
           headers: {
             accept: 'application/json',
@@ -86,7 +87,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         }
       })
 
-      this.#initializeWebSocket(itemId, token)
+      this.#initializeWebSocket(itemId, token, tag)
     } else {
       throw new ReferenceError('ErrNotSetItemIdOrClientToken')
     }
@@ -285,7 +286,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     }
   }
 
-  async #initializeWebSocket(itemId, token) {
+  async #initializeWebSocket(itemId, token, tag = []) {
     if (this.#websocket) {
       this.#websocket.close()
     }
@@ -354,6 +355,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
           this.#websocket.send(
             JSON.stringify({
               item_id: itemId,
+              tag: tag,
               client_token: token,
               client_version: VERSION,
               stay_time: this.#stayTime,

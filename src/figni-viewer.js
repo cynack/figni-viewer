@@ -109,6 +109,14 @@ export default class FigniViewerElement extends HTMLElement {
     this.setAttribute('model-tag', value)
   }
 
+  get tag() {
+    return (this.getAttribute('tag') ?? '').split(' ')
+  }
+
+  set tag(value) {
+    this.setAttribute('tag', value.join(' '))
+  }
+
   get target() {
     return this.getAttribute('target') || SETTINGS.DEFAULT_CAMERA_TARGET
   }
@@ -193,7 +201,7 @@ export default class FigniViewerElement extends HTMLElement {
       this.#modifyHotspot(hotspot)
     })
 
-    this.#loadModel(this.itemId, this.token, this.modelTag)
+    this.#loadModel()
     this.resetCameraTargetAndOrbit()
     this.#closeAllPanels()
     this.updateState(this.state)
@@ -277,7 +285,8 @@ export default class FigniViewerElement extends HTMLElement {
       await this.#figniViewerBase.loadModel(
         this.itemId,
         this.token,
-        this.modelTag
+        this.modelTag,
+        this.tag
       )
     } catch (e) {
       this.#hideLoadingPanel()

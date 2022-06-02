@@ -1038,6 +1038,9 @@ export default class FigniViewerElement extends HTMLElement {
     } else if (horizontal == 'left' && vertical == 'middle') {
       panel.classList.add('figni-viewer-panel-place-left-middle')
     } else if (horizontal == 'center' && vertical == 'middle') {
+      console.warn(
+        '警告：パネルをキャプションの中心に配置することは推奨されていません'
+      )
       panel.classList.add('figni-viewer-panel-place-center-middle')
     } else if (horizontal == 'right' && vertical == 'middle') {
       panel.classList.add('figni-viewer-panel-place-right-middle')

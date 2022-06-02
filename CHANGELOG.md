@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Deprecated
 
+- パネルの位置を`center middle`にすることを非推奨に変更
+
 ### Removed
 
 ### Fixed

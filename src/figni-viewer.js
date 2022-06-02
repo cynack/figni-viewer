@@ -1417,10 +1417,10 @@ export default class FigniViewerElement extends HTMLElement {
       // フッターの追加
       const footer = document.createElement('div')
       footer.classList.add('figni-viewer-help-page-item-footer')
-      // Powerd byの追加
-      const powerd = document.createElement('small')
-      powerd.innerText = 'Powerd by'
-      footer.appendChild(powerd)
+      // Powered byの追加
+      const powered = document.createElement('small')
+      powered.innerText = 'Powered by'
+      footer.appendChild(powered)
       // Figniロゴの追加
       const figniLogo = document.createElement('a')
       figniLogo.innerHTML = SVG_FIGNI_LOGO

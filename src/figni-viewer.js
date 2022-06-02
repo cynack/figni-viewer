@@ -1423,10 +1423,11 @@ export default class FigniViewerElement extends HTMLElement {
       footer.appendChild(powered)
       // Figniロゴの追加
       const figniLogo = document.createElement('a')
+      figniLogo.setAttribute('href', 'https://figni.io/')
+      figniLogo.setAttribute('target', '_blank')
       figniLogo.innerHTML = SVG_FIGNI_LOGO
       figniLogo.style.display = 'block'
       figniLogo.style.width = '3rem'
-      figniLogo.setAttribute('href', 'https://figni.io')
       footer.appendChild(figniLogo)
       page.appendChild(footer)
     }

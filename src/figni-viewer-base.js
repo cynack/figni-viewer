@@ -141,6 +141,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   tryActivateAR() {
     this.#wantUseArCount++
     startMesure('view-time')
+    endMesure('initial-interaction-time')
     if (this.canActivateAR) {
       this.#arCount++
       if (this.#arCount == 1) {

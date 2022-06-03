@@ -77,9 +77,13 @@ export default class FigniViewerElement extends HTMLElement {
   #hotspots = []
   #panels = []
 
-  // private field
   #completedInitialModelLoad = false
   #visibleAllHotspots = true
+  #currentCloseupedHotspot = {
+    name: '',
+    target: null,
+    text: '',
+  }
 
   #ABTEST = {
     AR_BUTTON_TEST: '実物大で見る',
@@ -168,8 +172,23 @@ export default class FigniViewerElement extends HTMLElement {
       this.#figniViewerBase.addEventListener('finished', () => {
         this.dispatchEvent(new CustomEvent('animation-finished'))
       })
+      this.#figniViewerBase.addEventListener('camera-change', (e) => {
+        this.dispatchEvent(
+          new CustomEvent('camera-change', { detail: e.detail })
+        )
+      })
       this.appendChild(this.#figniViewerBase)
     }
+
+    this.addEventListener('camera-change', (e) => {
+      if (this.#tempHidedHotspot) {
+        if (!this.#clickableHotspot(this.#tempHidedHotspot.target)) {
+          this.#showInitCameraButton()
+        } else {
+          this.#hideInitCameraButton()
+        }
+      }
+    })
 
     // AB TEST
     if (Math.random() > 0.5) {
@@ -251,6 +270,10 @@ export default class FigniViewerElement extends HTMLElement {
     if (this.#figniViewerBase.cameraTarget !== target) {
       this.#showInitCameraButton()
     }
+    this.#setCameraTarget(target)
+  }
+
+  #setCameraTarget(target) {
     this.#figniViewerBase.setCameraTarget(target)
   }
 
@@ -262,6 +285,10 @@ export default class FigniViewerElement extends HTMLElement {
     if (this.#figniViewerBase.cameraOrbit !== orbit) {
       this.#showInitCameraButton()
     }
+    this.#setCameraOrbit(orbit)
+  }
+
+  #setCameraOrbit(orbit) {
     this.#figniViewerBase.setCameraOrbit(orbit)
   }
 
@@ -271,6 +298,7 @@ export default class FigniViewerElement extends HTMLElement {
   resetCameraTargetAndOrbit() {
     this.setCameraTarget(this.target)
     this.setCameraOrbit(this.orbit)
+    this.#showTemporaryHidedHotspot()
     this.#hideInitCameraButton()
   }
 
@@ -883,8 +911,9 @@ export default class FigniViewerElement extends HTMLElement {
             ) {
               this.resetCameraTargetAndOrbit()
             } else {
-              this.setCameraTarget(target)
-              this.setCameraOrbit(orbit)
+              this.#setCameraTarget(target)
+              this.#setCameraOrbit(orbit)
+              this.#temporaryHideHotspot(name, hotspot)
             }
           }
         }
@@ -909,8 +938,8 @@ export default class FigniViewerElement extends HTMLElement {
     hotspot.addEventListener('click', (e) => {
       if (this.#clickableHotspot(hotspot)) {
         if (e.target == hotspot) {
-          if (panels.length > 0) {
-            panels.forEach((panel) => {
+          panels.forEach((panel) => {
+            if (panel.classList.contains('figni-viewer-panel-hide')) {
               const baseWidth = Number(
                 window
                   .getComputedStyle(this.#figniViewerBase)
@@ -962,8 +991,12 @@ export default class FigniViewerElement extends HTMLElement {
                   (baseHeight - hotspotHeight) / 2
                 }px - 2.25rem)`
               }
-              panel.classList.toggle('figni-viewer-panel-hide')
-            })
+              panel.classList.remove('figni-viewer-panel-hide')
+            } else {
+              panel.classList.add('figni-viewer-panel-hide')
+            }
+          })
+          if (isCloseup || panels.length > 0) {
             this.#closeAllPanels(Array.from(panels))
           }
         }
@@ -972,7 +1005,20 @@ export default class FigniViewerElement extends HTMLElement {
   }
 
   #clickableHotspot(hotspot) {
-    return window.getComputedStyle(hotspot).opacity > 0.5
+    const isClickableOpacity = window.getComputedStyle(hotspot).opacity > 0.5
+    const isClickablePosition = (function (_this) {
+      const viewerRect = _this.#figniViewerBase.getBoundingClientRect()
+      const hotspotRect = hotspot.getBoundingClientRect()
+      const hotspotRectSize = hotspotRect.width * hotspotRect.height
+      const viewHotspotRectSize =
+        (Math.min(hotspotRect.right, viewerRect.right) -
+          Math.max(hotspotRect.left, viewerRect.left)) *
+        (Math.min(hotspotRect.bottom, viewerRect.bottom) -
+          Math.max(hotspotRect.top, viewerRect.top))
+      const ratio = viewHotspotRectSize / hotspotRectSize
+      return ratio > 0.5
+    })(this)
+    return isClickableOpacity && isClickablePosition
   }
 
   #modifyPanel(panel) {
@@ -1001,6 +1047,9 @@ export default class FigniViewerElement extends HTMLElement {
     } else if (horizontal == 'left' && vertical == 'middle') {
       panel.classList.add('figni-viewer-panel-place-left-middle')
     } else if (horizontal == 'center' && vertical == 'middle') {
+      console.warn(
+        '警告：パネルをキャプションの中心に配置することは推奨されていません'
+      )
       panel.classList.add('figni-viewer-panel-place-center-middle')
     } else if (horizontal == 'right' && vertical == 'middle') {
       panel.classList.add('figni-viewer-panel-place-right-middle')
@@ -1748,6 +1797,54 @@ export default class FigniViewerElement extends HTMLElement {
       animation.classList.add('figni-viewer-tips-panel-animation')
       this.#tipsPanel.appendChild(animation)
       this.#figniViewerBase.appendChild(this.#tipsPanel)
+    }
+  }
+
+  #closeHotspotButton
+  #tempHidedHotspot = null
+  #temporaryHideHotspot(name, hotspot) {
+    if (this.#tempHidedHotspot && this.#tempHidedHotspot.name !== name) {
+      this.#showTemporaryHidedHotspot()
+    }
+
+    // 一時保存
+    this.#tempHidedHotspot = {
+      name: name,
+      target: hotspot,
+      text: [],
+    }
+
+    hotspot.childNodes.forEach((child) => {
+      if (child.nodeType === Node.TEXT_NODE) {
+        this.#tempHidedHotspot.text.push(child.nodeValue)
+        child.nodeValue = ''
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        if (!(child.getAttribute('slot') ?? '').match(/^panel/)) {
+          child.style.display = 'none'
+        }
+      }
+    })
+
+    if (!this.#closeHotspotButton) {
+      this.#closeHotspotButton = document.createElement('div')
+      this.#closeHotspotButton.classList.add(
+        'figni-viewer-hotspot-close-button'
+      )
+      this.#closeHotspotButton.innerHTML = SVG_CLOSE_ICON
+    }
+    hotspot.appendChild(this.#closeHotspotButton)
+  }
+  #showTemporaryHidedHotspot() {
+    if (this.#tempHidedHotspot) {
+      this.#tempHidedHotspot.target.removeChild(this.#closeHotspotButton)
+      this.#tempHidedHotspot.target.childNodes.forEach((child) => {
+        if (child.nodeType === Node.TEXT_NODE) {
+          child.nodeValue = this.#tempHidedHotspot.text.shift()
+        } else if (child.nodeType === Node.ELEMENT_NODE) {
+          child.style.display = ''
+        }
+      })
+      this.#tempHidedHotspot = null
     }
   }
 }

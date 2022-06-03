@@ -25,10 +25,16 @@
           position="-0.5m 0m 0.5m"
           target="0.1m 0.1m 0m"
           orbit="-45deg 90deg 0.5m"
+          normal="0 1 0"
           >1</span
         >
         <!-- positionがない場合は"0 0 0"を指定した場合と同義、targetがない場合はpositionの値が使用される -->
-        <span slot="hotspot-test2" orbit="-45deg 90deg 0.5m">2</span>
+        <span slot="hotspot-test2" orbit="-45deg 90deg 0.5m"
+          >2<img
+            src="https://admin.figni.io//sample/suitcase/caption_2.png"
+            width="10px"
+            height="10px"
+        /></span>
         <span
           slot="hotspot-test3"
           position="-0.4m 0m 0.5m"
@@ -53,7 +59,7 @@
           orbit="45deg 90deg 0.5m"
         >
           5
-          <div slot="panel" place="right bottom">
+          <div slot="panel" place="right middle">
             <img src="https://admin.figni.io//sample/suitcase/caption_2.png" />
             <h4>タイトル</h4>
             <p>文章</p>

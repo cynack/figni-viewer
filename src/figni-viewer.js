@@ -863,7 +863,9 @@ export default class FigniViewerElement extends HTMLElement {
     hotspot.addEventListener('click', (e) => {
       if (this.#clickableHotspot(hotspot)) {
         if (e.target === hotspot) {
-          this.#figniViewerBase.incrementHotspotClickCount(name)
+          if (this.#tempHidedHotspot?.name !== name) {
+            this.#figniViewerBase.incrementHotspotClickCount(name)
+          }
           this.#figniViewerBase.disableInteractionPrompt()
           hotspot.classList.remove('figni-viewer-hotspot-highlight')
         }

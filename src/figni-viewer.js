@@ -79,11 +79,6 @@ export default class FigniViewerElement extends HTMLElement {
 
   #completedInitialModelLoad = false
   #visibleAllHotspots = true
-  #currentCloseupedHotspot = {
-    name: '',
-    target: null,
-    text: '',
-  }
 
   #ABTEST = {
     AR_BUTTON_TEST: '実物大で見る',

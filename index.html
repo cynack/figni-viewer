@@ -26,39 +26,39 @@
           target="0.1m 0.1m 0m"
           orbit="-45deg 90deg 0.5m"
           normal="0 1 0"
-          >1</span
+          >テスト1</span
         >
         <!-- positionがない場合は"0 0 0"を指定した場合と同義、targetがない場合はpositionの値が使用される -->
         <span slot="hotspot-test2" orbit="-45deg 90deg 0.5m"
-          >2<img
+          >テスト2<img
             src="https://admin.figni.io//sample/suitcase/caption_2.png"
             width="10px"
             height="10px"
         /></span>
         <span
           slot="hotspot-test3"
-          position="-0.4m 0m 0.5m"
+          position="-0.2m 0m 0.5m"
           clip="storeAnimation"
           to-state="stored"
           visible-state="neutral"
           normal="0m 0m 1m"
-          >3</span
+          >テスト3</span
         >
         <span
           slot="hotspot-test4"
-          position="-0.3m 0m 0.5m"
+          position="-0.2m 0m 0.5m"
           clip="storeAnimation"
           reverse
           to-state="neutral"
           visible-state="stored"
-          >4</span
+          >テスト4</span
         >
         <span
           slot="hotspot-test5"
-          position="-0.2m 0m 0.5m"
+          position="0.1m 0m 0.5m"
           orbit="45deg 90deg 0.5m"
         >
-          5
+          テスト5
           <div slot="panel" place="right middle">
             <img src="https://admin.figni.io//sample/suitcase/caption_2.png" />
             <h4>タイトル</h4>
@@ -77,43 +77,50 @@
       <button
         onclick="viewer.addHotspot('test', '0.5 0 0', null, { anime: { clip: 'openAnimation' } })"
       >
-        追加
+        addHotspot
       </button>
       <button
         onclick="viewer.editHotspot('test', '-0.2 0.1 0', '0 0 1', { anime: { clip: 'openAnimation', loopCount: 2, reverse: true } })"
       >
-        編集
+        editHotspot
       </button>
-      <button onclick="viewer.removeHotspot('test')">削除</button>
+      <button onclick="viewer.removeHotspot('test')">removeHotspot</button>
       <button onclick="viewer.toggleVisibleHotspot(i++ % 2)">
-        キャプション非表示
+        toggleVisibleHotspot
       </button>
       <button
         onclick="viewer.setCameraTarget('-1m 1m -0.5m'); viewer.setCameraOrbit('30deg -20deg 0.1m');"
       >
-        カメラ位置変更
+        setCameraTarget & setCameraOrbit
       </button>
       <button onclick="viewer.resetCameraTargetAndOrbit()">
-        カメラ位置初期化
+        resetCameraTargetAndOrbit
       </button>
-      <button onclick="viewer.updateState('stored')">状態変化</button>
-      <button onclick="viewer.openTipsPanel('drag')">操作のTipsを開く</button>
-      <button onclick="viewer.closeTipsPanel()">Tipsを閉じる</button>
-      <button onclick="viewer.openHelpPanel('top')">ヘルプのTOPを開く</button>
+      <button onclick="viewer.updateState('stored')">updateState</button>
+      <button onclick="viewer.openTipsPanel('drag')">
+        openTipsPanel('drag')
+      </button>
+      <button onclick="viewer.closeTipsPanel()">closeTipsPanel</button>
+      <button onclick="viewer.openHelpPanel('top')">
+        openHelpPanel('top')
+      </button>
       <button onclick="viewer.openHelpPanel('content')">
-        コンテンツのヘルプを開く
+        openHelpPanel('content')
       </button>
       <button onclick="viewer.openHelpPanel('caption')">
-        キャプションのヘルプを開く
+        openHelpPanel('caption')
       </button>
-      <button onclick="viewer.openHelpPanel('ar')">ARのヘルプを開く</button>
+      <button onclick="viewer.openHelpPanel('ar')">openHelpPanel('ar')</button>
       <button onclick="viewer.openHelpPanel('unknown')">
-        不明なヘルプを開く
+        openHelpPanel('unknown')
       </button>
-      <button onclick="viewer.backHelpPanel()">ヘルプを戻る</button>
-      <button onclick="viewer.closeHelpPanel()">ヘルプを閉じる</button>
+      <button onclick="viewer.backHelpPanel()">backHelpPanel()</button>
+      <button onclick="viewer.closeHelpPanel()">closeHelpPanel()</button>
       <input type="text" id="color" value="#ff0000" />
-      <button onclick="colorChange()">色の適用</button>
+      <button onclick="colorChange()">updateColorSettings</button>
+      <button onclick="errorItemId()">errorItemId</button>
+      <button onclick="errorToken()">errorToken</button>
+      <button onclick="errorModelTag()">errorModelTag</button>
     </div>
     <script defer>
       let i = 0
@@ -121,6 +128,15 @@
         const color = document.getElementById('color').value
         viewer.style.setProperty('--figni-viewer-primary', color)
         viewer.updateColorSettings()
+      }
+      function errorItemId() {
+        viewer.itemId = 'erroritemid'
+      }
+      function errorToken() {
+        viewer.token = 'errortoken'
+      }
+      function errorModelTag() {
+        viewer.modelTag = 'errormodeltag'
       }
     </script>
     <style>

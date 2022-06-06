@@ -11,6 +11,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [1.6.0] - 2022-06-06
+
+### Added
+
 - Figni Viewer の利用ページを特定できる`tag`属性を追加
 
 ### Changed
@@ -20,8 +32,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Deprecated
 
 - パネルの位置を`center middle`にすることを非推奨に変更
-
-### Removed
 
 ### Fixed
 
@@ -373,7 +383,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - キャプションの表示非表示を変化させる`to-state`属性を追加
 - キャプションの表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.5.0...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/cynack/figni-viewer/compare/v1.5.1...v1.6.0
+[1.5.1]: https://github.com/cynack/figni-viewer/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/cynack/figni-viewer/compare/v1.4.5...v1.5.0
 [1.4.5]: https://github.com/cynack/figni-viewer/compare/v1.4.3...v1.4.5
 [1.4.3]: https://github.com/cynack/figni-viewer/compare/v1.4.2...v1.4.3

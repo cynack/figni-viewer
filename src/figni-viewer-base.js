@@ -110,6 +110,14 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   }
 
   /**
+   * カメラのFoVを設定する
+   * @param {string} fov
+   */
+  setFieldOfView(fov) {
+    this.fieldOfView = fov
+  }
+
+  /**
    * キャプションのクリック回数をカウントする
    * @param {string} hotspotId キャプション名
    */

@@ -293,6 +293,7 @@ export default class FigniViewerElement extends HTMLElement {
   resetCameraTargetAndOrbit() {
     this.setCameraTarget(this.target)
     this.setCameraOrbit(this.orbit)
+    this.#figniViewerBase.setFieldOfView('auto')
     this.#showTemporaryHidedHotspot()
     this.#hideInitCameraButton()
   }

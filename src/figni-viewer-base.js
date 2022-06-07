@@ -15,6 +15,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   #wantUseArCount = 0
   #hotspotClickCount = {}
   #animationPlayCount = {}
+  #panelViewCount = {}
   #helpPageViewCount = {}
   #abtest = {}
   #events = {}
@@ -254,6 +255,32 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     endMesure('help-page-view-time-' + helpPageName)
   }
 
+  /**
+   * パネルの閲覧時間の計測を始める
+   * @param {string} panelName パネル名
+   */
+  startMesurePanel(panelName) {
+    startMesure('panel-view-time-' + panelName)
+    if (!this.#panelViewCount[panelName]) {
+      this.#panelViewCount[panelName] = {
+        views: 1,
+        get length() {
+          return getElapsedTime('panel-view-time-' + panelName)
+        },
+      }
+    } else {
+      this.#panelViewCount[panelName].views++
+    }
+  }
+
+  /**
+   * パネルの閲覧時間の計測を終わる
+   * @param {string} panelName パネル名
+   */
+  endMesurePanel(panelName) {
+    endMesure('panel-view-time-' + panelName)
+  }
+
   #setupModelViewer() {
     this.loading = 'lazy'
     this.cameraControls = true
@@ -382,6 +409,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
               current_camera_orbit: this.#currentCameraOrbit,
               abtest: this.#abtest,
               help_page_view: this.#helpPageViewCount,
+              panel_view: this.#panelViewCount,
             })
           )
         } else {

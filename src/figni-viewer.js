@@ -11,6 +11,7 @@ import {
   MOVE_AR_CONTENT_ANIMATION,
   ROTATE_AR_CONTENT_ANIMATION,
 } from './animation'
+import { ClassWatcher } from './class-watcher'
 import { getError } from './error'
 import './style.scss'
 import {
@@ -207,7 +208,7 @@ export default class FigniViewerElement extends HTMLElement {
     this.#showTipsPanel()
 
     // Hotspot
-    this.querySelectorAll('[slot^="hotspot"]').forEach((hotspot) => {
+    this.querySelectorAll('[slot^="hotspot-"]').forEach((hotspot) => {
       this.#hotspots.push(this.#figniViewerBase.appendChild(hotspot))
     })
     await this.updateComplete
@@ -928,7 +929,7 @@ export default class FigniViewerElement extends HTMLElement {
       })
     }
 
-    const panels = hotspot.querySelectorAll('[slot^="panel"]')
+    const panels = hotspot.querySelectorAll('[slot^="panel-"]')
     this.#panels.push(...Array.from(panels))
     this.#panels.forEach((panel) => {
       this.#modifyPanel(panel)
@@ -1058,6 +1059,18 @@ export default class FigniViewerElement extends HTMLElement {
     } else if (horizontal == 'right' && vertical == 'bottom') {
       panel.classList.add('figni-viewer-panel-place-right-bottom')
     }
+
+    const name = panel.getAttribute('slot').replace(/^panel-/, '')
+    new ClassWatcher(
+      panel,
+      'figni-viewer-panel-hide',
+      (p) => {
+        this.#figniViewerBase.endMesurePanel(name)
+      },
+      (p) => {
+        this.#figniViewerBase.startMesurePanel(name)
+      }
+    )
   }
 
   /**

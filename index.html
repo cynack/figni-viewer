@@ -59,7 +59,20 @@
           orbit="45deg 90deg 0.5m"
         >
           テスト5
-          <div slot="panel" place="right middle">
+          <div slot="panel-right" place="right middle">
+            <img src="https://admin.figni.io//sample/suitcase/caption_2.png" />
+            <h4>タイトル</h4>
+            <p>文章</p>
+            <button onclick="viewer.playAnimation('openAnimation')">
+              開く
+            </button>
+            <button
+              onclick="viewer.playAnimation('openAnimation', { reverse: true, loopCount: 3, onStart: ()=>{console.log('start')}, onEnd: ()=>{console.log('end')} })"
+            >
+              閉じる
+            </button>
+          </div>
+          <div slot="panel-left" place="left middle">
             <img src="https://admin.figni.io//sample/suitcase/caption_2.png" />
             <h4>タイトル</h4>
             <p>文章</p>

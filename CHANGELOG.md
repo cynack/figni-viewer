@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- パネルの表示時間を計測・取得
+
 ### Changed
 
 ### Deprecated

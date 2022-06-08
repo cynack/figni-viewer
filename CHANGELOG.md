@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - ズームしたときに、適切な位置にカメラが戻らなくなる問題を修正
+- キャプションの ✕ ボタンのスタイルを修正
 
 ## [1.6.0] - 2022-06-06
 

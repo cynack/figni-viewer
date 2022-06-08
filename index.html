@@ -134,6 +134,8 @@
       <button onclick="errorItemId()">errorItemId</button>
       <button onclick="errorToken()">errorToken</button>
       <button onclick="errorModelTag()">errorModelTag</button>
+      <input type="text" id="modelTag" value="" />
+      <button onclick="modelTagChange()">modelTagChange</button>
     </div>
     <script defer>
       let i = 0
@@ -150,6 +152,10 @@
       }
       function errorModelTag() {
         viewer.modelTag = 'errormodeltag'
+      }
+      function modelTagChange() {
+        const modelTag = document.getElementById('modelTag').value
+        viewer.modelTag = modelTag
       }
     </script>
     <style>

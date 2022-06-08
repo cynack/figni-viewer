@@ -1237,8 +1237,9 @@ export default class FigniViewerElement extends HTMLElement {
       loadingText.classList.add('figni-viewer-loading-text')
       loadingProgressBar.appendChild(loadingText)
       this.appendChild(this.#loadingPanel)
-      const progress = (e) => {
+      this.addEventListener('progress', (e) => {
         const p = e.detail.progress
+        console.log(p)
         loadingProgressBar.style.setProperty(
           '--figni-viewer-progress',
           `${Math.ceil(p * 100)}%`
@@ -1246,10 +1247,8 @@ export default class FigniViewerElement extends HTMLElement {
         if (p === 1) {
           this.#hideLoadingPanel()
           this.openTipsPanel(TIPS.DRAG)
-          this.removeEventListener('progress', progress)
         }
-      }
-      this.addEventListener('progress', progress)
+      })
     } else {
       this.#loadingPanel.style.display = ''
     }

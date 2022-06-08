@@ -1239,7 +1239,6 @@ export default class FigniViewerElement extends HTMLElement {
       this.appendChild(this.#loadingPanel)
       this.addEventListener('progress', (e) => {
         const p = e.detail.progress
-        console.log(p)
         loadingProgressBar.style.setProperty(
           '--figni-viewer-progress',
           `${Math.ceil(p * 100)}%`

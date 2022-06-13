@@ -869,9 +869,7 @@ export default class FigniViewerElement extends HTMLElement {
       hotspot.getAttribute('orbit') != null ||
       hotspot.getAttribute('closeup') == ''
     const isVisible = hotspot.getAttribute('to-state') != null
-    const isToggle =
-      hotspot.getAttribute('toggle-text') != null ||
-      hotspot.getAttribute('toggle-clip') != null
+    const isToggle = hotspot.getAttribute('toggle-clip') != null
 
     hotspot.addEventListener('click', (e) => {
       if (this.#clickableHotspot(hotspot)) {
@@ -939,11 +937,13 @@ export default class FigniViewerElement extends HTMLElement {
               toState,
               onStart,
               onEnd: () => {
-                hotspot.childNodes.forEach((child) => {
-                  child.nodeValue = toggle
-                    ? this.#toggleStates[name].baseText
-                    : toggleText
-                })
+                if (toggleText) {
+                  hotspot.childNodes.forEach((child) => {
+                    child.nodeValue = toggle
+                      ? this.#toggleStates[name].baseText
+                      : toggleText
+                  })
+                }
                 onEnd()
               },
             })

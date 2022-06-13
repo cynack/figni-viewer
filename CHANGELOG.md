@@ -11,7 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- 二つの状態を切り替える
+- アニメーションを再生/逆再生して二つの状態を切り替える属性`toggle-clip`を追加
+- `toggle-clip`による変化に応じてキャプション内の文字列を変更する属性`toggle-text`を追加
+- `toggle-clip`による変化に応じて状態を変更する属性`toggle-animation`を追加
 
 ### Changed
 

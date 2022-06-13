@@ -73,6 +73,13 @@ export default class FigniViewerElement extends HTMLElement {
   #arButton
   #toggleVisibleHotspotButton
   #downloadScreenshotButton
+  #helpTopPage
+  #helpContentPage
+  #helpCaptionPage
+  #helpArPage
+  #helpUnknownPage
+  #closeHotspotButton
+  #tempHidedHotspot = null
   #interactionCursors = {}
   #interactionCursorPool = []
   #hotspots = []
@@ -80,6 +87,9 @@ export default class FigniViewerElement extends HTMLElement {
 
   #completedInitialModelLoad = false
   #visibleAllHotspots = true
+  #openedHelpPages = []
+  #tipsHideCallback = null
+  #toggleStates = {}
 
   #ABTEST = {
     AR_BUTTON_TEST: '実物大で見る',
@@ -347,7 +357,7 @@ export default class FigniViewerElement extends HTMLElement {
    * @param {string} clip 再生するアニメーション名
    * @param {{ loopCount: number, reverse: boolean, toState: string, onStart: Function, onEnd: Function }} options オプション
    */
-  async playAnimation(clip = null, options = {}) {
+  playAnimation(clip = null, options = {}) {
     this.#figniViewerBase.playAnimation(clip, options)
     const loopCount = options.loopCount || 1
     const isLoop = loopCount === Infinity
@@ -564,7 +574,6 @@ export default class FigniViewerElement extends HTMLElement {
     hotspot?.remove()
   }
 
-  #openedHelpPages = []
   /**
    * ヘルプページを開く。
    * @param {string} page ページ
@@ -654,7 +663,6 @@ export default class FigniViewerElement extends HTMLElement {
     this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
   }
 
-  #tipsHideCallback = null
   /**
    * Tipsを開く。
    * @param {string} tips Tips
@@ -861,6 +869,7 @@ export default class FigniViewerElement extends HTMLElement {
       hotspot.getAttribute('orbit') != null ||
       hotspot.getAttribute('closeup') == ''
     const isVisible = hotspot.getAttribute('to-state') != null
+    const isToggle = hotspot.getAttribute('toggle-clip') != null
 
     hotspot.addEventListener('click', (e) => {
       if (this.#clickableHotspot(hotspot)) {
@@ -874,7 +883,7 @@ export default class FigniViewerElement extends HTMLElement {
       }
     })
 
-    if (isAnime) {
+    if (isAnime && !isToggle) {
       hotspot.addEventListener('click', (e) => {
         if (this.#clickableHotspot(hotspot)) {
           if (e.target === hotspot) {
@@ -891,6 +900,54 @@ export default class FigniViewerElement extends HTMLElement {
               onStart,
               onEnd,
             })
+          }
+        }
+      })
+    }
+    if (isToggle && !isAnime) {
+      hotspot.addEventListener('click', (e) => {
+        if (this.#clickableHotspot(hotspot)) {
+          if (e.target === hotspot) {
+            const toggleText = hotspot.getAttribute('toggle-text')
+            const toggleClip = hotspot.getAttribute('toggle-clip')
+            const loopCount = Number(hotspot.getAttribute('loopCount')) || 1
+            let reverse = hotspot.getAttribute('reverse') == '' || false
+            const toggleState = hotspot.getAttribute('toggle-state') || name
+            const onStart = Function(hotspot.getAttribute('onstart'))
+            const onEnd = Function(hotspot.getAttribute('onend'))
+            if (!this.#toggleStates[name]) {
+              this.#toggleStates[name] = {
+                baseText: Array.from(hotspot.childNodes)
+                  .map((ch) => ch.nodeValue)
+                  .join(''),
+                toggle: false,
+              }
+            }
+            const toggle = this.#toggleStates[name].toggle
+            if (!toggle) {
+              this.#toggleStates[name].state = this.state
+            }
+            reverse = toggle ? !reverse : reverse
+            const toState = toggle
+              ? this.#toggleStates[name].state
+              : toggleState
+            this.playAnimation(toggleClip, {
+              loopCount,
+              reverse,
+              toState,
+              onStart,
+              onEnd: () => {
+                if (toggleText) {
+                  hotspot.childNodes.forEach((child) => {
+                    child.nodeValue = toggle
+                      ? this.#toggleStates[name].baseText
+                      : toggleText
+                  })
+                }
+                onEnd()
+              },
+            })
+            this.#toggleStates[name].toggle = !this.#toggleStates[name].toggle
           }
         }
       })
@@ -1398,7 +1455,7 @@ export default class FigniViewerElement extends HTMLElement {
       this.appendChild(this.#helpPanelBase)
     }
   }
-  #helpTopPage
+
   #createOrGetHelpTopPage() {
     if (!this.#helpTopPage) {
       this.#helpTopPage = document.createElement('div')
@@ -1536,7 +1593,7 @@ export default class FigniViewerElement extends HTMLElement {
     item.appendChild(itemDescription)
     return item
   }
-  #helpContentPage
+
   #createOrGetHelpContentPage() {
     if (!this.#helpContentPage) {
       this.#helpContentPage = document.createElement('div')
@@ -1594,7 +1651,7 @@ export default class FigniViewerElement extends HTMLElement {
     }
     return this.#helpContentPage
   }
-  #helpCaptionPage
+
   #createOrGetHelpCaptionPage() {
     if (!this.#helpCaptionPage) {
       this.#helpCaptionPage = document.createElement('div')
@@ -1652,7 +1709,7 @@ export default class FigniViewerElement extends HTMLElement {
     }
     return this.#helpCaptionPage
   }
-  #helpArPage
+
   #createOrGetHelpArPage() {
     if (!this.#helpArPage) {
       this.#helpArPage = document.createElement('div')
@@ -1745,7 +1802,7 @@ export default class FigniViewerElement extends HTMLElement {
     item.appendChild(itemDescription)
     return item
   }
-  #helpUnknownPage
+
   #createOrGetHelpUnknownPage() {
     if (!this.#helpUnknownPage) {
       this.#helpUnknownPage = document.createElement('div')
@@ -1809,8 +1866,6 @@ export default class FigniViewerElement extends HTMLElement {
     }
   }
 
-  #closeHotspotButton
-  #tempHidedHotspot = null
   #temporaryHideHotspot(name, hotspot) {
     if (this.#tempHidedHotspot && this.#tempHidedHotspot.name !== name) {
       this.#showTemporaryHidedHotspot()

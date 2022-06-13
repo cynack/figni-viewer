@@ -1243,10 +1243,10 @@ export default class FigniViewerElement extends HTMLElement {
           '--figni-viewer-progress',
           `${Math.ceil(p * 100)}%`
         )
-        if (p === 1) {
-          this.#hideLoadingPanel()
-          this.openTipsPanel(TIPS.DRAG)
-        }
+      })
+      this.addEventListener('load', () => {
+        this.#hideLoadingPanel()
+        this.openTipsPanel(TIPS.DRAG)
       })
     } else {
       this.#loadingPanel.style.display = ''

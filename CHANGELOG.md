@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- 二つの状態を切り替える
+
 ### Changed
 
 ### Deprecated

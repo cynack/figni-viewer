@@ -923,10 +923,12 @@ export default class FigniViewerElement extends HTMLElement {
                   .map((ch) => ch.nodeValue)
                   .join(''),
                 toggle: false,
-                state: this.state,
               }
             }
             const toggle = this.#toggleStates[name].toggle
+            if (!toggle) {
+              this.#toggleStates[name].state = this.state
+            }
             reverse = toggle ? !reverse : reverse
             const toState = toggle
               ? this.#toggleStates[name].state

@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- 稀にローディング画面が消えない問題を修正
+
 ## [1.6.1] - 2022-06-08
 
 ### Added

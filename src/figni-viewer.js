@@ -357,7 +357,7 @@ export default class FigniViewerElement extends HTMLElement {
    * @param {string} clip 再生するアニメーション名
    * @param {{ loopCount: number, reverse: boolean, toState: string, onStart: Function, onEnd: Function }} options オプション
    */
-  async playAnimation(clip = null, options = {}) {
+  playAnimation(clip = null, options = {}) {
     this.#figniViewerBase.playAnimation(clip, options)
     const loopCount = options.loopCount || 1
     const isLoop = loopCount === Infinity

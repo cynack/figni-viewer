@@ -1,6 +1,6 @@
 {
   "name": "@cynack/figni-viewer",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "",
   "main": "./dist/figni-viewer.min.js",
   "files": [
@@ -16,7 +16,7 @@
   "scripts": {
     "test": "http-server ./test -p 9100",
     "build": "webpack --mode=production --node-env=production",
-    "build:dev": "webpack --mode=development",
+    "build:dev": "webpack --mode=production --node-env=development",
     "build:prod": "webpack --mode=production --node-env=production",
     "lint": "npx eslint --fix src",
     "watch": "webpack --watch",

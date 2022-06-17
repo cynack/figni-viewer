@@ -11,15 +11,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- アニメーションを再生/逆再生して二つの状態を切り替える属性`toggle-clip`を追加
-- `toggle-clip`による変化に応じてキャプション内の文字列を変更する属性`toggle-text`を追加
-- `toggle-clip`による変化に応じて状態を変更する属性`toggle-animation`を追加
-
 ### Changed
 
 ### Deprecated
 
 ### Removed
+
+### Fixed
+
+## [1.6.2] - 2022-06-17
+
+### Added
+
+- アニメーションを再生/逆再生して二つの状態を切り替える属性`toggle-clip`を追加
+- `toggle-clip`による変化に応じてキャプション内の文字列を変更する属性`toggle-text`を追加
+- `toggle-clip`による変化に応じて状態を変更する属性`toggle-animation`を追加
 
 ### Fixed
 
@@ -401,7 +407,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - キャプションの表示非表示を変化させる`to-state`属性を追加
 - キャプションの表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.6.1...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.6.2...HEAD
+[1.6.2]: https://github.com/cynack/figni-viewer/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/cynack/figni-viewer/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/cynack/figni-viewer/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/cynack/figni-viewer/compare/v1.5.0...v1.5.1

@@ -199,16 +199,10 @@ export default class FigniViewerElement extends HTMLElement {
     // AB TEST
     if (Math.random() > 0.5) {
       this.#ABTEST.AR_BUTTON_TEST = '目の前に置く'
-      this.#figniViewerBase.registerABTestResult(
-        'ar-button-test',
-        'place-in-front'
-      )
+      this.base.registerABTestResult('ar-button-test', 'place-in-front')
     } else {
       this.#ABTEST.AR_BUTTON_TEST = '実物大で見る'
-      this.#figniViewerBase.registerABTestResult(
-        'ar-button-test',
-        'see-real-size'
-      )
+      this.base.registerABTestResult('ar-button-test', 'see-real-size')
     }
 
     // Figni Help Panel
@@ -219,7 +213,7 @@ export default class FigniViewerElement extends HTMLElement {
 
     // Hotspot
     this.querySelectorAll('[slot^="hotspot-"]').forEach((hotspot) => {
-      this.#hotspots.push(this.#figniViewerBase.appendChild(hotspot))
+      this.#hotspots.push(this.base.appendChild(hotspot))
     })
     await this.updateComplete
     this.#hotspots.forEach((hotspot) => {
@@ -273,14 +267,14 @@ export default class FigniViewerElement extends HTMLElement {
    * @param {string} target 座標("x y z")
    */
   setCameraTarget(target) {
-    if (this.#figniViewerBase.cameraTarget !== target) {
+    if (this.base.cameraTarget !== target) {
       this.#showInitCameraButton()
     }
     this.#setCameraTarget(target)
   }
 
   #setCameraTarget(target) {
-    this.#figniViewerBase.setCameraTarget(target)
+    this.base.setCameraTarget(target)
   }
 
   /**
@@ -288,14 +282,14 @@ export default class FigniViewerElement extends HTMLElement {
    * @param {string} orbit 極座標("deg deg %", "rad rad m", etc.)
    */
   setCameraOrbit(orbit) {
-    if (this.#figniViewerBase.cameraOrbit !== orbit) {
+    if (this.base.cameraOrbit !== orbit) {
       this.#showInitCameraButton()
     }
     this.#setCameraOrbit(orbit)
   }
 
   #setCameraOrbit(orbit) {
-    this.#figniViewerBase.setCameraOrbit(orbit)
+    this.base.setCameraOrbit(orbit)
   }
 
   /**
@@ -304,7 +298,7 @@ export default class FigniViewerElement extends HTMLElement {
   resetCameraTargetAndOrbit() {
     this.setCameraTarget(this.target)
     this.setCameraOrbit(this.orbit)
-    this.#figniViewerBase.setFieldOfView('auto')
+    this.base.setFieldOfView('auto')
     this.#showTemporaryHidedHotspot()
     this.#hideInitCameraButton()
   }
@@ -317,7 +311,7 @@ export default class FigniViewerElement extends HTMLElement {
     this.#hideLoadingPanel()
     try {
       this.#showLoadingPanel()
-      await this.#figniViewerBase.loadModel(
+      await this.base.loadModel(
         this.itemId,
         this.token,
         this.modelTag,
@@ -333,7 +327,7 @@ export default class FigniViewerElement extends HTMLElement {
    * スクリーンショットを撮る
    */
   async downloadScreenshot() {
-    const blob = await this.#figniViewerBase.toBlob({
+    const blob = await this.base.toBlob({
       idealAspect: true,
     })
     const url = URL.createObjectURL(blob)
@@ -349,7 +343,7 @@ export default class FigniViewerElement extends HTMLElement {
    * @return {string[]} アニメーション名の配列
    */
   get availableAnimations() {
-    return this.#figniViewerBase.availableAnimations
+    return this.base.availableAnimations
   }
 
   /**
@@ -358,7 +352,7 @@ export default class FigniViewerElement extends HTMLElement {
    * @param {{ loopCount: number, reverse: boolean, toState: string, onStart: Function, onEnd: Function }} options オプション
    */
   playAnimation(clip = null, options = {}) {
-    this.#figniViewerBase.playAnimation(clip, options)
+    this.base.playAnimation(clip, options)
     const loopCount = options.loopCount || 1
     const isLoop = loopCount === Infinity
     if (!isLoop) {
@@ -434,9 +428,7 @@ export default class FigniViewerElement extends HTMLElement {
     if (!name) {
       throw new SyntaxError('name is required')
     }
-    const existHotspot = this.#figniViewerBase.querySelector(
-      `[slot="hotspot-${name}"]`
-    )
+    const existHotspot = this.base.querySelector(`[slot="hotspot-${name}"]`)
     if (existHotspot) {
       throw new Error(`Hotspot ${name} was already exists`)
     }
@@ -485,7 +477,7 @@ export default class FigniViewerElement extends HTMLElement {
         hotspot.setAttribute('to-state', options.toState)
       }
     }
-    this.#figniViewerBase.appendChild(hotspot)
+    this.base.appendChild(hotspot)
 
     await this.updateComplete
     this.#modifyHotspot(hotspot)
@@ -504,9 +496,7 @@ export default class FigniViewerElement extends HTMLElement {
     if (!name) {
       throw new SyntaxError('name is required')
     }
-    const hotspot = this.#figniViewerBase.querySelector(
-      `[slot="hotspot-${name}"]`
-    )
+    const hotspot = this.base.querySelector(`[slot="hotspot-${name}"]`)
     if (!hotspot) {
       throw new ReferenceError(`Hotspot ${name} not found`)
     }
@@ -568,9 +558,7 @@ export default class FigniViewerElement extends HTMLElement {
    * @param {string} name キャプション名
    */
   removeHotspot(name) {
-    const hotspot = this.#figniViewerBase.querySelector(
-      `[slot="hotspot-${name}"]`
-    )
+    const hotspot = this.base.querySelector(`[slot="hotspot-${name}"]`)
     hotspot?.remove()
   }
 
@@ -607,11 +595,11 @@ export default class FigniViewerElement extends HTMLElement {
         this.resetCameraTargetAndOrbit()
       } else {
         openPage.style.left = '100%'
-        this.#figniViewerBase.endMesureHelpPage(
+        this.base.endMesureHelpPage(
           this.#openedHelpPages[this.#openedHelpPages.length - 1].name
         )
       }
-      this.#figniViewerBase.startMesureHelpPage(page)
+      this.base.startMesureHelpPage(page)
       openPage.scrollTop = 0
       this.#helpPanelBase.appendChild(openPage)
       this.#openedHelpPages.push({
@@ -630,9 +618,9 @@ export default class FigniViewerElement extends HTMLElement {
     if (this.#openedHelpPages.length > 1) {
       const openedPage = this.#openedHelpPages.pop()
       openedPage.page.style.left = '100%'
-      this.#figniViewerBase.endMesureHelpPage(openedPage.name)
+      this.base.endMesureHelpPage(openedPage.name)
       if (this.#openedHelpPages[this.#openedHelpPages.length - 1]) {
-        this.#figniViewerBase.startMesureHelpPage(
+        this.base.startMesureHelpPage(
           this.#openedHelpPages[this.#openedHelpPages.length - 1].name
         )
       }
@@ -655,7 +643,7 @@ export default class FigniViewerElement extends HTMLElement {
       this.#helpPanelBase.firstChild.remove()
     }
     if (this.#openedHelpPages.length > 0) {
-      this.#figniViewerBase.endMesureHelpPage(
+      this.base.endMesureHelpPage(
         this.#openedHelpPages[this.#openedHelpPages.length - 1].name
       )
     }
@@ -755,7 +743,7 @@ export default class FigniViewerElement extends HTMLElement {
     this.#interactionCursorPool.push(
       ...[...Array(3)].map(() => this.#createCursor())
     )
-    this.#figniViewerBase.addEventListener('pointerdown', (e) => {
+    this.base.addEventListener('pointerdown', (e) => {
       if (!this.#interactionCursors[e.pointerId]) {
         const rect = e.currentTarget.getBoundingClientRect()
         const cursor = this.#getOrCreateCursor(
@@ -765,7 +753,7 @@ export default class FigniViewerElement extends HTMLElement {
         this.#interactionCursors[e.pointerId] = cursor
       }
     })
-    this.#figniViewerBase.addEventListener('pointermove', (e) => {
+    this.base.addEventListener('pointermove', (e) => {
       if (this.#interactionCursors[e.pointerId]) {
         const rect = e.currentTarget.getBoundingClientRect()
         this.#moveCursor(
@@ -775,13 +763,13 @@ export default class FigniViewerElement extends HTMLElement {
         )
       }
     })
-    this.#figniViewerBase.addEventListener('pointerup', (e) => {
+    this.base.addEventListener('pointerup', (e) => {
       if (this.#interactionCursors[e.pointerId]) {
         this.#deleteCursor(this.#interactionCursors[e.pointerId])
         delete this.#interactionCursors[e.pointerId]
       }
     })
-    this.#figniViewerBase.addEventListener('pointerout', (e) => {
+    this.base.addEventListener('pointerout', (e) => {
       if (this.#interactionCursors[e.pointerId]) {
         this.#deleteCursor(this.#interactionCursors[e.pointerId])
         delete this.#interactionCursors[e.pointerId]
@@ -796,9 +784,7 @@ export default class FigniViewerElement extends HTMLElement {
   }
 
   #createCursor() {
-    const cursor = this.#figniViewerBase.appendChild(
-      document.createElement('div')
-    )
+    const cursor = this.base.appendChild(document.createElement('div'))
     cursor.classList.add('figni-viewer-interaction-cursor')
     return cursor
   }
@@ -847,14 +833,14 @@ export default class FigniViewerElement extends HTMLElement {
       hotspot.getAttribute('position') || SETTINGS.DEFAULT_HOTSPOT_POSITION
     )
     if (hotspot.getAttribute('normal')) {
-      this.#figniViewerBase.updateHotspot({
+      this.base.updateHotspot({
         name: hotspot.getAttribute('slot'),
         position: hotspot.getAttribute('position'),
         normal: hotspot.getAttribute('normal'),
       })
     } else {
       hotspot.classList.add('figni-viewer-hotspot-no-normal')
-      this.#figniViewerBase.updateHotspot({
+      this.base.updateHotspot({
         name: hotspot.getAttribute('slot'),
         position: hotspot.getAttribute('position'),
       })
@@ -875,9 +861,9 @@ export default class FigniViewerElement extends HTMLElement {
       if (this.#clickableHotspot(hotspot)) {
         if (e.target === hotspot) {
           if (this.#tempHidedHotspot?.name !== name) {
-            this.#figniViewerBase.incrementHotspotClickCount(name)
+            this.base.incrementHotspotClickCount(name)
           }
-          this.#figniViewerBase.disableInteractionPrompt()
+          this.base.disableInteractionPrompt()
           hotspot.classList.remove('figni-viewer-hotspot-highlight')
         }
       }
@@ -962,8 +948,8 @@ export default class FigniViewerElement extends HTMLElement {
               SETTINGS.DEFAULT_HOTSPOT_POSITION
             const orbit = hotspot.getAttribute('orbit') || this.orbit
             if (
-              this.#figniViewerBase.cameraTarget === target &&
-              this.#figniViewerBase.cameraOrbit === orbit
+              this.base.cameraTarget === target &&
+              this.base.cameraOrbit === orbit
             ) {
               this.resetCameraTargetAndOrbit()
             } else {
@@ -997,14 +983,10 @@ export default class FigniViewerElement extends HTMLElement {
           panels.forEach((panel) => {
             if (panel.classList.contains('figni-viewer-panel-hide')) {
               const baseWidth = Number(
-                window
-                  .getComputedStyle(this.#figniViewerBase)
-                  .width.slice(0, -2)
+                window.getComputedStyle(this.base).width.slice(0, -2)
               )
               const baseHeight = Number(
-                window
-                  .getComputedStyle(this.#figniViewerBase)
-                  .height.slice(0, -2)
+                window.getComputedStyle(this.base).height.slice(0, -2)
               )
               const hotspotWidth = Number(
                 window.getComputedStyle(hotspot).width.slice(0, -2)
@@ -1063,7 +1045,7 @@ export default class FigniViewerElement extends HTMLElement {
   #clickableHotspot(hotspot) {
     const isClickableOpacity = window.getComputedStyle(hotspot).opacity > 0.5
     const isClickablePosition = (function (_this) {
-      const viewerRect = _this.#figniViewerBase.getBoundingClientRect()
+      const viewerRect = _this.base.getBoundingClientRect()
       const hotspotRect = hotspot.getBoundingClientRect()
       const hotspotRectSize = hotspotRect.width * hotspotRect.height
       const viewHotspotRectSize =
@@ -1122,10 +1104,10 @@ export default class FigniViewerElement extends HTMLElement {
       panel,
       'figni-viewer-panel-hide',
       (p) => {
-        this.#figniViewerBase.endMesurePanel(name)
+        this.base.endMesurePanel(name)
       },
       (p) => {
-        this.#figniViewerBase.startMesurePanel(name)
+        this.base.startMesurePanel(name)
       }
     )
   }
@@ -1139,7 +1121,7 @@ export default class FigniViewerElement extends HTMLElement {
       this.#interactionPrompt.classList.add('figni-viewer-interaction-prompt')
       this.#interactionPrompt.innerHTML = SVG_INTERACTION_PROMPT
       this.#interactionPrompt.setAttribute('slot', 'interaction-prompt')
-      this.#figniViewerBase.appendChild(this.#interactionPrompt)
+      this.base.appendChild(this.#interactionPrompt)
     } else {
       this.#interactionPrompt.style.display = ''
     }
@@ -1165,19 +1147,19 @@ export default class FigniViewerElement extends HTMLElement {
       }</span>`
       this.#arButton.classList.add('figni-viewer-ar-button')
       this.addEventListener('load', () => {
-        if (this.#figniViewerBase.canActivateAR) {
+        if (this.base.canActivateAR) {
           this.#arButton.setAttribute('slot', 'ar-button')
         } else {
           this.#arButton.removeAttribute('slot')
         }
       })
       this.#arButton.addEventListener('click', () => {
-        this.#figniViewerBase.tryActivateAR()
-        if (!this.#figniViewerBase.canActivateAR) {
+        this.base.tryActivateAR()
+        if (!this.base.canActivateAR) {
           this.#showQRCodePanel()
         }
       })
-      this.#figniViewerBase.appendChild(this.#arButton)
+      this.base.appendChild(this.#arButton)
     } else {
       this.#arButton.style.display = ''
     }
@@ -1190,7 +1172,7 @@ export default class FigniViewerElement extends HTMLElement {
       this.#qrCodePanel.addEventListener('click', () => {
         this.#hideQRCodePanel()
       })
-      this.#figniViewerBase.appendChild(this.#qrCodePanel)
+      this.base.appendChild(this.#qrCodePanel)
       const bg = document.createElement('div')
       bg.classList.add('figni-viewer-qrcode-panel-bg')
       this.#qrCodePanel.appendChild(bg)
@@ -1241,7 +1223,7 @@ export default class FigniViewerElement extends HTMLElement {
         this.resetCameraTargetAndOrbit()
         this.#closeAllPanels()
       })
-      this.#figniViewerBase.appendChild(this.#initCameraButton)
+      this.base.appendChild(this.#initCameraButton)
     } else {
       this.#initCameraButton.style.display = ''
     }
@@ -1301,9 +1283,19 @@ export default class FigniViewerElement extends HTMLElement {
           `${Math.ceil(p * 100)}%`
         )
       })
-      this.addEventListener('load', () => {
+      const hide = () => {
         this.#hideLoadingPanel()
         this.openTipsPanel(TIPS.DRAG)
+      }
+      const timer = setInterval(() => {
+        if (this.base.loaded && this.base.modelIsVisible) {
+          hide()
+          clearInterval(timer)
+        }
+      }, 1000)
+      this.addEventListener('load', () => {
+        hide()
+        clearInterval(timer)
       })
     } else {
       this.#loadingPanel.style.display = ''
@@ -1343,7 +1335,7 @@ export default class FigniViewerElement extends HTMLElement {
       reloadButton.innerText = '再読み込み'
       reloadButton.classList.add('figni-viewer-error-reload-button')
       reloadButton.addEventListener('click', () => {
-        this.#figniViewerBase.loadModel(this.itemId, this.token, this.modelTag)
+        this.base.loadModel(this.itemId, this.token, this.modelTag)
       })
       this.#errorPanel.appendChild(reloadButton)
       this.appendChild(this.#errorPanel)
@@ -1379,7 +1371,7 @@ export default class FigniViewerElement extends HTMLElement {
         this.toggleVisibleHotspot(this.#visibleAllHotspots)
       })
       this.toggleVisibleHotspot(this.#visibleAllHotspots)
-      this.#figniViewerBase.appendChild(this.#toggleVisibleHotspotButton)
+      this.base.appendChild(this.#toggleVisibleHotspotButton)
     } else {
       this.#toggleVisibleHotspotButton.style.display = ''
     }
@@ -1407,7 +1399,7 @@ export default class FigniViewerElement extends HTMLElement {
       this.#downloadScreenshotButton.addEventListener('click', () => {
         this.downloadScreenshot()
       })
-      this.#figniViewerBase.appendChild(this.#downloadScreenshotButton)
+      this.base.appendChild(this.#downloadScreenshotButton)
     } else {
       this.#downloadScreenshotButton.style.display = ''
     }
@@ -1441,7 +1433,7 @@ export default class FigniViewerElement extends HTMLElement {
           this.closeHelpPanel()
         }
       })
-      this.#figniViewerBase.appendChild(this.#helpButton)
+      this.base.appendChild(this.#helpButton)
     } else {
       this.#helpButton.style.display = ''
     }
@@ -1862,7 +1854,7 @@ export default class FigniViewerElement extends HTMLElement {
       const animation = document.createElement('div')
       animation.classList.add('figni-viewer-tips-panel-animation')
       this.#tipsPanel.appendChild(animation)
-      this.#figniViewerBase.appendChild(this.#tipsPanel)
+      this.base.appendChild(this.#tipsPanel)
     }
   }
 

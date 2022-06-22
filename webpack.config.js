@@ -58,6 +58,8 @@ const config = {
   plugins: [
     new webpack.DefinePlugin({
       VERSION: JSON.stringify(process.env.VERSION),
+      API_BASE: JSON.stringify('https://api.figni.io/api'),
+      WEBSOCKET_BASE: JSON.stringify('wss://api.figni.io/ws'),
     }),
   ],
 }

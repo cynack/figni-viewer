@@ -51,12 +51,16 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
    * @param {string} token トークン
    * @param {string} modelTag モデルのタグ
    * @param {string[]} tag タグの配列
+   * @param {boolean} isStaging stagig 環境向けか
    */
-  async loadModel(itemId, token, modelTag = null, tag = []) {
+  async loadModel(itemId, token, modelTag = null, tag = [], isStaging = false) {
     if (itemId && token) {
       const tagStr = modelTag ? `?tag=${modelTag}` : ''
+      const apiBase = !isStaging
+        ? 'https://api.figni.io/api'
+        : 'https://api.stg.figni.io/api'
       const res = await axios.get(
-        `${API_BASE}/item/${itemId}/model_search${tagStr}`,
+        `${apiBase}/item/${itemId}/model_search${tagStr}`,
         {
           headers: {
             accept: 'application/json',
@@ -88,7 +92,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         }
       })
 
-      this.#initializeWebSocket(itemId, token, tag)
+      this.#initializeWebSocket(itemId, token, tag, isStaging)
     } else {
       throw new ReferenceError('ErrNotSetItemIdOrClientToken')
     }
@@ -322,18 +326,24 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     }
   }
 
-  async #initializeWebSocket(itemId, token, tag = []) {
+  async #initializeWebSocket(itemId, token, tag = [], isStaging = false) {
     if (this.#websocket) {
       this.#websocket.close()
     }
 
-    const { data } = await axios.get(`${API_BASE}/config`, {
+    const apiBase = !isStaging
+      ? 'https://api.figni.io/api'
+      : 'https://api.stg.figni.io/api'
+    const { data } = await axios.get(`${apiBase}/config`, {
       headers: { 'X-Figni-Client-Token': token },
     })
 
     const canAnalytics = data?.analytics === true
     if (canAnalytics) {
-      this.#websocket = new WebSocket(WEBSOCKET_BASE)
+      const websocketBase = !isStaging
+        ? 'wss://api.figni.io/ws'
+        : 'wss://api.stg.figni.io/ws'
+      this.#websocket = new WebSocket(websocketBase)
 
       startMesure('stay-time')
       startMesure('initial-model-view-time')

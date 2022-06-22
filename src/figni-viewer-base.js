@@ -56,9 +56,10 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   async loadModel(itemId, token, modelTag = null, tag = [], isStaging = false) {
     if (itemId && token) {
       const tagStr = modelTag ? `?tag=${modelTag}` : ''
-      const apiBase = !isStaging
-        ? 'https://api.figni.io/api'
-        : 'https://api.stg.figni.io/api'
+      let apiBase = API_BASE
+      if (isStaging) {
+        apiBase = 'https://api.stg.figni.io/api'
+      }
       const res = await axios.get(
         `${apiBase}/item/${itemId}/model_search${tagStr}`,
         {
@@ -331,18 +332,20 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       this.#websocket.close()
     }
 
-    const apiBase = !isStaging
-      ? 'https://api.figni.io/api'
-      : 'https://api.stg.figni.io/api'
+    let apiBase = API_BASE
+    if (isStaging) {
+      apiBase = 'https://api.stg.figni.io/api'
+    }
     const { data } = await axios.get(`${apiBase}/config`, {
       headers: { 'X-Figni-Client-Token': token },
     })
 
     const canAnalytics = data?.analytics === true
     if (canAnalytics) {
-      const websocketBase = !isStaging
-        ? 'wss://api.figni.io/ws'
-        : 'wss://api.stg.figni.io/ws'
+      let websocketBase = WEBSOCKET_BASE
+      if (isStaging) {
+        websocketBase = 'wss://api.stg.figni.io/ws'
+      }
       this.#websocket = new WebSocket(websocketBase)
 
       startMesure('stay-time')

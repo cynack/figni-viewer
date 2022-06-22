@@ -14,17 +14,17 @@ jobs:
       matrix:
         node-version: [14.x]
     steps:
-      - uses: actions/checkout@v2
-      - name: setup node ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - name: Setup Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: "https://registry.npmjs.org"
-      - name: npm install, build and publish
+      - name: Install dependencies, Build and Publish
         run: |
-          npm ci
-          npm run build
-          npm publish --access public
+          yarn install
+          yarn run build
+          yarn publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           VERSION: ${{ github.sha }}

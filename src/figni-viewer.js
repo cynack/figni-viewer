@@ -39,7 +39,6 @@ const OBSERBED_ATTRIBUTES = [
   'screenshot',
   'toggle-caption',
   'state',
-  'environment-image',
 ]
 const SETTINGS = {
   DEFAULT_CAMERA_TARGET: 'auto auto auto',
@@ -149,6 +148,10 @@ export default class FigniViewerElement extends HTMLElement {
 
   set state(value) {
     this.setAttribute('state', value)
+  }
+
+  get isStaging() {
+    return this.getAttribute('staging') === ''
   }
 
   get base() {
@@ -315,7 +318,8 @@ export default class FigniViewerElement extends HTMLElement {
         this.itemId,
         this.token,
         this.modelTag,
-        this.tag
+        this.tag,
+        this.isStaging
       )
     } catch (e) {
       this.#hideLoadingPanel()

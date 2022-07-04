@@ -20,15 +20,10 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   #abtest = {}
   #events = {}
 
-  constructor() {
-    super()
-
-    // model-viewer setup
-    this.#setupModelViewer()
-  }
-
   async connectedCallback() {
     super.connectedCallback()
+
+    this.#setupModelViewer()
 
     const style = document.createElement('style')
     style.textContent = `

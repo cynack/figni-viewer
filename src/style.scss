@@ -6,6 +6,8 @@ figni-viewer {
   display: flex;
   background-color: var(--figni-viewer-background);
   overflow: hidden;
+  height: 320px;
+  min-height: 320px;
   figni-viewer-base {
     flex: 1;
     flex-direction: column;

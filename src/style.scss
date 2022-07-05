@@ -13,6 +13,7 @@ figni-viewer {
     flex-direction: column;
     height: 100%;
     width: 0;
+    min-height: 1px;
   }
   --figni-viewer-primary: #ff733b;
   --figni-viewer-secondary: #3b5eff;

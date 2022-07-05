@@ -1292,11 +1292,9 @@ export default class FigniViewerElement extends HTMLElement {
         this.openTipsPanel(TIPS.DRAG)
       }
       const timer = setInterval(() => {
-        if (this.base.loaded && this.base.modelIsVisible) {
-          hide()
-          clearInterval(timer)
-        }
-      }, 1000)
+        hide()
+        clearInterval(timer)
+      }, 3000)
       this.addEventListener('load', () => {
         hide()
         clearInterval(timer)

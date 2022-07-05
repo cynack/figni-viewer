@@ -165,28 +165,28 @@ export default class FigniViewerElement extends HTMLElement {
 
   async connectedCallback() {
     // Figni Viewer Base
-    if (!this.#figniViewerBase) {
+    if (!this.base) {
       this.#figniViewerBase = document.createElement('figni-viewer-base')
       // イベントの登録
-      this.#figniViewerBase.addEventListener('load', () => {
+      this.base.addEventListener('load', () => {
         this.dispatchEvent(new CustomEvent('load'))
       })
-      this.#figniViewerBase.addEventListener('progress', (e) => {
+      this.base.addEventListener('progress', (e) => {
         this.dispatchEvent(
           new CustomEvent('progress', {
             detail: { progress: e.detail.totalProgress },
           })
         )
       })
-      this.#figniViewerBase.addEventListener('finished', () => {
+      this.base.addEventListener('finished', () => {
         this.dispatchEvent(new CustomEvent('animation-finished'))
       })
-      this.#figniViewerBase.addEventListener('camera-change', (e) => {
+      this.base.addEventListener('camera-change', (e) => {
         this.dispatchEvent(
           new CustomEvent('camera-change', { detail: e.detail })
         )
       })
-      this.appendChild(this.#figniViewerBase)
+      this.appendChild(this.base)
     }
 
     this.addEventListener('camera-change', (e) => {

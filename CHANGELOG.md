@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- ロード画面が消えない問題を修正
+- 軽微な問題を修正
+
 ## [1.6.3] - 2022-06-20
 
 ### Fixed

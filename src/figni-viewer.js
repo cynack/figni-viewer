@@ -1287,17 +1287,9 @@ export default class FigniViewerElement extends HTMLElement {
           `${Math.ceil(p * 100)}%`
         )
       })
-      const hide = () => {
+      this.addEventListener('load', () => {
         this.#hideLoadingPanel()
         this.openTipsPanel(TIPS.DRAG)
-      }
-      const timer = setInterval(() => {
-        hide()
-        clearInterval(timer)
-      }, 3000)
-      this.addEventListener('load', () => {
-        hide()
-        clearInterval(timer)
       })
     } else {
       this.#loadingPanel.style.display = ''

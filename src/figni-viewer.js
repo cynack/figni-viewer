@@ -1185,12 +1185,12 @@ export default class FigniViewerElement extends HTMLElement {
       QRCode.toString(window.location.href, { width: 100 }, (err, str) => {
         if (!err) {
           const title = document.createElement('div')
-          title.innerText = '実物大で見る'
+          title.innerText = this.#ABTEST.AR_BUTTON_TEST
           title.classList.add('figni-viewer-qrcode-panel-title')
           panel.appendChild(title)
           const text = document.createElement('div')
           text.innerText =
-            'この機能はスマートフォンでのみ利用可能です。下記QRコードを読み取るとスマートフォンで閲覧できます。'
+            'この機能はスマートフォンでのみ利用可能です(一部端末除く)。スマートフォンで下記QRコードを読み取ると閲覧できます。'
           text.classList.add('figni-viewer-qrcode-panel-text')
           panel.appendChild(text)
           panel.innerHTML += str.replace('#000000', '#222428')

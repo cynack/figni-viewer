@@ -809,8 +809,8 @@ export default class FigniViewerElement extends HTMLElement {
     cursor.style.top = `${y}px`
     cursor.style.left = `${x}px`
     cursor.style.opacity = 0.075
-    cursor.style.width = '8rem'
-    cursor.style.height = '8rem'
+    cursor.style.width = '8em'
+    cursor.style.height = '8em'
   }
 
   #deleteCursor(cursor) {
@@ -1004,34 +1004,34 @@ export default class FigniViewerElement extends HTMLElement {
                 panel.style.maxWidth = `${baseWidth / 2}px`
                 panel.style.maxHeight = `calc(${
                   (baseHeight - hotspotHeight) / 2
-                }px - 1rem)`
+                }px - 1em)`
               } else if (v === 'top' && (h === 'left' || h === 'right')) {
                 panel.style.maxWidth = `calc(${
                   (baseWidth - hotspotWidth) / 2
-                }px - 0.5rem)`
+                }px - 0.5em)`
                 panel.style.maxHeight = `calc(${
                   (baseHeight - hotspotHeight) / 2
-                }px - 2.25rem)`
+                }px - 2.25em)`
               } else if (v === 'middle' && h == 'center') {
                 panel.style.maxWidth = `${baseWidth / 2}px`
-                panel.style.maxHeight = `calc(${baseHeight}px - 4rem)`
+                panel.style.maxHeight = `calc(${baseHeight}px - 4em)`
               } else if (v === 'middle' && (h === 'left' || h === 'right')) {
                 panel.style.maxWidth = `calc(${
                   (baseWidth - hotspotWidth) / 2
-                }px - 1.5rem)`
-                panel.style.maxHeight = `calc(${baseHeight}px - 4rem)`
+                }px - 1.5em)`
+                panel.style.maxHeight = `calc(${baseHeight}px - 4em)`
               } else if (v === 'bottom' && h == 'center') {
                 panel.style.maxWidth = `${baseWidth / 2}px`
                 panel.style.maxHeight = `calc(${
                   (baseHeight - hotspotHeight) / 2
-                }px - 1rem)`
+                }px - 1em)`
               } else if (v === 'bottom' && (h === 'left' || h === 'right')) {
                 panel.style.maxWidth = `calc(${
                   (baseWidth - hotspotWidth) / 2
-                }px - 0.5rem)`
+                }px - 0.5em)`
                 panel.style.maxHeight = `calc(${
                   (baseHeight - hotspotHeight) / 2
-                }px - 2.25rem)`
+                }px - 2.25em)`
               }
               panel.classList.remove('figni-viewer-panel-hide')
             } else {
@@ -1486,7 +1486,7 @@ export default class FigniViewerElement extends HTMLElement {
         // 矢印アイコンを追加
         const btnArrow = document.createElement('span')
         btnArrow.innerHTML = SVG_HELP_ARROW
-        btnArrow.style.height = '1.25rem'
+        btnArrow.style.height = '1.25em'
         titleHolder.appendChild(btnArrow)
         // クリックイベントを設定
         helpBtn.onclick = () => {
@@ -1513,7 +1513,7 @@ export default class FigniViewerElement extends HTMLElement {
       // はてなアイコンを追加
       const btnIcon = document.createElement('span')
       btnIcon.innerHTML = SVG_HELP_UNKNOWN_ICON
-      btnIcon.style.height = '1.75rem'
+      btnIcon.style.height = '1.75em'
       unknownBtn.appendChild(btnIcon)
       // テキストを追加
       const btnText = document.createElement('h4')
@@ -1537,7 +1537,7 @@ export default class FigniViewerElement extends HTMLElement {
       figniLogo.setAttribute('target', '_blank')
       figniLogo.innerHTML = SVG_FIGNI_LOGO
       figniLogo.style.display = 'block'
-      figniLogo.style.width = '3rem'
+      figniLogo.style.width = '3em'
       footer.appendChild(figniLogo)
       page.appendChild(footer)
     }
@@ -1615,7 +1615,7 @@ export default class FigniViewerElement extends HTMLElement {
       // はてなアイコンを追加
       const btnIcon = document.createElement('span')
       btnIcon.innerHTML = SVG_HELP_UNKNOWN_ICON
-      btnIcon.style.height = '1.75rem'
+      btnIcon.style.height = '1.75em'
       unknownBtn.appendChild(btnIcon)
       // テキストを追加
       const btnText = document.createElement('h4')
@@ -1673,7 +1673,7 @@ export default class FigniViewerElement extends HTMLElement {
       // はてなアイコンを追加
       const btnIcon = document.createElement('span')
       btnIcon.innerHTML = SVG_HELP_UNKNOWN_ICON
-      btnIcon.style.height = '1.75rem'
+      btnIcon.style.height = '1.75em'
       unknownBtn.appendChild(btnIcon)
       // テキストを追加
       const btnText = document.createElement('h4')
@@ -1751,7 +1751,7 @@ export default class FigniViewerElement extends HTMLElement {
       // はてなアイコンを追加
       const btnIcon = document.createElement('span')
       btnIcon.innerHTML = SVG_HELP_UNKNOWN_ICON
-      btnIcon.style.height = '1.75rem'
+      btnIcon.style.height = '1.75em'
       unknownBtn.appendChild(btnIcon)
       // テキストを追加
       const btnText = document.createElement('h4')

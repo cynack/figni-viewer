@@ -8,6 +8,12 @@ figni-viewer {
   overflow: hidden;
   height: 320px;
   min-height: 320px;
+  font-size: 16px !important;
+  * {
+    font-size: 1em;
+    font-family: var(--figni-viewer-font);
+    color: var(--figni-viewer-text);
+  }
   figni-viewer-base {
     flex: 1;
     flex-direction: column;
@@ -25,21 +31,16 @@ figni-viewer {
   --figni-viewer-font: 'Noto Sans JP', sans-serif;
 }
 
-figni-viewer * {
-  font-family: var(--figni-viewer-font);
-  color: var(--figni-viewer-text);
-}
-
 .figni-viewer-hotspot {
   display: block;
   box-sizing: border-box;
-  min-width: 1.25rem;
-  min-height: 1.25rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 1rem;
+  min-width: 1.25em;
+  min-height: 1.25em;
+  padding: 0.25em 0.5em;
+  border-radius: 1em;
   border: none;
   background-color: var(--figni-viewer-primary);
-  font-size: 0.75rem;
+  font-size: 0.75em;
   color: white;
   backdrop-filter: blur(3px);
   position: relative;
@@ -49,11 +50,11 @@ figni-viewer * {
 
 @keyframes highlight-hotspot {
   0% {
-    box-shadow: 0 0 0 0rem var(--figni-viewer-primary);
+    box-shadow: 0 0 0 0em var(--figni-viewer-primary);
     opacity: 0.4;
   }
   100% {
-    box-shadow: 0 0 0 1rem var(--figni-viewer-primary);
+    box-shadow: 0 0 0 1em var(--figni-viewer-primary);
     opacity: 0;
   }
 }
@@ -64,12 +65,12 @@ figni-viewer * {
   position: absolute;
   width: 100%;
   height: 100%;
-  border-radius: 2.5rem;
+  border-radius: 2.5em;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 0 0 0.4rem var(--figni-viewer-primary);
+  box-shadow: 0 0 0 0.4em var(--figni-viewer-primary);
   opacity: 0.2;
 }
 
@@ -82,10 +83,10 @@ figni-viewer * {
   content: '';
   display: block;
   position: absolute;
-  width: calc(100% + 2rem);
-  height: calc(100% + 2rem);
+  width: calc(100% + 2em);
+  height: calc(100% + 2em);
   cursor: pointer;
-  border-radius: 2.5rem;
+  border-radius: 2.5em;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -102,8 +103,8 @@ figni-viewer * {
 }
 
 .figni-viewer-hotspot-close-button {
-  width: 0.75rem;
-  height: 1.25rem;
+  width: 0.75em;
+  height: 1.25em;
   svg {
     position: absolute;
     top: 50%;
@@ -115,7 +116,7 @@ figni-viewer * {
 .figni-viewer-panel {
   width: 240px;
   background-color: white;
-  border-radius: 0.5rem;
+  border-radius: 0.5em;
   overflow-y: auto;
   text-align: left;
   position: absolute;
@@ -138,31 +139,31 @@ figni-viewer * {
   strong {
     font-weight: 700;
     color: var(--figni-viewer-text);
-    margin: 0.5rem;
+    margin: 0.5em;
   }
 
   p,
   i {
     color: var(--figni-viewer-gray-shade-30);
-    margin: 0.5rem;
+    margin: 0.5em;
   }
 
   a {
     color: var(--figni-viewer-secondary);
-    margin: 0.5rem;
+    margin: 0.5em;
   }
 
   img {
     width: 100%;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.5em;
   }
 
   button {
-    width: calc(100% - 1rem);
-    padding: 0.5rem;
-    margin: 0.5rem;
+    width: calc(100% - 1em);
+    padding: 0.5em;
+    margin: 0.5em;
     background-color: var(--figni-viewer-secondary);
-    border-radius: 0.25rem;
+    border-radius: 0.25em;
     border: none;
     cursor: pointer;
     color: white;
@@ -180,7 +181,7 @@ figni-viewer * {
 .figni-viewer-panel-place-center-top {
   top: 0;
   left: 50%;
-  transform: translateX(-50%) translateY(-100%) translateY(-0.75rem);
+  transform: translateX(-50%) translateY(-100%) translateY(-0.75em);
 }
 
 .figni-viewer-panel-place-right-top {
@@ -192,7 +193,7 @@ figni-viewer * {
 .figni-viewer-panel-place-left-middle {
   top: 50%;
   left: 0;
-  transform: translateX(-100%) translateX(-1rem) translateY(-50%);
+  transform: translateX(-100%) translateX(-1em) translateY(-50%);
 }
 
 .figni-viewer-panel-place-center-middle {
@@ -204,7 +205,7 @@ figni-viewer * {
 .figni-viewer-panel-place-right-middle {
   top: 50%;
   right: 0;
-  transform: translateX(100%) translateX(1rem) translateY(-50%);
+  transform: translateX(100%) translateX(1em) translateY(-50%);
 }
 
 .figni-viewer-panel-place-left-bottom {
@@ -216,7 +217,7 @@ figni-viewer * {
 .figni-viewer-panel-place-center-bottom {
   bottom: 0;
   left: 50%;
-  transform: translateX(-50%) translateY(100%) translateY(0.75rem);
+  transform: translateX(-50%) translateY(100%) translateY(0.75em);
 }
 
 .figni-viewer-panel-place-right-bottom {
@@ -230,11 +231,11 @@ figni-viewer * {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  top: 0.5rem;
-  left: 0.5rem;
-  border-radius: 0.5rem;
+  width: 2.5em;
+  height: 2.5em;
+  top: 0.5em;
+  left: 0.5em;
+  border-radius: 0.5em;
   border: none;
   color: white;
   background-color: var(--figni-viewer-error);
@@ -245,8 +246,8 @@ figni-viewer * {
 }
 
 .figni-viewer-init-camera-button svg {
-  width: 0.875rem;
-  height: 0.875rem;
+  width: 0.875em;
+  height: 0.875em;
 }
 
 .figni-viewer-ar-button {
@@ -254,22 +255,22 @@ figni-viewer * {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 2.5rem;
-  left: 0.5rem;
-  bottom: 0.5rem;
+  height: 2.5em;
+  left: 0.5em;
+  bottom: 0.5em;
   background-color: white;
   border: none;
-  border-radius: 2rem;
-  padding: 0 1.25rem;
+  border-radius: 2em;
+  padding: 0 1.25em;
   font-weight: bold;
   z-index: 9998;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
   svg {
-    width: 0.875rem;
-    height: 0.875rem;
-    margin-right: 0.3rem;
+    width: 0.875em;
+    height: 0.875em;
+    margin-right: 0.3em;
     path {
       fill: var(--figni-viewer-primary);
     }
@@ -280,7 +281,7 @@ figni-viewer * {
     font-size: 12px;
     font-family: var(--figni-viewer-font);
     font-weight: bold;
-    margin-bottom: 0.1rem;
+    margin-bottom: 0.1em;
   }
 }
 
@@ -289,11 +290,11 @@ figni-viewer * {
   display: block;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.5em;
+  height: 2.5em;
   padding: 0;
-  left: 0.5rem;
-  bottom: 0.5rem;
+  left: 0.5em;
+  bottom: 0.5em;
   white-space: nowrap;
   border-radius: 50%;
   border: none;
@@ -303,8 +304,8 @@ figni-viewer * {
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
   svg {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1.25em;
+    height: 1.25em;
     top: 50%;
     left: 50%;
     position: absolute;
@@ -326,11 +327,11 @@ figni-viewer * {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.5em;
+  height: 2.5em;
   padding: 0;
-  left: 0.5rem;
-  bottom: 0.5rem;
+  left: 0.5em;
+  bottom: 0.5em;
   white-space: nowrap;
   border-radius: 50%;
   border: none;
@@ -342,8 +343,8 @@ figni-viewer * {
 }
 
 .figni-viewer-download-screenshot-button svg {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1.1em;
+  height: 1.1em;
   transform: translateX(-0.5px) translateY(-0.5px);
 }
 
@@ -354,7 +355,7 @@ figni-viewer * {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 2em;
   background-color: var(--figni-viewer-background);
   box-sizing: border-box;
   z-index: 9999;
@@ -392,13 +393,13 @@ figni-viewer * {
 
 .figni-viewer-loading-progress-bar {
   position: absolute;
-  bottom: 2rem;
+  bottom: 2em;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 0.3rem 1rem;
+  padding: 0.3em 1em;
   background-color: white;
-  border-radius: 1.5rem;
+  border-radius: 1.5em;
   overflow: hidden;
   transition: all 0.5s cubic-bezier(0, 1, 0.3, 1);
 }
@@ -423,22 +424,22 @@ figni-viewer * {
 }
 
 .figni-viewer-loading-animation-ring {
-  margin-bottom: 0.1rem;
-  margin-right: 0.5rem;
+  margin-bottom: 0.1em;
+  margin-right: 0.5em;
   .ring path {
     stroke: var(--figni-viewer-primary);
   }
 }
 
 .figni-viewer-loading-animation-ring svg {
-  width: 0.75rem !important;
-  height: 0.75rem !important;
+  width: 0.75em !important;
+  height: 0.75em !important;
 }
 
 .figni-viewer-loading-text {
   color: var(--figni-viewer-primary);
   font-family: var(--figni-viewer-font);
-  font-size: 0.75rem;
+  font-size: 0.75em;
   font-weight: 700;
   margin-bottom: 2px;
 }
@@ -463,7 +464,7 @@ figni-viewer * {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 2em;
   background-color: var(--figni-viewer-background);
   box-sizing: border-box;
   z-index: 9999;
@@ -472,7 +473,7 @@ figni-viewer * {
 
 .figni-viewer-error-icon {
   width: 64px;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.75em;
 }
 
 .figni-viewer-error-icon-svg {
@@ -482,16 +483,15 @@ figni-viewer * {
 .figni-viewer-error-text {
   color: var(--figni-viewer-error);
   font-family: var(--figni-viewer-font);
-  font-size: 1rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.5em;
 }
 
 .figni-viewer-error-code {
   color: var(--figni-viewer-error);
   font-family: var(--figni-viewer-font);
-  font-size: 0.75rem;
-  margin-bottom: 2rem;
+  font-size: 0.75em;
+  margin-bottom: 2em;
 }
 
 .figni-viewer-error-reload-button {
@@ -501,10 +501,10 @@ figni-viewer * {
   align-items: center;
   color: #ffffff;
   background-color: var(--figni-viewer-primary);
-  width: 8rem;
-  height: 2rem;
-  border-radius: 1rem;
-  font-size: 0.75rem;
+  width: 8em;
+  height: 2em;
+  border-radius: 1em;
+  font-size: 0.75em;
   font-weight: 700;
 }
 
@@ -522,7 +522,7 @@ figni-viewer * {
 }
 
 .figni-viewer-interaction-prompt {
-  width: 5rem;
+  width: 5em;
   circle.d {
     fill: var(--figni-viewer-gray-shade-50);
   }
@@ -559,14 +559,14 @@ figni-viewer * {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  border-radius: 0.5rem;
+  border-radius: 0.5em;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  padding: 1.5rem;
-  padding-bottom: 1rem;
-  width: 12.5rem;
-  height: 15rem;
+  padding: 1.5em;
+  padding-bottom: 1em;
+  width: 12.5em;
+  height: 15em;
   z-index: 9999;
   background-color: #ffffff;
   animation: animation-qrcode-panel 0.2s ease-out 1;
@@ -585,9 +585,8 @@ figni-viewer * {
 
 .figni-viewer-qrcode-panel-title {
   width: 100%;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.75em;
   font-family: var(--figni-viewer-font);
-  font-size: 1rem;
   font-weight: 700;
   color: var(--figni-viewer-primary);
   text-align: center;
@@ -596,7 +595,7 @@ figni-viewer * {
 .figni-viewer-qrcode-panel-text {
   width: 100%;
   font-family: var(--figni-viewer-font);
-  font-size: 0.625rem;
+  font-size: 0.625em;
   font-weight: 400;
   color: var(--figni-viewer-text);
 }
@@ -616,13 +615,13 @@ figni-viewer * {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 1.5rem;
-  padding: 0 0.5rem;
-  right: 0.5rem;
-  top: 0.5rem;
+  height: 1.5em;
+  padding: 0 0.5em;
+  right: 0.5em;
+  top: 0.5em;
   background-color: var(--figni-viewer-primary);
   border: none;
-  border-radius: 1.25rem;
+  border-radius: 1.25em;
   font-weight: bold;
   z-index: 9998;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
@@ -633,8 +632,8 @@ figni-viewer * {
 .figni-viewer-help-button::before {
   content: '';
   position: absolute;
-  height: calc(100% + 2rem);
-  width: calc(100% + 2rem);
+  height: calc(100% + 2em);
+  width: calc(100% + 2em);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -643,21 +642,21 @@ figni-viewer * {
 .figni-viewer-help-button span {
   display: block;
   color: #ffffff;
-  font-size: 0.75rem;
+  font-size: 0.75em;
   font-family: var(--figni-viewer-font);
   font-weight: bold;
   line-height: 1;
-  margin-left: 0.25rem;
+  margin-left: 0.25em;
   margin-bottom: 1px;
 }
 
 .figni-viewer-tips-panel {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  top: 0.75em;
+  right: 0.75em;
   display: flex;
   flex-direction: row;
-  border-radius: 0.5rem;
+  border-radius: 0.5em;
   background-color: #ffffff;
   transition: 0.5s cubic-bezier(0.65, 0.05, 0.36, 1) all;
   z-index: 9997;
@@ -672,24 +671,24 @@ figni-viewer * {
 }
 
 .figni-viewer-tips-panel-content {
-  width: 8rem;
+  width: 8em;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0.75rem;
+  padding: 0.75em;
 }
 
 .figni-viewer-tips-panel-text {
   color: var(--figni-viewer-primary);
-  font-size: 0.75rem;
+  font-size: 0.75em;
   font-weight: 700;
   font-family: var(--figni-viewer-font);
   margin: 0;
 }
 
 .figni-viewer-tips-panel-animation {
-  height: 4rem;
-  width: 4rem;
+  height: 4em;
+  width: 4em;
   border-left: 1px solid var(--figni-viewer-gray-shade-10);
   .cube path {
     stroke: var(--figni-viewer-primary);
@@ -708,10 +707,10 @@ figni-viewer * {
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
   h3 {
     color: var(--figni-viewer-primary);
-    font-size: 1.25rem;
+    font-size: 1.25em;
     font-weight: 700;
     margin: 0;
-    margin-bottom: 1rem;
+    margin-bottom: 1em;
   }
 }
 
@@ -734,16 +733,16 @@ figni-viewer * {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  padding: 0.5rem 0.5rem 0;
+  padding: 0.5em 0.5em 0;
   background-color: white;
 }
 
 .figni-viewer-help-page-item-container {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.5em;
 }
 
 .figni-viewer-help-page-btn {
-  margin-bottom: 1rem;
+  margin-bottom: 1em;
   cursor: pointer;
 }
 
@@ -757,9 +756,9 @@ figni-viewer * {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 5rem;
-  margin-bottom: 0.3rem;
-  border-radius: 0.25rem;
+  height: 5em;
+  margin-bottom: 0.3em;
+  border-radius: 0.25em;
   background-color: #f6f6f6;
   overflow: hidden;
   .hand path {
@@ -778,7 +777,7 @@ figni-viewer * {
   align-items: center;
   h4 {
     color: var(--figni-viewer-text);
-    font-size: 0.75rem;
+    font-size: 0.75em;
     font-weight: 700;
     margin: 0;
     opacity: 0.5;
@@ -798,14 +797,14 @@ figni-viewer * {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1em;
   cursor: pointer;
   h4 {
     color: var(--figni-viewer-primary);
-    font-size: 0.75rem;
+    font-size: 0.75em;
     font-weight: 700;
     margin: 0;
-    margin-left: 0.5rem;
+    margin-left: 0.5em;
   }
   span svg {
     rect {
@@ -820,13 +819,13 @@ figni-viewer * {
 
 .figni-viewer-help-page-footer small {
   color: #787d93;
-  font-size: 0.75rem;
+  font-size: 0.75em;
   font-family: 'Noto Sans JP', sans-serif;
   margin: 0;
 }
 
 .figni-viewer-help-page-item {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.5em;
 }
 
 .figni-viewer-help-page-item:last-of-type {
@@ -839,8 +838,8 @@ figni-viewer * {
   align-items: center;
   justify-content: center;
   width: 100%;
-  margin-bottom: 0.5rem;
-  border-radius: 0.25rem;
+  margin-bottom: 0.5em;
+  border-radius: 0.25em;
   background-color: #f6f6f6;
   overflow: hidden;
   .hand path {
@@ -850,23 +849,23 @@ figni-viewer * {
 
 .figni-viewer-help-page-item-step {
   display: block;
-  margin-bottom: 0.125rem;
+  margin-bottom: 0.125em;
   color: var(--figni-viewer-text);
-  font-size: 0.6rem;
+  font-size: 0.6em;
   font-weight: 700;
   opacity: 0.5;
 }
 
 .figni-viewer-help-page-item-title {
   color: var(--figni-viewer-text);
-  font-size: 0.875rem;
+  font-size: 0.875em;
   font-weight: 700;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.5em 0;
 }
 
 .figni-viewer-help-page-item-description {
   color: var(--figni-viewer-text);
-  font-size: 0.75rem;
+  font-size: 0.75em;
   margin: 0;
 }
 
@@ -875,27 +874,27 @@ figni-viewer * {
   display: flex;
   align-items: center;
   justify-content: center;
-  bottom: 0.5rem;
-  left: 0.5rem;
+  bottom: 0.5em;
+  left: 0.5em;
   margin-right: auto;
-  padding: 0.2rem 0.5rem;
-  border-radius: 1rem;
-  box-shadow: 0 0.5rem 1.5rem -0.5rem #222222;
+  padding: 0.2em 0.5em;
+  border-radius: 1em;
+  box-shadow: 0 0.5em 1.5em -0.5em #222222;
   overflow: hidden;
   background-color: var(--figni-viewer-primary-tint-95);
   cursor: pointer;
   svg {
-    margin-right: 0.25rem;
-    margin-top: 0.1rem;
+    margin-right: 0.25em;
+    margin-top: 0.1em;
     path {
       fill: var(--figni-viewer-primary);
     }
   }
   span {
     color: var(--figni-viewer-primary);
-    font-size: 0.875rem;
+    font-size: 0.875em;
     font-weight: 700;
-    margin-bottom: 0.1rem;
+    margin-bottom: 0.1em;
   }
 }
 
@@ -904,17 +903,17 @@ figni-viewer * {
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 0.1rem 0.25rem;
-  margin-bottom: 0.5rem;
-  border-radius: 2rem;
-  gap: 0.3rem;
+  padding: 0.1em 0.25em;
+  margin-bottom: 0.5em;
+  border-radius: 2em;
+  gap: 0.3em;
   background-color: #f6f6f6;
   small {
-    font-size: 0.625rem;
+    font-size: 0.625em;
     opacity: 0.5;
   }
   a {
-    width: 3rem;
-    margin-top: 0.1rem;
+    width: 3em;
+    margin-top: 0.1em;
   }
 }

@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [1.6.6] - 2022-07-15
+
+### Fixed
+
 - 外部 CSS の影響を受けにくくなるように修正
 - UI テキストを修正
 
@@ -423,7 +427,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - キャプションの表示非表示を変化させる`to-state`属性を追加
 - キャプションの表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.6.5...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.6.6...HEAD
+[1.6.6]: https://github.com/cynack/figni-viewer/compare/v1.6.5...v1.6.6
 [1.6.5]: https://github.com/cynack/figni-viewer/compare/v1.6.3...v1.6.5
 [1.6.3]: https://github.com/cynack/figni-viewer/compare/v1.6.2...v1.6.3
 [1.6.2]: https://github.com/cynack/figni-viewer/compare/v1.6.1...v1.6.2

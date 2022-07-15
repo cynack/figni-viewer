@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - 外部 CSS の影響を受けにくくなるように修正
+- UI テキストを修正
 
 ## [1.6.5] - 2022-07-06
 

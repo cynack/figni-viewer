@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- 軽微なスタイルの修正
+
 ## [1.6.6] - 2022-07-15
 
 ### Fixed

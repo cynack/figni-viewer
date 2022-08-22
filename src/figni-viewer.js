@@ -92,7 +92,6 @@ export default class FigniViewerElement extends HTMLElement {
 
   #ABTEST = {
     AR_BUTTON_TEST: '実物大で見る',
-    IS_OPEN_TIPS: true,
   }
 
   get itemId() {
@@ -207,13 +206,6 @@ export default class FigniViewerElement extends HTMLElement {
     } else {
       this.#ABTEST.AR_BUTTON_TEST = '実物大で見る'
       this.base.registerABTestResult('ar-button-test', 'see-real-size')
-    }
-    if (Math.random() > 0.5) {
-      this.#ABTEST.IS_OPEN_TIPS = false
-      this.base.registerABTestResult('is-open-tips', 'false')
-    } else {
-      this.#ABTEST.IS_OPEN_TIPS = true
-      this.base.registerABTestResult('is-open-tips', 'true')
     }
 
     // Figni Help Panel
@@ -1297,9 +1289,7 @@ export default class FigniViewerElement extends HTMLElement {
       })
       this.addEventListener('load', () => {
         this.#hideLoadingPanel()
-        if (this.#ABTEST.IS_OPEN_TIPS) {
-          this.openTipsPanel(TIPS.DRAG)
-        }
+        this.openTipsPanel(TIPS.DRAG)
       })
     } else {
       this.#loadingPanel.style.display = ''

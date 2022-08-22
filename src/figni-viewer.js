@@ -831,6 +831,10 @@ export default class FigniViewerElement extends HTMLElement {
   #modifyHotspot(hotspot) {
     hotspot.classList.add('figni-viewer-hotspot')
     hotspot.classList.add('figni-viewer-hotspot-highlight')
+    hotspot.classList.add('figni-viewer-hotspot-preload')
+    this.addEventListener('load', () => {
+      hotspot.classList.remove('figni-viewer-hotspot-preload')
+    })
 
     hotspot.setAttribute(
       'position',

@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- ロード直後にハイライトがちらつく問題を修正
+
 ## [1.6.7] -2022-08-01
 
 ### Fixed

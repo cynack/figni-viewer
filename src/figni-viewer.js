@@ -173,6 +173,9 @@ export default class FigniViewerElement extends HTMLElement {
       this.base.addEventListener('load', () => {
         this.dispatchEvent(new CustomEvent('load'))
       })
+      this.base.addEventListener('model-visibility', () => {
+        this.dispatchEvent(new CustomEvent('model-visibility'))
+      })
       this.base.addEventListener('progress', (e) => {
         this.dispatchEvent(
           new CustomEvent('progress', {
@@ -227,7 +230,7 @@ export default class FigniViewerElement extends HTMLElement {
     this.querySelectorAll('[slot^="hotspot-"]').forEach((hotspot) => {
       this.#hotspots.push(this.base.appendChild(hotspot))
     })
-    await this.updateComplete
+    await this.base.updateComplete
     this.#hotspots.forEach((hotspot) => {
       this.#modifyHotspot(hotspot)
     })
@@ -492,7 +495,7 @@ export default class FigniViewerElement extends HTMLElement {
     }
     this.base.appendChild(hotspot)
 
-    await this.updateComplete
+    await this.base.updateComplete
     this.#modifyHotspot(hotspot)
     this.updateState(this.state)
     this.#hotspots.push(hotspot)
@@ -561,7 +564,7 @@ export default class FigniViewerElement extends HTMLElement {
       }
     }
 
-    await this.updateComplete
+    await this.base.updateComplete
     this.#modifyHotspot(hotspot)
     this.updateState(this.state)
   }
@@ -844,7 +847,7 @@ export default class FigniViewerElement extends HTMLElement {
     hotspot.classList.add('figni-viewer-hotspot-highlight')
     if (!this.base.loaded) {
       hotspot.classList.add('figni-viewer-hotspot-preload')
-      this.addEventListener('load', () => {
+      this.addEventListener('model-visibility', () => {
         hotspot.classList.remove('figni-viewer-hotspot-preload')
       })
     }

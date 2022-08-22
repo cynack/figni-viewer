@@ -212,7 +212,7 @@ export default class FigniViewerElement extends HTMLElement {
       this.#ABTEST.AR_BUTTON_TEST = '実物大で見る'
       this.base.registerABTestResult('ar-button-test', 'see-real-size')
     }
-    if (Math.random() > 0.0) {
+    if (Math.random() > 0.5) {
       this.#ABTEST.HIGHLIGHT_NUMBER_TEST = true
       this.base.registerABTestResult('highlight-number-test', true)
     } else {

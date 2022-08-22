@@ -843,9 +843,11 @@ export default class FigniViewerElement extends HTMLElement {
     hotspot.classList.add('figni-viewer-hotspot')
     hotspot.classList.add('figni-viewer-hotspot-highlight')
     hotspot.classList.add('figni-viewer-hotspot-preload')
-    this.addEventListener('load', () => {
-      hotspot.classList.remove('figni-viewer-hotspot-preload')
-    })
+    if (!this.base.loaded) {
+      this.addEventListener('load', () => {
+        hotspot.classList.remove('figni-viewer-hotspot-preload')
+      })
+    }
 
     // AB TEST
     if (this.#ABTEST.HIGHLIGHT_NUMBER_TEST) {

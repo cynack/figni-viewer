@@ -293,6 +293,8 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     this.animationCrossfadeDuration = 0
     this.maxCameraOrbit = SETTINGS.MAX_CAMERA_ORBIT
     this.minCameraOrbit = SETTINGS.MIN_CAMERA_ORBIT
+    this.disablePan = true
+    this.disableTap = true
   }
 
   #registerEventListener(eventName, callback, options, target = this) {

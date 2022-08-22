@@ -855,9 +855,16 @@ export default class FigniViewerElement extends HTMLElement {
     // AB TEST
     if (this.#ABTEST.HIGHLIGHT_NUMBER_TEST) {
       if (isEmptyOrSpaces(getChildText(hotspot))) {
-        hotspot.innerText = String.fromCharCode(
-          (this.count++).toString().charCodeAt(0) + 0xfee0
-        )
+        let html = ''
+        Array.from(hotspot.childNodes).forEach((child) => {
+          if (child.nodeType !== Node.TEXT_NODE) {
+            html += child.outerHTML
+          }
+        })
+        hotspot.innerHTML =
+          String.fromCharCode(
+            (this.count++).toString().charCodeAt(0) + 0xfee0
+          ) + html
       }
     }
 

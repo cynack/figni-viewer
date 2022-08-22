@@ -29,6 +29,7 @@ import {
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
 } from './svg'
+import { getChildText, isEmptyOrSpaces } from './utils'
 
 const OBSERBED_ATTRIBUTES = [
   'item-id',
@@ -92,7 +93,7 @@ export default class FigniViewerElement extends HTMLElement {
 
   #ABTEST = {
     AR_BUTTON_TEST: '実物大で見る',
-    IS_OPEN_TIPS: true,
+    HIGHLIGHT_NUMBER_TEST: false,
   }
 
   get itemId() {
@@ -208,12 +209,12 @@ export default class FigniViewerElement extends HTMLElement {
       this.#ABTEST.AR_BUTTON_TEST = '実物大で見る'
       this.base.registerABTestResult('ar-button-test', 'see-real-size')
     }
-    if (Math.random() > 0.5) {
-      this.#ABTEST.IS_OPEN_TIPS = false
-      this.base.registerABTestResult('is-open-tips', 'false')
+    if (Math.random() > 0.0) {
+      this.#ABTEST.HIGHLIGHT_NUMBER_TEST = true
+      this.base.registerABTestResult('highlight-number-test', true)
     } else {
-      this.#ABTEST.IS_OPEN_TIPS = true
-      this.base.registerABTestResult('is-open-tips', 'true')
+      this.#ABTEST.HIGHLIGHT_NUMBER_TEST = false
+      this.base.registerABTestResult('highlight-number-test', false)
     }
 
     // Figni Help Panel
@@ -836,9 +837,24 @@ export default class FigniViewerElement extends HTMLElement {
     })
   }
 
+  count = 1
+
   #modifyHotspot(hotspot) {
     hotspot.classList.add('figni-viewer-hotspot')
     hotspot.classList.add('figni-viewer-hotspot-highlight')
+    hotspot.classList.add('figni-viewer-hotspot-preload')
+    this.addEventListener('load', () => {
+      hotspot.classList.remove('figni-viewer-hotspot-preload')
+    })
+
+    // AB TEST
+    if (this.#ABTEST.HIGHLIGHT_NUMBER_TEST) {
+      if (isEmptyOrSpaces(getChildText(hotspot))) {
+        hotspot.innerText = String.fromCharCode(
+          (this.count++).toString().charCodeAt(0) + 0xfee0
+        )
+      }
+    }
 
     hotspot.setAttribute(
       'position',
@@ -1297,9 +1313,7 @@ export default class FigniViewerElement extends HTMLElement {
       })
       this.addEventListener('load', () => {
         this.#hideLoadingPanel()
-        if (this.#ABTEST.IS_OPEN_TIPS) {
-          this.openTipsPanel(TIPS.DRAG)
-        }
+        this.openTipsPanel(TIPS.DRAG)
       })
     } else {
       this.#loadingPanel.style.display = ''

@@ -36515,7 +36515,7 @@ var t$1;const i$2=window,s$2=i$2.trustedTypes,e$1=s$2?s$2.createPolicy("lit-html
 const HAS_WEBXR_DEVICE_API = navigator.xr != null &&
     self.XRSession != null && navigator.xr.isSessionSupported != null;
 const HAS_WEBXR_HIT_TEST_API = HAS_WEBXR_DEVICE_API &&
-    self.XRSession.prototype.requestHitTestSource;
+    self.XRSession.prototype.requestHitTestSource != null;
 const HAS_RESIZE_OBSERVER = self.ResizeObserver != null;
 const HAS_INTERSECTION_OBSERVER = self.IntersectionObserver != null;
 const IS_WEBXR_AR_CANDIDATE = HAS_WEBXR_HIT_TEST_API;
@@ -36700,7 +36700,7 @@ const templateResult = y$1 `
 .userInput {
   width: 100%;
   height: 100%;
-  display: block;
+  display: none;
   position: relative;
 }
 
@@ -36716,7 +36716,7 @@ canvas {
   transform: translateZ(0);
 }
 
-canvas.show {
+.show {
   display: block;
 }
 
@@ -36769,12 +36769,12 @@ canvas.show {
 }
 
 .slot.poster {
-  opacity: 0;
+  display: none;
   background-color: inherit;
 }
 
 .slot.poster.show {
-  opacity: 1;
+  display: inherit;
 }
 
 .slot.poster > * {
@@ -39890,7 +39890,7 @@ function createAttributesKey( attributes ) {
 
 }
 
-function getNormalizedComponentScale$1( constructor ) {
+function getNormalizedComponentScale( constructor ) {
 
 	// Reference:
 	// https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_mesh_quantization#encoding-quantized-data
@@ -41421,7 +41421,7 @@ class GLTFParser {
 
 				if ( outputAccessor.normalized ) {
 
-					const scale = getNormalizedComponentScale$1( outputArray.constructor );
+					const scale = getNormalizedComponentScale( outputArray.constructor );
 					const scaled = new Float32Array( outputArray.length );
 
 					for ( let j = 0, jl = outputArray.length; j < jl; j ++ ) {
@@ -41852,7 +41852,7 @@ function computeBounds( geometry, primitiveDef, parser ) {
 
 			if ( accessor.normalized ) {
 
-				const boxScale = getNormalizedComponentScale$1( WEBGL_COMPONENT_TYPES[ accessor.componentType ] );
+				const boxScale = getNormalizedComponentScale( WEBGL_COMPONENT_TYPES[ accessor.componentType ] );
 				box.min.multiplyScalar( boxScale );
 				box.max.multiplyScalar( boxScale );
 
@@ -41901,7 +41901,7 @@ function computeBounds( geometry, primitiveDef, parser ) {
 
 					if ( accessor.normalized ) {
 
-						const boxScale = getNormalizedComponentScale$1( WEBGL_COMPONENT_TYPES[ accessor.componentType ] );
+						const boxScale = getNormalizedComponentScale( WEBGL_COMPONENT_TYPES[ accessor.componentType ] );
 						vector.multiplyScalar( boxScale );
 
 					}
@@ -44454,33 +44454,6 @@ class Hotspot extends CSS2DObject {
  * limitations under the License.
  */
 /**
- * Gets a scale value to perform inverse quantization of a vertex value
- * Reference:
- * https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_mesh_quantization#encoding-quantized-data
- * @param buffer A gltf vertex buffer
- * @returns A scale value based on KHR_mesh_quantization or 1 if the buffer is
- *     not quantized.
- */
-const getNormalizedComponentScale = (buffer) => {
-    if (!buffer.normalized) {
-        return 1;
-    }
-    const array = buffer.array;
-    if (array instanceof Int8Array) {
-        return 1 / 127;
-    }
-    else if (array instanceof Uint8Array) {
-        return 1 / 255;
-    }
-    else if (array instanceof Int16Array) {
-        return 1 / 32767;
-    }
-    else if (array instanceof Uint16Array) {
-        return 1 / 65535;
-    }
-    return 1;
-};
-/**
  * Performs a reduction across all the vertices of the input model and all its
  * children. The supplied function takes the reduced value and a vertex and
  * returns the newly reduced value. The value is initialized as zero.
@@ -44511,10 +44484,8 @@ const reduceVertices = (model, func, initialValue) => {
             else if (geometry.isBufferGeometry) {
                 const { position } = geometry.attributes;
                 if (position !== undefined) {
-                    const scale = getNormalizedComponentScale(position);
                     for (i = 0, l = position.count; i < l; i++) {
                         vertex.fromBufferAttribute(position, i);
-                        vertex.multiplyScalar(scale);
                         if (object.isSkinnedMesh) {
                             object.boneTransform(i, vertex);
                         }
@@ -44946,6 +44917,7 @@ class ModelScene extends Scene {
         this.width = 1;
         this.height = 1;
         this.aspect = 1;
+        this.scaleStep = 0;
         this.renderCount = 0;
         this.externalRenderer = null;
         // These default camera values are never used, as they are reset once the
@@ -45018,6 +44990,10 @@ class ModelScene extends Scene {
     }
     hasRendered() {
         this.isDirty = false;
+    }
+    forceRescale() {
+        this.scaleStep = -1;
+        this.queueRender();
     }
     /**
      * Pass in a THREE.Object3D to be controlled
@@ -45303,8 +45279,7 @@ class ModelScene extends Scene {
      * Gets the point in model coordinates the model should orbit/pivot around.
      */
     getTarget() {
-        // return this.goalTarget.multiplyScalar(-1).clone(); // fix for target bug
-        return vector3$2.copy(this.goalTarget).multiplyScalar(-1);
+        return this.goalTarget.clone().multiplyScalar(-1);
     }
     /**
      * Shifts the model to the target point immediately instead of easing in.
@@ -46068,7 +46043,7 @@ class PlacementBox extends Mesh {
         super(geometry);
         this.side = side;
         const material = this.material;
-        material.side = FrontSide;
+        material.side = DoubleSide;
         material.transparent = true;
         material.opacity = 0;
         this.goalOpacity = 0;
@@ -46076,6 +46051,7 @@ class PlacementBox extends Mesh {
         this.hitPlane =
             new Mesh(new PlaneGeometry(2 * (x + RADIUS), 2 * (y + RADIUS)));
         this.hitPlane.visible = false;
+        this.hitPlane.material.side = DoubleSide;
         this.add(this.hitPlane);
         boundingBox.getCenter(this.position);
         switch (side) {
@@ -46104,6 +46080,7 @@ class PlacementBox extends Mesh {
     }
     getExpandedHit(scene, screenX, screenY) {
         this.hitPlane.scale.set(1000, 1000, 1000);
+        this.hitPlane.updateMatrixWorld();
         const hitResult = this.getHit(scene, screenX, screenY);
         this.hitPlane.scale.set(1, 1, 1);
         return hitResult;
@@ -46442,6 +46419,7 @@ class ARRenderer extends EventDispatcher {
             this.currentSession = null;
         }
         const scene = this.presentedScene;
+        this._presentedScene = null;
         if (scene != null) {
             const { element } = scene;
             if (this.xrLight != null) {
@@ -46495,7 +46473,6 @@ class ARRenderer extends EventDispatcher {
         this.lastTick = null;
         this.turntableRotation = null;
         this.oldShadowIntensity = null;
-        this._presentedScene = null;
         this.frame = null;
         this.inputSource = null;
         this.overlay = null;
@@ -46755,7 +46732,7 @@ class ARRenderer extends EventDispatcher {
             this.dispatchEvent({ type: 'tracking', status: ARTracking.NOT_TRACKING });
         }
         const scene = this.presentedScene;
-        if (pose == null || scene == null || !scene.element[$sceneIsReady]()) {
+        if (pose == null || scene == null || !scene.element.loaded) {
             this.threeRenderer.clear();
             return;
         }
@@ -46824,7 +46801,7 @@ class Debugger {
                         Texture: Texture$1,
                         Mesh,
                         Scene,
-                        PlaneBufferGeometry: PlaneGeometry,
+                        PlaneGeometry,
                         OrthographicCamera,
                         WebGLRenderTarget
                     }
@@ -48369,6 +48346,8 @@ class Renderer extends EventDispatcher {
         this.debugger = null;
         this.scenes = new Set();
         this.multipleScenesVisible = false;
+        this.lastTick = performance.now();
+        this.renderedLastFrame = false;
         this.scaleStep = 0;
         this.lastStep = DEFAULT_LAST_STEP;
         this.avgFrameDuration = (HIGH_FRAME_DURATION_MS + LOW_FRAME_DURATION_MS) / 2;
@@ -48386,6 +48365,7 @@ class Renderer extends EventDispatcher {
         this.dpr = resolveDpr();
         this.canvas3D = document.createElement('canvas');
         this.canvas3D.id = 'webgl-canvas';
+        this.canvas3D.classList.add('show');
         try {
             this.threeRenderer = new WebGLRenderer({
                 canvas: this.canvas3D,
@@ -48414,8 +48394,6 @@ class Renderer extends EventDispatcher {
         this.canvas3D.addEventListener('webglcontextlost', this.onWebGLContextLost);
         this.canvas3D.addEventListener('webglcontextrestored', this.onWebGLContextRestored);
         this.updateRendererSize();
-        this.lastTick = performance.now();
-        this.avgFrameDuration = 0;
     }
     static get singleton() {
         return this._singleton;
@@ -48479,31 +48457,24 @@ class Renderer extends EventDispatcher {
         this.width = width;
         this.height = height;
         this.dpr = dpr;
+        width = Math.ceil(width * dpr);
+        height = Math.ceil(height * dpr);
         if (this.canRender) {
-            this.threeRenderer.setSize(Math.ceil(width * dpr), Math.ceil(height * dpr), false);
+            this.threeRenderer.setSize(width, height, false);
         }
-        // Expand the canvas size to make up for shrinking the viewport.
-        const scale = this.scaleFactor;
-        const widthCSS = Math.ceil(width / scale);
-        const heightCSS = Math.ceil(height / scale);
-        // The canvas element must by styled outside of three due to the offscreen
-        // canvas not being directly stylable.
-        this.canvas3D.style.width = `${widthCSS}px`;
-        this.canvas3D.style.height = `${heightCSS}px`;
         // Each scene's canvas must match the renderer size. In general they can be
         // larger than the element that contains them, but the overflow is hidden
         // and only the portion that is shown is copied over.
         for (const scene of this.scenes) {
             const { canvas } = scene;
-            canvas.width = Math.ceil(width * dpr);
-            canvas.height = Math.ceil(height * dpr);
-            canvas.style.width = `${widthCSS}px`;
-            canvas.style.height = `${heightCSS}px`;
-            scene.queueRender();
+            canvas.width = width;
+            canvas.height = height;
+            scene.forceRescale();
         }
     }
-    updateRendererScale() {
+    updateRendererScale(delta) {
         const scaleStep = this.scaleStep;
+        this.avgFrameDuration += clamp(DURATION_DECAY * (delta - this.avgFrameDuration), -MAX_AVG_CHANGE_MS, MAX_AVG_CHANGE_MS);
         if (this.avgFrameDuration > HIGH_FRAME_DURATION_MS) {
             ++this.scaleStep;
         }
@@ -48511,26 +48482,13 @@ class Renderer extends EventDispatcher {
             --this.scaleStep;
         }
         this.scaleStep = Math.min(this.scaleStep, this.lastStep);
-        if (scaleStep == this.scaleStep) {
-            return;
-        }
-        const scale = this.scaleFactor;
-        this.avgFrameDuration =
-            (HIGH_FRAME_DURATION_MS + LOW_FRAME_DURATION_MS) / 2;
-        const width = Math.ceil(this.width / scale);
-        const height = Math.ceil(this.height / scale);
-        this.canvas3D.style.width = `${width}px`;
-        this.canvas3D.style.height = `${height}px`;
-        for (const scene of this.scenes) {
-            const { style } = scene.canvas;
-            style.width = `${width}px`;
-            style.height = `${height}px`;
-            scene.queueRender();
-            this.dispatchRenderScale(scene);
+        if (scaleStep !== this.scaleStep) {
+            this.avgFrameDuration =
+                (HIGH_FRAME_DURATION_MS + LOW_FRAME_DURATION_MS) / 2;
         }
     }
     dispatchRenderScale(scene) {
-        const scale = this.scaleFactor;
+        const scale = SCALE_STEPS[scene.scaleStep];
         const renderedDpr = this.dpr * scale;
         const reason = scale < 1 ? 'GPU throttling' :
             this.dpr !== window.devicePixelRatio ? 'No meta viewport tag' :
@@ -48548,17 +48506,7 @@ class Renderer extends EventDispatcher {
     }
     registerScene(scene) {
         this.scenes.add(scene);
-        const { canvas } = scene;
-        const scale = this.scaleFactor;
-        canvas.width = Math.ceil(this.width * this.dpr);
-        canvas.height = Math.ceil(this.height * this.dpr);
-        canvas.style.width = `${this.width / scale}px`;
-        canvas.style.height = `${this.height / scale}px`;
-        if (this.multipleScenesVisible) {
-            canvas.classList.add('show');
-        }
-        scene.queueRender();
-        this.dispatchRenderScale(scene);
+        scene.forceRescale();
         if (this.canRender && this.scenes.size > 0) {
             this.threeRenderer.setAnimationLoop((time, frame) => this.render(time, frame));
         }
@@ -48568,6 +48516,9 @@ class Renderer extends EventDispatcher {
     }
     unregisterScene(scene) {
         this.scenes.delete(scene);
+        if (this.canvas3D.parentElement === scene.canvas.parentElement) {
+            scene.canvas.parentElement.removeChild(this.canvas3D);
+        }
         if (this.canRender && this.scenes.size === 0) {
             this.threeRenderer.setAnimationLoop(null);
         }
@@ -48585,6 +48536,7 @@ class Renderer extends EventDispatcher {
      * renderer's result into it.
      */
     countVisibleScenes() {
+        const { canvas3D } = this;
         let visibleScenes = 0;
         let canvas3DScene = null;
         for (const scene of this.scenes) {
@@ -48592,20 +48544,60 @@ class Renderer extends EventDispatcher {
             if (element.modelIsVisible && scene.externalRenderer == null) {
                 ++visibleScenes;
             }
-            if (this.canvas3D.parentElement === scene.canvas.parentElement) {
+            if (canvas3D.parentElement === scene.canvas.parentElement) {
                 canvas3DScene = scene;
             }
         }
         const multipleScenesVisible = visibleScenes > 1;
-        if (canvas3DScene != null && multipleScenesVisible &&
-            !this.multipleScenesVisible) {
-            const { width, height } = this.sceneSize(canvas3DScene);
-            this.copyPixels(canvas3DScene, width, height);
+        if (canvas3DScene != null) {
+            const newlyMultiple = multipleScenesVisible && !this.multipleScenesVisible;
+            const disappearing = !canvas3DScene.element.modelIsVisible;
+            if (newlyMultiple || disappearing) {
+                const { width, height } = this.sceneSize(canvas3DScene);
+                this.copyPixels(canvas3DScene, width, height);
+                canvas3D.parentElement.removeChild(canvas3D);
+            }
         }
         this.multipleScenesVisible = multipleScenesVisible;
     }
+    rescaleCanvas(scene) {
+        const { style } = scene.canvas;
+        if (!scene.shouldRender()) {
+            // The first frame we stop rendering the scene (because it stops moving),
+            // trigger one extra render at full scale.
+            if (scene.scaleStep != 0) {
+                scene.scaleStep = 0;
+                style.width = `${this.width}px`;
+                style.height = `${this.height}px`;
+                this.dispatchRenderScale(scene);
+                if (!this.multipleScenesVisible) {
+                    this.canvas3D.style.width = `${this.width}px`;
+                    this.canvas3D.style.height = `${this.height}px`;
+                }
+            }
+            else {
+                return true; // Skip rendering
+            }
+        }
+        else if (scene.scaleStep != this.scaleStep) {
+            // Update render scale
+            scene.scaleStep = this.scaleStep;
+            const scale = this.scaleFactor;
+            const width = Math.ceil(this.width / scale);
+            const height = Math.ceil(this.height / scale);
+            style.width = `${width}px`;
+            style.height = `${height}px`;
+            if (!this.multipleScenesVisible) {
+                this.canvas3D.style.width = `${width}px`;
+                this.canvas3D.style.height = `${height}px`;
+            }
+            this.dispatchRenderScale(scene);
+        }
+        return false; // Perform rendering
+    }
     sceneSize(scene) {
-        const { dpr, scaleFactor } = this;
+        const { dpr } = this;
+        const scaleFactor = SCALE_STEPS[scene.scaleStep];
         // We avoid using the Three.js PixelRatio and handle it ourselves here so
         // that we can do proper rounding and avoid white boundary pixels.
         const width = Math.min(Math.ceil(scene.width * scaleFactor * dpr), this.canvas3D.width);
@@ -48660,10 +48652,12 @@ class Renderer extends EventDispatcher {
         if (!this.canRender || this.isPresenting) {
             return;
         }
-        this.avgFrameDuration += clamp(DURATION_DECAY * (delta - this.avgFrameDuration), -MAX_AVG_CHANGE_MS, MAX_AVG_CHANGE_MS);
         this.countVisibleScenes();
         this.updateRendererSize();
-        this.updateRendererScale();
+        if (this.renderedLastFrame) {
+            this.updateRendererScale(delta);
+            this.renderedLastFrame = false;
+        }
         const { canvas3D } = this;
         for (const scene of this.orderedScenes()) {
             const { element } = scene;
@@ -48672,7 +48666,7 @@ class Renderer extends EventDispatcher {
                 continue;
             }
             this.preRender(scene, t, delta);
-            if (!scene.shouldRender()) {
+            if (this.rescaleCanvas(scene)) {
                 continue;
             }
             if (scene.externalRenderer != null) {
@@ -48711,14 +48705,11 @@ class Renderer extends EventDispatcher {
             }
             else {
                 scene.canvas.parentElement.appendChild(canvas3D);
-                canvas3D.classList.add('show');
                 scene.canvas.classList.remove('show');
             }
             scene.hasRendered();
             ++scene.renderCount;
-        }
-        if (this.multipleScenesVisible) {
-            canvas3D.classList.remove('show');
+            this.renderedLastFrame = true;
         }
     }
     dispose() {
@@ -48955,7 +48946,6 @@ const $progressTracker = Symbol('progressTracker');
 const $getLoaded = Symbol('getLoaded');
 const $getModelIsVisible = Symbol('getModelIsVisible');
 const $shouldAttemptPreload = Symbol('shouldAttemptPreload');
-const $sceneIsReady = Symbol('sceneIsReady');
 const toVector3D = (v) => {
     return {
         x: v.x,
@@ -48987,6 +48977,12 @@ class ModelViewerElementBase extends d$2 {
         this.alt = null;
         this.src = null;
         this.withCredentials = false;
+        /**
+         * Generates a 3D model schema https://schema.org/3DModel associated with
+         * the loaded src and inserts it into the header of the page for search
+         * engines to crawl.
+         */
+        this.generateSchema = false;
         this[_a$7] = false;
         this[_b$6] = false;
         this[_c$4] = 0;
@@ -49078,7 +49074,7 @@ class ModelViewerElementBase extends d$2 {
                         const oldVisibility = this.modelIsVisible;
                         this[$isElementInViewport] = entry.isIntersecting;
                         this[$announceModelVisibility](oldVisibility);
-                        if (this[$isElementInViewport] && !this[$sceneIsReady]()) {
+                        if (this[$isElementInViewport] && !this.loaded) {
                             this[$updateSource]();
                         }
                     }
@@ -49204,6 +49200,14 @@ class ModelViewerElementBase extends d$2 {
         if (changedProperties.has('withCredentials')) {
             CachingGLTFLoader.withCredentials = this.withCredentials;
         }
+        if (changedProperties.has('generateSchema')) {
+            if (this.generateSchema) {
+                this[$scene].updateSchema(this.src);
+            }
+            else {
+                this[$scene].updateSchema(null);
+            }
+        }
     }
     /** @export */
     toDataURL(type, encoderOptions) {
@@ -49289,9 +49293,6 @@ class ModelViewerElementBase extends d$2 {
     [$shouldAttemptPreload]() {
         return !!this.src && this[$isElementInViewport];
     }
-    [$sceneIsReady]() {
-        return this[$loaded];
-    }
     /**
      * Called on initialization and when the resize observer fires.
      */
@@ -49335,6 +49336,15 @@ class ModelViewerElementBase extends d$2 {
         if (this.loaded || !this[$shouldAttemptPreload]()) {
             return;
         }
+        if (this.generateSchema) {
+            this[$scene].updateSchema(this.src);
+        }
+        this[$updateStatus]('Loading');
+        // If we are loading a new model, we need to stop the animation of
+        // the current one (if any is playing). Otherwise, we might lose
+        // the reference to the scene root and running actions start to
+        // throw exceptions and/or behave in unexpected ways:
+        this[$scene].stopAnimation();
         const updateSourceProgress = this[$progressTracker].beginActivity();
         const source = this.src;
         try {
@@ -49343,7 +49353,7 @@ class ModelViewerElementBase extends d$2 {
             this.dispatchEvent(new CustomEvent('preload', { detail }));
         }
         catch (error) {
-            this.dispatchEvent(new CustomEvent('error', { detail: error }));
+            this.dispatchEvent(new CustomEvent('error', { detail: { type: 'loadfailure', sourceError: error } }));
         }
         finally {
             requestAnimationFrame(() => {
@@ -49363,6 +49373,9 @@ __decorate$6([
 __decorate$6([
     e$4({ type: Boolean, attribute: 'with-credentials' })
 ], ModelViewerElementBase.prototype, "withCredentials", void 0);
+__decorate$6([
+    e$4({ type: Boolean, attribute: 'generate-schema' })
+], ModelViewerElementBase.prototype, "generateSchema", void 0);
 
 /* @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -49475,14 +49488,6 @@ const AnimationMixin = (ModelViewerElement) => {
             if (changedProperties.has('animationName')) {
                 this[$changeAnimation]();
             }
-        }
-        async [$updateSource]() {
-            // If we are loading a new model, we need to stop the animation of
-            // the current one (if any is playing). Otherwise, we might lose
-            // the reference to the scene root and running actions start to
-            // throw exceptions and/or behave in unexpected ways:
-            this[$scene].stopAnimation();
-            return super[$updateSource]();
         }
         [$changeAnimation](options = DEFAULT_PLAY_OPTIONS) {
             var _b;
@@ -51096,7 +51101,7 @@ const ARMixin = (ModelViewerElement) => {
             this[$renderer].arRenderer.removeEventListener('tracking', this[$onARTracking]);
             this[$arAnchor].removeEventListener('message', this[$onARTap]);
         }
-        async update(changedProperties) {
+        update(changedProperties) {
             super.update(changedProperties);
             if (changedProperties.has('arScale')) {
                 this[$scene].canScale = this.arScale !== 'fixed';
@@ -51105,14 +51110,13 @@ const ARMixin = (ModelViewerElement) => {
                 this[$scene].updateShadow();
                 this[$needsRender]();
             }
-            if (!changedProperties.has('ar') && !changedProperties.has('arModes') &&
-                !changedProperties.has('src') && !changedProperties.has('iosSrc')) {
-                return;
-            }
             if (changedProperties.has('arModes')) {
                 this[$arModes] = deserializeARModes(this.arModes);
             }
-            this[$selectARMode]();
+            if (changedProperties.has('ar') || changedProperties.has('arModes') ||
+                changedProperties.has('src') || changedProperties.has('iosSrc')) {
+                this[$selectARMode]();
+            }
         }
         /**
          * Activates AR. Note that for any mode that is not WebXR-based, this
@@ -51138,34 +51142,34 @@ configuration or device capabilities');
             }
         }
         async [(_a = $canActivateAR, _b = $arButtonContainer, _c = $arAnchor, _d = $arModes, _e = $arMode, _f = $preload, _g = $onARButtonContainerClick, _h = $onARStatus, _j = $onARTracking, _k = $onARTap, $selectARMode)]() {
-            this[$arMode] = ARMode.NONE;
+            let arMode = ARMode.NONE;
             if (this.ar) {
                 if (this.src != null) {
                     for (const value of this[$arModes]) {
                         if (value === 'webxr' && IS_WEBXR_AR_CANDIDATE && !isWebXRBlocked &&
                             await this[$renderer].arRenderer.supportsPresentation()) {
-                            this[$arMode] = ARMode.WEBXR;
+                            arMode = ARMode.WEBXR;
                             break;
                         }
                         if (value === 'scene-viewer' && IS_SCENEVIEWER_CANDIDATE &&
                             !isSceneViewerBlocked) {
-                            this[$arMode] = ARMode.SCENE_VIEWER;
+                            arMode = ARMode.SCENE_VIEWER;
                             break;
                         }
                         if (value === 'quick-look' && IS_AR_QUICKLOOK_CANDIDATE) {
-                            this[$arMode] = ARMode.QUICK_LOOK;
+                            arMode = ARMode.QUICK_LOOK;
                             break;
                         }
                     }
                 }
                 // The presence of ios-src overrides the absence of quick-look
                 // ar-mode.
-                if (!this.canActivateAR && this.iosSrc != null &&
+                if (arMode === ARMode.NONE && this.iosSrc != null &&
                     IS_AR_QUICKLOOK_CANDIDATE) {
-                    this[$arMode] = ARMode.QUICK_LOOK;
+                    arMode = ARMode.QUICK_LOOK;
                 }
             }
-            if (this.canActivateAR) {
+            if (arMode !== ARMode.NONE) {
                 this[$arButtonContainer].classList.add('enabled');
                 this[$arButtonContainer].addEventListener('click', this[$onARButtonContainerClick]);
             }
@@ -51177,6 +51181,7 @@ configuration or device capabilities');
                 this.setAttribute('ar-status', status);
                 this.dispatchEvent(new CustomEvent('ar-status', { detail: { status } }));
             }
+            this[$arMode] = arMode;
         }
         async [$enterARWithWebXR]() {
             console.log('Attempting to present in AR with WebXR...');
@@ -52071,7 +52076,8 @@ class SmoothControls extends EventDispatcher {
         this.camera = camera;
         this.element = element;
         this.scene = scene;
-        this.sensitivity = 1;
+        this.orbitSensitivity = 1;
+        this.inputSensitivity = 1;
         this.changeSource = ChangeSource.NONE;
         this._interactionEnabled = false;
         this._disableZoom = false;
@@ -52514,7 +52520,7 @@ class SmoothControls extends EventDispatcher {
         this.dispatchChange();
     }
     userAdjustOrbit(deltaTheta, deltaPhi, deltaZoom) {
-        this.adjustOrbit(deltaTheta * this.sensitivity, deltaPhi * this.sensitivity, deltaZoom);
+        this.adjustOrbit(deltaTheta * this.orbitSensitivity * this.inputSensitivity, deltaPhi * this.orbitSensitivity * this.inputSensitivity, deltaZoom * this.inputSensitivity);
         // Always make sure that an initial event is triggered in case there is
         // contention between user interaction and imperative changes. This initial
         // event will give external observers that chance to observe that
@@ -52554,7 +52560,7 @@ class SmoothControls extends EventDispatcher {
     }
     movePan(dx, dy) {
         const { scene } = this;
-        const dxy = vector3.set(dx, dy, 0);
+        const dxy = vector3.set(dx, dy, 0).multiplyScalar(this.inputSensitivity);
         const metersPerPixel = this.spherical.radius * Math.exp(this.logFov) * this.panPerPixel;
         dxy.multiplyScalar(metersPerPixel);
         const target = scene.getTarget();
@@ -52977,6 +52983,12 @@ const ControlsMixin = (ModelViewerElement) => {
                 }
             };
         }
+        get inputSensitivity() {
+            return this[$controls].inputSensitivity;
+        }
+        set inputSensitivity(value) {
+            this[$controls].inputSensitivity = value;
+        }
         getCameraOrbit() {
             const { theta, phi, radius } = this[$lastSpherical];
             return {
@@ -53076,7 +53088,7 @@ const ControlsMixin = (ModelViewerElement) => {
                 controls.updateTouchActionStyle();
             }
             if (changedProperties.has('orbitSensitivity')) {
-                controls.sensitivity = this.orbitSensitivity;
+                controls.orbitSensitivity = this.orbitSensitivity;
             }
             if (changedProperties.has('interpolationDecay')) {
                 controls.setDamperDecayTime(this.interpolationDecay);
@@ -53447,7 +53459,6 @@ const $shouldDismissPoster = Symbol('shouldDismissPoster');
 const $hidePoster = Symbol('hidePoster');
 const $modelIsRevealed = Symbol('modelIsRevealed');
 const $updateProgressBar = Symbol('updateProgressBar');
-const $lastReportedProgress = Symbol('lastReportedProgress');
 const $ariaLabelCallToAction = Symbol('ariaLabelCallToAction');
 const $onProgress = Symbol('onProgress');
 /**
@@ -53500,7 +53511,7 @@ const $onProgress = Symbol('onProgress');
  * the decoder to be loaded from an alternative, acceptable location.
  */
 const LoadingMixin = (ModelViewerElement) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     class LoadingModelViewerElement extends ModelViewerElement {
         constructor(...args) {
             super(...args);
@@ -53513,8 +53524,8 @@ const LoadingMixin = (ModelViewerElement) => {
              * An enumerable attribute describing under what conditions the
              * <model-viewer> should reveal a model to the viewer.
              *
-             * The default value is "auto". The only supported alternative values are
-             * "interaction" and "manual".
+             * The default value is "auto". The only supported alternative values is
+             * "manual".
              */
             this.reveal = RevealStrategy.AUTO;
             /**
@@ -53527,22 +53538,15 @@ const LoadingMixin = (ModelViewerElement) => {
              * with for reveal = "interaction". Eager loads the model immediately.
              */
             this.loading = LoadingStrategy.AUTO;
-            /**
-             * Generates a 3D model schema https://schema.org/3DModel associated with
-             * the loaded src and inserts it into the header of the page for search
-             * engines to crawl.
-             */
-            this.generateSchema = false;
             this[_a] = false;
-            this[_b] = 0;
-            this[_c] = false;
+            this[_b] = false;
             // TODO: Add this to the shadow root as part of this mixin's
             // implementation:
-            this[_d] = this.shadowRoot.querySelector('.slot.poster');
-            this[_e] = this.shadowRoot.querySelector('#default-poster');
-            this[_f] = this.shadowRoot.querySelector('#default-progress-bar > .bar');
-            this[_g] = this[$defaultPosterElement].getAttribute('aria-label');
-            this[_h] = throttle((progress) => {
+            this[_c] = this.shadowRoot.querySelector('.slot.poster');
+            this[_d] = this.shadowRoot.querySelector('#default-poster');
+            this[_e] = this.shadowRoot.querySelector('#default-progress-bar > .bar');
+            this[_f] = this[$defaultPosterElement].getAttribute('aria-label');
+            this[_g] = throttle((progress) => {
                 const parentNode = this[$defaultProgressBarElement].parentNode;
                 requestAnimationFrame(() => {
                     this[$defaultProgressBarElement].style.transform =
@@ -53567,13 +53571,11 @@ const LoadingMixin = (ModelViewerElement) => {
                     }
                 });
             }, PROGRESS_BAR_UPDATE_THRESHOLD);
-            this[_j] = (event) => {
+            this[_h] = (event) => {
                 const progress = event.detail.totalProgress;
-                this[$lastReportedProgress] =
-                    Math.max(progress, this[$lastReportedProgress]);
                 if (progress === 1.0) {
                     this[$updateProgressBar].flush();
-                    if (this[$sceneIsReady]() &&
+                    if (this.loaded &&
                         (this[$shouldDismissPoster] ||
                             this.reveal === RevealStrategy.AUTO)) {
                         this[$hidePoster]();
@@ -53626,7 +53628,7 @@ const LoadingMixin = (ModelViewerElement) => {
          * the poster via user input.
          */
         dismissPoster() {
-            if (this[$sceneIsReady]()) {
+            if (this.loaded) {
                 this[$hidePoster]();
             }
             else {
@@ -53641,10 +53643,14 @@ const LoadingMixin = (ModelViewerElement) => {
          */
         showPoster() {
             const posterContainerElement = this[$posterContainerElement];
+            if (posterContainerElement.classList.contains('show')) {
+                return;
+            }
+            posterContainerElement.classList.add('show');
+            this[$userInputElement].classList.remove('show');
             const defaultPosterElement = this[$defaultPosterElement];
             defaultPosterElement.removeAttribute('tabindex');
             defaultPosterElement.removeAttribute('aria-hidden');
-            posterContainerElement.classList.add('show');
             const oldVisibility = this.modelIsVisible;
             this[$modelIsRevealed] = false;
             this[$announceModelVisibility](oldVisibility);
@@ -53656,8 +53662,12 @@ const LoadingMixin = (ModelViewerElement) => {
         getDimensions() {
             return toVector3D(this[$scene].size);
         }
+        getBoundingBoxCenter() {
+            return toVector3D(this[$scene].boundingBox.getCenter(new Vector3()));
+        }
         connectedCallback() {
             super.connectedCallback();
+            this.showPoster();
             this[$progressTracker].addEventListener('progress', this[$onProgress]);
         }
         disconnectedCallback() {
@@ -53676,35 +53686,24 @@ const LoadingMixin = (ModelViewerElement) => {
             if (changedProperties.has('reveal') || changedProperties.has('loading')) {
                 this[$updateSource]();
             }
-            if (changedProperties.has('generateSchema')) {
-                if (this.generateSchema === true) {
-                    this[$scene].updateSchema(this.src);
-                }
-                else {
-                    this[$scene].updateSchema(null);
-                }
-            }
         }
-        [(_a = $modelIsRevealed, _b = $lastReportedProgress, _c = $shouldDismissPoster, _d = $posterContainerElement, _e = $defaultPosterElement, _f = $defaultProgressBarElement, _g = $ariaLabelCallToAction, _h = $updateProgressBar, _j = $onProgress, $shouldAttemptPreload)]() {
+        [(_a = $modelIsRevealed, _b = $shouldDismissPoster, _c = $posterContainerElement, _d = $defaultPosterElement, _e = $defaultProgressBarElement, _f = $ariaLabelCallToAction, _g = $updateProgressBar, _h = $onProgress, $shouldAttemptPreload)]() {
             return !!this.src &&
                 (this[$shouldDismissPoster] ||
                     this.loading === LoadingStrategy.EAGER ||
                     (this.reveal === RevealStrategy.AUTO && this[$isElementInViewport]));
         }
-        [$sceneIsReady]() {
-            const { src } = this;
-            return !!src && super[$sceneIsReady]() &&
-                this[$lastReportedProgress] === 1.0;
-        }
         [$hidePoster]() {
             this[$shouldDismissPoster] = false;
             const posterContainerElement = this[$posterContainerElement];
-            if (posterContainerElement.classList.contains('show')) {
-                const oldVisibility = this.modelIsVisible;
-                this[$modelIsRevealed] = true;
-                this[$announceModelVisibility](oldVisibility);
-                posterContainerElement.classList.remove('show');
+            if (!posterContainerElement.classList.contains('show')) {
+                return;
             }
+            posterContainerElement.classList.remove('show');
+            this[$userInputElement].classList.add('show');
+            const oldVisibility = this.modelIsVisible;
+            this[$modelIsRevealed] = true;
+            this[$announceModelVisibility](oldVisibility);
             const root = this.getRootNode();
             // If the <model-viewer> is still focused, forward the focus to
             // the canvas that has just been revealed
@@ -53721,19 +53720,6 @@ const LoadingMixin = (ModelViewerElement) => {
         [$getModelIsVisible]() {
             return super[$getModelIsVisible]() && this[$modelIsRevealed];
         }
-        async [$updateSource]() {
-            this[$lastReportedProgress] = 0;
-            if (this.generateSchema === true) {
-                this[$scene].updateSchema(this.src);
-            }
-            if (this[$scene].currentGLTF == null || this.src == null ||
-                !this[$shouldAttemptPreload]()) {
-                // Don't show the poster when switching models.
-                this.showPoster();
-            }
-            this[$updateStatus]('Loading');
-            await super[$updateSource]();
-        }
     }
     __decorate$2([
         e$4({ type: String })
@@ -53744,9 +53730,6 @@ const LoadingMixin = (ModelViewerElement) => {
     __decorate$2([
         e$4({ type: String })
     ], LoadingModelViewerElement.prototype, "loading", void 0);
-    __decorate$2([
-        e$4({ type: Boolean, attribute: 'generate-schema' })
-    ], LoadingModelViewerElement.prototype, "generateSchema", void 0);
     return LoadingModelViewerElement;
 };
 

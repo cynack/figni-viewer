@@ -92,7 +92,6 @@ export default class FigniViewerElement extends HTMLElement {
   #toggleStates = {}
 
   #ABTEST = {
-    AR_BUTTON_TEST: '実物大で見る',
     HIGHLIGHT_NUMBER_TEST: false,
   }
 
@@ -205,13 +204,6 @@ export default class FigniViewerElement extends HTMLElement {
     })
 
     // AB TEST
-    if (Math.random() > 0.5) {
-      this.#ABTEST.AR_BUTTON_TEST = 'ARで見る'
-      this.base.registerABTestResult('ar-button-test', 'see-in-ar')
-    } else {
-      this.#ABTEST.AR_BUTTON_TEST = '実物大で見る'
-      this.base.registerABTestResult('ar-button-test', 'see-real-size')
-    }
     if (Math.random() > 0.5) {
       this.#ABTEST.HIGHLIGHT_NUMBER_TEST = true
       this.base.registerABTestResult('highlight-number-test', true)
@@ -1182,9 +1174,7 @@ export default class FigniViewerElement extends HTMLElement {
   #showArButton() {
     if (!this.#arButton) {
       this.#arButton = document.createElement('span')
-      this.#arButton.innerHTML = `${SVG_AR_BUTTON}<span>${
-        this.#ABTEST.AR_BUTTON_TEST
-      }</span>`
+      this.#arButton.innerHTML = `${SVG_AR_BUTTON}<span>実物大で見る</span>`
       this.#arButton.classList.add('figni-viewer-ar-button')
       this.addEventListener('load', () => {
         if (this.base.canActivateAR) {
@@ -1221,7 +1211,7 @@ export default class FigniViewerElement extends HTMLElement {
       QRCode.toString(window.location.href, { width: 100 }, (err, str) => {
         if (!err) {
           const title = document.createElement('div')
-          title.innerText = this.#ABTEST.AR_BUTTON_TEST
+          title.innerText = '実物大で見る'
           title.classList.add('figni-viewer-qrcode-panel-title')
           panel.appendChild(title)
           const text = document.createElement('div')
@@ -1539,7 +1529,7 @@ export default class FigniViewerElement extends HTMLElement {
       // 「キャプションの操作」ボタンを生成
       createButton('キャプションの操作', CAPTION_TAP_ANIMATION, HELP.CAPTION)
       // 「実物大で見る」ボタンを生成
-      createButton(this.#ABTEST.AR_BUTTON_TEST, HOW_TO_AR_ANIMATION, HELP.AR)
+      createButton('実物大で見る', HOW_TO_AR_ANIMATION, HELP.AR)
       // 「上手く行かない場合」ボタンを生成
       const unknownBtn = document.createElement('div')
       unknownBtn.classList.add(
@@ -1740,7 +1730,7 @@ export default class FigniViewerElement extends HTMLElement {
       page.classList.add('figni-viewer-help-page')
       this.#helpArPage.appendChild(page)
       const title = document.createElement('h3')
-      title.innerText = this.#ABTEST.AR_BUTTON_TEST
+      title.innerText = '実物大で見る'
       page.appendChild(title)
       const helpItemContainer = document.createElement('div')
       helpItemContainer.classList.add('figni-viewer-help-page-item-container')
@@ -1749,12 +1739,8 @@ export default class FigniViewerElement extends HTMLElement {
         this.#createHelpItem(
           null,
           1,
-          `"${this.#ABTEST.AR_BUTTON_TEST}"ボタンをタップ`,
-          `左下の"${
-            this.#ABTEST.AR_BUTTON_TEST
-          }"をタップすると、スマートフォンのカメラ映像を通してコンテンツを${
-            this.#ABTEST.AR_BUTTON_TEST
-          }ことができます。`
+          `"実物大で見る"ボタンをタップ`,
+          `左下の"実物大で見る"をタップすると、スマートフォンのカメラ映像を通してコンテンツを実物大で見ることができます。`
         )
       )
       helpItemContainer.appendChild(
@@ -1853,9 +1839,7 @@ export default class FigniViewerElement extends HTMLElement {
       helpItemContainer.appendChild(
         this.#createHelpUnknownItem(
           '表示がおかしくなってしまう',
-          `一度機能を終了し、"${
-            this.#ABTEST.AR_BUTTON_TEST
-          }"ボタンからもう一度機能を起動してください。`
+          `一度機能を終了し、"実物大で見る"ボタンからもう一度機能を起動してください。`
         )
       )
       // 戻るボタンの追加

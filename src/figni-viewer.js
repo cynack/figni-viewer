@@ -226,8 +226,10 @@ export default class FigniViewerElement extends HTMLElement {
     this.#hotspots.forEach((hotspot) => {
       this.#modifyHotspot(hotspot)
     })
-    this.addEventListener('model-visibility', () => {
-      this.#enableAllHotspots()
+    this.addEventListener('load', () => {
+      setTimeout(() => {
+        this.#enableAllHotspots()
+      }, 100)
     })
 
     this.#loadModel()

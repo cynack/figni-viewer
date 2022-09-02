@@ -226,6 +226,9 @@ export default class FigniViewerElement extends HTMLElement {
     this.#hotspots.forEach((hotspot) => {
       this.#modifyHotspot(hotspot)
     })
+    this.addEventListener('model-visibility', () => {
+      this.#enableAllHotspots()
+    })
 
     this.#loadModel()
     this.resetCameraTargetAndOrbit()
@@ -316,6 +319,7 @@ export default class FigniViewerElement extends HTMLElement {
   async #loadModel() {
     this.#hideErrorPanel()
     this.#hideLoadingPanel()
+    this.#disableAllHotspots()
     try {
       this.#showLoadingPanel()
       await this.base.loadModel(
@@ -832,17 +836,23 @@ export default class FigniViewerElement extends HTMLElement {
     })
   }
 
+  #enableAllHotspots() {
+    this.#hotspots.forEach((hotspot) => {
+      hotspot.classList.remove('figni-viewer-hotspot-none')
+    })
+  }
+
+  #disableAllHotspots() {
+    this.#hotspots.forEach((hotspot) => {
+      hotspot.classList.add('figni-viewer-hotspot-none')
+    })
+  }
+
   count = 1
 
   #modifyHotspot(hotspot) {
     hotspot.classList.add('figni-viewer-hotspot')
     hotspot.classList.add('figni-viewer-hotspot-highlight')
-    if (!this.base.loaded) {
-      hotspot.classList.add('figni-viewer-hotspot-preload')
-      this.addEventListener('model-visibility', () => {
-        hotspot.classList.remove('figni-viewer-hotspot-preload')
-      })
-    }
 
     // AB TEST
     if (this.#ABTEST.HIGHLIGHT_NUMBER_TEST) {

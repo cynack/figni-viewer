@@ -56,6 +56,7 @@ const HELP = {
 }
 const TIPS = {
   DRAG: 'drag',
+  AR: 'ar',
 }
 
 export default class FigniViewerElement extends HTMLElement {
@@ -90,7 +91,9 @@ export default class FigniViewerElement extends HTMLElement {
   #tipsHideCallback = null
   #toggleStates = {}
 
-  #ABTEST = {}
+  #ABTEST = {
+    IS_OPEN_AR_TIPS: true,
+  }
 
   get itemId() {
     return this.getAttribute('item-id')
@@ -201,13 +204,13 @@ export default class FigniViewerElement extends HTMLElement {
     })
 
     // AB TEST
-    // if (Math.random() > 0.5) {
-    //   this.#ABTEST['ABテスト名'] = true
-    //   this.base.registerABTestResult('abtest-name', true)
-    // } else {
-    //   this.#ABTEST['ABテスト名'] = false
-    //   this.base.registerABTestResult('abtest-name', false)
-    // }
+    if (Math.random() > 0.5) {
+      this.#ABTEST.IS_OPEN_AR_TIPS = true
+      this.base.registerABTestResult('is-open-ar-tips', true)
+    } else {
+      this.#ABTEST.IS_OPEN_AR_TIPS = true
+      this.base.registerABTestResult('is-open-ar-tips', false)
+    }
 
     // Figni Help Panel
     this.#showHelpPanel()
@@ -670,20 +673,34 @@ export default class FigniViewerElement extends HTMLElement {
   openTipsPanel(tips, delay = 6000) {
     this.closeTipsPanel()
     this.closeHelpPanel()
-    this.#helpButton.innerHTML = `${SVG_HELP_ICON}`
-    this.#tipsPanel.classList.remove('figni-viewer-tips-panel-hidden')
     let text = null
     let animation = null
     let help = HELP.TOP
+    let style = ''
+    let minimizeHelpButton = true
     switch (tips) {
       case TIPS.DRAG: {
         text = 'ドラッグするとコンテンツを回転できます'
         animation = CONTENT_OPERATION_ANIMATION
         help = HELP.CONTENT
+        style = 'top: 0.75em; right: 0.75em; transform-origin: top right;'
+        minimizeHelpButton = true
+        break
+      }
+      case TIPS.AR: {
+        text = '目の前に実物大の商品を表示できます'
+        animation = HOW_TO_AR_ANIMATION
+        help = HELP.AR
+        style = 'bottom: 5.75em; left: 0.75em; transform-origin: bottom left;'
+        minimizeHelpButton = false
         break
       }
     }
     if (text && animation) {
+      if (minimizeHelpButton) {
+        this.#helpButton.innerHTML = `${SVG_HELP_ICON}`
+      }
+      this.#tipsPanel.style = style
       this.#tipsPanel.querySelector('.figni-viewer-tips-panel-text').innerHTML =
         text
       const animationElement = this.#tipsPanel.querySelector(
@@ -705,7 +722,14 @@ export default class FigniViewerElement extends HTMLElement {
           once: true,
         }
       )
+      this.#tipsPanel.classList.remove('figni-viewer-tips-panel-hidden')
     }
+  }
+
+  // TODO: TIPSごとに関数分ける
+  // TODO: ARではARボタンのテキストをなくしてボタンを丸くする
+  openDragTipsPanel() {
+    this.#helpButton.innerHTML = `${SVG_HELP_ICON}`
   }
 
   closeTipsPanel() {
@@ -846,8 +870,6 @@ export default class FigniViewerElement extends HTMLElement {
       hotspot.classList.add('figni-viewer-hotspot-none')
     })
   }
-
-  count = 1
 
   #modifyHotspot(hotspot) {
     hotspot.classList.add('figni-viewer-hotspot')
@@ -1308,7 +1330,9 @@ export default class FigniViewerElement extends HTMLElement {
       })
       this.addEventListener('load', () => {
         this.#hideLoadingPanel()
-        this.openTipsPanel(TIPS.DRAG)
+        if (this.#ABTEST.IS_OPEN_AR_TIPS) {
+          this.openTipsPanel(TIPS.AR)
+        }
       })
     } else {
       this.#loadingPanel.style.display = ''

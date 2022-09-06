@@ -208,7 +208,7 @@ export default class FigniViewerElement extends HTMLElement {
       this.#ABTEST.IS_OPEN_AR_TIPS = true
       this.base.registerABTestResult('is-open-ar-tips', true)
     } else {
-      this.#ABTEST.IS_OPEN_AR_TIPS = true
+      this.#ABTEST.IS_OPEN_AR_TIPS = false
       this.base.registerABTestResult('is-open-ar-tips', false)
     }
 

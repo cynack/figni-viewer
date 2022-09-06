@@ -263,7 +263,7 @@ figni-viewer {
   height: 2.5em;
   left: 0.5em;
   bottom: 0.5em;
-  background-color: white;
+  background-color: var(--figni-viewer-primary);
   border: none;
   border-radius: 2em;
   padding: 0 1.25em;
@@ -275,18 +275,18 @@ figni-viewer {
   svg {
     width: 0.875em;
     height: 0.875em;
-    margin-right: 0.3em;
     path {
-      fill: var(--figni-viewer-primary);
+      fill: white;
     }
   }
   span {
     display: block;
-    color: var(--figni-viewer-primary);
+    color: white;
     font-size: 12px;
     font-family: var(--figni-viewer-font);
     font-weight: bold;
     margin-bottom: 0.1em;
+    margin-left: 0.3em;
   }
 }
 
@@ -624,7 +624,7 @@ figni-viewer {
   padding: 0 0.5em;
   right: 0.5em;
   top: 0.5em;
-  background-color: var(--figni-viewer-primary);
+  background-color: #ffffff;
   border: none;
   border-radius: 1.25em;
   font-weight: bold;
@@ -646,7 +646,7 @@ figni-viewer {
 
 .figni-viewer-help-button span {
   display: block;
-  color: #ffffff;
+  color: var(--figni-viewer-primary);
   font-size: 0.75em;
   font-family: var(--figni-viewer-font);
   font-weight: bold;
@@ -657,15 +657,12 @@ figni-viewer {
 
 .figni-viewer-tips-panel {
   position: absolute;
-  top: 0.75em;
-  right: 0.75em;
   display: flex;
   flex-direction: row;
   border-radius: 0.5em;
   background-color: #ffffff;
-  transition: 0.5s cubic-bezier(0.65, 0.05, 0.36, 1) all;
   z-index: 9997;
-  transform-origin: top right;
+  transition: 0.5s cubic-bezier(0.65, 0.05, 0.36, 1) transform;
   transform: scale(1);
   cursor: pointer;
 }

@@ -691,7 +691,7 @@ export default class FigniViewerElement extends HTMLElement {
         text = '目の前に実物大の商品を表示できます'
         animation = HOW_TO_AR_ANIMATION
         help = HELP.AR
-        style = 'bottom: 5.75em; left: 0.75em; transform-origin: bottom left;'
+        style = 'bottom: 3.75em; left: 0.75em; transform-origin: bottom left;'
         minimizeHelpButton = false
         break
       }

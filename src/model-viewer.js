@@ -3,7 +3,7 @@
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const i$3=(i,e)=>"method"===e.kind&&e.descriptor&&!("value"in e.descriptor)?{...e,finisher(n){n.createProperty(e.key,i);}}:{kind:"field",key:Symbol(),placement:"own",descriptor:{},originalKey:e.key,initializer(){"function"==typeof e.initializer&&(this[e.key]=e.initializer.call(this));},finisher(n){n.createProperty(e.key,i);}};function e$4(e){return (n,t)=>void 0!==t?((i,e,n)=>{e.constructor.createProperty(n,i);})(e,n,t):i$3(e,n)}
+const i$2=(i,e)=>"method"===e.kind&&e.descriptor&&!("value"in e.descriptor)?{...e,finisher(n){n.createProperty(e.key,i);}}:{kind:"field",key:Symbol(),placement:"own",descriptor:{},originalKey:e.key,initializer(){"function"==typeof e.initializer&&(this[e.key]=e.initializer.call(this));},finisher(n){n.createProperty(e.key,i);}};function e$3(e){return (n,t)=>void 0!==t?((i,e,n)=>{e.constructor.createProperty(n,i);})(e,n,t):i$2(e,n)}
 
 /**
  * @license
@@ -16,7 +16,7 @@ const i$3=(i,e)=>"method"===e.kind&&e.descriptor&&!("value"in e.descriptor)?{...
  * Copyright 2010-2022 Three.js Authors
  * SPDX-License-Identifier: MIT
  */
-const REVISION = '143';
+const REVISION = '144';
 const CullFaceNone = 0;
 const CullFaceBack = 1;
 const CullFaceFront = 2;
@@ -26,7 +26,6 @@ const VSMShadowMap = 3;
 const FrontSide = 0;
 const BackSide = 1;
 const DoubleSide = 2;
-const FlatShading = 1;
 const NoBlending = 0;
 const NormalBlending = 1;
 const AdditiveBlending = 2;
@@ -94,7 +93,7 @@ const UnsignedShort4444Type = 1017;
 const UnsignedShort5551Type = 1018;
 const UnsignedInt248Type = 1020;
 const AlphaFormat = 1021;
-const RGBFormat = 1022;
+const RGBFormat = 1022; // @deprecated since r137
 const RGBAFormat = 1023;
 const LuminanceFormat = 1024;
 const LuminanceAlphaFormat = 1025;
@@ -475,7 +474,7 @@ function setQuaternionFromProperEuler( q, a, b, c, order ) {
 
 }
 
-function denormalize$1( value, array ) {
+function denormalize( value, array ) {
 
 	switch ( array.constructor ) {
 
@@ -564,7 +563,7 @@ var MathUtils = /*#__PURE__*/Object.freeze({
 	floorPowerOfTwo: floorPowerOfTwo,
 	setQuaternionFromProperEuler: setQuaternionFromProperEuler,
 	normalize: normalize,
-	denormalize: denormalize$1
+	denormalize: denormalize
 });
 
 class Vector2 {
@@ -1368,7 +1367,7 @@ function arrayNeedsUint32( array ) {
 
 	for ( let i = array.length - 1; i >= 0; -- i ) {
 
-		if ( array[ i ] > 65535 ) return true;
+		if ( array[ i ] >= 65535 ) return true; // account for PRIMITIVE_RESTART_FIXED_INDEX, #24565
 
 	}
 
@@ -1675,12 +1674,12 @@ class Color {
 				case 'hsl':
 				case 'hsla':
 
-					if ( color = /^\s*(\d*\.?\d+)\s*,\s*(\d+)\%\s*,\s*(\d+)\%\s*(?:,\s*(\d*\.?\d+)\s*)?$/.exec( components ) ) {
+					if ( color = /^\s*(\d*\.?\d+)\s*,\s*(\d*\.?\d+)\%\s*,\s*(\d*\.?\d+)\%\s*(?:,\s*(\d*\.?\d+)\s*)?$/.exec( components ) ) {
 
 						// hsl(120,50%,50%) hsla(120,50%,50%,0.5)
 						const h = parseFloat( color[ 1 ] ) / 360;
-						const s = parseInt( color[ 2 ], 10 ) / 100;
-						const l = parseInt( color[ 3 ], 10 ) / 100;
+						const s = parseFloat( color[ 2 ] ) / 100;
+						const l = parseFloat( color[ 3 ] ) / 100;
 
 						handleAlpha( color[ 4 ] );
 
@@ -2032,16 +2031,6 @@ class Color {
 		this.r = attribute.getX( index );
 		this.g = attribute.getY( index );
 		this.b = attribute.getZ( index );
-
-		if ( attribute.normalized === true ) {
-
-			// assuming Uint8Array
-
-			this.r /= 255;
-			this.g /= 255;
-			this.b /= 255;
-
-		}
 
 		return this;
 
@@ -3598,12 +3587,6 @@ class Quaternion {
 	}
 
 	setFromEuler( euler, update ) {
-
-		if ( ! ( euler && euler.isEuler ) ) {
-
-			throw new Error( 'THREE.Quaternion: .setFromEuler() now expects an Euler rotation rather than a Vector3 and order.' );
-
-		}
 
 		const x = euler._x, y = euler._y, z = euler._z, order = euler._order;
 
@@ -7364,6 +7347,8 @@ class Object3D extends EventDispatcher {
 		this.matrixAutoUpdate = Object3D.DefaultMatrixAutoUpdate;
 		this.matrixWorldNeedsUpdate = false;
 
+		this.matrixWorldAutoUpdate = Object3D.DefaultMatrixWorldAutoUpdate; // checked by the renderer
+
 		this.layers = new Layers();
 		this.visible = true;
 
@@ -7848,7 +7833,13 @@ class Object3D extends EventDispatcher {
 
 		for ( let i = 0, l = children.length; i < l; i ++ ) {
 
-			children[ i ].updateMatrixWorld( force );
+			const child = children[ i ];
+
+			if ( child.matrixWorldAutoUpdate === true || force === true ) {
+
+				child.updateMatrixWorld( force );
+
+			}
 
 		}
 
@@ -7858,7 +7849,7 @@ class Object3D extends EventDispatcher {
 
 		const parent = this.parent;
 
-		if ( updateParents === true && parent !== null ) {
+		if ( updateParents === true && parent !== null && parent.matrixWorldAutoUpdate === true ) {
 
 			parent.updateWorldMatrix( true, false );
 
@@ -7884,7 +7875,13 @@ class Object3D extends EventDispatcher {
 
 			for ( let i = 0, l = children.length; i < l; i ++ ) {
 
-				children[ i ].updateWorldMatrix( false, true );
+				const child = children[ i ];
+
+				if ( child.matrixWorldAutoUpdate === true ) {
+
+					child.updateWorldMatrix( false, true );
+
+				}
 
 			}
 
@@ -8157,6 +8154,8 @@ class Object3D extends EventDispatcher {
 		this.matrixAutoUpdate = source.matrixAutoUpdate;
 		this.matrixWorldNeedsUpdate = source.matrixWorldNeedsUpdate;
 
+		this.matrixWorldAutoUpdate = source.matrixWorldAutoUpdate;
+
 		this.layers.mask = source.layers.mask;
 		this.visible = source.visible;
 
@@ -8187,6 +8186,7 @@ class Object3D extends EventDispatcher {
 
 Object3D.DefaultUp = /*@__PURE__*/ new Vector3( 0, 1, 0 );
 Object3D.DefaultMatrixAutoUpdate = true;
+Object3D.DefaultMatrixWorldAutoUpdate = true;
 
 const _v0$1 = /*@__PURE__*/ new Vector3();
 const _v1$3 = /*@__PURE__*/ new Vector3();
@@ -8600,15 +8600,6 @@ class Material$1 extends EventDispatcher {
 			if ( newValue === undefined ) {
 
 				console.warn( 'THREE.Material: \'' + key + '\' parameter is undefined.' );
-				continue;
-
-			}
-
-			// for backward compatibility if shading is set in the constructor
-			if ( key === 'shading' ) {
-
-				console.warn( 'THREE.' + this.type + ': .shading has been removed. Use the boolean .flatShading instead.' );
-				this.flatShading = ( newValue === FlatShading ) ? true : false;
 				continue;
 
 			}
@@ -9139,110 +9130,6 @@ class BufferAttribute {
 
 	}
 
-	copyColorsArray( colors ) {
-
-		const array = this.array;
-		let offset = 0;
-
-		for ( let i = 0, l = colors.length; i < l; i ++ ) {
-
-			let color = colors[ i ];
-
-			if ( color === undefined ) {
-
-				console.warn( 'THREE.BufferAttribute.copyColorsArray(): color is undefined', i );
-				color = new Color();
-
-			}
-
-			array[ offset ++ ] = color.r;
-			array[ offset ++ ] = color.g;
-			array[ offset ++ ] = color.b;
-
-		}
-
-		return this;
-
-	}
-
-	copyVector2sArray( vectors ) {
-
-		const array = this.array;
-		let offset = 0;
-
-		for ( let i = 0, l = vectors.length; i < l; i ++ ) {
-
-			let vector = vectors[ i ];
-
-			if ( vector === undefined ) {
-
-				console.warn( 'THREE.BufferAttribute.copyVector2sArray(): vector is undefined', i );
-				vector = new Vector2();
-
-			}
-
-			array[ offset ++ ] = vector.x;
-			array[ offset ++ ] = vector.y;
-
-		}
-
-		return this;
-
-	}
-
-	copyVector3sArray( vectors ) {
-
-		const array = this.array;
-		let offset = 0;
-
-		for ( let i = 0, l = vectors.length; i < l; i ++ ) {
-
-			let vector = vectors[ i ];
-
-			if ( vector === undefined ) {
-
-				console.warn( 'THREE.BufferAttribute.copyVector3sArray(): vector is undefined', i );
-				vector = new Vector3();
-
-			}
-
-			array[ offset ++ ] = vector.x;
-			array[ offset ++ ] = vector.y;
-			array[ offset ++ ] = vector.z;
-
-		}
-
-		return this;
-
-	}
-
-	copyVector4sArray( vectors ) {
-
-		const array = this.array;
-		let offset = 0;
-
-		for ( let i = 0, l = vectors.length; i < l; i ++ ) {
-
-			let vector = vectors[ i ];
-
-			if ( vector === undefined ) {
-
-				console.warn( 'THREE.BufferAttribute.copyVector4sArray(): vector is undefined', i );
-				vector = new Vector4();
-
-			}
-
-			array[ offset ++ ] = vector.x;
-			array[ offset ++ ] = vector.y;
-			array[ offset ++ ] = vector.z;
-			array[ offset ++ ] = vector.w;
-
-		}
-
-		return this;
-
-	}
-
 	applyMatrix3( m ) {
 
 		if ( this.itemSize === 2 ) {
@@ -9323,6 +9210,7 @@ class BufferAttribute {
 
 	set( value, offset = 0 ) {
 
+		// Matching BufferAttribute constructor, do not normalize the array.
 		this.array.set( value, offset );
 
 		return this;
@@ -9331,11 +9219,17 @@ class BufferAttribute {
 
 	getX( index ) {
 
-		return this.array[ index * this.itemSize ];
+		let x = this.array[ index * this.itemSize ];
+
+		if ( this.normalized ) x = denormalize( x, this.array );
+
+		return x;
 
 	}
 
 	setX( index, x ) {
+
+		if ( this.normalized ) x = normalize( x, this.array );
 
 		this.array[ index * this.itemSize ] = x;
 
@@ -9345,11 +9239,17 @@ class BufferAttribute {
 
 	getY( index ) {
 
-		return this.array[ index * this.itemSize + 1 ];
+		let y = this.array[ index * this.itemSize + 1 ];
+
+		if ( this.normalized ) y = denormalize( y, this.array );
+
+		return y;
 
 	}
 
 	setY( index, y ) {
+
+		if ( this.normalized ) y = normalize( y, this.array );
 
 		this.array[ index * this.itemSize + 1 ] = y;
 
@@ -9359,11 +9259,17 @@ class BufferAttribute {
 
 	getZ( index ) {
 
-		return this.array[ index * this.itemSize + 2 ];
+		let z = this.array[ index * this.itemSize + 2 ];
+
+		if ( this.normalized ) z = denormalize( z, this.array );
+
+		return z;
 
 	}
 
 	setZ( index, z ) {
+
+		if ( this.normalized ) z = normalize( z, this.array );
 
 		this.array[ index * this.itemSize + 2 ] = z;
 
@@ -9373,11 +9279,17 @@ class BufferAttribute {
 
 	getW( index ) {
 
-		return this.array[ index * this.itemSize + 3 ];
+		let w = this.array[ index * this.itemSize + 3 ];
+
+		if ( this.normalized ) w = denormalize( w, this.array );
+
+		return w;
 
 	}
 
 	setW( index, w ) {
+
+		if ( this.normalized ) w = normalize( w, this.array );
 
 		this.array[ index * this.itemSize + 3 ] = w;
 
@@ -9388,6 +9300,13 @@ class BufferAttribute {
 	setXY( index, x, y ) {
 
 		index *= this.itemSize;
+
+		if ( this.normalized ) {
+
+			x = normalize( x, this.array );
+			y = normalize( y, this.array );
+
+		}
 
 		this.array[ index + 0 ] = x;
 		this.array[ index + 1 ] = y;
@@ -9400,6 +9319,14 @@ class BufferAttribute {
 
 		index *= this.itemSize;
 
+		if ( this.normalized ) {
+
+			x = normalize( x, this.array );
+			y = normalize( y, this.array );
+			z = normalize( z, this.array );
+
+		}
+
 		this.array[ index + 0 ] = x;
 		this.array[ index + 1 ] = y;
 		this.array[ index + 2 ] = z;
@@ -9411,6 +9338,15 @@ class BufferAttribute {
 	setXYZW( index, x, y, z, w ) {
 
 		index *= this.itemSize;
+
+		if ( this.normalized ) {
+
+			x = normalize( x, this.array );
+			y = normalize( y, this.array );
+			z = normalize( z, this.array );
+			w = normalize( w, this.array );
+
+		}
 
 		this.array[ index + 0 ] = x;
 		this.array[ index + 1 ] = y;
@@ -9449,6 +9385,32 @@ class BufferAttribute {
 		if ( this.updateRange.offset !== 0 || this.updateRange.count !== - 1 ) data.updateRange = this.updateRange;
 
 		return data;
+
+	}
+
+	// @deprecated
+
+	copyColorsArray() {
+
+		console.error( 'THREE.BufferAttribute: copyColorsArray() was removed in r144.' );
+
+	}
+
+	copyVector2sArray() {
+
+		console.error( 'THREE.BufferAttribute: copyVector2sArray() was removed in r144.' );
+
+	}
+
+	copyVector3sArray() {
+
+		console.error( 'THREE.BufferAttribute: copyVector3sArray() was removed in r144.' );
+
+	}
+
+	copyVector4sArray() {
+
+		console.error( 'THREE.BufferAttribute: copyVector4sArray() was removed in r144.' );
 
 	}
 
@@ -10201,49 +10163,11 @@ class BufferGeometry extends EventDispatcher {
 
 	}
 
-	merge( geometry, offset ) {
+	// @deprecated since r144
 
-		if ( ! ( geometry && geometry.isBufferGeometry ) ) {
+	merge() {
 
-			console.error( 'THREE.BufferGeometry.merge(): geometry not an instance of THREE.BufferGeometry.', geometry );
-			return;
-
-		}
-
-		if ( offset === undefined ) {
-
-			offset = 0;
-
-			console.warn(
-				'THREE.BufferGeometry.merge(): Overwriting original geometry, starting at offset=0. '
-				+ 'Use BufferGeometryUtils.mergeBufferGeometries() for lossless merge.'
-			);
-
-		}
-
-		const attributes = this.attributes;
-
-		for ( const key in attributes ) {
-
-			if ( geometry.attributes[ key ] === undefined ) continue;
-
-			const attribute1 = attributes[ key ];
-			const attributeArray1 = attribute1.array;
-
-			const attribute2 = geometry.attributes[ key ];
-			const attributeArray2 = attribute2.array;
-
-			const attributeOffset = attribute2.itemSize * offset;
-			const length = Math.min( attributeArray2.length, attributeArray1.length - attributeOffset );
-
-			for ( let i = 0, j = attributeOffset; i < length; i ++, j ++ ) {
-
-				attributeArray1[ j ] = attributeArray2[ i ];
-
-			}
-
-		}
-
+		console.error( 'THREE.BufferGeometry.merge() has been removed. Use THREE.BufferGeometryUtils.mergeBufferGeometries() instead.' );
 		return this;
 
 	}
@@ -11283,12 +11207,6 @@ class ShaderMaterial extends Material$1 {
 
 		if ( parameters !== undefined ) {
 
-			if ( parameters.attributes !== undefined ) {
-
-				console.error( 'THREE.ShaderMaterial: attributes should now be defined in THREE.BufferGeometry instead.' );
-
-			}
-
 			this.setValues( parameters );
 
 		}
@@ -11718,13 +11636,6 @@ class CubeCamera extends Object3D {
 		super();
 
 		this.type = 'CubeCamera';
-
-		if ( renderTarget.isWebGLCubeRenderTarget !== true ) {
-
-			console.error( 'THREE.CubeCamera: The constructor now expects an instance of WebGLCubeRenderTarget as third parameter.' );
-			return;
-
-		}
 
 		this.renderTarget = renderTarget;
 
@@ -12706,7 +12617,7 @@ var color_vertex = "#if defined( USE_COLOR_ALPHA )\n\tvColor = vec4( 1.0 );\n#el
 
 var common = "#define PI 3.141592653589793\n#define PI2 6.283185307179586\n#define PI_HALF 1.5707963267948966\n#define RECIPROCAL_PI 0.3183098861837907\n#define RECIPROCAL_PI2 0.15915494309189535\n#define EPSILON 1e-6\n#ifndef saturate\n#define saturate( a ) clamp( a, 0.0, 1.0 )\n#endif\n#define whiteComplement( a ) ( 1.0 - saturate( a ) )\nfloat pow2( const in float x ) { return x*x; }\nvec3 pow2( const in vec3 x ) { return x*x; }\nfloat pow3( const in float x ) { return x*x*x; }\nfloat pow4( const in float x ) { float x2 = x*x; return x2*x2; }\nfloat max3( const in vec3 v ) { return max( max( v.x, v.y ), v.z ); }\nfloat average( const in vec3 v ) { return dot( v, vec3( 0.3333333 ) ); }\nhighp float rand( const in vec2 uv ) {\n\tconst highp float a = 12.9898, b = 78.233, c = 43758.5453;\n\thighp float dt = dot( uv.xy, vec2( a,b ) ), sn = mod( dt, PI );\n\treturn fract( sin( sn ) * c );\n}\n#ifdef HIGH_PRECISION\n\tfloat precisionSafeLength( vec3 v ) { return length( v ); }\n#else\n\tfloat precisionSafeLength( vec3 v ) {\n\t\tfloat maxComponent = max3( abs( v ) );\n\t\treturn length( v / maxComponent ) * maxComponent;\n\t}\n#endif\nstruct IncidentLight {\n\tvec3 color;\n\tvec3 direction;\n\tbool visible;\n};\nstruct ReflectedLight {\n\tvec3 directDiffuse;\n\tvec3 directSpecular;\n\tvec3 indirectDiffuse;\n\tvec3 indirectSpecular;\n};\nstruct GeometricContext {\n\tvec3 position;\n\tvec3 normal;\n\tvec3 viewDir;\n#ifdef USE_CLEARCOAT\n\tvec3 clearcoatNormal;\n#endif\n};\nvec3 transformDirection( in vec3 dir, in mat4 matrix ) {\n\treturn normalize( ( matrix * vec4( dir, 0.0 ) ).xyz );\n}\nvec3 inverseTransformDirection( in vec3 dir, in mat4 matrix ) {\n\treturn normalize( ( vec4( dir, 0.0 ) * matrix ).xyz );\n}\nmat3 transposeMat3( const in mat3 m ) {\n\tmat3 tmp;\n\ttmp[ 0 ] = vec3( m[ 0 ].x, m[ 1 ].x, m[ 2 ].x );\n\ttmp[ 1 ] = vec3( m[ 0 ].y, m[ 1 ].y, m[ 2 ].y );\n\ttmp[ 2 ] = vec3( m[ 0 ].z, m[ 1 ].z, m[ 2 ].z );\n\treturn tmp;\n}\nfloat luminance( const in vec3 rgb ) {\n\tconst vec3 weights = vec3( 0.2126729, 0.7151522, 0.0721750 );\n\treturn dot( weights, rgb );\n}\nbool isPerspectiveMatrix( mat4 m ) {\n\treturn m[ 2 ][ 3 ] == - 1.0;\n}\nvec2 equirectUv( in vec3 dir ) {\n\tfloat u = atan( dir.z, dir.x ) * RECIPROCAL_PI2 + 0.5;\n\tfloat v = asin( clamp( dir.y, - 1.0, 1.0 ) ) * RECIPROCAL_PI + 0.5;\n\treturn vec2( u, v );\n}";
 
-var cube_uv_reflection_fragment = "#ifdef ENVMAP_TYPE_CUBE_UV\n\t#define cubeUV_minMipLevel 4.0\n\t#define cubeUV_minTileSize 16.0\n\tfloat getFace( vec3 direction ) {\n\t\tvec3 absDirection = abs( direction );\n\t\tfloat face = - 1.0;\n\t\tif ( absDirection.x > absDirection.z ) {\n\t\t\tif ( absDirection.x > absDirection.y )\n\t\t\t\tface = direction.x > 0.0 ? 0.0 : 3.0;\n\t\t\telse\n\t\t\t\tface = direction.y > 0.0 ? 1.0 : 4.0;\n\t\t} else {\n\t\t\tif ( absDirection.z > absDirection.y )\n\t\t\t\tface = direction.z > 0.0 ? 2.0 : 5.0;\n\t\t\telse\n\t\t\t\tface = direction.y > 0.0 ? 1.0 : 4.0;\n\t\t}\n\t\treturn face;\n\t}\n\tvec2 getUV( vec3 direction, float face ) {\n\t\tvec2 uv;\n\t\tif ( face == 0.0 ) {\n\t\t\tuv = vec2( direction.z, direction.y ) / abs( direction.x );\n\t\t} else if ( face == 1.0 ) {\n\t\t\tuv = vec2( - direction.x, - direction.z ) / abs( direction.y );\n\t\t} else if ( face == 2.0 ) {\n\t\t\tuv = vec2( - direction.x, direction.y ) / abs( direction.z );\n\t\t} else if ( face == 3.0 ) {\n\t\t\tuv = vec2( - direction.z, direction.y ) / abs( direction.x );\n\t\t} else if ( face == 4.0 ) {\n\t\t\tuv = vec2( - direction.x, direction.z ) / abs( direction.y );\n\t\t} else {\n\t\t\tuv = vec2( direction.x, direction.y ) / abs( direction.z );\n\t\t}\n\t\treturn 0.5 * ( uv + 1.0 );\n\t}\n\tvec3 bilinearCubeUV( sampler2D envMap, vec3 direction, float mipInt ) {\n\t\tfloat face = getFace( direction );\n\t\tfloat filterInt = max( cubeUV_minMipLevel - mipInt, 0.0 );\n\t\tmipInt = max( mipInt, cubeUV_minMipLevel );\n\t\tfloat faceSize = exp2( mipInt );\n\t\tvec2 uv = getUV( direction, face ) * ( faceSize - 2.0 ) + 1.0;\n\t\tif ( face > 2.0 ) {\n\t\t\tuv.y += faceSize;\n\t\t\tface -= 3.0;\n\t\t}\n\t\tuv.x += face * faceSize;\n\t\tuv.x += filterInt * 3.0 * cubeUV_minTileSize;\n\t\tuv.y += 4.0 * ( exp2( CUBEUV_MAX_MIP ) - faceSize );\n\t\tuv.x *= CUBEUV_TEXEL_WIDTH;\n\t\tuv.y *= CUBEUV_TEXEL_HEIGHT;\n\t\t#ifdef texture2DGradEXT\n\t\t\treturn texture2DGradEXT( envMap, uv, vec2( 0.0 ), vec2( 0.0 ) ).rgb;\n\t\t#else\n\t\t\treturn texture2D( envMap, uv ).rgb;\n\t\t#endif\n\t}\n\t#define r0 1.0\n\t#define v0 0.339\n\t#define m0 - 2.0\n\t#define r1 0.8\n\t#define v1 0.276\n\t#define m1 - 1.0\n\t#define r4 0.4\n\t#define v4 0.046\n\t#define m4 2.0\n\t#define r5 0.305\n\t#define v5 0.016\n\t#define m5 3.0\n\t#define r6 0.21\n\t#define v6 0.0038\n\t#define m6 4.0\n\tfloat roughnessToMip( float roughness ) {\n\t\tfloat mip = 0.0;\n\t\tif ( roughness >= r1 ) {\n\t\t\tmip = ( r0 - roughness ) * ( m1 - m0 ) / ( r0 - r1 ) + m0;\n\t\t} else if ( roughness >= r4 ) {\n\t\t\tmip = ( r1 - roughness ) * ( m4 - m1 ) / ( r1 - r4 ) + m1;\n\t\t} else if ( roughness >= r5 ) {\n\t\t\tmip = ( r4 - roughness ) * ( m5 - m4 ) / ( r4 - r5 ) + m4;\n\t\t} else if ( roughness >= r6 ) {\n\t\t\tmip = ( r5 - roughness ) * ( m6 - m5 ) / ( r5 - r6 ) + m5;\n\t\t} else {\n\t\t\tmip = - 2.0 * log2( 1.16 * roughness );\t\t}\n\t\treturn mip;\n\t}\n\tvec4 textureCubeUV( sampler2D envMap, vec3 sampleDir, float roughness ) {\n\t\tfloat mip = clamp( roughnessToMip( roughness ), m0, CUBEUV_MAX_MIP );\n\t\tfloat mipF = fract( mip );\n\t\tfloat mipInt = floor( mip );\n\t\tvec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );\n\t\tif ( mipF == 0.0 ) {\n\t\t\treturn vec4( color0, 1.0 );\n\t\t} else {\n\t\t\tvec3 color1 = bilinearCubeUV( envMap, sampleDir, mipInt + 1.0 );\n\t\t\treturn vec4( mix( color0, color1, mipF ), 1.0 );\n\t\t}\n\t}\n#endif";
+var cube_uv_reflection_fragment = "#ifdef ENVMAP_TYPE_CUBE_UV\n\t#define cubeUV_minMipLevel 4.0\n\t#define cubeUV_minTileSize 16.0\n\tfloat getFace( vec3 direction ) {\n\t\tvec3 absDirection = abs( direction );\n\t\tfloat face = - 1.0;\n\t\tif ( absDirection.x > absDirection.z ) {\n\t\t\tif ( absDirection.x > absDirection.y )\n\t\t\t\tface = direction.x > 0.0 ? 0.0 : 3.0;\n\t\t\telse\n\t\t\t\tface = direction.y > 0.0 ? 1.0 : 4.0;\n\t\t} else {\n\t\t\tif ( absDirection.z > absDirection.y )\n\t\t\t\tface = direction.z > 0.0 ? 2.0 : 5.0;\n\t\t\telse\n\t\t\t\tface = direction.y > 0.0 ? 1.0 : 4.0;\n\t\t}\n\t\treturn face;\n\t}\n\tvec2 getUV( vec3 direction, float face ) {\n\t\tvec2 uv;\n\t\tif ( face == 0.0 ) {\n\t\t\tuv = vec2( direction.z, direction.y ) / abs( direction.x );\n\t\t} else if ( face == 1.0 ) {\n\t\t\tuv = vec2( - direction.x, - direction.z ) / abs( direction.y );\n\t\t} else if ( face == 2.0 ) {\n\t\t\tuv = vec2( - direction.x, direction.y ) / abs( direction.z );\n\t\t} else if ( face == 3.0 ) {\n\t\t\tuv = vec2( - direction.z, direction.y ) / abs( direction.x );\n\t\t} else if ( face == 4.0 ) {\n\t\t\tuv = vec2( - direction.x, direction.z ) / abs( direction.y );\n\t\t} else {\n\t\t\tuv = vec2( direction.x, direction.y ) / abs( direction.z );\n\t\t}\n\t\treturn 0.5 * ( uv + 1.0 );\n\t}\n\tvec3 bilinearCubeUV( sampler2D envMap, vec3 direction, float mipInt ) {\n\t\tfloat face = getFace( direction );\n\t\tfloat filterInt = max( cubeUV_minMipLevel - mipInt, 0.0 );\n\t\tmipInt = max( mipInt, cubeUV_minMipLevel );\n\t\tfloat faceSize = exp2( mipInt );\n\t\tvec2 uv = getUV( direction, face ) * ( faceSize - 2.0 ) + 1.0;\n\t\tif ( face > 2.0 ) {\n\t\t\tuv.y += faceSize;\n\t\t\tface -= 3.0;\n\t\t}\n\t\tuv.x += face * faceSize;\n\t\tuv.x += filterInt * 3.0 * cubeUV_minTileSize;\n\t\tuv.y += 4.0 * ( exp2( CUBEUV_MAX_MIP ) - faceSize );\n\t\tuv.x *= CUBEUV_TEXEL_WIDTH;\n\t\tuv.y *= CUBEUV_TEXEL_HEIGHT;\n\t\t#ifdef texture2DGradEXT\n\t\t\treturn texture2DGradEXT( envMap, uv, vec2( 0.0 ), vec2( 0.0 ) ).rgb;\n\t\t#else\n\t\t\treturn texture2D( envMap, uv ).rgb;\n\t\t#endif\n\t}\n\t#define cubeUV_r0 1.0\n\t#define cubeUV_v0 0.339\n\t#define cubeUV_m0 - 2.0\n\t#define cubeUV_r1 0.8\n\t#define cubeUV_v1 0.276\n\t#define cubeUV_m1 - 1.0\n\t#define cubeUV_r4 0.4\n\t#define cubeUV_v4 0.046\n\t#define cubeUV_m4 2.0\n\t#define cubeUV_r5 0.305\n\t#define cubeUV_v5 0.016\n\t#define cubeUV_m5 3.0\n\t#define cubeUV_r6 0.21\n\t#define cubeUV_v6 0.0038\n\t#define cubeUV_m6 4.0\n\tfloat roughnessToMip( float roughness ) {\n\t\tfloat mip = 0.0;\n\t\tif ( roughness >= cubeUV_r1 ) {\n\t\t\tmip = ( cubeUV_r0 - roughness ) * ( cubeUV_m1 - cubeUV_m0 ) / ( cubeUV_r0 - cubeUV_r1 ) + cubeUV_m0;\n\t\t} else if ( roughness >= cubeUV_r4 ) {\n\t\t\tmip = ( cubeUV_r1 - roughness ) * ( cubeUV_m4 - cubeUV_m1 ) / ( cubeUV_r1 - cubeUV_r4 ) + cubeUV_m1;\n\t\t} else if ( roughness >= cubeUV_r5 ) {\n\t\t\tmip = ( cubeUV_r4 - roughness ) * ( cubeUV_m5 - cubeUV_m4 ) / ( cubeUV_r4 - cubeUV_r5 ) + cubeUV_m4;\n\t\t} else if ( roughness >= cubeUV_r6 ) {\n\t\t\tmip = ( cubeUV_r5 - roughness ) * ( cubeUV_m6 - cubeUV_m5 ) / ( cubeUV_r5 - cubeUV_r6 ) + cubeUV_m5;\n\t\t} else {\n\t\t\tmip = - 2.0 * log2( 1.16 * roughness );\t\t}\n\t\treturn mip;\n\t}\n\tvec4 textureCubeUV( sampler2D envMap, vec3 sampleDir, float roughness ) {\n\t\tfloat mip = clamp( roughnessToMip( roughness ), cubeUV_m0, CUBEUV_MAX_MIP );\n\t\tfloat mipF = fract( mip );\n\t\tfloat mipInt = floor( mip );\n\t\tvec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );\n\t\tif ( mipF == 0.0 ) {\n\t\t\treturn vec4( color0, 1.0 );\n\t\t} else {\n\t\t\tvec3 color1 = bilinearCubeUV( envMap, sampleDir, mipInt + 1.0 );\n\t\t\treturn vec4( mix( color0, color1, mipF ), 1.0 );\n\t\t}\n\t}\n#endif";
 
 var defaultnormal_vertex = "vec3 transformedNormal = objectNormal;\n#ifdef USE_INSTANCING\n\tmat3 m = mat3( instanceMatrix );\n\ttransformedNormal /= vec3( dot( m[ 0 ], m[ 0 ] ), dot( m[ 1 ], m[ 1 ] ), dot( m[ 2 ], m[ 2 ] ) );\n\ttransformedNormal = m * transformedNormal;\n#endif\ntransformedNormal = normalMatrix * transformedNormal;\n#ifdef FLIP_SIDED\n\ttransformedNormal = - transformedNormal;\n#endif\n#ifdef USE_TANGENT\n\tvec3 transformedTangent = ( modelViewMatrix * vec4( objectTangent, 0.0 ) ).xyz;\n\t#ifdef FLIP_SIDED\n\t\ttransformedTangent = - transformedTangent;\n\t#endif\n#endif";
 
@@ -12726,9 +12637,9 @@ var envmap_fragment = "#ifdef USE_ENVMAP\n\t#ifdef ENV_WORLDPOS\n\t\tvec3 camera
 
 var envmap_common_pars_fragment = "#ifdef USE_ENVMAP\n\tuniform float envMapIntensity;\n\tuniform float flipEnvMap;\n\t#ifdef ENVMAP_TYPE_CUBE\n\t\tuniform samplerCube envMap;\n\t#else\n\t\tuniform sampler2D envMap;\n\t#endif\n\t\n#endif";
 
-var envmap_pars_fragment = "#ifdef USE_ENVMAP\n\tuniform float reflectivity;\n\t#if defined( USE_BUMPMAP ) || defined( USE_NORMALMAP ) || defined( PHONG )\n\t\t#define ENV_WORLDPOS\n\t#endif\n\t#ifdef ENV_WORLDPOS\n\t\tvarying vec3 vWorldPosition;\n\t\tuniform float refractionRatio;\n\t#else\n\t\tvarying vec3 vReflect;\n\t#endif\n#endif";
+var envmap_pars_fragment = "#ifdef USE_ENVMAP\n\tuniform float reflectivity;\n\t#if defined( USE_BUMPMAP ) || defined( USE_NORMALMAP ) || defined( PHONG ) || defined( LAMBERT )\n\t\t#define ENV_WORLDPOS\n\t#endif\n\t#ifdef ENV_WORLDPOS\n\t\tvarying vec3 vWorldPosition;\n\t\tuniform float refractionRatio;\n\t#else\n\t\tvarying vec3 vReflect;\n\t#endif\n#endif";
 
-var envmap_pars_vertex = "#ifdef USE_ENVMAP\n\t#if defined( USE_BUMPMAP ) || defined( USE_NORMALMAP ) ||defined( PHONG )\n\t\t#define ENV_WORLDPOS\n\t#endif\n\t#ifdef ENV_WORLDPOS\n\t\t\n\t\tvarying vec3 vWorldPosition;\n\t#else\n\t\tvarying vec3 vReflect;\n\t\tuniform float refractionRatio;\n\t#endif\n#endif";
+var envmap_pars_vertex = "#ifdef USE_ENVMAP\n\t#if defined( USE_BUMPMAP ) || defined( USE_NORMALMAP ) || defined( PHONG ) || defined( LAMBERT )\n\t\t#define ENV_WORLDPOS\n\t#endif\n\t#ifdef ENV_WORLDPOS\n\t\t\n\t\tvarying vec3 vWorldPosition;\n\t#else\n\t\tvarying vec3 vReflect;\n\t\tuniform float refractionRatio;\n\t#endif\n#endif";
 
 var envmap_vertex = "#ifdef USE_ENVMAP\n\t#ifdef ENV_WORLDPOS\n\t\tvWorldPosition = worldPosition.xyz;\n\t#else\n\t\tvec3 cameraToVertex;\n\t\tif ( isOrthographic ) {\n\t\t\tcameraToVertex = normalize( vec3( - viewMatrix[ 0 ][ 2 ], - viewMatrix[ 1 ][ 2 ], - viewMatrix[ 2 ][ 2 ] ) );\n\t\t} else {\n\t\t\tcameraToVertex = normalize( worldPosition.xyz - cameraPosition );\n\t\t}\n\t\tvec3 worldNormal = inverseTransformDirection( transformedNormal, viewMatrix );\n\t\t#ifdef ENVMAP_MODE_REFLECTION\n\t\t\tvReflect = reflect( cameraToVertex, worldNormal );\n\t\t#else\n\t\t\tvReflect = refract( cameraToVertex, worldNormal, refractionRatio );\n\t\t#endif\n\t#endif\n#endif";
 
@@ -12740,13 +12651,15 @@ var fog_fragment = "#ifdef USE_FOG\n\t#ifdef FOG_EXP2\n\t\tfloat fogFactor = 1.0
 
 var fog_pars_fragment = "#ifdef USE_FOG\n\tuniform vec3 fogColor;\n\tvarying float vFogDepth;\n\t#ifdef FOG_EXP2\n\t\tuniform float fogDensity;\n\t#else\n\t\tuniform float fogNear;\n\t\tuniform float fogFar;\n\t#endif\n#endif";
 
-var gradientmap_pars_fragment = "#ifdef USE_GRADIENTMAP\n\tuniform sampler2D gradientMap;\n#endif\nvec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {\n\tfloat dotNL = dot( normal, lightDirection );\n\tvec2 coord = vec2( dotNL * 0.5 + 0.5, 0.0 );\n\t#ifdef USE_GRADIENTMAP\n\t\treturn vec3( texture2D( gradientMap, coord ).r );\n\t#else\n\t\treturn ( coord.x < 0.7 ) ? vec3( 0.7 ) : vec3( 1.0 );\n\t#endif\n}";
+var gradientmap_pars_fragment = "#ifdef USE_GRADIENTMAP\n\tuniform sampler2D gradientMap;\n#endif\nvec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {\n\tfloat dotNL = dot( normal, lightDirection );\n\tvec2 coord = vec2( dotNL * 0.5 + 0.5, 0.0 );\n\t#ifdef USE_GRADIENTMAP\n\t\treturn vec3( texture2D( gradientMap, coord ).r );\n\t#else\n\t\tvec2 fw = fwidth( coord ) * 0.5;\n\t\treturn mix( vec3( 0.7 ), vec3( 1.0 ), smoothstep( 0.7 - fw.x, 0.7 + fw.x, coord.x ) );\n\t#endif\n}";
 
 var lightmap_fragment = "#ifdef USE_LIGHTMAP\n\tvec4 lightMapTexel = texture2D( lightMap, vUv2 );\n\tvec3 lightMapIrradiance = lightMapTexel.rgb * lightMapIntensity;\n\treflectedLight.indirectDiffuse += lightMapIrradiance;\n#endif";
 
 var lightmap_pars_fragment = "#ifdef USE_LIGHTMAP\n\tuniform sampler2D lightMap;\n\tuniform float lightMapIntensity;\n#endif";
 
-var lights_lambert_vertex = "vec3 diffuse = vec3( 1.0 );\nGeometricContext geometry;\ngeometry.position = mvPosition.xyz;\ngeometry.normal = normalize( transformedNormal );\ngeometry.viewDir = ( isOrthographic ) ? vec3( 0, 0, 1 ) : normalize( -mvPosition.xyz );\nGeometricContext backGeometry;\nbackGeometry.position = geometry.position;\nbackGeometry.normal = -geometry.normal;\nbackGeometry.viewDir = geometry.viewDir;\nvLightFront = vec3( 0.0 );\nvIndirectFront = vec3( 0.0 );\n#ifdef DOUBLE_SIDED\n\tvLightBack = vec3( 0.0 );\n\tvIndirectBack = vec3( 0.0 );\n#endif\nIncidentLight directLight;\nfloat dotNL;\nvec3 directLightColor_Diffuse;\nvIndirectFront += getAmbientLightIrradiance( ambientLightColor );\nvIndirectFront += getLightProbeIrradiance( lightProbe, geometry.normal );\n#ifdef DOUBLE_SIDED\n\tvIndirectBack += getAmbientLightIrradiance( ambientLightColor );\n\tvIndirectBack += getLightProbeIrradiance( lightProbe, backGeometry.normal );\n#endif\n#if NUM_POINT_LIGHTS > 0\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {\n\t\tgetPointLightInfo( pointLights[ i ], geometry, directLight );\n\t\tdotNL = dot( geometry.normal, directLight.direction );\n\t\tdirectLightColor_Diffuse = directLight.color;\n\t\tvLightFront += saturate( dotNL ) * directLightColor_Diffuse;\n\t\t#ifdef DOUBLE_SIDED\n\t\t\tvLightBack += saturate( - dotNL ) * directLightColor_Diffuse;\n\t\t#endif\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if NUM_SPOT_LIGHTS > 0\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {\n\t\tgetSpotLightInfo( spotLights[ i ], geometry, directLight );\n\t\tdotNL = dot( geometry.normal, directLight.direction );\n\t\tdirectLightColor_Diffuse = directLight.color;\n\t\tvLightFront += saturate( dotNL ) * directLightColor_Diffuse;\n\t\t#ifdef DOUBLE_SIDED\n\t\t\tvLightBack += saturate( - dotNL ) * directLightColor_Diffuse;\n\t\t#endif\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if NUM_DIR_LIGHTS > 0\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {\n\t\tgetDirectionalLightInfo( directionalLights[ i ], geometry, directLight );\n\t\tdotNL = dot( geometry.normal, directLight.direction );\n\t\tdirectLightColor_Diffuse = directLight.color;\n\t\tvLightFront += saturate( dotNL ) * directLightColor_Diffuse;\n\t\t#ifdef DOUBLE_SIDED\n\t\t\tvLightBack += saturate( - dotNL ) * directLightColor_Diffuse;\n\t\t#endif\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if NUM_HEMI_LIGHTS > 0\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_HEMI_LIGHTS; i ++ ) {\n\t\tvIndirectFront += getHemisphereLightIrradiance( hemisphereLights[ i ], geometry.normal );\n\t\t#ifdef DOUBLE_SIDED\n\t\t\tvIndirectBack += getHemisphereLightIrradiance( hemisphereLights[ i ], backGeometry.normal );\n\t\t#endif\n\t}\n\t#pragma unroll_loop_end\n#endif";
+var lights_lambert_fragment = "LambertMaterial material;\nmaterial.diffuseColor = diffuseColor.rgb;\nmaterial.specularStrength = specularStrength;";
+
+var lights_lambert_pars_fragment = "varying vec3 vViewPosition;\nstruct LambertMaterial {\n\tvec3 diffuseColor;\n\tfloat specularStrength;\n};\nvoid RE_Direct_Lambert( const in IncidentLight directLight, const in GeometricContext geometry, const in LambertMaterial material, inout ReflectedLight reflectedLight ) {\n\tfloat dotNL = saturate( dot( geometry.normal, directLight.direction ) );\n\tvec3 irradiance = dotNL * directLight.color;\n\treflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\nvoid RE_IndirectDiffuse_Lambert( const in vec3 irradiance, const in GeometricContext geometry, const in LambertMaterial material, inout ReflectedLight reflectedLight ) {\n\treflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\n#define RE_Direct\t\t\t\tRE_Direct_Lambert\n#define RE_IndirectDiffuse\t\tRE_IndirectDiffuse_Lambert\n#define Material_LightProbeLOD( material )\t(0)";
 
 var lights_pars_begin = "uniform bool receiveShadow;\nuniform vec3 ambientLightColor;\nuniform vec3 lightProbe[ 9 ];\nvec3 shGetIrradianceAt( in vec3 normal, in vec3 shCoefficients[ 9 ] ) {\n\tfloat x = normal.x, y = normal.y, z = normal.z;\n\tvec3 result = shCoefficients[ 0 ] * 0.886227;\n\tresult += shCoefficients[ 1 ] * 2.0 * 0.511664 * y;\n\tresult += shCoefficients[ 2 ] * 2.0 * 0.511664 * z;\n\tresult += shCoefficients[ 3 ] * 2.0 * 0.511664 * x;\n\tresult += shCoefficients[ 4 ] * 2.0 * 0.429043 * x * y;\n\tresult += shCoefficients[ 5 ] * 2.0 * 0.429043 * y * z;\n\tresult += shCoefficients[ 6 ] * ( 0.743125 * z * z - 0.247708 );\n\tresult += shCoefficients[ 7 ] * 2.0 * 0.429043 * x * z;\n\tresult += shCoefficients[ 8 ] * 0.429043 * ( x * x - y * y );\n\treturn result;\n}\nvec3 getLightProbeIrradiance( const in vec3 lightProbe[ 9 ], const in vec3 normal ) {\n\tvec3 worldNormal = inverseTransformDirection( normal, viewMatrix );\n\tvec3 irradiance = shGetIrradianceAt( worldNormal, lightProbe );\n\treturn irradiance;\n}\nvec3 getAmbientLightIrradiance( const in vec3 ambientLightColor ) {\n\tvec3 irradiance = ambientLightColor;\n\treturn irradiance;\n}\nfloat getDistanceAttenuation( const in float lightDistance, const in float cutoffDistance, const in float decayExponent ) {\n\t#if defined ( PHYSICALLY_CORRECT_LIGHTS )\n\t\tfloat distanceFalloff = 1.0 / max( pow( lightDistance, decayExponent ), 0.01 );\n\t\tif ( cutoffDistance > 0.0 ) {\n\t\t\tdistanceFalloff *= pow2( saturate( 1.0 - pow4( lightDistance / cutoffDistance ) ) );\n\t\t}\n\t\treturn distanceFalloff;\n\t#else\n\t\tif ( cutoffDistance > 0.0 && decayExponent > 0.0 ) {\n\t\t\treturn pow( saturate( - lightDistance / cutoffDistance + 1.0 ), decayExponent );\n\t\t}\n\t\treturn 1.0;\n\t#endif\n}\nfloat getSpotAttenuation( const in float coneCosine, const in float penumbraCosine, const in float angleCosine ) {\n\treturn smoothstep( coneCosine, penumbraCosine, angleCosine );\n}\n#if NUM_DIR_LIGHTS > 0\n\tstruct DirectionalLight {\n\t\tvec3 direction;\n\t\tvec3 color;\n\t};\n\tuniform DirectionalLight directionalLights[ NUM_DIR_LIGHTS ];\n\tvoid getDirectionalLightInfo( const in DirectionalLight directionalLight, const in GeometricContext geometry, out IncidentLight light ) {\n\t\tlight.color = directionalLight.color;\n\t\tlight.direction = directionalLight.direction;\n\t\tlight.visible = true;\n\t}\n#endif\n#if NUM_POINT_LIGHTS > 0\n\tstruct PointLight {\n\t\tvec3 position;\n\t\tvec3 color;\n\t\tfloat distance;\n\t\tfloat decay;\n\t};\n\tuniform PointLight pointLights[ NUM_POINT_LIGHTS ];\n\tvoid getPointLightInfo( const in PointLight pointLight, const in GeometricContext geometry, out IncidentLight light ) {\n\t\tvec3 lVector = pointLight.position - geometry.position;\n\t\tlight.direction = normalize( lVector );\n\t\tfloat lightDistance = length( lVector );\n\t\tlight.color = pointLight.color;\n\t\tlight.color *= getDistanceAttenuation( lightDistance, pointLight.distance, pointLight.decay );\n\t\tlight.visible = ( light.color != vec3( 0.0 ) );\n\t}\n#endif\n#if NUM_SPOT_LIGHTS > 0\n\tstruct SpotLight {\n\t\tvec3 position;\n\t\tvec3 direction;\n\t\tvec3 color;\n\t\tfloat distance;\n\t\tfloat decay;\n\t\tfloat coneCos;\n\t\tfloat penumbraCos;\n\t};\n\tuniform SpotLight spotLights[ NUM_SPOT_LIGHTS ];\n\tvoid getSpotLightInfo( const in SpotLight spotLight, const in GeometricContext geometry, out IncidentLight light ) {\n\t\tvec3 lVector = spotLight.position - geometry.position;\n\t\tlight.direction = normalize( lVector );\n\t\tfloat angleCos = dot( light.direction, spotLight.direction );\n\t\tfloat spotAttenuation = getSpotAttenuation( spotLight.coneCos, spotLight.penumbraCos, angleCos );\n\t\tif ( spotAttenuation > 0.0 ) {\n\t\t\tfloat lightDistance = length( lVector );\n\t\t\tlight.color = spotLight.color * spotAttenuation;\n\t\t\tlight.color *= getDistanceAttenuation( lightDistance, spotLight.distance, spotLight.decay );\n\t\t\tlight.visible = ( light.color != vec3( 0.0 ) );\n\t\t} else {\n\t\t\tlight.color = vec3( 0.0 );\n\t\t\tlight.visible = false;\n\t\t}\n\t}\n#endif\n#if NUM_RECT_AREA_LIGHTS > 0\n\tstruct RectAreaLight {\n\t\tvec3 color;\n\t\tvec3 position;\n\t\tvec3 halfWidth;\n\t\tvec3 halfHeight;\n\t};\n\tuniform sampler2D ltc_1;\tuniform sampler2D ltc_2;\n\tuniform RectAreaLight rectAreaLights[ NUM_RECT_AREA_LIGHTS ];\n#endif\n#if NUM_HEMI_LIGHTS > 0\n\tstruct HemisphereLight {\n\t\tvec3 direction;\n\t\tvec3 skyColor;\n\t\tvec3 groundColor;\n\t};\n\tuniform HemisphereLight hemisphereLights[ NUM_HEMI_LIGHTS ];\n\tvec3 getHemisphereLightIrradiance( const in HemisphereLight hemiLight, const in vec3 normal ) {\n\t\tfloat dotNL = dot( normal, hemiLight.direction );\n\t\tfloat hemiDiffuseWeight = 0.5 * dotNL + 0.5;\n\t\tvec3 irradiance = mix( hemiLight.groundColor, hemiLight.skyColor, hemiDiffuseWeight );\n\t\treturn irradiance;\n\t}\n#endif";
 
@@ -12760,11 +12673,11 @@ var lights_phong_fragment = "BlinnPhongMaterial material;\nmaterial.diffuseColor
 
 var lights_phong_pars_fragment = "varying vec3 vViewPosition;\nstruct BlinnPhongMaterial {\n\tvec3 diffuseColor;\n\tvec3 specularColor;\n\tfloat specularShininess;\n\tfloat specularStrength;\n};\nvoid RE_Direct_BlinnPhong( const in IncidentLight directLight, const in GeometricContext geometry, const in BlinnPhongMaterial material, inout ReflectedLight reflectedLight ) {\n\tfloat dotNL = saturate( dot( geometry.normal, directLight.direction ) );\n\tvec3 irradiance = dotNL * directLight.color;\n\treflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n\treflectedLight.directSpecular += irradiance * BRDF_BlinnPhong( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularShininess ) * material.specularStrength;\n}\nvoid RE_IndirectDiffuse_BlinnPhong( const in vec3 irradiance, const in GeometricContext geometry, const in BlinnPhongMaterial material, inout ReflectedLight reflectedLight ) {\n\treflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\n#define RE_Direct\t\t\t\tRE_Direct_BlinnPhong\n#define RE_IndirectDiffuse\t\tRE_IndirectDiffuse_BlinnPhong\n#define Material_LightProbeLOD( material )\t(0)";
 
-var lights_physical_fragment = "PhysicalMaterial material;\nmaterial.diffuseColor = diffuseColor.rgb * ( 1.0 - metalnessFactor );\nvec3 dxy = max( abs( dFdx( geometryNormal ) ), abs( dFdy( geometryNormal ) ) );\nfloat geometryRoughness = max( max( dxy.x, dxy.y ), dxy.z );\nmaterial.roughness = max( roughnessFactor, 0.0525 );material.roughness += geometryRoughness;\nmaterial.roughness = min( material.roughness, 1.0 );\n#ifdef IOR\n\t#ifdef SPECULAR\n\t\tfloat specularIntensityFactor = specularIntensity;\n\t\tvec3 specularColorFactor = specularColor;\n\t\t#ifdef USE_SPECULARINTENSITYMAP\n\t\t\tspecularIntensityFactor *= texture2D( specularIntensityMap, vUv ).a;\n\t\t#endif\n\t\t#ifdef USE_SPECULARCOLORMAP\n\t\t\tspecularColorFactor *= texture2D( specularColorMap, vUv ).rgb;\n\t\t#endif\n\t\tmaterial.specularF90 = mix( specularIntensityFactor, 1.0, metalnessFactor );\n\t#else\n\t\tfloat specularIntensityFactor = 1.0;\n\t\tvec3 specularColorFactor = vec3( 1.0 );\n\t\tmaterial.specularF90 = 1.0;\n\t#endif\n\tmaterial.specularColor = mix( min( pow2( ( ior - 1.0 ) / ( ior + 1.0 ) ) * specularColorFactor, vec3( 1.0 ) ) * specularIntensityFactor, diffuseColor.rgb, metalnessFactor );\n#else\n\tmaterial.specularColor = mix( vec3( 0.04 ), diffuseColor.rgb, metalnessFactor );\n\tmaterial.specularF90 = 1.0;\n#endif\n#ifdef USE_CLEARCOAT\n\tmaterial.clearcoat = clearcoat;\n\tmaterial.clearcoatRoughness = clearcoatRoughness;\n\tmaterial.clearcoatF0 = vec3( 0.04 );\n\tmaterial.clearcoatF90 = 1.0;\n\t#ifdef USE_CLEARCOATMAP\n\t\tmaterial.clearcoat *= texture2D( clearcoatMap, vUv ).x;\n\t#endif\n\t#ifdef USE_CLEARCOAT_ROUGHNESSMAP\n\t\tmaterial.clearcoatRoughness *= texture2D( clearcoatRoughnessMap, vUv ).y;\n\t#endif\n\tmaterial.clearcoat = saturate( material.clearcoat );\tmaterial.clearcoatRoughness = max( material.clearcoatRoughness, 0.0525 );\n\tmaterial.clearcoatRoughness += geometryRoughness;\n\tmaterial.clearcoatRoughness = min( material.clearcoatRoughness, 1.0 );\n#endif\n#ifdef USE_IRIDESCENCE\n\tmaterial.iridescence = iridescence;\n\tmaterial.iridescenceIOR = iridescenceIOR;\n\t#ifdef USE_IRIDESCENCEMAP\n\t\tmaterial.iridescence *= texture2D( iridescenceMap, vUv ).r;\n\t#endif\n\t#ifdef USE_IRIDESCENCE_THICKNESSMAP\n\t\tmaterial.iridescenceThickness = (iridescenceThicknessMaximum - iridescenceThicknessMinimum) * texture2D( iridescenceThicknessMap, vUv ).g + iridescenceThicknessMinimum;\n\t#else\n\t\tmaterial.iridescenceThickness = iridescenceThicknessMaximum;\n\t#endif\n#endif\n#ifdef USE_SHEEN\n\tmaterial.sheenColor = sheenColor;\n\t#ifdef USE_SHEENCOLORMAP\n\t\tmaterial.sheenColor *= texture2D( sheenColorMap, vUv ).rgb;\n\t#endif\n\tmaterial.sheenRoughness = clamp( sheenRoughness, 0.07, 1.0 );\n\t#ifdef USE_SHEENROUGHNESSMAP\n\t\tmaterial.sheenRoughness *= texture2D( sheenRoughnessMap, vUv ).a;\n\t#endif\n#endif";
+var lights_physical_fragment = "PhysicalMaterial material;\nmaterial.diffuseColor = diffuseColor.rgb * ( 1.0 - metalnessFactor );\nvec3 dxy = max( abs( dFdx( geometryNormal ) ), abs( dFdy( geometryNormal ) ) );\nfloat geometryRoughness = max( max( dxy.x, dxy.y ), dxy.z );\nmaterial.roughness = max( roughnessFactor, 0.0525 );material.roughness += geometryRoughness;\nmaterial.roughness = min( material.roughness, 1.0 );\n#ifdef IOR\n\tmaterial.ior = ior;\n\t#ifdef SPECULAR\n\t\tfloat specularIntensityFactor = specularIntensity;\n\t\tvec3 specularColorFactor = specularColor;\n\t\t#ifdef USE_SPECULARINTENSITYMAP\n\t\t\tspecularIntensityFactor *= texture2D( specularIntensityMap, vUv ).a;\n\t\t#endif\n\t\t#ifdef USE_SPECULARCOLORMAP\n\t\t\tspecularColorFactor *= texture2D( specularColorMap, vUv ).rgb;\n\t\t#endif\n\t\tmaterial.specularF90 = mix( specularIntensityFactor, 1.0, metalnessFactor );\n\t#else\n\t\tfloat specularIntensityFactor = 1.0;\n\t\tvec3 specularColorFactor = vec3( 1.0 );\n\t\tmaterial.specularF90 = 1.0;\n\t#endif\n\tmaterial.specularColor = mix( min( pow2( ( material.ior - 1.0 ) / ( material.ior + 1.0 ) ) * specularColorFactor, vec3( 1.0 ) ) * specularIntensityFactor, diffuseColor.rgb, metalnessFactor );\n#else\n\tmaterial.specularColor = mix( vec3( 0.04 ), diffuseColor.rgb, metalnessFactor );\n\tmaterial.specularF90 = 1.0;\n#endif\n#ifdef USE_CLEARCOAT\n\tmaterial.clearcoat = clearcoat;\n\tmaterial.clearcoatRoughness = clearcoatRoughness;\n\tmaterial.clearcoatF0 = vec3( 0.04 );\n\tmaterial.clearcoatF90 = 1.0;\n\t#ifdef USE_CLEARCOATMAP\n\t\tmaterial.clearcoat *= texture2D( clearcoatMap, vUv ).x;\n\t#endif\n\t#ifdef USE_CLEARCOAT_ROUGHNESSMAP\n\t\tmaterial.clearcoatRoughness *= texture2D( clearcoatRoughnessMap, vUv ).y;\n\t#endif\n\tmaterial.clearcoat = saturate( material.clearcoat );\tmaterial.clearcoatRoughness = max( material.clearcoatRoughness, 0.0525 );\n\tmaterial.clearcoatRoughness += geometryRoughness;\n\tmaterial.clearcoatRoughness = min( material.clearcoatRoughness, 1.0 );\n#endif\n#ifdef USE_IRIDESCENCE\n\tmaterial.iridescence = iridescence;\n\tmaterial.iridescenceIOR = iridescenceIOR;\n\t#ifdef USE_IRIDESCENCEMAP\n\t\tmaterial.iridescence *= texture2D( iridescenceMap, vUv ).r;\n\t#endif\n\t#ifdef USE_IRIDESCENCE_THICKNESSMAP\n\t\tmaterial.iridescenceThickness = (iridescenceThicknessMaximum - iridescenceThicknessMinimum) * texture2D( iridescenceThicknessMap, vUv ).g + iridescenceThicknessMinimum;\n\t#else\n\t\tmaterial.iridescenceThickness = iridescenceThicknessMaximum;\n\t#endif\n#endif\n#ifdef USE_SHEEN\n\tmaterial.sheenColor = sheenColor;\n\t#ifdef USE_SHEENCOLORMAP\n\t\tmaterial.sheenColor *= texture2D( sheenColorMap, vUv ).rgb;\n\t#endif\n\tmaterial.sheenRoughness = clamp( sheenRoughness, 0.07, 1.0 );\n\t#ifdef USE_SHEENROUGHNESSMAP\n\t\tmaterial.sheenRoughness *= texture2D( sheenRoughnessMap, vUv ).a;\n\t#endif\n#endif";
 
-var lights_physical_pars_fragment = "struct PhysicalMaterial {\n\tvec3 diffuseColor;\n\tfloat roughness;\n\tvec3 specularColor;\n\tfloat specularF90;\n\t#ifdef USE_CLEARCOAT\n\t\tfloat clearcoat;\n\t\tfloat clearcoatRoughness;\n\t\tvec3 clearcoatF0;\n\t\tfloat clearcoatF90;\n\t#endif\n\t#ifdef USE_IRIDESCENCE\n\t\tfloat iridescence;\n\t\tfloat iridescenceIOR;\n\t\tfloat iridescenceThickness;\n\t\tvec3 iridescenceFresnel;\n\t\tvec3 iridescenceF0;\n\t#endif\n\t#ifdef USE_SHEEN\n\t\tvec3 sheenColor;\n\t\tfloat sheenRoughness;\n\t#endif\n};\nvec3 clearcoatSpecular = vec3( 0.0 );\nvec3 sheenSpecular = vec3( 0.0 );\nfloat IBLSheenBRDF( const in vec3 normal, const in vec3 viewDir, const in float roughness) {\n\tfloat dotNV = saturate( dot( normal, viewDir ) );\n\tfloat r2 = roughness * roughness;\n\tfloat a = roughness < 0.25 ? -339.2 * r2 + 161.4 * roughness - 25.9 : -8.48 * r2 + 14.3 * roughness - 9.95;\n\tfloat b = roughness < 0.25 ? 44.0 * r2 - 23.7 * roughness + 3.26 : 1.97 * r2 - 3.27 * roughness + 0.72;\n\tfloat DG = exp( a * dotNV + b ) + ( roughness < 0.25 ? 0.0 : 0.1 * ( roughness - 0.25 ) );\n\treturn saturate( DG * RECIPROCAL_PI );\n}\nvec2 DFGApprox( const in vec3 normal, const in vec3 viewDir, const in float roughness ) {\n\tfloat dotNV = saturate( dot( normal, viewDir ) );\n\tconst vec4 c0 = vec4( - 1, - 0.0275, - 0.572, 0.022 );\n\tconst vec4 c1 = vec4( 1, 0.0425, 1.04, - 0.04 );\n\tvec4 r = roughness * c0 + c1;\n\tfloat a004 = min( r.x * r.x, exp2( - 9.28 * dotNV ) ) * r.x + r.y;\n\tvec2 fab = vec2( - 1.04, 1.04 ) * a004 + r.zw;\n\treturn fab;\n}\nvec3 EnvironmentBRDF( const in vec3 normal, const in vec3 viewDir, const in vec3 specularColor, const in float specularF90, const in float roughness ) {\n\tvec2 fab = DFGApprox( normal, viewDir, roughness );\n\treturn specularColor * fab.x + specularF90 * fab.y;\n}\n#ifdef USE_IRIDESCENCE\nvoid computeMultiscatteringIridescence( const in vec3 normal, const in vec3 viewDir, const in vec3 specularColor, const in float specularF90, const in float iridescence, const in vec3 iridescenceF0, const in float roughness, inout vec3 singleScatter, inout vec3 multiScatter ) {\n#else\nvoid computeMultiscattering( const in vec3 normal, const in vec3 viewDir, const in vec3 specularColor, const in float specularF90, const in float roughness, inout vec3 singleScatter, inout vec3 multiScatter ) {\n#endif\n\tvec2 fab = DFGApprox( normal, viewDir, roughness );\n\t#ifdef USE_IRIDESCENCE\n\t\tvec3 Fr = mix( specularColor, iridescenceF0, iridescence );\n\t#else\n\t\tvec3 Fr = specularColor;\n\t#endif\n\tvec3 FssEss = Fr * fab.x + specularF90 * fab.y;\n\tfloat Ess = fab.x + fab.y;\n\tfloat Ems = 1.0 - Ess;\n\tvec3 Favg = Fr + ( 1.0 - Fr ) * 0.047619;\tvec3 Fms = FssEss * Favg / ( 1.0 - Ems * Favg );\n\tsingleScatter += FssEss;\n\tmultiScatter += Fms * Ems;\n}\n#if NUM_RECT_AREA_LIGHTS > 0\n\tvoid RE_Direct_RectArea_Physical( const in RectAreaLight rectAreaLight, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {\n\t\tvec3 normal = geometry.normal;\n\t\tvec3 viewDir = geometry.viewDir;\n\t\tvec3 position = geometry.position;\n\t\tvec3 lightPos = rectAreaLight.position;\n\t\tvec3 halfWidth = rectAreaLight.halfWidth;\n\t\tvec3 halfHeight = rectAreaLight.halfHeight;\n\t\tvec3 lightColor = rectAreaLight.color;\n\t\tfloat roughness = material.roughness;\n\t\tvec3 rectCoords[ 4 ];\n\t\trectCoords[ 0 ] = lightPos + halfWidth - halfHeight;\t\trectCoords[ 1 ] = lightPos - halfWidth - halfHeight;\n\t\trectCoords[ 2 ] = lightPos - halfWidth + halfHeight;\n\t\trectCoords[ 3 ] = lightPos + halfWidth + halfHeight;\n\t\tvec2 uv = LTC_Uv( normal, viewDir, roughness );\n\t\tvec4 t1 = texture2D( ltc_1, uv );\n\t\tvec4 t2 = texture2D( ltc_2, uv );\n\t\tmat3 mInv = mat3(\n\t\t\tvec3( t1.x, 0, t1.y ),\n\t\t\tvec3(    0, 1,    0 ),\n\t\t\tvec3( t1.z, 0, t1.w )\n\t\t);\n\t\tvec3 fresnel = ( material.specularColor * t2.x + ( vec3( 1.0 ) - material.specularColor ) * t2.y );\n\t\treflectedLight.directSpecular += lightColor * fresnel * LTC_Evaluate( normal, viewDir, position, mInv, rectCoords );\n\t\treflectedLight.directDiffuse += lightColor * material.diffuseColor * LTC_Evaluate( normal, viewDir, position, mat3( 1.0 ), rectCoords );\n\t}\n#endif\nvoid RE_Direct_Physical( const in IncidentLight directLight, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {\n\tfloat dotNL = saturate( dot( geometry.normal, directLight.direction ) );\n\tvec3 irradiance = dotNL * directLight.color;\n\t#ifdef USE_CLEARCOAT\n\t\tfloat dotNLcc = saturate( dot( geometry.clearcoatNormal, directLight.direction ) );\n\t\tvec3 ccIrradiance = dotNLcc * directLight.color;\n\t\tclearcoatSpecular += ccIrradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.clearcoatNormal, material.clearcoatF0, material.clearcoatF90, material.clearcoatRoughness );\n\t#endif\n\t#ifdef USE_SHEEN\n\t\tsheenSpecular += irradiance * BRDF_Sheen( directLight.direction, geometry.viewDir, geometry.normal, material.sheenColor, material.sheenRoughness );\n\t#endif\n\t#ifdef USE_IRIDESCENCE\n\t\treflectedLight.directSpecular += irradiance * BRDF_GGX_Iridescence( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.iridescence, material.iridescenceFresnel, material.roughness );\n\t#else\n\t\treflectedLight.directSpecular += irradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.roughness );\n\t#endif\n\treflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\nvoid RE_IndirectDiffuse_Physical( const in vec3 irradiance, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {\n\treflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\nvoid RE_IndirectSpecular_Physical( const in vec3 radiance, const in vec3 irradiance, const in vec3 clearcoatRadiance, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight) {\n\t#ifdef USE_CLEARCOAT\n\t\tclearcoatSpecular += clearcoatRadiance * EnvironmentBRDF( geometry.clearcoatNormal, geometry.viewDir, material.clearcoatF0, material.clearcoatF90, material.clearcoatRoughness );\n\t#endif\n\t#ifdef USE_SHEEN\n\t\tsheenSpecular += irradiance * material.sheenColor * IBLSheenBRDF( geometry.normal, geometry.viewDir, material.sheenRoughness );\n\t#endif\n\tvec3 singleScattering = vec3( 0.0 );\n\tvec3 multiScattering = vec3( 0.0 );\n\tvec3 cosineWeightedIrradiance = irradiance * RECIPROCAL_PI;\n\t#ifdef USE_IRIDESCENCE\n\t\tcomputeMultiscatteringIridescence( geometry.normal, geometry.viewDir, material.specularColor, material.specularF90, material.iridescence, material.iridescenceFresnel, material.roughness, singleScattering, multiScattering );\n\t#else\n\t\tcomputeMultiscattering( geometry.normal, geometry.viewDir, material.specularColor, material.specularF90, material.roughness, singleScattering, multiScattering );\n\t#endif\n\tvec3 totalScattering = singleScattering + multiScattering;\n\tvec3 diffuse = material.diffuseColor * ( 1.0 - max( max( totalScattering.r, totalScattering.g ), totalScattering.b ) );\n\treflectedLight.indirectSpecular += radiance * singleScattering;\n\treflectedLight.indirectSpecular += multiScattering * cosineWeightedIrradiance;\n\treflectedLight.indirectDiffuse += diffuse * cosineWeightedIrradiance;\n}\n#define RE_Direct\t\t\t\tRE_Direct_Physical\n#define RE_Direct_RectArea\t\tRE_Direct_RectArea_Physical\n#define RE_IndirectDiffuse\t\tRE_IndirectDiffuse_Physical\n#define RE_IndirectSpecular\t\tRE_IndirectSpecular_Physical\nfloat computeSpecularOcclusion( const in float dotNV, const in float ambientOcclusion, const in float roughness ) {\n\treturn saturate( pow( dotNV + ambientOcclusion, exp2( - 16.0 * roughness - 1.0 ) ) - 1.0 + ambientOcclusion );\n}";
+var lights_physical_pars_fragment = "struct PhysicalMaterial {\n\tvec3 diffuseColor;\n\tfloat roughness;\n\tvec3 specularColor;\n\tfloat specularF90;\n\t#ifdef USE_CLEARCOAT\n\t\tfloat clearcoat;\n\t\tfloat clearcoatRoughness;\n\t\tvec3 clearcoatF0;\n\t\tfloat clearcoatF90;\n\t#endif\n\t#ifdef USE_IRIDESCENCE\n\t\tfloat iridescence;\n\t\tfloat iridescenceIOR;\n\t\tfloat iridescenceThickness;\n\t\tvec3 iridescenceFresnel;\n\t\tvec3 iridescenceF0;\n\t#endif\n\t#ifdef USE_SHEEN\n\t\tvec3 sheenColor;\n\t\tfloat sheenRoughness;\n\t#endif\n\t#ifdef IOR\n\t\tfloat ior;\n\t#endif\n\t#ifdef USE_TRANSMISSION\n\t\tfloat transmission;\n\t\tfloat transmissionAlpha;\n\t\tfloat thickness;\n\t\tfloat attenuationDistance;\n\t\tvec3 attenuationColor;\n\t#endif\n};\nvec3 clearcoatSpecular = vec3( 0.0 );\nvec3 sheenSpecular = vec3( 0.0 );\nfloat IBLSheenBRDF( const in vec3 normal, const in vec3 viewDir, const in float roughness ) {\n\tfloat dotNV = saturate( dot( normal, viewDir ) );\n\tfloat r2 = roughness * roughness;\n\tfloat a = roughness < 0.25 ? -339.2 * r2 + 161.4 * roughness - 25.9 : -8.48 * r2 + 14.3 * roughness - 9.95;\n\tfloat b = roughness < 0.25 ? 44.0 * r2 - 23.7 * roughness + 3.26 : 1.97 * r2 - 3.27 * roughness + 0.72;\n\tfloat DG = exp( a * dotNV + b ) + ( roughness < 0.25 ? 0.0 : 0.1 * ( roughness - 0.25 ) );\n\treturn saturate( DG * RECIPROCAL_PI );\n}\nvec2 DFGApprox( const in vec3 normal, const in vec3 viewDir, const in float roughness ) {\n\tfloat dotNV = saturate( dot( normal, viewDir ) );\n\tconst vec4 c0 = vec4( - 1, - 0.0275, - 0.572, 0.022 );\n\tconst vec4 c1 = vec4( 1, 0.0425, 1.04, - 0.04 );\n\tvec4 r = roughness * c0 + c1;\n\tfloat a004 = min( r.x * r.x, exp2( - 9.28 * dotNV ) ) * r.x + r.y;\n\tvec2 fab = vec2( - 1.04, 1.04 ) * a004 + r.zw;\n\treturn fab;\n}\nvec3 EnvironmentBRDF( const in vec3 normal, const in vec3 viewDir, const in vec3 specularColor, const in float specularF90, const in float roughness ) {\n\tvec2 fab = DFGApprox( normal, viewDir, roughness );\n\treturn specularColor * fab.x + specularF90 * fab.y;\n}\n#ifdef USE_IRIDESCENCE\nvoid computeMultiscatteringIridescence( const in vec3 normal, const in vec3 viewDir, const in vec3 specularColor, const in float specularF90, const in float iridescence, const in vec3 iridescenceF0, const in float roughness, inout vec3 singleScatter, inout vec3 multiScatter ) {\n#else\nvoid computeMultiscattering( const in vec3 normal, const in vec3 viewDir, const in vec3 specularColor, const in float specularF90, const in float roughness, inout vec3 singleScatter, inout vec3 multiScatter ) {\n#endif\n\tvec2 fab = DFGApprox( normal, viewDir, roughness );\n\t#ifdef USE_IRIDESCENCE\n\t\tvec3 Fr = mix( specularColor, iridescenceF0, iridescence );\n\t#else\n\t\tvec3 Fr = specularColor;\n\t#endif\n\tvec3 FssEss = Fr * fab.x + specularF90 * fab.y;\n\tfloat Ess = fab.x + fab.y;\n\tfloat Ems = 1.0 - Ess;\n\tvec3 Favg = Fr + ( 1.0 - Fr ) * 0.047619;\tvec3 Fms = FssEss * Favg / ( 1.0 - Ems * Favg );\n\tsingleScatter += FssEss;\n\tmultiScatter += Fms * Ems;\n}\n#if NUM_RECT_AREA_LIGHTS > 0\n\tvoid RE_Direct_RectArea_Physical( const in RectAreaLight rectAreaLight, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {\n\t\tvec3 normal = geometry.normal;\n\t\tvec3 viewDir = geometry.viewDir;\n\t\tvec3 position = geometry.position;\n\t\tvec3 lightPos = rectAreaLight.position;\n\t\tvec3 halfWidth = rectAreaLight.halfWidth;\n\t\tvec3 halfHeight = rectAreaLight.halfHeight;\n\t\tvec3 lightColor = rectAreaLight.color;\n\t\tfloat roughness = material.roughness;\n\t\tvec3 rectCoords[ 4 ];\n\t\trectCoords[ 0 ] = lightPos + halfWidth - halfHeight;\t\trectCoords[ 1 ] = lightPos - halfWidth - halfHeight;\n\t\trectCoords[ 2 ] = lightPos - halfWidth + halfHeight;\n\t\trectCoords[ 3 ] = lightPos + halfWidth + halfHeight;\n\t\tvec2 uv = LTC_Uv( normal, viewDir, roughness );\n\t\tvec4 t1 = texture2D( ltc_1, uv );\n\t\tvec4 t2 = texture2D( ltc_2, uv );\n\t\tmat3 mInv = mat3(\n\t\t\tvec3( t1.x, 0, t1.y ),\n\t\t\tvec3(    0, 1,    0 ),\n\t\t\tvec3( t1.z, 0, t1.w )\n\t\t);\n\t\tvec3 fresnel = ( material.specularColor * t2.x + ( vec3( 1.0 ) - material.specularColor ) * t2.y );\n\t\treflectedLight.directSpecular += lightColor * fresnel * LTC_Evaluate( normal, viewDir, position, mInv, rectCoords );\n\t\treflectedLight.directDiffuse += lightColor * material.diffuseColor * LTC_Evaluate( normal, viewDir, position, mat3( 1.0 ), rectCoords );\n\t}\n#endif\nvoid RE_Direct_Physical( const in IncidentLight directLight, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {\n\tfloat dotNL = saturate( dot( geometry.normal, directLight.direction ) );\n\tvec3 irradiance = dotNL * directLight.color;\n\t#ifdef USE_CLEARCOAT\n\t\tfloat dotNLcc = saturate( dot( geometry.clearcoatNormal, directLight.direction ) );\n\t\tvec3 ccIrradiance = dotNLcc * directLight.color;\n\t\tclearcoatSpecular += ccIrradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.clearcoatNormal, material.clearcoatF0, material.clearcoatF90, material.clearcoatRoughness );\n\t#endif\n\t#ifdef USE_SHEEN\n\t\tsheenSpecular += irradiance * BRDF_Sheen( directLight.direction, geometry.viewDir, geometry.normal, material.sheenColor, material.sheenRoughness );\n\t#endif\n\t#ifdef USE_IRIDESCENCE\n\t\treflectedLight.directSpecular += irradiance * BRDF_GGX_Iridescence( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.iridescence, material.iridescenceFresnel, material.roughness );\n\t#else\n\t\treflectedLight.directSpecular += irradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.roughness );\n\t#endif\n\treflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\nvoid RE_IndirectDiffuse_Physical( const in vec3 irradiance, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {\n\treflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\nvoid RE_IndirectSpecular_Physical( const in vec3 radiance, const in vec3 irradiance, const in vec3 clearcoatRadiance, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight) {\n\t#ifdef USE_CLEARCOAT\n\t\tclearcoatSpecular += clearcoatRadiance * EnvironmentBRDF( geometry.clearcoatNormal, geometry.viewDir, material.clearcoatF0, material.clearcoatF90, material.clearcoatRoughness );\n\t#endif\n\t#ifdef USE_SHEEN\n\t\tsheenSpecular += irradiance * material.sheenColor * IBLSheenBRDF( geometry.normal, geometry.viewDir, material.sheenRoughness );\n\t#endif\n\tvec3 singleScattering = vec3( 0.0 );\n\tvec3 multiScattering = vec3( 0.0 );\n\tvec3 cosineWeightedIrradiance = irradiance * RECIPROCAL_PI;\n\t#ifdef USE_IRIDESCENCE\n\t\tcomputeMultiscatteringIridescence( geometry.normal, geometry.viewDir, material.specularColor, material.specularF90, material.iridescence, material.iridescenceFresnel, material.roughness, singleScattering, multiScattering );\n\t#else\n\t\tcomputeMultiscattering( geometry.normal, geometry.viewDir, material.specularColor, material.specularF90, material.roughness, singleScattering, multiScattering );\n\t#endif\n\tvec3 totalScattering = singleScattering + multiScattering;\n\tvec3 diffuse = material.diffuseColor * ( 1.0 - max( max( totalScattering.r, totalScattering.g ), totalScattering.b ) );\n\treflectedLight.indirectSpecular += radiance * singleScattering;\n\treflectedLight.indirectSpecular += multiScattering * cosineWeightedIrradiance;\n\treflectedLight.indirectDiffuse += diffuse * cosineWeightedIrradiance;\n}\n#define RE_Direct\t\t\t\tRE_Direct_Physical\n#define RE_Direct_RectArea\t\tRE_Direct_RectArea_Physical\n#define RE_IndirectDiffuse\t\tRE_IndirectDiffuse_Physical\n#define RE_IndirectSpecular\t\tRE_IndirectSpecular_Physical\nfloat computeSpecularOcclusion( const in float dotNV, const in float ambientOcclusion, const in float roughness ) {\n\treturn saturate( pow( dotNV + ambientOcclusion, exp2( - 16.0 * roughness - 1.0 ) ) - 1.0 + ambientOcclusion );\n}";
 
-var lights_fragment_begin = "\nGeometricContext geometry;\ngeometry.position = - vViewPosition;\ngeometry.normal = normal;\ngeometry.viewDir = ( isOrthographic ) ? vec3( 0, 0, 1 ) : normalize( vViewPosition );\n#ifdef USE_CLEARCOAT\n\tgeometry.clearcoatNormal = clearcoatNormal;\n#endif\n#ifdef USE_IRIDESCENCE\n\tfloat dotNVi = saturate( dot( normal, geometry.viewDir ) );\n\tif ( material.iridescenceThickness == 0.0 ) {\n\t\tmaterial.iridescence = 0.0;\n\t} else {\n\t\tmaterial.iridescence = saturate( material.iridescence );\n\t}\n\tif ( material.iridescence > 0.0 ) {\n\t\tmaterial.iridescenceFresnel = evalIridescence( 1.0, material.iridescenceIOR, dotNVi, material.iridescenceThickness, material.specularColor );\n\t\tmaterial.iridescenceF0 = Schlick_to_F0( material.iridescenceFresnel, 1.0, dotNVi );\n\t}\n#endif\nIncidentLight directLight;\n#if ( NUM_POINT_LIGHTS > 0 ) && defined( RE_Direct )\n\tPointLight pointLight;\n\t#if defined( USE_SHADOWMAP ) && NUM_POINT_LIGHT_SHADOWS > 0\n\tPointLightShadow pointLightShadow;\n\t#endif\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {\n\t\tpointLight = pointLights[ i ];\n\t\tgetPointLightInfo( pointLight, geometry, directLight );\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_POINT_LIGHT_SHADOWS )\n\t\tpointLightShadow = pointLightShadows[ i ];\n\t\tdirectLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;\n\t\t#endif\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if ( NUM_SPOT_LIGHTS > 0 ) && defined( RE_Direct )\n\tSpotLight spotLight;\n\t#if defined( USE_SHADOWMAP ) && NUM_SPOT_LIGHT_SHADOWS > 0\n\tSpotLightShadow spotLightShadow;\n\t#endif\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {\n\t\tspotLight = spotLights[ i ];\n\t\tgetSpotLightInfo( spotLight, geometry, directLight );\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_SPOT_LIGHT_SHADOWS )\n\t\tspotLightShadow = spotLightShadows[ i ];\n\t\tdirectLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotShadowCoord[ i ] ) : 1.0;\n\t\t#endif\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )\n\tDirectionalLight directionalLight;\n\t#if defined( USE_SHADOWMAP ) && NUM_DIR_LIGHT_SHADOWS > 0\n\tDirectionalLightShadow directionalLightShadow;\n\t#endif\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {\n\t\tdirectionalLight = directionalLights[ i ];\n\t\tgetDirectionalLightInfo( directionalLight, geometry, directLight );\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_DIR_LIGHT_SHADOWS )\n\t\tdirectionalLightShadow = directionalLightShadows[ i ];\n\t\tdirectLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;\n\t\t#endif\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if ( NUM_RECT_AREA_LIGHTS > 0 ) && defined( RE_Direct_RectArea )\n\tRectAreaLight rectAreaLight;\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_RECT_AREA_LIGHTS; i ++ ) {\n\t\trectAreaLight = rectAreaLights[ i ];\n\t\tRE_Direct_RectArea( rectAreaLight, geometry, material, reflectedLight );\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if defined( RE_IndirectDiffuse )\n\tvec3 iblIrradiance = vec3( 0.0 );\n\tvec3 irradiance = getAmbientLightIrradiance( ambientLightColor );\n\tirradiance += getLightProbeIrradiance( lightProbe, geometry.normal );\n\t#if ( NUM_HEMI_LIGHTS > 0 )\n\t\t#pragma unroll_loop_start\n\t\tfor ( int i = 0; i < NUM_HEMI_LIGHTS; i ++ ) {\n\t\t\tirradiance += getHemisphereLightIrradiance( hemisphereLights[ i ], geometry.normal );\n\t\t}\n\t\t#pragma unroll_loop_end\n\t#endif\n#endif\n#if defined( RE_IndirectSpecular )\n\tvec3 radiance = vec3( 0.0 );\n\tvec3 clearcoatRadiance = vec3( 0.0 );\n#endif";
+var lights_fragment_begin = "\nGeometricContext geometry;\ngeometry.position = - vViewPosition;\ngeometry.normal = normal;\ngeometry.viewDir = ( isOrthographic ) ? vec3( 0, 0, 1 ) : normalize( vViewPosition );\n#ifdef USE_CLEARCOAT\n\tgeometry.clearcoatNormal = clearcoatNormal;\n#endif\n#ifdef USE_IRIDESCENCE\n\tfloat dotNVi = saturate( dot( normal, geometry.viewDir ) );\n\tif ( material.iridescenceThickness == 0.0 ) {\n\t\tmaterial.iridescence = 0.0;\n\t} else {\n\t\tmaterial.iridescence = saturate( material.iridescence );\n\t}\n\tif ( material.iridescence > 0.0 ) {\n\t\tmaterial.iridescenceFresnel = evalIridescence( 1.0, material.iridescenceIOR, dotNVi, material.iridescenceThickness, material.specularColor );\n\t\tmaterial.iridescenceF0 = Schlick_to_F0( material.iridescenceFresnel, 1.0, dotNVi );\n\t}\n#endif\nIncidentLight directLight;\n#if ( NUM_POINT_LIGHTS > 0 ) && defined( RE_Direct )\n\tPointLight pointLight;\n\t#if defined( USE_SHADOWMAP ) && NUM_POINT_LIGHT_SHADOWS > 0\n\tPointLightShadow pointLightShadow;\n\t#endif\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {\n\t\tpointLight = pointLights[ i ];\n\t\tgetPointLightInfo( pointLight, geometry, directLight );\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_POINT_LIGHT_SHADOWS )\n\t\tpointLightShadow = pointLightShadows[ i ];\n\t\tdirectLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;\n\t\t#endif\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if ( NUM_SPOT_LIGHTS > 0 ) && defined( RE_Direct )\n\tSpotLight spotLight;\n\tvec4 spotColor;\n\tvec3 spotLightCoord;\n\tbool inSpotLightMap;\n\t#if defined( USE_SHADOWMAP ) && NUM_SPOT_LIGHT_SHADOWS > 0\n\tSpotLightShadow spotLightShadow;\n\t#endif\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {\n\t\tspotLight = spotLights[ i ];\n\t\tgetSpotLightInfo( spotLight, geometry, directLight );\n\t\t#if ( UNROLLED_LOOP_INDEX < NUM_SPOT_LIGHT_SHADOWS_WITH_MAPS )\n\t\t#define SPOT_LIGHT_MAP_INDEX UNROLLED_LOOP_INDEX\n\t\t#elif ( UNROLLED_LOOP_INDEX < NUM_SPOT_LIGHT_SHADOWS )\n\t\t#define SPOT_LIGHT_MAP_INDEX NUM_SPOT_LIGHT_MAPS\n\t\t#else\n\t\t#define SPOT_LIGHT_MAP_INDEX ( UNROLLED_LOOP_INDEX - NUM_SPOT_LIGHT_SHADOWS + NUM_SPOT_LIGHT_SHADOWS_WITH_MAPS )\n\t\t#endif\n\t\t#if ( SPOT_LIGHT_MAP_INDEX < NUM_SPOT_LIGHT_MAPS )\n\t\t\tspotLightCoord = vSpotLightCoord[ i ].xyz / vSpotLightCoord[ i ].w;\n\t\t\tinSpotLightMap = all( lessThan( abs( spotLightCoord * 2. - 1. ), vec3( 1.0 ) ) );\n\t\t\tspotColor = texture2D( spotLightMap[ SPOT_LIGHT_MAP_INDEX ], spotLightCoord.xy );\n\t\t\tdirectLight.color = inSpotLightMap ? directLight.color * spotColor.rgb : directLight.color;\n\t\t#endif\n\t\t#undef SPOT_LIGHT_MAP_INDEX\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_SPOT_LIGHT_SHADOWS )\n\t\tspotLightShadow = spotLightShadows[ i ];\n\t\tdirectLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotLightCoord[ i ] ) : 1.0;\n\t\t#endif\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )\n\tDirectionalLight directionalLight;\n\t#if defined( USE_SHADOWMAP ) && NUM_DIR_LIGHT_SHADOWS > 0\n\tDirectionalLightShadow directionalLightShadow;\n\t#endif\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {\n\t\tdirectionalLight = directionalLights[ i ];\n\t\tgetDirectionalLightInfo( directionalLight, geometry, directLight );\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_DIR_LIGHT_SHADOWS )\n\t\tdirectionalLightShadow = directionalLightShadows[ i ];\n\t\tdirectLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;\n\t\t#endif\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if ( NUM_RECT_AREA_LIGHTS > 0 ) && defined( RE_Direct_RectArea )\n\tRectAreaLight rectAreaLight;\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_RECT_AREA_LIGHTS; i ++ ) {\n\t\trectAreaLight = rectAreaLights[ i ];\n\t\tRE_Direct_RectArea( rectAreaLight, geometry, material, reflectedLight );\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if defined( RE_IndirectDiffuse )\n\tvec3 iblIrradiance = vec3( 0.0 );\n\tvec3 irradiance = getAmbientLightIrradiance( ambientLightColor );\n\tirradiance += getLightProbeIrradiance( lightProbe, geometry.normal );\n\t#if ( NUM_HEMI_LIGHTS > 0 )\n\t\t#pragma unroll_loop_start\n\t\tfor ( int i = 0; i < NUM_HEMI_LIGHTS; i ++ ) {\n\t\t\tirradiance += getHemisphereLightIrradiance( hemisphereLights[ i ], geometry.normal );\n\t\t}\n\t\t#pragma unroll_loop_end\n\t#endif\n#endif\n#if defined( RE_IndirectSpecular )\n\tvec3 radiance = vec3( 0.0 );\n\tvec3 clearcoatRadiance = vec3( 0.0 );\n#endif";
 
 var lights_fragment_maps = "#if defined( RE_IndirectDiffuse )\n\t#ifdef USE_LIGHTMAP\n\t\tvec4 lightMapTexel = texture2D( lightMap, vUv2 );\n\t\tvec3 lightMapIrradiance = lightMapTexel.rgb * lightMapIntensity;\n\t\tirradiance += lightMapIrradiance;\n\t#endif\n\t#if defined( USE_ENVMAP ) && defined( STANDARD ) && defined( ENVMAP_TYPE_CUBE_UV )\n\t\tiblIrradiance += getIBLIrradiance( geometry.normal );\n\t#endif\n#endif\n#if defined( USE_ENVMAP ) && defined( RE_IndirectSpecular )\n\tradiance += getIBLRadiance( geometry.viewDir, geometry.normal, material.roughness );\n\t#ifdef USE_CLEARCOAT\n\t\tclearcoatRadiance += getIBLRadiance( geometry.viewDir, geometry.clearcoatNormal, material.clearcoatRoughness );\n\t#endif\n#endif";
 
@@ -12818,7 +12731,7 @@ var clearcoat_pars_fragment = "#ifdef USE_CLEARCOATMAP\n\tuniform sampler2D clea
 
 var iridescence_pars_fragment = "#ifdef USE_IRIDESCENCEMAP\n\tuniform sampler2D iridescenceMap;\n#endif\n#ifdef USE_IRIDESCENCE_THICKNESSMAP\n\tuniform sampler2D iridescenceThicknessMap;\n#endif";
 
-var output_fragment = "#ifdef OPAQUE\ndiffuseColor.a = 1.0;\n#endif\n#ifdef USE_TRANSMISSION\ndiffuseColor.a *= transmissionAlpha + 0.1;\n#endif\ngl_FragColor = vec4( outgoingLight, diffuseColor.a );";
+var output_fragment = "#ifdef OPAQUE\ndiffuseColor.a = 1.0;\n#endif\n#ifdef USE_TRANSMISSION\ndiffuseColor.a *= material.transmissionAlpha + 0.1;\n#endif\ngl_FragColor = vec4( outgoingLight, diffuseColor.a );";
 
 var packing = "vec3 packNormalToRGB( const in vec3 normal ) {\n\treturn normalize( normal ) * 0.5 + 0.5;\n}\nvec3 unpackRGBToNormal( const in vec3 rgb ) {\n\treturn 2.0 * rgb.xyz - 1.0;\n}\nconst float PackUpscale = 256. / 255.;const float UnpackDownscale = 255. / 256.;\nconst vec3 PackFactors = vec3( 256. * 256. * 256., 256. * 256., 256. );\nconst vec4 UnpackFactors = UnpackDownscale / vec4( PackFactors, 1. );\nconst float ShiftRight8 = 1. / 256.;\nvec4 packDepthToRGBA( const in float v ) {\n\tvec4 r = vec4( fract( v * PackFactors ), v );\n\tr.yzw -= r.xyz * ShiftRight8;\treturn r * PackUpscale;\n}\nfloat unpackRGBAToDepth( const in vec4 v ) {\n\treturn dot( v, UnpackFactors );\n}\nvec4 pack2HalfToRGBA( vec2 v ) {\n\tvec4 r = vec4( v.x, fract( v.x * 255.0 ), v.y, fract( v.y * 255.0 ) );\n\treturn vec4( r.x - r.y / 255.0, r.y, r.z - r.w / 255.0, r.w );\n}\nvec2 unpackRGBATo2Half( vec4 v ) {\n\treturn vec2( v.x + ( v.y / 255.0 ), v.z + ( v.w / 255.0 ) );\n}\nfloat viewZToOrthographicDepth( const in float viewZ, const in float near, const in float far ) {\n\treturn ( viewZ + near ) / ( near - far );\n}\nfloat orthographicDepthToViewZ( const in float linearClipZ, const in float near, const in float far ) {\n\treturn linearClipZ * ( near - far ) - near;\n}\nfloat viewZToPerspectiveDepth( const in float viewZ, const in float near, const in float far ) {\n\treturn ( ( near + viewZ ) * far ) / ( ( far - near ) * viewZ );\n}\nfloat perspectiveDepthToViewZ( const in float invClipZ, const in float near, const in float far ) {\n\treturn ( near * far ) / ( ( far - near ) * invClipZ - far );\n}";
 
@@ -12834,13 +12747,13 @@ var roughnessmap_fragment = "float roughnessFactor = roughness;\n#ifdef USE_ROUG
 
 var roughnessmap_pars_fragment = "#ifdef USE_ROUGHNESSMAP\n\tuniform sampler2D roughnessMap;\n#endif";
 
-var shadowmap_pars_fragment = "#ifdef USE_SHADOWMAP\n\t#if NUM_DIR_LIGHT_SHADOWS > 0\n\t\tuniform sampler2D directionalShadowMap[ NUM_DIR_LIGHT_SHADOWS ];\n\t\tvarying vec4 vDirectionalShadowCoord[ NUM_DIR_LIGHT_SHADOWS ];\n\t\tstruct DirectionalLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t};\n\t\tuniform DirectionalLightShadow directionalLightShadows[ NUM_DIR_LIGHT_SHADOWS ];\n\t#endif\n\t#if NUM_SPOT_LIGHT_SHADOWS > 0\n\t\tuniform sampler2D spotShadowMap[ NUM_SPOT_LIGHT_SHADOWS ];\n\t\tvarying vec4 vSpotShadowCoord[ NUM_SPOT_LIGHT_SHADOWS ];\n\t\tstruct SpotLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t};\n\t\tuniform SpotLightShadow spotLightShadows[ NUM_SPOT_LIGHT_SHADOWS ];\n\t#endif\n\t#if NUM_POINT_LIGHT_SHADOWS > 0\n\t\tuniform sampler2D pointShadowMap[ NUM_POINT_LIGHT_SHADOWS ];\n\t\tvarying vec4 vPointShadowCoord[ NUM_POINT_LIGHT_SHADOWS ];\n\t\tstruct PointLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t\tfloat shadowCameraNear;\n\t\t\tfloat shadowCameraFar;\n\t\t};\n\t\tuniform PointLightShadow pointLightShadows[ NUM_POINT_LIGHT_SHADOWS ];\n\t#endif\n\tfloat texture2DCompare( sampler2D depths, vec2 uv, float compare ) {\n\t\treturn step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );\n\t}\n\tvec2 texture2DDistribution( sampler2D shadow, vec2 uv ) {\n\t\treturn unpackRGBATo2Half( texture2D( shadow, uv ) );\n\t}\n\tfloat VSMShadow (sampler2D shadow, vec2 uv, float compare ){\n\t\tfloat occlusion = 1.0;\n\t\tvec2 distribution = texture2DDistribution( shadow, uv );\n\t\tfloat hard_shadow = step( compare , distribution.x );\n\t\tif (hard_shadow != 1.0 ) {\n\t\t\tfloat distance = compare - distribution.x ;\n\t\t\tfloat variance = max( 0.00000, distribution.y * distribution.y );\n\t\t\tfloat softness_probability = variance / (variance + distance * distance );\t\t\tsoftness_probability = clamp( ( softness_probability - 0.3 ) / ( 0.95 - 0.3 ), 0.0, 1.0 );\t\t\tocclusion = clamp( max( hard_shadow, softness_probability ), 0.0, 1.0 );\n\t\t}\n\t\treturn occlusion;\n\t}\n\tfloat getShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowBias, float shadowRadius, vec4 shadowCoord ) {\n\t\tfloat shadow = 1.0;\n\t\tshadowCoord.xyz /= shadowCoord.w;\n\t\tshadowCoord.z += shadowBias;\n\t\tbvec4 inFrustumVec = bvec4 ( shadowCoord.x >= 0.0, shadowCoord.x <= 1.0, shadowCoord.y >= 0.0, shadowCoord.y <= 1.0 );\n\t\tbool inFrustum = all( inFrustumVec );\n\t\tbvec2 frustumTestVec = bvec2( inFrustum, shadowCoord.z <= 1.0 );\n\t\tbool frustumTest = all( frustumTestVec );\n\t\tif ( frustumTest ) {\n\t\t#if defined( SHADOWMAP_TYPE_PCF )\n\t\t\tvec2 texelSize = vec2( 1.0 ) / shadowMapSize;\n\t\t\tfloat dx0 = - texelSize.x * shadowRadius;\n\t\t\tfloat dy0 = - texelSize.y * shadowRadius;\n\t\t\tfloat dx1 = + texelSize.x * shadowRadius;\n\t\t\tfloat dy1 = + texelSize.y * shadowRadius;\n\t\t\tfloat dx2 = dx0 / 2.0;\n\t\t\tfloat dy2 = dy0 / 2.0;\n\t\t\tfloat dx3 = dx1 / 2.0;\n\t\t\tfloat dy3 = dy1 / 2.0;\n\t\t\tshadow = (\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx0, dy0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1, dy0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx2, dy2 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy2 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx3, dy2 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx0, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx2, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy, shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx3, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx2, dy3 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy3 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx3, dy3 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx0, dy1 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy1 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1, dy1 ), shadowCoord.z )\n\t\t\t) * ( 1.0 / 17.0 );\n\t\t#elif defined( SHADOWMAP_TYPE_PCF_SOFT )\n\t\t\tvec2 texelSize = vec2( 1.0 ) / shadowMapSize;\n\t\t\tfloat dx = texelSize.x;\n\t\t\tfloat dy = texelSize.y;\n\t\t\tvec2 uv = shadowCoord.xy;\n\t\t\tvec2 f = fract( uv * shadowMapSize + 0.5 );\n\t\t\tuv -= f * texelSize;\n\t\t\tshadow = (\n\t\t\t\ttexture2DCompare( shadowMap, uv, shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, uv + vec2( dx, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, uv + vec2( 0.0, dy ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, uv + texelSize, shadowCoord.z ) +\n\t\t\t\tmix( texture2DCompare( shadowMap, uv + vec2( -dx, 0.0 ), shadowCoord.z ), \n\t\t\t\t\t texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, 0.0 ), shadowCoord.z ),\n\t\t\t\t\t f.x ) +\n\t\t\t\tmix( texture2DCompare( shadowMap, uv + vec2( -dx, dy ), shadowCoord.z ), \n\t\t\t\t\t texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, dy ), shadowCoord.z ),\n\t\t\t\t\t f.x ) +\n\t\t\t\tmix( texture2DCompare( shadowMap, uv + vec2( 0.0, -dy ), shadowCoord.z ), \n\t\t\t\t\t texture2DCompare( shadowMap, uv + vec2( 0.0, 2.0 * dy ), shadowCoord.z ),\n\t\t\t\t\t f.y ) +\n\t\t\t\tmix( texture2DCompare( shadowMap, uv + vec2( dx, -dy ), shadowCoord.z ), \n\t\t\t\t\t texture2DCompare( shadowMap, uv + vec2( dx, 2.0 * dy ), shadowCoord.z ),\n\t\t\t\t\t f.y ) +\n\t\t\t\tmix( mix( texture2DCompare( shadowMap, uv + vec2( -dx, -dy ), shadowCoord.z ), \n\t\t\t\t\t\t  texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, -dy ), shadowCoord.z ),\n\t\t\t\t\t\t  f.x ),\n\t\t\t\t\t mix( texture2DCompare( shadowMap, uv + vec2( -dx, 2.0 * dy ), shadowCoord.z ), \n\t\t\t\t\t\t  texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, 2.0 * dy ), shadowCoord.z ),\n\t\t\t\t\t\t  f.x ),\n\t\t\t\t\t f.y )\n\t\t\t) * ( 1.0 / 9.0 );\n\t\t#elif defined( SHADOWMAP_TYPE_VSM )\n\t\t\tshadow = VSMShadow( shadowMap, shadowCoord.xy, shadowCoord.z );\n\t\t#else\n\t\t\tshadow = texture2DCompare( shadowMap, shadowCoord.xy, shadowCoord.z );\n\t\t#endif\n\t\t}\n\t\treturn shadow;\n\t}\n\tvec2 cubeToUV( vec3 v, float texelSizeY ) {\n\t\tvec3 absV = abs( v );\n\t\tfloat scaleToCube = 1.0 / max( absV.x, max( absV.y, absV.z ) );\n\t\tabsV *= scaleToCube;\n\t\tv *= scaleToCube * ( 1.0 - 2.0 * texelSizeY );\n\t\tvec2 planar = v.xy;\n\t\tfloat almostATexel = 1.5 * texelSizeY;\n\t\tfloat almostOne = 1.0 - almostATexel;\n\t\tif ( absV.z >= almostOne ) {\n\t\t\tif ( v.z > 0.0 )\n\t\t\t\tplanar.x = 4.0 - v.x;\n\t\t} else if ( absV.x >= almostOne ) {\n\t\t\tfloat signX = sign( v.x );\n\t\t\tplanar.x = v.z * signX + 2.0 * signX;\n\t\t} else if ( absV.y >= almostOne ) {\n\t\t\tfloat signY = sign( v.y );\n\t\t\tplanar.x = v.x + 2.0 * signY + 2.0;\n\t\t\tplanar.y = v.z * signY - 2.0;\n\t\t}\n\t\treturn vec2( 0.125, 0.25 ) * planar + vec2( 0.375, 0.75 );\n\t}\n\tfloat getPointShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowBias, float shadowRadius, vec4 shadowCoord, float shadowCameraNear, float shadowCameraFar ) {\n\t\tvec2 texelSize = vec2( 1.0 ) / ( shadowMapSize * vec2( 4.0, 2.0 ) );\n\t\tvec3 lightToPosition = shadowCoord.xyz;\n\t\tfloat dp = ( length( lightToPosition ) - shadowCameraNear ) / ( shadowCameraFar - shadowCameraNear );\t\tdp += shadowBias;\n\t\tvec3 bd3D = normalize( lightToPosition );\n\t\t#if defined( SHADOWMAP_TYPE_PCF ) || defined( SHADOWMAP_TYPE_PCF_SOFT ) || defined( SHADOWMAP_TYPE_VSM )\n\t\t\tvec2 offset = vec2( - 1, 1 ) * shadowRadius * texelSize.y;\n\t\t\treturn (\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.xyy, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.yyy, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.xyx, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.yyx, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.xxy, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.yxy, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.xxx, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.yxx, texelSize.y ), dp )\n\t\t\t) * ( 1.0 / 9.0 );\n\t\t#else\n\t\t\treturn texture2DCompare( shadowMap, cubeToUV( bd3D, texelSize.y ), dp );\n\t\t#endif\n\t}\n#endif";
+var shadowmap_pars_fragment = "#if NUM_SPOT_LIGHT_COORDS > 0\n  varying vec4 vSpotLightCoord[ NUM_SPOT_LIGHT_COORDS ];\n#endif\n#if NUM_SPOT_LIGHT_MAPS > 0\n  uniform sampler2D spotLightMap[ NUM_SPOT_LIGHT_MAPS ];\n#endif\n#ifdef USE_SHADOWMAP\n\t#if NUM_DIR_LIGHT_SHADOWS > 0\n\t\tuniform sampler2D directionalShadowMap[ NUM_DIR_LIGHT_SHADOWS ];\n\t\tvarying vec4 vDirectionalShadowCoord[ NUM_DIR_LIGHT_SHADOWS ];\n\t\tstruct DirectionalLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t};\n\t\tuniform DirectionalLightShadow directionalLightShadows[ NUM_DIR_LIGHT_SHADOWS ];\n\t#endif\n\t#if NUM_SPOT_LIGHT_SHADOWS > 0\n\t\tuniform sampler2D spotShadowMap[ NUM_SPOT_LIGHT_SHADOWS ];\n\t\tstruct SpotLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t};\n\t\tuniform SpotLightShadow spotLightShadows[ NUM_SPOT_LIGHT_SHADOWS ];\n\t#endif\n\t#if NUM_POINT_LIGHT_SHADOWS > 0\n\t\tuniform sampler2D pointShadowMap[ NUM_POINT_LIGHT_SHADOWS ];\n\t\tvarying vec4 vPointShadowCoord[ NUM_POINT_LIGHT_SHADOWS ];\n\t\tstruct PointLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t\tfloat shadowCameraNear;\n\t\t\tfloat shadowCameraFar;\n\t\t};\n\t\tuniform PointLightShadow pointLightShadows[ NUM_POINT_LIGHT_SHADOWS ];\n\t#endif\n\tfloat texture2DCompare( sampler2D depths, vec2 uv, float compare ) {\n\t\treturn step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );\n\t}\n\tvec2 texture2DDistribution( sampler2D shadow, vec2 uv ) {\n\t\treturn unpackRGBATo2Half( texture2D( shadow, uv ) );\n\t}\n\tfloat VSMShadow (sampler2D shadow, vec2 uv, float compare ){\n\t\tfloat occlusion = 1.0;\n\t\tvec2 distribution = texture2DDistribution( shadow, uv );\n\t\tfloat hard_shadow = step( compare , distribution.x );\n\t\tif (hard_shadow != 1.0 ) {\n\t\t\tfloat distance = compare - distribution.x ;\n\t\t\tfloat variance = max( 0.00000, distribution.y * distribution.y );\n\t\t\tfloat softness_probability = variance / (variance + distance * distance );\t\t\tsoftness_probability = clamp( ( softness_probability - 0.3 ) / ( 0.95 - 0.3 ), 0.0, 1.0 );\t\t\tocclusion = clamp( max( hard_shadow, softness_probability ), 0.0, 1.0 );\n\t\t}\n\t\treturn occlusion;\n\t}\n\tfloat getShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowBias, float shadowRadius, vec4 shadowCoord ) {\n\t\tfloat shadow = 1.0;\n\t\tshadowCoord.xyz /= shadowCoord.w;\n\t\tshadowCoord.z += shadowBias;\n\t\tbvec4 inFrustumVec = bvec4 ( shadowCoord.x >= 0.0, shadowCoord.x <= 1.0, shadowCoord.y >= 0.0, shadowCoord.y <= 1.0 );\n\t\tbool inFrustum = all( inFrustumVec );\n\t\tbvec2 frustumTestVec = bvec2( inFrustum, shadowCoord.z <= 1.0 );\n\t\tbool frustumTest = all( frustumTestVec );\n\t\tif ( frustumTest ) {\n\t\t#if defined( SHADOWMAP_TYPE_PCF )\n\t\t\tvec2 texelSize = vec2( 1.0 ) / shadowMapSize;\n\t\t\tfloat dx0 = - texelSize.x * shadowRadius;\n\t\t\tfloat dy0 = - texelSize.y * shadowRadius;\n\t\t\tfloat dx1 = + texelSize.x * shadowRadius;\n\t\t\tfloat dy1 = + texelSize.y * shadowRadius;\n\t\t\tfloat dx2 = dx0 / 2.0;\n\t\t\tfloat dy2 = dy0 / 2.0;\n\t\t\tfloat dx3 = dx1 / 2.0;\n\t\t\tfloat dy3 = dy1 / 2.0;\n\t\t\tshadow = (\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx0, dy0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1, dy0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx2, dy2 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy2 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx3, dy2 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx0, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx2, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy, shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx3, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx2, dy3 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy3 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx3, dy3 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx0, dy1 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy1 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1, dy1 ), shadowCoord.z )\n\t\t\t) * ( 1.0 / 17.0 );\n\t\t#elif defined( SHADOWMAP_TYPE_PCF_SOFT )\n\t\t\tvec2 texelSize = vec2( 1.0 ) / shadowMapSize;\n\t\t\tfloat dx = texelSize.x;\n\t\t\tfloat dy = texelSize.y;\n\t\t\tvec2 uv = shadowCoord.xy;\n\t\t\tvec2 f = fract( uv * shadowMapSize + 0.5 );\n\t\t\tuv -= f * texelSize;\n\t\t\tshadow = (\n\t\t\t\ttexture2DCompare( shadowMap, uv, shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, uv + vec2( dx, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, uv + vec2( 0.0, dy ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, uv + texelSize, shadowCoord.z ) +\n\t\t\t\tmix( texture2DCompare( shadowMap, uv + vec2( -dx, 0.0 ), shadowCoord.z ),\n\t\t\t\t\t texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, 0.0 ), shadowCoord.z ),\n\t\t\t\t\t f.x ) +\n\t\t\t\tmix( texture2DCompare( shadowMap, uv + vec2( -dx, dy ), shadowCoord.z ),\n\t\t\t\t\t texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, dy ), shadowCoord.z ),\n\t\t\t\t\t f.x ) +\n\t\t\t\tmix( texture2DCompare( shadowMap, uv + vec2( 0.0, -dy ), shadowCoord.z ),\n\t\t\t\t\t texture2DCompare( shadowMap, uv + vec2( 0.0, 2.0 * dy ), shadowCoord.z ),\n\t\t\t\t\t f.y ) +\n\t\t\t\tmix( texture2DCompare( shadowMap, uv + vec2( dx, -dy ), shadowCoord.z ),\n\t\t\t\t\t texture2DCompare( shadowMap, uv + vec2( dx, 2.0 * dy ), shadowCoord.z ),\n\t\t\t\t\t f.y ) +\n\t\t\t\tmix( mix( texture2DCompare( shadowMap, uv + vec2( -dx, -dy ), shadowCoord.z ),\n\t\t\t\t\t\t  texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, -dy ), shadowCoord.z ),\n\t\t\t\t\t\t  f.x ),\n\t\t\t\t\t mix( texture2DCompare( shadowMap, uv + vec2( -dx, 2.0 * dy ), shadowCoord.z ),\n\t\t\t\t\t\t  texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, 2.0 * dy ), shadowCoord.z ),\n\t\t\t\t\t\t  f.x ),\n\t\t\t\t\t f.y )\n\t\t\t) * ( 1.0 / 9.0 );\n\t\t#elif defined( SHADOWMAP_TYPE_VSM )\n\t\t\tshadow = VSMShadow( shadowMap, shadowCoord.xy, shadowCoord.z );\n\t\t#else\n\t\t\tshadow = texture2DCompare( shadowMap, shadowCoord.xy, shadowCoord.z );\n\t\t#endif\n\t\t}\n\t\treturn shadow;\n\t}\n\tvec2 cubeToUV( vec3 v, float texelSizeY ) {\n\t\tvec3 absV = abs( v );\n\t\tfloat scaleToCube = 1.0 / max( absV.x, max( absV.y, absV.z ) );\n\t\tabsV *= scaleToCube;\n\t\tv *= scaleToCube * ( 1.0 - 2.0 * texelSizeY );\n\t\tvec2 planar = v.xy;\n\t\tfloat almostATexel = 1.5 * texelSizeY;\n\t\tfloat almostOne = 1.0 - almostATexel;\n\t\tif ( absV.z >= almostOne ) {\n\t\t\tif ( v.z > 0.0 )\n\t\t\t\tplanar.x = 4.0 - v.x;\n\t\t} else if ( absV.x >= almostOne ) {\n\t\t\tfloat signX = sign( v.x );\n\t\t\tplanar.x = v.z * signX + 2.0 * signX;\n\t\t} else if ( absV.y >= almostOne ) {\n\t\t\tfloat signY = sign( v.y );\n\t\t\tplanar.x = v.x + 2.0 * signY + 2.0;\n\t\t\tplanar.y = v.z * signY - 2.0;\n\t\t}\n\t\treturn vec2( 0.125, 0.25 ) * planar + vec2( 0.375, 0.75 );\n\t}\n\tfloat getPointShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowBias, float shadowRadius, vec4 shadowCoord, float shadowCameraNear, float shadowCameraFar ) {\n\t\tvec2 texelSize = vec2( 1.0 ) / ( shadowMapSize * vec2( 4.0, 2.0 ) );\n\t\tvec3 lightToPosition = shadowCoord.xyz;\n\t\tfloat dp = ( length( lightToPosition ) - shadowCameraNear ) / ( shadowCameraFar - shadowCameraNear );\t\tdp += shadowBias;\n\t\tvec3 bd3D = normalize( lightToPosition );\n\t\t#if defined( SHADOWMAP_TYPE_PCF ) || defined( SHADOWMAP_TYPE_PCF_SOFT ) || defined( SHADOWMAP_TYPE_VSM )\n\t\t\tvec2 offset = vec2( - 1, 1 ) * shadowRadius * texelSize.y;\n\t\t\treturn (\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.xyy, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.yyy, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.xyx, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.yyx, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.xxy, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.yxy, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.xxx, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.yxx, texelSize.y ), dp )\n\t\t\t) * ( 1.0 / 9.0 );\n\t\t#else\n\t\t\treturn texture2DCompare( shadowMap, cubeToUV( bd3D, texelSize.y ), dp );\n\t\t#endif\n\t}\n#endif";
 
-var shadowmap_pars_vertex = "#ifdef USE_SHADOWMAP\n\t#if NUM_DIR_LIGHT_SHADOWS > 0\n\t\tuniform mat4 directionalShadowMatrix[ NUM_DIR_LIGHT_SHADOWS ];\n\t\tvarying vec4 vDirectionalShadowCoord[ NUM_DIR_LIGHT_SHADOWS ];\n\t\tstruct DirectionalLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t};\n\t\tuniform DirectionalLightShadow directionalLightShadows[ NUM_DIR_LIGHT_SHADOWS ];\n\t#endif\n\t#if NUM_SPOT_LIGHT_SHADOWS > 0\n\t\tuniform mat4 spotShadowMatrix[ NUM_SPOT_LIGHT_SHADOWS ];\n\t\tvarying vec4 vSpotShadowCoord[ NUM_SPOT_LIGHT_SHADOWS ];\n\t\tstruct SpotLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t};\n\t\tuniform SpotLightShadow spotLightShadows[ NUM_SPOT_LIGHT_SHADOWS ];\n\t#endif\n\t#if NUM_POINT_LIGHT_SHADOWS > 0\n\t\tuniform mat4 pointShadowMatrix[ NUM_POINT_LIGHT_SHADOWS ];\n\t\tvarying vec4 vPointShadowCoord[ NUM_POINT_LIGHT_SHADOWS ];\n\t\tstruct PointLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t\tfloat shadowCameraNear;\n\t\t\tfloat shadowCameraFar;\n\t\t};\n\t\tuniform PointLightShadow pointLightShadows[ NUM_POINT_LIGHT_SHADOWS ];\n\t#endif\n#endif";
+var shadowmap_pars_vertex = "#if NUM_SPOT_LIGHT_COORDS > 0\n  uniform mat4 spotLightMatrix[ NUM_SPOT_LIGHT_COORDS ];\n  varying vec4 vSpotLightCoord[ NUM_SPOT_LIGHT_COORDS ];\n#endif\n#ifdef USE_SHADOWMAP\n\t#if NUM_DIR_LIGHT_SHADOWS > 0\n\t\tuniform mat4 directionalShadowMatrix[ NUM_DIR_LIGHT_SHADOWS ];\n\t\tvarying vec4 vDirectionalShadowCoord[ NUM_DIR_LIGHT_SHADOWS ];\n\t\tstruct DirectionalLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t};\n\t\tuniform DirectionalLightShadow directionalLightShadows[ NUM_DIR_LIGHT_SHADOWS ];\n\t#endif\n\t#if NUM_SPOT_LIGHT_SHADOWS > 0\n\t\tstruct SpotLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t};\n\t\tuniform SpotLightShadow spotLightShadows[ NUM_SPOT_LIGHT_SHADOWS ];\n\t#endif\n\t#if NUM_POINT_LIGHT_SHADOWS > 0\n\t\tuniform mat4 pointShadowMatrix[ NUM_POINT_LIGHT_SHADOWS ];\n\t\tvarying vec4 vPointShadowCoord[ NUM_POINT_LIGHT_SHADOWS ];\n\t\tstruct PointLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t\tfloat shadowCameraNear;\n\t\t\tfloat shadowCameraFar;\n\t\t};\n\t\tuniform PointLightShadow pointLightShadows[ NUM_POINT_LIGHT_SHADOWS ];\n\t#endif\n#endif";
 
-var shadowmap_vertex = "#ifdef USE_SHADOWMAP\n\t#if NUM_DIR_LIGHT_SHADOWS > 0 || NUM_SPOT_LIGHT_SHADOWS > 0 || NUM_POINT_LIGHT_SHADOWS > 0\n\t\tvec3 shadowWorldNormal = inverseTransformDirection( transformedNormal, viewMatrix );\n\t\tvec4 shadowWorldPosition;\n\t#endif\n\t#if NUM_DIR_LIGHT_SHADOWS > 0\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_DIR_LIGHT_SHADOWS; i ++ ) {\n\t\tshadowWorldPosition = worldPosition + vec4( shadowWorldNormal * directionalLightShadows[ i ].shadowNormalBias, 0 );\n\t\tvDirectionalShadowCoord[ i ] = directionalShadowMatrix[ i ] * shadowWorldPosition;\n\t}\n\t#pragma unroll_loop_end\n\t#endif\n\t#if NUM_SPOT_LIGHT_SHADOWS > 0\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_SPOT_LIGHT_SHADOWS; i ++ ) {\n\t\tshadowWorldPosition = worldPosition + vec4( shadowWorldNormal * spotLightShadows[ i ].shadowNormalBias, 0 );\n\t\tvSpotShadowCoord[ i ] = spotShadowMatrix[ i ] * shadowWorldPosition;\n\t}\n\t#pragma unroll_loop_end\n\t#endif\n\t#if NUM_POINT_LIGHT_SHADOWS > 0\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_POINT_LIGHT_SHADOWS; i ++ ) {\n\t\tshadowWorldPosition = worldPosition + vec4( shadowWorldNormal * pointLightShadows[ i ].shadowNormalBias, 0 );\n\t\tvPointShadowCoord[ i ] = pointShadowMatrix[ i ] * shadowWorldPosition;\n\t}\n\t#pragma unroll_loop_end\n\t#endif\n#endif";
+var shadowmap_vertex = "#if defined( USE_SHADOWMAP ) || ( NUM_SPOT_LIGHT_COORDS > 0 )\n\t#if NUM_DIR_LIGHT_SHADOWS > 0 || NUM_SPOT_LIGHT_COORDS > 0 || NUM_POINT_LIGHT_SHADOWS > 0\n\t\tvec3 shadowWorldNormal = inverseTransformDirection( transformedNormal, viewMatrix );\n\t\tvec4 shadowWorldPosition;\n\t#endif\n\t#if NUM_DIR_LIGHT_SHADOWS > 0\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_DIR_LIGHT_SHADOWS; i ++ ) {\n\t\tshadowWorldPosition = worldPosition + vec4( shadowWorldNormal * directionalLightShadows[ i ].shadowNormalBias, 0 );\n\t\tvDirectionalShadowCoord[ i ] = directionalShadowMatrix[ i ] * shadowWorldPosition;\n\t}\n\t#pragma unroll_loop_end\n\t#endif\n\t#if NUM_SPOT_LIGHT_COORDS > 0\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_SPOT_LIGHT_COORDS; i ++ ) {\n\t\tshadowWorldPosition = worldPosition;\n\t\t#if ( defined( USE_SHADOWMAP ) && UNROLLED_LOOP_INDEX < NUM_SPOT_LIGHT_SHADOWS )\n\t\t\tshadowWorldPosition.xyz += shadowWorldNormal * spotLightShadows[ i ].shadowNormalBias;\n\t\t#endif\n\t\tvSpotLightCoord[ i ] = spotLightMatrix[ i ] * shadowWorldPosition;\n\t}\n\t#pragma unroll_loop_end\n\t#endif\n\t#if NUM_POINT_LIGHT_SHADOWS > 0\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_POINT_LIGHT_SHADOWS; i ++ ) {\n\t\tshadowWorldPosition = worldPosition + vec4( shadowWorldNormal * pointLightShadows[ i ].shadowNormalBias, 0 );\n\t\tvPointShadowCoord[ i ] = pointShadowMatrix[ i ] * shadowWorldPosition;\n\t}\n\t#pragma unroll_loop_end\n\t#endif\n#endif";
 
-var shadowmask_pars_fragment = "float getShadowMask() {\n\tfloat shadow = 1.0;\n\t#ifdef USE_SHADOWMAP\n\t#if NUM_DIR_LIGHT_SHADOWS > 0\n\tDirectionalLightShadow directionalLight;\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_DIR_LIGHT_SHADOWS; i ++ ) {\n\t\tdirectionalLight = directionalLightShadows[ i ];\n\t\tshadow *= receiveShadow ? getShadow( directionalShadowMap[ i ], directionalLight.shadowMapSize, directionalLight.shadowBias, directionalLight.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;\n\t}\n\t#pragma unroll_loop_end\n\t#endif\n\t#if NUM_SPOT_LIGHT_SHADOWS > 0\n\tSpotLightShadow spotLight;\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_SPOT_LIGHT_SHADOWS; i ++ ) {\n\t\tspotLight = spotLightShadows[ i ];\n\t\tshadow *= receiveShadow ? getShadow( spotShadowMap[ i ], spotLight.shadowMapSize, spotLight.shadowBias, spotLight.shadowRadius, vSpotShadowCoord[ i ] ) : 1.0;\n\t}\n\t#pragma unroll_loop_end\n\t#endif\n\t#if NUM_POINT_LIGHT_SHADOWS > 0\n\tPointLightShadow pointLight;\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_POINT_LIGHT_SHADOWS; i ++ ) {\n\t\tpointLight = pointLightShadows[ i ];\n\t\tshadow *= receiveShadow ? getPointShadow( pointShadowMap[ i ], pointLight.shadowMapSize, pointLight.shadowBias, pointLight.shadowRadius, vPointShadowCoord[ i ], pointLight.shadowCameraNear, pointLight.shadowCameraFar ) : 1.0;\n\t}\n\t#pragma unroll_loop_end\n\t#endif\n\t#endif\n\treturn shadow;\n}";
+var shadowmask_pars_fragment = "float getShadowMask() {\n\tfloat shadow = 1.0;\n\t#ifdef USE_SHADOWMAP\n\t#if NUM_DIR_LIGHT_SHADOWS > 0\n\tDirectionalLightShadow directionalLight;\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_DIR_LIGHT_SHADOWS; i ++ ) {\n\t\tdirectionalLight = directionalLightShadows[ i ];\n\t\tshadow *= receiveShadow ? getShadow( directionalShadowMap[ i ], directionalLight.shadowMapSize, directionalLight.shadowBias, directionalLight.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;\n\t}\n\t#pragma unroll_loop_end\n\t#endif\n\t#if NUM_SPOT_LIGHT_SHADOWS > 0\n\tSpotLightShadow spotLight;\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_SPOT_LIGHT_SHADOWS; i ++ ) {\n\t\tspotLight = spotLightShadows[ i ];\n\t\tshadow *= receiveShadow ? getShadow( spotShadowMap[ i ], spotLight.shadowMapSize, spotLight.shadowBias, spotLight.shadowRadius, vSpotLightCoord[ i ] ) : 1.0;\n\t}\n\t#pragma unroll_loop_end\n\t#endif\n\t#if NUM_POINT_LIGHT_SHADOWS > 0\n\tPointLightShadow pointLight;\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_POINT_LIGHT_SHADOWS; i ++ ) {\n\t\tpointLight = pointLightShadows[ i ];\n\t\tshadow *= receiveShadow ? getPointShadow( pointShadowMap[ i ], pointLight.shadowMapSize, pointLight.shadowBias, pointLight.shadowRadius, vPointShadowCoord[ i ], pointLight.shadowCameraNear, pointLight.shadowCameraFar ) : 1.0;\n\t}\n\t#pragma unroll_loop_end\n\t#endif\n\t#endif\n\treturn shadow;\n}";
 
 var skinbase_vertex = "#ifdef USE_SKINNING\n\tmat4 boneMatX = getBoneMatrix( skinIndex.x );\n\tmat4 boneMatY = getBoneMatrix( skinIndex.y );\n\tmat4 boneMatZ = getBoneMatrix( skinIndex.z );\n\tmat4 boneMatW = getBoneMatrix( skinIndex.w );\n#endif";
 
@@ -12858,7 +12771,7 @@ var tonemapping_fragment = "#if defined( TONE_MAPPING )\n\tgl_FragColor.rgb = to
 
 var tonemapping_pars_fragment = "#ifndef saturate\n#define saturate( a ) clamp( a, 0.0, 1.0 )\n#endif\nuniform float toneMappingExposure;\nvec3 LinearToneMapping( vec3 color ) {\n\treturn toneMappingExposure * color;\n}\nvec3 ReinhardToneMapping( vec3 color ) {\n\tcolor *= toneMappingExposure;\n\treturn saturate( color / ( vec3( 1.0 ) + color ) );\n}\nvec3 OptimizedCineonToneMapping( vec3 color ) {\n\tcolor *= toneMappingExposure;\n\tcolor = max( vec3( 0.0 ), color - 0.004 );\n\treturn pow( ( color * ( 6.2 * color + 0.5 ) ) / ( color * ( 6.2 * color + 1.7 ) + 0.06 ), vec3( 2.2 ) );\n}\nvec3 RRTAndODTFit( vec3 v ) {\n\tvec3 a = v * ( v + 0.0245786 ) - 0.000090537;\n\tvec3 b = v * ( 0.983729 * v + 0.4329510 ) + 0.238081;\n\treturn a / b;\n}\nvec3 ACESFilmicToneMapping( vec3 color ) {\n\tconst mat3 ACESInputMat = mat3(\n\t\tvec3( 0.59719, 0.07600, 0.02840 ),\t\tvec3( 0.35458, 0.90834, 0.13383 ),\n\t\tvec3( 0.04823, 0.01566, 0.83777 )\n\t);\n\tconst mat3 ACESOutputMat = mat3(\n\t\tvec3(  1.60475, -0.10208, -0.00327 ),\t\tvec3( -0.53108,  1.10813, -0.07276 ),\n\t\tvec3( -0.07367, -0.00605,  1.07602 )\n\t);\n\tcolor *= toneMappingExposure / 0.6;\n\tcolor = ACESInputMat * color;\n\tcolor = RRTAndODTFit( color );\n\tcolor = ACESOutputMat * color;\n\treturn saturate( color );\n}\nvec3 CustomToneMapping( vec3 color ) { return color; }";
 
-var transmission_fragment = "#ifdef USE_TRANSMISSION\n\tfloat transmissionAlpha = 1.0;\n\tfloat transmissionFactor = transmission;\n\tfloat thicknessFactor = thickness;\n\t#ifdef USE_TRANSMISSIONMAP\n\t\ttransmissionFactor *= texture2D( transmissionMap, vUv ).r;\n\t#endif\n\t#ifdef USE_THICKNESSMAP\n\t\tthicknessFactor *= texture2D( thicknessMap, vUv ).g;\n\t#endif\n\tvec3 pos = vWorldPosition;\n\tvec3 v = normalize( cameraPosition - pos );\n\tvec3 n = inverseTransformDirection( normal, viewMatrix );\n\tvec4 transmission = getIBLVolumeRefraction(\n\t\tn, v, roughnessFactor, material.diffuseColor, material.specularColor, material.specularF90,\n\t\tpos, modelMatrix, viewMatrix, projectionMatrix, ior, thicknessFactor,\n\t\tattenuationColor, attenuationDistance );\n\ttotalDiffuse = mix( totalDiffuse, transmission.rgb, transmissionFactor );\n\ttransmissionAlpha = mix( transmissionAlpha, transmission.a, transmissionFactor );\n#endif";
+var transmission_fragment = "#ifdef USE_TRANSMISSION\n\tmaterial.transmission = transmission;\n\tmaterial.transmissionAlpha = 1.0;\n\tmaterial.thickness = thickness;\n\tmaterial.attenuationDistance = attenuationDistance;\n\tmaterial.attenuationColor = attenuationColor;\n\t#ifdef USE_TRANSMISSIONMAP\n\t\tmaterial.transmission *= texture2D( transmissionMap, vUv ).r;\n\t#endif\n\t#ifdef USE_THICKNESSMAP\n\t\tmaterial.thickness *= texture2D( thicknessMap, vUv ).g;\n\t#endif\n\tvec3 pos = vWorldPosition;\n\tvec3 v = normalize( cameraPosition - pos );\n\tvec3 n = inverseTransformDirection( normal, viewMatrix );\n\tvec4 transmission = getIBLVolumeRefraction(\n\t\tn, v, material.roughness, material.diffuseColor, material.specularColor, material.specularF90,\n\t\tpos, modelMatrix, viewMatrix, projectionMatrix, material.ior, material.thickness,\n\t\tmaterial.attenuationColor, material.attenuationDistance );\n\tmaterial.transmissionAlpha = mix( material.transmissionAlpha, transmission.a, material.transmission );\n\ttotalDiffuse = mix( totalDiffuse, transmission.rgb, material.transmission );\n#endif";
 
 var transmission_pars_fragment = "#ifdef USE_TRANSMISSION\n\tuniform float transmission;\n\tuniform float thickness;\n\tuniform float attenuationDistance;\n\tuniform vec3 attenuationColor;\n\t#ifdef USE_TRANSMISSIONMAP\n\t\tuniform sampler2D transmissionMap;\n\t#endif\n\t#ifdef USE_THICKNESSMAP\n\t\tuniform sampler2D thicknessMap;\n\t#endif\n\tuniform vec2 transmissionSamplerSize;\n\tuniform sampler2D transmissionSamplerMap;\n\tuniform mat4 modelMatrix;\n\tuniform mat4 projectionMatrix;\n\tvarying vec3 vWorldPosition;\n\tvec3 getVolumeTransmissionRay( const in vec3 n, const in vec3 v, const in float thickness, const in float ior, const in mat4 modelMatrix ) {\n\t\tvec3 refractionVector = refract( - v, normalize( n ), 1.0 / ior );\n\t\tvec3 modelScale;\n\t\tmodelScale.x = length( vec3( modelMatrix[ 0 ].xyz ) );\n\t\tmodelScale.y = length( vec3( modelMatrix[ 1 ].xyz ) );\n\t\tmodelScale.z = length( vec3( modelMatrix[ 2 ].xyz ) );\n\t\treturn normalize( refractionVector ) * thickness * modelScale;\n\t}\n\tfloat applyIorToRoughness( const in float roughness, const in float ior ) {\n\t\treturn roughness * clamp( ior * 2.0 - 2.0, 0.0, 1.0 );\n\t}\n\tvec4 getTransmissionSample( const in vec2 fragCoord, const in float roughness, const in float ior ) {\n\t\tfloat framebufferLod = log2( transmissionSamplerSize.x ) * applyIorToRoughness( roughness, ior );\n\t\t#ifdef texture2DLodEXT\n\t\t\treturn texture2DLodEXT( transmissionSamplerMap, fragCoord.xy, framebufferLod );\n\t\t#else\n\t\t\treturn texture2D( transmissionSamplerMap, fragCoord.xy, framebufferLod );\n\t\t#endif\n\t}\n\tvec3 applyVolumeAttenuation( const in vec3 radiance, const in float transmissionDistance, const in vec3 attenuationColor, const in float attenuationDistance ) {\n\t\tif ( attenuationDistance == 0.0 ) {\n\t\t\treturn radiance;\n\t\t} else {\n\t\t\tvec3 attenuationCoefficient = -log( attenuationColor ) / attenuationDistance;\n\t\t\tvec3 transmittance = exp( - attenuationCoefficient * transmissionDistance );\t\t\treturn transmittance * radiance;\n\t\t}\n\t}\n\tvec4 getIBLVolumeRefraction( const in vec3 n, const in vec3 v, const in float roughness, const in vec3 diffuseColor,\n\t\tconst in vec3 specularColor, const in float specularF90, const in vec3 position, const in mat4 modelMatrix,\n\t\tconst in mat4 viewMatrix, const in mat4 projMatrix, const in float ior, const in float thickness,\n\t\tconst in vec3 attenuationColor, const in float attenuationDistance ) {\n\t\tvec3 transmissionRay = getVolumeTransmissionRay( n, v, thickness, ior, modelMatrix );\n\t\tvec3 refractedRayExit = position + transmissionRay;\n\t\tvec4 ndcPos = projMatrix * viewMatrix * vec4( refractedRayExit, 1.0 );\n\t\tvec2 refractionCoords = ndcPos.xy / ndcPos.w;\n\t\trefractionCoords += 1.0;\n\t\trefractionCoords /= 2.0;\n\t\tvec4 transmittedLight = getTransmissionSample( refractionCoords, roughness, ior );\n\t\tvec3 attenuatedColor = applyVolumeAttenuation( transmittedLight.rgb, length( transmissionRay ), attenuationColor, attenuationDistance );\n\t\tvec3 F = EnvironmentBRDF( n, v, specularColor, specularF90, roughness );\n\t\treturn vec4( ( 1.0 - F ) * attenuatedColor * diffuseColor, transmittedLight.a );\n\t}\n#endif";
 
@@ -12874,7 +12787,7 @@ var uv2_pars_vertex = "#if defined( USE_LIGHTMAP ) || defined( USE_AOMAP )\n\tat
 
 var uv2_vertex = "#if defined( USE_LIGHTMAP ) || defined( USE_AOMAP )\n\tvUv2 = ( uv2Transform * vec3( uv2, 1 ) ).xy;\n#endif";
 
-var worldpos_vertex = "#if defined( USE_ENVMAP ) || defined( DISTANCE ) || defined ( USE_SHADOWMAP ) || defined ( USE_TRANSMISSION )\n\tvec4 worldPosition = vec4( transformed, 1.0 );\n\t#ifdef USE_INSTANCING\n\t\tworldPosition = instanceMatrix * worldPosition;\n\t#endif\n\tworldPosition = modelMatrix * worldPosition;\n#endif";
+var worldpos_vertex = "#if defined( USE_ENVMAP ) || defined( DISTANCE ) || defined ( USE_SHADOWMAP ) || defined ( USE_TRANSMISSION ) || NUM_SPOT_LIGHT_COORDS > 0\n\tvec4 worldPosition = vec4( transformed, 1.0 );\n\t#ifdef USE_INSTANCING\n\t\tworldPosition = instanceMatrix * worldPosition;\n\t#endif\n\tworldPosition = modelMatrix * worldPosition;\n#endif";
 
 const vertex$g = "varying vec2 vUv;\nuniform mat3 uvTransform;\nvoid main() {\n\tvUv = ( uvTransform * vec3( uv, 1 ) ).xy;\n\tgl_Position = vec4( position.xy, 1.0, 1.0 );\n}";
 
@@ -12902,11 +12815,11 @@ const fragment$b = "uniform vec3 diffuse;\nuniform float opacity;\nuniform float
 
 const vertex$a = "#include <common>\n#include <uv_pars_vertex>\n#include <uv2_pars_vertex>\n#include <envmap_pars_vertex>\n#include <color_pars_vertex>\n#include <fog_pars_vertex>\n#include <morphtarget_pars_vertex>\n#include <skinning_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\nvoid main() {\n\t#include <uv_vertex>\n\t#include <uv2_vertex>\n\t#include <color_vertex>\n\t#include <morphcolor_vertex>\n\t#if defined ( USE_ENVMAP ) || defined ( USE_SKINNING )\n\t\t#include <beginnormal_vertex>\n\t\t#include <morphnormal_vertex>\n\t\t#include <skinbase_vertex>\n\t\t#include <skinnormal_vertex>\n\t\t#include <defaultnormal_vertex>\n\t#endif\n\t#include <begin_vertex>\n\t#include <morphtarget_vertex>\n\t#include <skinning_vertex>\n\t#include <project_vertex>\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\t#include <worldpos_vertex>\n\t#include <envmap_vertex>\n\t#include <fog_vertex>\n}";
 
-const fragment$a = "uniform vec3 diffuse;\nuniform float opacity;\n#ifndef FLAT_SHADED\n\tvarying vec3 vNormal;\n#endif\n#include <common>\n#include <dithering_pars_fragment>\n#include <color_pars_fragment>\n#include <uv_pars_fragment>\n#include <uv2_pars_fragment>\n#include <map_pars_fragment>\n#include <alphamap_pars_fragment>\n#include <alphatest_pars_fragment>\n#include <aomap_pars_fragment>\n#include <lightmap_pars_fragment>\n#include <envmap_common_pars_fragment>\n#include <envmap_pars_fragment>\n#include <cube_uv_reflection_fragment>\n#include <fog_pars_fragment>\n#include <specularmap_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\nvoid main() {\n\t#include <clipping_planes_fragment>\n\tvec4 diffuseColor = vec4( diffuse, opacity );\n\t#include <logdepthbuf_fragment>\n\t#include <map_fragment>\n\t#include <color_fragment>\n\t#include <alphamap_fragment>\n\t#include <alphatest_fragment>\n\t#include <specularmap_fragment>\n\tReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );\n\t#ifdef USE_LIGHTMAP\n\t\tvec4 lightMapTexel = texture2D( lightMap, vUv2 );\n\t\treflectedLight.indirectDiffuse += lightMapTexel.rgb * lightMapIntensity * RECIPROCAL_PI;\n\t#else\n\t\treflectedLight.indirectDiffuse += vec3( 1.0 );\n\t#endif\n\t#include <aomap_fragment>\n\treflectedLight.indirectDiffuse *= diffuseColor.rgb;\n\tvec3 outgoingLight = reflectedLight.indirectDiffuse;\n\t#include <envmap_fragment>\n\t#include <output_fragment>\n\t#include <tonemapping_fragment>\n\t#include <encodings_fragment>\n\t#include <fog_fragment>\n\t#include <premultiplied_alpha_fragment>\n\t#include <dithering_fragment>\n}";
+const fragment$a = "uniform vec3 diffuse;\nuniform float opacity;\n#ifndef FLAT_SHADED\n\tvarying vec3 vNormal;\n#endif\n#include <common>\n#include <dithering_pars_fragment>\n#include <color_pars_fragment>\n#include <uv_pars_fragment>\n#include <uv2_pars_fragment>\n#include <map_pars_fragment>\n#include <alphamap_pars_fragment>\n#include <alphatest_pars_fragment>\n#include <aomap_pars_fragment>\n#include <lightmap_pars_fragment>\n#include <envmap_common_pars_fragment>\n#include <envmap_pars_fragment>\n#include <fog_pars_fragment>\n#include <specularmap_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\nvoid main() {\n\t#include <clipping_planes_fragment>\n\tvec4 diffuseColor = vec4( diffuse, opacity );\n\t#include <logdepthbuf_fragment>\n\t#include <map_fragment>\n\t#include <color_fragment>\n\t#include <alphamap_fragment>\n\t#include <alphatest_fragment>\n\t#include <specularmap_fragment>\n\tReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );\n\t#ifdef USE_LIGHTMAP\n\t\tvec4 lightMapTexel = texture2D( lightMap, vUv2 );\n\t\treflectedLight.indirectDiffuse += lightMapTexel.rgb * lightMapIntensity * RECIPROCAL_PI;\n\t#else\n\t\treflectedLight.indirectDiffuse += vec3( 1.0 );\n\t#endif\n\t#include <aomap_fragment>\n\treflectedLight.indirectDiffuse *= diffuseColor.rgb;\n\tvec3 outgoingLight = reflectedLight.indirectDiffuse;\n\t#include <envmap_fragment>\n\t#include <output_fragment>\n\t#include <tonemapping_fragment>\n\t#include <encodings_fragment>\n\t#include <fog_fragment>\n\t#include <premultiplied_alpha_fragment>\n\t#include <dithering_fragment>\n}";
 
-const vertex$9 = "#define LAMBERT\nvarying vec3 vLightFront;\nvarying vec3 vIndirectFront;\n#ifdef DOUBLE_SIDED\n\tvarying vec3 vLightBack;\n\tvarying vec3 vIndirectBack;\n#endif\n#include <common>\n#include <uv_pars_vertex>\n#include <uv2_pars_vertex>\n#include <envmap_pars_vertex>\n#include <bsdfs>\n#include <lights_pars_begin>\n#include <color_pars_vertex>\n#include <fog_pars_vertex>\n#include <morphtarget_pars_vertex>\n#include <skinning_pars_vertex>\n#include <shadowmap_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\nvoid main() {\n\t#include <uv_vertex>\n\t#include <uv2_vertex>\n\t#include <color_vertex>\n\t#include <morphcolor_vertex>\n\t#include <beginnormal_vertex>\n\t#include <morphnormal_vertex>\n\t#include <skinbase_vertex>\n\t#include <skinnormal_vertex>\n\t#include <defaultnormal_vertex>\n\t#include <begin_vertex>\n\t#include <morphtarget_vertex>\n\t#include <skinning_vertex>\n\t#include <project_vertex>\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\t#include <worldpos_vertex>\n\t#include <envmap_vertex>\n\t#include <lights_lambert_vertex>\n\t#include <shadowmap_vertex>\n\t#include <fog_vertex>\n}";
+const vertex$9 = "#define LAMBERT\nvarying vec3 vViewPosition;\n#include <common>\n#include <uv_pars_vertex>\n#include <uv2_pars_vertex>\n#include <displacementmap_pars_vertex>\n#include <envmap_pars_vertex>\n#include <color_pars_vertex>\n#include <fog_pars_vertex>\n#include <normal_pars_vertex>\n#include <morphtarget_pars_vertex>\n#include <skinning_pars_vertex>\n#include <shadowmap_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\nvoid main() {\n\t#include <uv_vertex>\n\t#include <uv2_vertex>\n\t#include <color_vertex>\n\t#include <morphcolor_vertex>\n\t#include <beginnormal_vertex>\n\t#include <morphnormal_vertex>\n\t#include <skinbase_vertex>\n\t#include <skinnormal_vertex>\n\t#include <defaultnormal_vertex>\n\t#include <normal_vertex>\n\t#include <begin_vertex>\n\t#include <morphtarget_vertex>\n\t#include <skinning_vertex>\n\t#include <displacementmap_vertex>\n\t#include <project_vertex>\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\tvViewPosition = - mvPosition.xyz;\n\t#include <worldpos_vertex>\n\t#include <envmap_vertex>\n\t#include <shadowmap_vertex>\n\t#include <fog_vertex>\n}";
 
-const fragment$9 = "uniform vec3 diffuse;\nuniform vec3 emissive;\nuniform float opacity;\nvarying vec3 vLightFront;\nvarying vec3 vIndirectFront;\n#ifdef DOUBLE_SIDED\n\tvarying vec3 vLightBack;\n\tvarying vec3 vIndirectBack;\n#endif\n#include <common>\n#include <packing>\n#include <dithering_pars_fragment>\n#include <color_pars_fragment>\n#include <uv_pars_fragment>\n#include <uv2_pars_fragment>\n#include <map_pars_fragment>\n#include <alphamap_pars_fragment>\n#include <alphatest_pars_fragment>\n#include <aomap_pars_fragment>\n#include <lightmap_pars_fragment>\n#include <emissivemap_pars_fragment>\n#include <envmap_common_pars_fragment>\n#include <envmap_pars_fragment>\n#include <cube_uv_reflection_fragment>\n#include <bsdfs>\n#include <lights_pars_begin>\n#include <fog_pars_fragment>\n#include <shadowmap_pars_fragment>\n#include <shadowmask_pars_fragment>\n#include <specularmap_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\nvoid main() {\n\t#include <clipping_planes_fragment>\n\tvec4 diffuseColor = vec4( diffuse, opacity );\n\tReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );\n\tvec3 totalEmissiveRadiance = emissive;\n\t#include <logdepthbuf_fragment>\n\t#include <map_fragment>\n\t#include <color_fragment>\n\t#include <alphamap_fragment>\n\t#include <alphatest_fragment>\n\t#include <specularmap_fragment>\n\t#include <emissivemap_fragment>\n\t#ifdef DOUBLE_SIDED\n\t\treflectedLight.indirectDiffuse += ( gl_FrontFacing ) ? vIndirectFront : vIndirectBack;\n\t#else\n\t\treflectedLight.indirectDiffuse += vIndirectFront;\n\t#endif\n\t#include <lightmap_fragment>\n\treflectedLight.indirectDiffuse *= BRDF_Lambert( diffuseColor.rgb );\n\t#ifdef DOUBLE_SIDED\n\t\treflectedLight.directDiffuse = ( gl_FrontFacing ) ? vLightFront : vLightBack;\n\t#else\n\t\treflectedLight.directDiffuse = vLightFront;\n\t#endif\n\treflectedLight.directDiffuse *= BRDF_Lambert( diffuseColor.rgb ) * getShadowMask();\n\t#include <aomap_fragment>\n\tvec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;\n\t#include <envmap_fragment>\n\t#include <output_fragment>\n\t#include <tonemapping_fragment>\n\t#include <encodings_fragment>\n\t#include <fog_fragment>\n\t#include <premultiplied_alpha_fragment>\n\t#include <dithering_fragment>\n}";
+const fragment$9 = "#define LAMBERT\nuniform vec3 diffuse;\nuniform vec3 emissive;\nuniform float opacity;\n#include <common>\n#include <packing>\n#include <dithering_pars_fragment>\n#include <color_pars_fragment>\n#include <uv_pars_fragment>\n#include <uv2_pars_fragment>\n#include <map_pars_fragment>\n#include <alphamap_pars_fragment>\n#include <alphatest_pars_fragment>\n#include <aomap_pars_fragment>\n#include <lightmap_pars_fragment>\n#include <emissivemap_pars_fragment>\n#include <envmap_common_pars_fragment>\n#include <envmap_pars_fragment>\n#include <fog_pars_fragment>\n#include <bsdfs>\n#include <lights_pars_begin>\n#include <normal_pars_fragment>\n#include <lights_lambert_pars_fragment>\n#include <shadowmap_pars_fragment>\n#include <bumpmap_pars_fragment>\n#include <normalmap_pars_fragment>\n#include <specularmap_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\nvoid main() {\n\t#include <clipping_planes_fragment>\n\tvec4 diffuseColor = vec4( diffuse, opacity );\n\tReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );\n\tvec3 totalEmissiveRadiance = emissive;\n\t#include <logdepthbuf_fragment>\n\t#include <map_fragment>\n\t#include <color_fragment>\n\t#include <alphamap_fragment>\n\t#include <alphatest_fragment>\n\t#include <specularmap_fragment>\n\t#include <normal_fragment_begin>\n\t#include <normal_fragment_maps>\n\t#include <emissivemap_fragment>\n\t#include <lights_lambert_fragment>\n\t#include <lights_fragment_begin>\n\t#include <lights_fragment_maps>\n\t#include <lights_fragment_end>\n\t#include <aomap_fragment>\n\tvec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;\n\t#include <envmap_fragment>\n\t#include <output_fragment>\n\t#include <tonemapping_fragment>\n\t#include <encodings_fragment>\n\t#include <fog_fragment>\n\t#include <premultiplied_alpha_fragment>\n\t#include <dithering_fragment>\n}";
 
 const vertex$8 = "#define MATCAP\nvarying vec3 vViewPosition;\n#include <common>\n#include <uv_pars_vertex>\n#include <color_pars_vertex>\n#include <displacementmap_pars_vertex>\n#include <fog_pars_vertex>\n#include <normal_pars_vertex>\n#include <morphtarget_pars_vertex>\n#include <skinning_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\nvoid main() {\n\t#include <uv_vertex>\n\t#include <color_vertex>\n\t#include <morphcolor_vertex>\n\t#include <beginnormal_vertex>\n\t#include <morphnormal_vertex>\n\t#include <skinbase_vertex>\n\t#include <skinnormal_vertex>\n\t#include <defaultnormal_vertex>\n\t#include <normal_vertex>\n\t#include <begin_vertex>\n\t#include <morphtarget_vertex>\n\t#include <skinning_vertex>\n\t#include <displacementmap_vertex>\n\t#include <project_vertex>\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\t#include <fog_vertex>\n\tvViewPosition = - mvPosition.xyz;\n}";
 
@@ -12918,7 +12831,7 @@ const fragment$7 = "#define NORMAL\nuniform float opacity;\n#if defined( FLAT_SH
 
 const vertex$6 = "#define PHONG\nvarying vec3 vViewPosition;\n#include <common>\n#include <uv_pars_vertex>\n#include <uv2_pars_vertex>\n#include <displacementmap_pars_vertex>\n#include <envmap_pars_vertex>\n#include <color_pars_vertex>\n#include <fog_pars_vertex>\n#include <normal_pars_vertex>\n#include <morphtarget_pars_vertex>\n#include <skinning_pars_vertex>\n#include <shadowmap_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\nvoid main() {\n\t#include <uv_vertex>\n\t#include <uv2_vertex>\n\t#include <color_vertex>\n\t#include <morphcolor_vertex>\n\t#include <beginnormal_vertex>\n\t#include <morphnormal_vertex>\n\t#include <skinbase_vertex>\n\t#include <skinnormal_vertex>\n\t#include <defaultnormal_vertex>\n\t#include <normal_vertex>\n\t#include <begin_vertex>\n\t#include <morphtarget_vertex>\n\t#include <skinning_vertex>\n\t#include <displacementmap_vertex>\n\t#include <project_vertex>\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\tvViewPosition = - mvPosition.xyz;\n\t#include <worldpos_vertex>\n\t#include <envmap_vertex>\n\t#include <shadowmap_vertex>\n\t#include <fog_vertex>\n}";
 
-const fragment$6 = "#define PHONG\nuniform vec3 diffuse;\nuniform vec3 emissive;\nuniform vec3 specular;\nuniform float shininess;\nuniform float opacity;\n#include <common>\n#include <packing>\n#include <dithering_pars_fragment>\n#include <color_pars_fragment>\n#include <uv_pars_fragment>\n#include <uv2_pars_fragment>\n#include <map_pars_fragment>\n#include <alphamap_pars_fragment>\n#include <alphatest_pars_fragment>\n#include <aomap_pars_fragment>\n#include <lightmap_pars_fragment>\n#include <emissivemap_pars_fragment>\n#include <envmap_common_pars_fragment>\n#include <envmap_pars_fragment>\n#include <cube_uv_reflection_fragment>\n#include <fog_pars_fragment>\n#include <bsdfs>\n#include <lights_pars_begin>\n#include <normal_pars_fragment>\n#include <lights_phong_pars_fragment>\n#include <shadowmap_pars_fragment>\n#include <bumpmap_pars_fragment>\n#include <normalmap_pars_fragment>\n#include <specularmap_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\nvoid main() {\n\t#include <clipping_planes_fragment>\n\tvec4 diffuseColor = vec4( diffuse, opacity );\n\tReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );\n\tvec3 totalEmissiveRadiance = emissive;\n\t#include <logdepthbuf_fragment>\n\t#include <map_fragment>\n\t#include <color_fragment>\n\t#include <alphamap_fragment>\n\t#include <alphatest_fragment>\n\t#include <specularmap_fragment>\n\t#include <normal_fragment_begin>\n\t#include <normal_fragment_maps>\n\t#include <emissivemap_fragment>\n\t#include <lights_phong_fragment>\n\t#include <lights_fragment_begin>\n\t#include <lights_fragment_maps>\n\t#include <lights_fragment_end>\n\t#include <aomap_fragment>\n\tvec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + reflectedLight.directSpecular + reflectedLight.indirectSpecular + totalEmissiveRadiance;\n\t#include <envmap_fragment>\n\t#include <output_fragment>\n\t#include <tonemapping_fragment>\n\t#include <encodings_fragment>\n\t#include <fog_fragment>\n\t#include <premultiplied_alpha_fragment>\n\t#include <dithering_fragment>\n}";
+const fragment$6 = "#define PHONG\nuniform vec3 diffuse;\nuniform vec3 emissive;\nuniform vec3 specular;\nuniform float shininess;\nuniform float opacity;\n#include <common>\n#include <packing>\n#include <dithering_pars_fragment>\n#include <color_pars_fragment>\n#include <uv_pars_fragment>\n#include <uv2_pars_fragment>\n#include <map_pars_fragment>\n#include <alphamap_pars_fragment>\n#include <alphatest_pars_fragment>\n#include <aomap_pars_fragment>\n#include <lightmap_pars_fragment>\n#include <emissivemap_pars_fragment>\n#include <envmap_common_pars_fragment>\n#include <envmap_pars_fragment>\n#include <fog_pars_fragment>\n#include <bsdfs>\n#include <lights_pars_begin>\n#include <normal_pars_fragment>\n#include <lights_phong_pars_fragment>\n#include <shadowmap_pars_fragment>\n#include <bumpmap_pars_fragment>\n#include <normalmap_pars_fragment>\n#include <specularmap_pars_fragment>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\nvoid main() {\n\t#include <clipping_planes_fragment>\n\tvec4 diffuseColor = vec4( diffuse, opacity );\n\tReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );\n\tvec3 totalEmissiveRadiance = emissive;\n\t#include <logdepthbuf_fragment>\n\t#include <map_fragment>\n\t#include <color_fragment>\n\t#include <alphamap_fragment>\n\t#include <alphatest_fragment>\n\t#include <specularmap_fragment>\n\t#include <normal_fragment_begin>\n\t#include <normal_fragment_maps>\n\t#include <emissivemap_fragment>\n\t#include <lights_phong_fragment>\n\t#include <lights_fragment_begin>\n\t#include <lights_fragment_maps>\n\t#include <lights_fragment_end>\n\t#include <aomap_fragment>\n\tvec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + reflectedLight.directSpecular + reflectedLight.indirectSpecular + totalEmissiveRadiance;\n\t#include <envmap_fragment>\n\t#include <output_fragment>\n\t#include <tonemapping_fragment>\n\t#include <encodings_fragment>\n\t#include <fog_fragment>\n\t#include <premultiplied_alpha_fragment>\n\t#include <dithering_fragment>\n}";
 
 const vertex$5 = "#define STANDARD\nvarying vec3 vViewPosition;\n#ifdef USE_TRANSMISSION\n\tvarying vec3 vWorldPosition;\n#endif\n#include <common>\n#include <uv_pars_vertex>\n#include <uv2_pars_vertex>\n#include <displacementmap_pars_vertex>\n#include <color_pars_vertex>\n#include <fog_pars_vertex>\n#include <normal_pars_vertex>\n#include <morphtarget_pars_vertex>\n#include <skinning_pars_vertex>\n#include <shadowmap_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\nvoid main() {\n\t#include <uv_vertex>\n\t#include <uv2_vertex>\n\t#include <color_vertex>\n\t#include <morphcolor_vertex>\n\t#include <beginnormal_vertex>\n\t#include <morphnormal_vertex>\n\t#include <skinbase_vertex>\n\t#include <skinnormal_vertex>\n\t#include <defaultnormal_vertex>\n\t#include <normal_vertex>\n\t#include <begin_vertex>\n\t#include <morphtarget_vertex>\n\t#include <skinning_vertex>\n\t#include <displacementmap_vertex>\n\t#include <project_vertex>\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\tvViewPosition = - mvPosition.xyz;\n\t#include <worldpos_vertex>\n\t#include <shadowmap_vertex>\n\t#include <fog_vertex>\n#ifdef USE_TRANSMISSION\n\tvWorldPosition = worldPosition.xyz;\n#endif\n}";
 
@@ -12982,7 +12895,8 @@ const ShaderChunk = {
 	gradientmap_pars_fragment: gradientmap_pars_fragment,
 	lightmap_fragment: lightmap_fragment,
 	lightmap_pars_fragment: lightmap_pars_fragment,
-	lights_lambert_vertex: lights_lambert_vertex,
+	lights_lambert_fragment: lights_lambert_fragment,
+	lights_lambert_pars_fragment: lights_lambert_pars_fragment,
 	lights_pars_begin: lights_pars_begin,
 	lights_toon_fragment: lights_toon_fragment,
 	lights_toon_pars_fragment: lights_toon_pars_fragment,
@@ -13224,8 +13138,9 @@ const UniformsLib = {
 			shadowMapSize: {}
 		} },
 
+		spotLightMap: { value: [] },
 		spotShadowMap: { value: [] },
-		spotShadowMatrix: { value: [] },
+		spotLightMatrix: { value: [] },
 
 		pointLights: { value: [], properties: {
 			color: {},
@@ -13320,6 +13235,9 @@ const ShaderLib = {
 			UniformsLib.aomap,
 			UniformsLib.lightmap,
 			UniformsLib.emissivemap,
+			UniformsLib.bumpmap,
+			UniformsLib.normalmap,
+			UniformsLib.displacementmap,
 			UniformsLib.fog,
 			UniformsLib.lights,
 			{
@@ -13690,7 +13608,7 @@ function WebGLBackground( renderer, cubemaps, state, objects, alpha, premultipli
 
 				};
 
-				// enable code injection for non-built-in material
+				// add "envMap" material property so the renderer can evaluate it like for built-in materials
 				Object.defineProperty( boxMesh.material, 'envMap', {
 
 					get: function () {
@@ -13745,7 +13663,7 @@ function WebGLBackground( renderer, cubemaps, state, objects, alpha, premultipli
 
 				planeMesh.geometry.deleteAttribute( 'normal' );
 
-				// enable code injection for non-built-in material
+				// add "map" material property so the renderer can evaluate it like for built-in materials
 				Object.defineProperty( planeMesh.material, 'map', {
 
 					get: function () {
@@ -16452,22 +16370,6 @@ function absNumericalSort( a, b ) {
 
 }
 
-function denormalize( morph, attribute ) {
-
-	let denominator = 1;
-	const array = attribute.isInterleavedBufferAttribute ? attribute.data.array : attribute.array;
-
-	if ( array instanceof Int8Array ) denominator = 127;
-	else if ( array instanceof Uint8Array ) denominator = 255;
-	else if ( array instanceof Uint16Array ) denominator = 65535;
-	else if ( array instanceof Int16Array ) denominator = 32767;
-	else if ( array instanceof Int32Array ) denominator = 2147483647;
-	else console.error( 'THREE.WebGLMorphtargets: Unsupported morph attribute data type: ', array );
-
-	morph.divideScalar( denominator );
-
-}
-
 function WebGLMorphtargets( gl, capabilities, textures ) {
 
 	const influencesList = {};
@@ -16551,8 +16453,6 @@ function WebGLMorphtargets( gl, capabilities, textures ) {
 
 							morph.fromBufferAttribute( morphTarget, j );
 
-							if ( morphTarget.normalized === true ) denormalize( morph, morphTarget );
-
 							buffer[ offset + stride + 0 ] = morph.x;
 							buffer[ offset + stride + 1 ] = morph.y;
 							buffer[ offset + stride + 2 ] = morph.z;
@@ -16564,8 +16464,6 @@ function WebGLMorphtargets( gl, capabilities, textures ) {
 
 							morph.fromBufferAttribute( morphNormal, j );
 
-							if ( morphNormal.normalized === true ) denormalize( morph, morphNormal );
-
 							buffer[ offset + stride + 4 ] = morph.x;
 							buffer[ offset + stride + 5 ] = morph.y;
 							buffer[ offset + stride + 6 ] = morph.z;
@@ -16576,8 +16474,6 @@ function WebGLMorphtargets( gl, capabilities, textures ) {
 						if ( hasMorphColors === true ) {
 
 							morph.fromBufferAttribute( morphColor, j );
-
-							if ( morphColor.normalized === true ) denormalize( morph, morphColor );
 
 							buffer[ offset + stride + 8 ] = morph.x;
 							buffer[ offset + stride + 9 ] = morph.y;
@@ -18021,13 +17917,18 @@ function filterEmptyLine( string ) {
 
 function replaceLightNums( string, parameters ) {
 
+	const numSpotLightCoords = parameters.numSpotLightShadows + parameters.numSpotLightMaps - parameters.numSpotLightShadowsWithMaps;
+
 	return string
 		.replace( /NUM_DIR_LIGHTS/g, parameters.numDirLights )
 		.replace( /NUM_SPOT_LIGHTS/g, parameters.numSpotLights )
+		.replace( /NUM_SPOT_LIGHT_MAPS/g, parameters.numSpotLightMaps )
+		.replace( /NUM_SPOT_LIGHT_COORDS/g, numSpotLightCoords )
 		.replace( /NUM_RECT_AREA_LIGHTS/g, parameters.numRectAreaLights )
 		.replace( /NUM_POINT_LIGHTS/g, parameters.numPointLights )
 		.replace( /NUM_HEMI_LIGHTS/g, parameters.numHemiLights )
 		.replace( /NUM_DIR_LIGHT_SHADOWS/g, parameters.numDirLightShadows )
+		.replace( /NUM_SPOT_LIGHT_SHADOWS_WITH_MAPS/g, parameters.numSpotLightShadowsWithMaps )
 		.replace( /NUM_SPOT_LIGHT_SHADOWS/g, parameters.numSpotLightShadows )
 		.replace( /NUM_POINT_LIGHT_SHADOWS/g, parameters.numPointLightShadows );
 
@@ -18067,21 +17968,11 @@ function includeReplacer( match, include ) {
 
 // Unroll Loops
 
-const deprecatedUnrollLoopPattern = /#pragma unroll_loop[\s]+?for \( int i \= (\d+)\; i < (\d+)\; i \+\+ \) \{([\s\S]+?)(?=\})\}/g;
 const unrollLoopPattern = /#pragma unroll_loop_start\s+for\s*\(\s*int\s+i\s*=\s*(\d+)\s*;\s*i\s*<\s*(\d+)\s*;\s*i\s*\+\+\s*\)\s*{([\s\S]+?)}\s+#pragma unroll_loop_end/g;
 
 function unrollLoops( string ) {
 
-	return string
-		.replace( unrollLoopPattern, loopReplacer )
-		.replace( deprecatedUnrollLoopPattern, deprecatedLoopReplacer );
-
-}
-
-function deprecatedLoopReplacer( match, start, end, snippet ) {
-
-	console.warn( 'WebGLProgram: #pragma unroll_loop shader syntax is deprecated. Please use #pragma unroll_loop_start syntax instead.' );
-	return loopReplacer( match, start, end, snippet );
+	return string.replace( unrollLoopPattern, loopReplacer );
 
 }
 
@@ -18827,29 +18718,32 @@ class WebGLShaderCache {
 	_getShaderCacheForMaterial( material ) {
 
 		const cache = this.materialCache;
+		let set = cache.get( material );
 
-		if ( cache.has( material ) === false ) {
+		if ( set === undefined ) {
 
-			cache.set( material, new Set() );
+			set = new Set();
+			cache.set( material, set );
 
 		}
 
-		return cache.get( material );
+		return set;
 
 	}
 
 	_getShaderStage( code ) {
 
 		const cache = this.shaderCache;
+		let stage = cache.get( code );
 
-		if ( cache.has( code ) === false ) {
+		if ( stage === undefined ) {
 
-			const stage = new WebGLShaderStage( code );
+			stage = new WebGLShaderStage( code );
 			cache.set( code, stage );
 
 		}
 
-		return cache.get( code );
+		return stage;
 
 	}
 
@@ -19062,12 +18956,14 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 			numDirLights: lights.directional.length,
 			numPointLights: lights.point.length,
 			numSpotLights: lights.spot.length,
+			numSpotLightMaps: lights.spotLightMap.length,
 			numRectAreaLights: lights.rectArea.length,
 			numHemiLights: lights.hemi.length,
 
 			numDirLightShadows: lights.directionalShadowMap.length,
 			numPointLightShadows: lights.pointShadowMap.length,
 			numSpotLightShadows: lights.spotShadowMap.length,
+			numSpotLightShadowsWithMaps: lights.numSpotLightShadowsWithMaps,
 
 			numClippingPlanes: clipping.numPlanes,
 			numClipIntersection: clipping.numIntersection,
@@ -19162,11 +19058,13 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 		array.push( parameters.numDirLights );
 		array.push( parameters.numPointLights );
 		array.push( parameters.numSpotLights );
+		array.push( parameters.numSpotLightMaps );
 		array.push( parameters.numHemiLights );
 		array.push( parameters.numRectAreaLights );
 		array.push( parameters.numDirLightShadows );
 		array.push( parameters.numPointLightShadows );
 		array.push( parameters.numSpotLightShadows );
+		array.push( parameters.numSpotLightShadowsWithMaps );
 		array.push( parameters.shadowMapType );
 		array.push( parameters.toneMapping );
 		array.push( parameters.numClippingPlanes );
@@ -19245,60 +19143,60 @@ function WebGLPrograms( renderer, cubemaps, cubeuvmaps, extensions, capabilities
 			_programLayers.enable( 31 );
 		if ( parameters.uvsVertexOnly )
 			_programLayers.enable( 32 );
-		if ( parameters.fog )
-			_programLayers.enable( 33 );
 
 		array.push( _programLayers.mask );
 		_programLayers.disableAll();
 
-		if ( parameters.useFog )
+		if ( parameters.fog )
 			_programLayers.enable( 0 );
-		if ( parameters.flatShading )
+		if ( parameters.useFog )
 			_programLayers.enable( 1 );
-		if ( parameters.logarithmicDepthBuffer )
+		if ( parameters.flatShading )
 			_programLayers.enable( 2 );
-		if ( parameters.skinning )
+		if ( parameters.logarithmicDepthBuffer )
 			_programLayers.enable( 3 );
-		if ( parameters.morphTargets )
+		if ( parameters.skinning )
 			_programLayers.enable( 4 );
-		if ( parameters.morphNormals )
+		if ( parameters.morphTargets )
 			_programLayers.enable( 5 );
-		if ( parameters.morphColors )
+		if ( parameters.morphNormals )
 			_programLayers.enable( 6 );
-		if ( parameters.premultipliedAlpha )
+		if ( parameters.morphColors )
 			_programLayers.enable( 7 );
-		if ( parameters.shadowMapEnabled )
+		if ( parameters.premultipliedAlpha )
 			_programLayers.enable( 8 );
-		if ( parameters.physicallyCorrectLights )
+		if ( parameters.shadowMapEnabled )
 			_programLayers.enable( 9 );
-		if ( parameters.doubleSided )
+		if ( parameters.physicallyCorrectLights )
 			_programLayers.enable( 10 );
-		if ( parameters.flipSided )
+		if ( parameters.doubleSided )
 			_programLayers.enable( 11 );
-		if ( parameters.useDepthPacking )
+		if ( parameters.flipSided )
 			_programLayers.enable( 12 );
-		if ( parameters.dithering )
+		if ( parameters.useDepthPacking )
 			_programLayers.enable( 13 );
-		if ( parameters.specularIntensityMap )
+		if ( parameters.dithering )
 			_programLayers.enable( 14 );
-		if ( parameters.specularColorMap )
+		if ( parameters.specularIntensityMap )
 			_programLayers.enable( 15 );
-		if ( parameters.transmission )
+		if ( parameters.specularColorMap )
 			_programLayers.enable( 16 );
-		if ( parameters.transmissionMap )
+		if ( parameters.transmission )
 			_programLayers.enable( 17 );
-		if ( parameters.thicknessMap )
+		if ( parameters.transmissionMap )
 			_programLayers.enable( 18 );
-		if ( parameters.sheen )
+		if ( parameters.thicknessMap )
 			_programLayers.enable( 19 );
-		if ( parameters.sheenColorMap )
+		if ( parameters.sheen )
 			_programLayers.enable( 20 );
-		if ( parameters.sheenRoughnessMap )
+		if ( parameters.sheenColorMap )
 			_programLayers.enable( 21 );
-		if ( parameters.decodeVideoTexture )
+		if ( parameters.sheenRoughnessMap )
 			_programLayers.enable( 22 );
-		if ( parameters.opaque )
+		if ( parameters.decodeVideoTexture )
 			_programLayers.enable( 23 );
+		if ( parameters.opaque )
+			_programLayers.enable( 24 );
 
 		array.push( _programLayers.mask );
 
@@ -19639,23 +19537,24 @@ function WebGLRenderLists() {
 
 	function get( scene, renderCallDepth ) {
 
+		const listArray = lists.get( scene );
 		let list;
 
-		if ( lists.has( scene ) === false ) {
+		if ( listArray === undefined ) {
 
 			list = new WebGLRenderList();
 			lists.set( scene, [ list ] );
 
 		} else {
 
-			if ( renderCallDepth >= lists.get( scene ).length ) {
+			if ( renderCallDepth >= listArray.length ) {
 
 				list = new WebGLRenderList();
-				lists.get( scene ).push( list );
+				listArray.push( list );
 
 			} else {
 
-				list = lists.get( scene )[ renderCallDepth ];
+				list = listArray[ renderCallDepth ];
 
 			}
 
@@ -19818,9 +19717,9 @@ function ShadowUniformsCache() {
 
 let nextVersion = 0;
 
-function shadowCastingLightsFirst( lightA, lightB ) {
+function shadowCastingAndTexturingLightsFirst( lightA, lightB ) {
 
-	return ( lightB.castShadow ? 1 : 0 ) - ( lightA.castShadow ? 1 : 0 );
+	return ( lightB.castShadow ? 2 : 0 ) - ( lightA.castShadow ? 2 : 0 ) + ( lightB.map ? 1 : 0 ) - ( lightA.map ? 1 : 0 );
 
 }
 
@@ -19843,7 +19742,8 @@ function WebGLLights( extensions, capabilities ) {
 
 			numDirectionalShadows: - 1,
 			numPointShadows: - 1,
-			numSpotShadows: - 1
+			numSpotShadows: - 1,
+			numSpotMaps: - 1
 		},
 
 		ambient: [ 0, 0, 0 ],
@@ -19853,9 +19753,10 @@ function WebGLLights( extensions, capabilities ) {
 		directionalShadowMap: [],
 		directionalShadowMatrix: [],
 		spot: [],
+		spotLightMap: [],
 		spotShadow: [],
 		spotShadowMap: [],
-		spotShadowMatrix: [],
+		spotLightMatrix: [],
 		rectArea: [],
 		rectAreaLTC1: null,
 		rectAreaLTC2: null,
@@ -19863,7 +19764,8 @@ function WebGLLights( extensions, capabilities ) {
 		pointShadow: [],
 		pointShadowMap: [],
 		pointShadowMatrix: [],
-		hemi: []
+		hemi: [],
+		numSpotLightShadowsWithMaps: 0
 
 	};
 
@@ -19888,8 +19790,11 @@ function WebGLLights( extensions, capabilities ) {
 		let numDirectionalShadows = 0;
 		let numPointShadows = 0;
 		let numSpotShadows = 0;
+		let numSpotMaps = 0;
+		let numSpotShadowsWithMaps = 0;
 
-		lights.sort( shadowCastingLightsFirst );
+		// ordering : [shadow casting + map texturing, map texturing, shadow casting, none ]
+		lights.sort( shadowCastingAndTexturingLightsFirst );
 
 		// artist-friendly light intensity scaling factor
 		const scaleFactor = ( physicallyCorrectLights !== true ) ? Math.PI : 1;
@@ -19960,9 +19865,26 @@ function WebGLLights( extensions, capabilities ) {
 				uniforms.penumbraCos = Math.cos( light.angle * ( 1 - light.penumbra ) );
 				uniforms.decay = light.decay;
 
-				if ( light.castShadow ) {
+				state.spot[ spotLength ] = uniforms;
 
-					const shadow = light.shadow;
+				const shadow = light.shadow;
+
+				if ( light.map ) {
+
+					state.spotLightMap[ numSpotMaps ] = light.map;
+					numSpotMaps ++;
+
+					// make sure the lightMatrix is up to date
+					// TODO : do it if required only
+					shadow.updateMatrices( light );
+
+					if ( light.castShadow ) numSpotShadowsWithMaps ++;
+
+				}
+
+				state.spotLightMatrix[ spotLength ] = shadow.matrix;
+
+				if ( light.castShadow ) {
 
 					const shadowUniforms = shadowCache.get( light );
 
@@ -19973,13 +19895,10 @@ function WebGLLights( extensions, capabilities ) {
 
 					state.spotShadow[ spotLength ] = shadowUniforms;
 					state.spotShadowMap[ spotLength ] = shadowMap;
-					state.spotShadowMatrix[ spotLength ] = light.shadow.matrix;
 
 					numSpotShadows ++;
 
 				}
-
-				state.spot[ spotLength ] = uniforms;
 
 				spotLength ++;
 
@@ -20094,7 +20013,8 @@ function WebGLLights( extensions, capabilities ) {
 			hash.hemiLength !== hemiLength ||
 			hash.numDirectionalShadows !== numDirectionalShadows ||
 			hash.numPointShadows !== numPointShadows ||
-			hash.numSpotShadows !== numSpotShadows ) {
+			hash.numSpotShadows !== numSpotShadows ||
+			hash.numSpotMaps !== numSpotMaps ) {
 
 			state.directional.length = directionalLength;
 			state.spot.length = spotLength;
@@ -20110,7 +20030,9 @@ function WebGLLights( extensions, capabilities ) {
 			state.spotShadowMap.length = numSpotShadows;
 			state.directionalShadowMatrix.length = numDirectionalShadows;
 			state.pointShadowMatrix.length = numPointShadows;
-			state.spotShadowMatrix.length = numSpotShadows;
+			state.spotLightMatrix.length = numSpotShadows + numSpotMaps - numSpotShadowsWithMaps;
+			state.spotLightMap.length = numSpotMaps;
+			state.numSpotLightShadowsWithMaps = numSpotShadowsWithMaps;
 
 			hash.directionalLength = directionalLength;
 			hash.pointLength = pointLength;
@@ -20121,6 +20043,7 @@ function WebGLLights( extensions, capabilities ) {
 			hash.numDirectionalShadows = numDirectionalShadows;
 			hash.numPointShadows = numPointShadows;
 			hash.numSpotShadows = numSpotShadows;
+			hash.numSpotMaps = numSpotMaps;
 
 			state.version = nextVersion ++;
 
@@ -20283,23 +20206,24 @@ function WebGLRenderStates( extensions, capabilities ) {
 
 	function get( scene, renderCallDepth = 0 ) {
 
+		const renderStateArray = renderStates.get( scene );
 		let renderState;
 
-		if ( renderStates.has( scene ) === false ) {
+		if ( renderStateArray === undefined ) {
 
 			renderState = new WebGLRenderState( extensions, capabilities );
 			renderStates.set( scene, [ renderState ] );
 
 		} else {
 
-			if ( renderCallDepth >= renderStates.get( scene ).length ) {
+			if ( renderCallDepth >= renderStateArray.length ) {
 
 				renderState = new WebGLRenderState( extensions, capabilities );
-				renderStates.get( scene ).push( renderState );
+				renderStateArray.push( renderState );
 
 			} else {
 
-				renderState = renderStates.get( scene )[ renderCallDepth ];
+				renderState = renderStateArray[ renderCallDepth ];
 
 			}
 
@@ -24015,6 +23939,8 @@ function WebGLUtils( gl, extensions, capabilities ) {
 		if ( p === DepthStencilFormat ) return 34041;
 		if ( p === RedFormat ) return 6403;
 
+		// @deprecated since r137
+
 		if ( p === RGBFormat ) {
 
 			console.warn( 'THREE.WebGLRenderer: THREE.RGBFormat has been removed. Use THREE.RGBAFormat instead. https://github.com/mrdoob/three.js/pull/23228' );
@@ -24861,7 +24787,8 @@ class WebXRManager extends EventDispatcher {
 						{
 							format: RGBAFormat,
 							type: UnsignedByteType,
-							encoding: renderer.outputEncoding
+							encoding: renderer.outputEncoding,
+							stencilBuffer: attributes.stencil
 						}
 					);
 
@@ -25105,11 +25032,8 @@ class WebXRManager extends EventDispatcher {
 
 			// update user camera and its children
 
-			camera.position.copy( cameraVR.position );
-			camera.quaternion.copy( cameraVR.quaternion );
-			camera.scale.copy( cameraVR.scale );
 			camera.matrix.copy( cameraVR.matrix );
-			camera.matrixWorld.copy( cameraVR.matrixWorld );
+			camera.matrix.decompose( camera.position, camera.quaternion, camera.scale );
 
 			const children = camera.children;
 
@@ -27150,6 +27074,28 @@ function WebGLRenderer( parameters = {} ) {
 
 	this.compile = function ( scene, camera ) {
 
+		function prepare( material, scene, object ) {
+
+			if ( material.transparent === true && material.side === DoubleSide ) {
+
+				material.side = BackSide;
+				material.needsUpdate = true;
+				getProgram( material, scene, object );
+
+				material.side = FrontSide;
+				material.needsUpdate = true;
+				getProgram( material, scene, object );
+
+				material.side = DoubleSide;
+
+			} else {
+
+				getProgram( material, scene, object );
+
+			}
+
+		}
+
 		currentRenderState = renderStates.get( scene );
 		currentRenderState.init();
 
@@ -27185,13 +27131,13 @@ function WebGLRenderer( parameters = {} ) {
 
 						const material2 = material[ i ];
 
-						getProgram( material2, scene, object );
+						prepare( material2, scene, object );
 
 					}
 
 				} else {
 
-					getProgram( material, scene, object );
+					prepare( material, scene, object );
 
 				}
 
@@ -27258,11 +27204,11 @@ function WebGLRenderer( parameters = {} ) {
 
 		// update scene graph
 
-		if ( scene.autoUpdate === true ) scene.updateMatrixWorld();
+		if ( scene.matrixWorldAutoUpdate === true ) scene.updateMatrixWorld();
 
 		// update camera matrices and frustum
 
-		if ( camera.parent === null ) camera.updateMatrixWorld();
+		if ( camera.parent === null && camera.matrixWorldAutoUpdate === true ) camera.updateMatrixWorld();
 
 		if ( xr.enabled === true && xr.isPresenting === true ) {
 
@@ -27731,7 +27677,8 @@ function WebGLRenderer( parameters = {} ) {
 			uniforms.directionalShadowMap.value = lights.state.directionalShadowMap;
 			uniforms.directionalShadowMatrix.value = lights.state.directionalShadowMatrix;
 			uniforms.spotShadowMap.value = lights.state.spotShadowMap;
-			uniforms.spotShadowMatrix.value = lights.state.spotShadowMatrix;
+			uniforms.spotLightMatrix.value = lights.state.spotLightMatrix;
+			uniforms.spotLightMap.value = lights.state.spotLightMap;
 			uniforms.pointShadowMap.value = lights.state.pointShadowMap;
 			uniforms.pointShadowMatrix.value = lights.state.pointShadowMatrix;
 			// TODO (abelnation): add area lights shadow info to uniforms
@@ -28029,11 +27976,20 @@ function WebGLRenderer( parameters = {} ) {
 
 		}
 
-
 		if ( refreshMaterial || materialProperties.receiveShadow !== object.receiveShadow ) {
 
 			materialProperties.receiveShadow = object.receiveShadow;
 			p_uniforms.setValue( _gl, 'receiveShadow', object.receiveShadow );
+
+		}
+
+		// https://github.com/mrdoob/three.js/pull/24467#issuecomment-1209031512
+
+		if ( material.isMeshGouraudMaterial && material.envMap !== null ) {
+
+			m_uniforms.envMap.value = envMap;
+
+			m_uniforms.flipEnvMap.value = ( envMap.isCubeTexture && envMap.isRenderTargetTexture === false ) ? - 1 : 1;
 
 		}
 
@@ -28568,8 +28524,6 @@ class Scene extends Object3D {
 
 		this.overrideMaterial = null;
 
-		this.autoUpdate = true; // checked by the renderer
-
 		if ( typeof __THREE_DEVTOOLS__ !== 'undefined' ) {
 
 			__THREE_DEVTOOLS__.dispatchEvent( new CustomEvent( 'observe', { detail: this } ) );
@@ -28588,7 +28542,6 @@ class Scene extends Object3D {
 
 		if ( source.overrideMaterial !== null ) this.overrideMaterial = source.overrideMaterial.clone();
 
-		this.autoUpdate = source.autoUpdate;
 		this.matrixAutoUpdate = source.matrixAutoUpdate;
 
 		return this;
@@ -28602,6 +28555,22 @@ class Scene extends Object3D {
 		if ( this.fog !== null ) data.object.fog = this.fog.toJSON();
 
 		return data;
+
+	}
+
+	// @deprecated
+
+	get autoUpdate() {
+
+		console.warn( 'THREE.Scene: autoUpdate was renamed to matrixWorldAutoUpdate in r144.' );
+		return this.matrixWorldAutoUpdate;
+
+	}
+
+	set autoUpdate( value ) {
+
+		console.warn( 'THREE.Scene: autoUpdate was renamed to matrixWorldAutoUpdate in r144.' );
+		this.matrixWorldAutoUpdate = value;
 
 	}
 
@@ -28834,6 +28803,8 @@ class InterleavedBufferAttribute {
 
 	setX( index, x ) {
 
+		if ( this.normalized ) x = normalize( x, this.array );
+
 		this.data.array[ index * this.data.stride + this.offset ] = x;
 
 		return this;
@@ -28841,6 +28812,8 @@ class InterleavedBufferAttribute {
 	}
 
 	setY( index, y ) {
+
+		if ( this.normalized ) y = normalize( y, this.array );
 
 		this.data.array[ index * this.data.stride + this.offset + 1 ] = y;
 
@@ -28850,6 +28823,8 @@ class InterleavedBufferAttribute {
 
 	setZ( index, z ) {
 
+		if ( this.normalized ) z = normalize( z, this.array );
+
 		this.data.array[ index * this.data.stride + this.offset + 2 ] = z;
 
 		return this;
@@ -28857,6 +28832,8 @@ class InterleavedBufferAttribute {
 	}
 
 	setW( index, w ) {
+
+		if ( this.normalized ) w = normalize( w, this.array );
 
 		this.data.array[ index * this.data.stride + this.offset + 3 ] = w;
 
@@ -28866,31 +28843,54 @@ class InterleavedBufferAttribute {
 
 	getX( index ) {
 
-		return this.data.array[ index * this.data.stride + this.offset ];
+		let x = this.data.array[ index * this.data.stride + this.offset ];
+
+		if ( this.normalized ) x = denormalize( x, this.array );
+
+		return x;
 
 	}
 
 	getY( index ) {
 
-		return this.data.array[ index * this.data.stride + this.offset + 1 ];
+		let y = this.data.array[ index * this.data.stride + this.offset + 1 ];
+
+		if ( this.normalized ) y = denormalize( y, this.array );
+
+		return y;
 
 	}
 
 	getZ( index ) {
 
-		return this.data.array[ index * this.data.stride + this.offset + 2 ];
+		let z = this.data.array[ index * this.data.stride + this.offset + 2 ];
+
+		if ( this.normalized ) z = denormalize( z, this.array );
+
+		return z;
 
 	}
 
 	getW( index ) {
 
-		return this.data.array[ index * this.data.stride + this.offset + 3 ];
+		let w = this.data.array[ index * this.data.stride + this.offset + 3 ];
+
+		if ( this.normalized ) w = denormalize( w, this.array );
+
+		return w;
 
 	}
 
 	setXY( index, x, y ) {
 
 		index = index * this.data.stride + this.offset;
+
+		if ( this.normalized ) {
+
+			x = normalize( x, this.array );
+			y = normalize( y, this.array );
+
+		}
 
 		this.data.array[ index + 0 ] = x;
 		this.data.array[ index + 1 ] = y;
@@ -28903,6 +28903,14 @@ class InterleavedBufferAttribute {
 
 		index = index * this.data.stride + this.offset;
 
+		if ( this.normalized ) {
+
+			x = normalize( x, this.array );
+			y = normalize( y, this.array );
+			z = normalize( z, this.array );
+
+		}
+
 		this.data.array[ index + 0 ] = x;
 		this.data.array[ index + 1 ] = y;
 		this.data.array[ index + 2 ] = z;
@@ -28914,6 +28922,15 @@ class InterleavedBufferAttribute {
 	setXYZW( index, x, y, z, w ) {
 
 		index = index * this.data.stride + this.offset;
+
+		if ( this.normalized ) {
+
+			x = normalize( x, this.array );
+			y = normalize( y, this.array );
+			z = normalize( z, this.array );
+			w = normalize( w, this.array );
+
+		}
 
 		this.data.array[ index + 0 ] = x;
 		this.data.array[ index + 1 ] = y;
@@ -32942,6 +32959,8 @@ class SpotLight extends Light {
 		this.penumbra = penumbra;
 		this.decay = decay; // for physically correct lights, should be 2.
 
+		this.map = null;
+
 		this.shadow = new SpotLightShadow();
 
 	}
@@ -33977,7 +33996,7 @@ const _trackRe = new RegExp( ''
 	+ '$'
 );
 
-const _supportedObjectNames = [ 'material', 'materials', 'bones' ];
+const _supportedObjectNames = [ 'material', 'materials', 'bones', 'map' ];
 
 class Composite {
 
@@ -34439,6 +34458,25 @@ class PropertyBinding {
 
 					}
 
+					break;
+
+				case 'map':
+
+					if ( ! targetObject.material ) {
+
+						console.error( 'THREE.PropertyBinding: Can not bind to material as node does not have a material.', this );
+						return;
+
+					}
+
+					if ( ! targetObject.material.map ) {
+
+						console.error( 'THREE.PropertyBinding: Can not bind to material.map as node.material does not have a map.', this );
+						return;
+
+					}
+
+					targetObject = targetObject.material.map;
 					break;
 
 				default:
@@ -34973,14 +35011,15 @@ class AnimationAction {
 			const timeRunning = ( time - startTime ) * timeDirection;
 			if ( timeRunning < 0 || timeDirection === 0 ) {
 
-				return; // yet to come / don't decide when delta = 0
+				deltaTime = 0;
+
+			} else {
+
+
+				this._startTime = null; // unschedule
+				deltaTime = timeDirection * timeRunning;
 
 			}
-
-			// start
-
-			this._startTime = null; // unschedule
-			deltaTime = timeDirection * timeRunning;
 
 		}
 
@@ -36474,26 +36513,26 @@ if ( typeof window !== 'undefined' ) {
  * Copyright 2019 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const t$2=window,e$3=t$2.ShadowRoot&&(void 0===t$2.ShadyCSS||t$2.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,s$4=Symbol(),n$4=new WeakMap;class o$4{constructor(t,e,n){if(this._$cssResult$=!0,n!==s$4)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t,this.t=e;}get styleSheet(){let t=this.o;const s=this.t;if(e$3&&void 0===t){const e=void 0!==s&&1===s.length;e&&(t=n$4.get(s)),void 0===t&&((this.o=t=new CSSStyleSheet).replaceSync(this.cssText),e&&n$4.set(s,t));}return t}toString(){return this.cssText}}const r$3=t=>new o$4("string"==typeof t?t:t+"",void 0,s$4),S$2=(s,n)=>{e$3?s.adoptedStyleSheets=n.map((t=>t instanceof CSSStyleSheet?t:t.styleSheet)):n.forEach((e=>{const n=document.createElement("style"),o=t$2.litNonce;void 0!==o&&n.setAttribute("nonce",o),n.textContent=e.cssText,s.appendChild(n);}));},c$2=e$3?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const s of t.cssRules)e+=s.cssText;return r$3(e)})(t):t;
+const t$2=window,e$2=t$2.ShadowRoot&&(void 0===t$2.ShadyCSS||t$2.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,s$3=Symbol(),n$4=new WeakMap;class o$3{constructor(t,e,n){if(this._$cssResult$=!0,n!==s$3)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t,this.t=e;}get styleSheet(){let t=this.o;const s=this.t;if(e$2&&void 0===t){const e=void 0!==s&&1===s.length;e&&(t=n$4.get(s)),void 0===t&&((this.o=t=new CSSStyleSheet).replaceSync(this.cssText),e&&n$4.set(s,t));}return t}toString(){return this.cssText}}const r$2=t=>new o$3("string"==typeof t?t:t+"",void 0,s$3),S$1=(s,n)=>{e$2?s.adoptedStyleSheets=n.map((t=>t instanceof CSSStyleSheet?t:t.styleSheet)):n.forEach((e=>{const n=document.createElement("style"),o=t$2.litNonce;void 0!==o&&n.setAttribute("nonce",o),n.textContent=e.cssText,s.appendChild(n);}));},c$1=e$2?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const s of t.cssRules)e+=s.cssText;return r$2(e)})(t):t;
 
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */var s$3;const e$2=window,r$2=e$2.trustedTypes,h$2=r$2?r$2.emptyScript:"",o$3=e$2.reactiveElementPolyfillSupport,n$3={toAttribute(t,i){switch(i){case Boolean:t=t?h$2:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,i){let s=t;switch(i){case Boolean:s=null!==t;break;case Number:s=null===t?null:Number(t);break;case Object:case Array:try{s=JSON.parse(t);}catch(t){s=null;}}return s}},a$2=(t,i)=>i!==t&&(i==i||t==t),l$3={attribute:!0,type:String,converter:n$3,reflect:!1,hasChanged:a$2};class d$2 extends HTMLElement{constructor(){super(),this._$Ei=new Map,this.isUpdatePending=!1,this.hasUpdated=!1,this._$El=null,this.u();}static addInitializer(t){var i;null!==(i=this.h)&&void 0!==i||(this.h=[]),this.h.push(t);}static get observedAttributes(){this.finalize();const t=[];return this.elementProperties.forEach(((i,s)=>{const e=this._$Ep(s,i);void 0!==e&&(this._$Ev.set(e,s),t.push(e));})),t}static createProperty(t,i=l$3){if(i.state&&(i.attribute=!1),this.finalize(),this.elementProperties.set(t,i),!i.noAccessor&&!this.prototype.hasOwnProperty(t)){const s="symbol"==typeof t?Symbol():"__"+t,e=this.getPropertyDescriptor(t,s,i);void 0!==e&&Object.defineProperty(this.prototype,t,e);}}static getPropertyDescriptor(t,i,s){return {get(){return this[i]},set(e){const r=this[t];this[i]=e,this.requestUpdate(t,r,s);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)||l$3}static finalize(){if(this.hasOwnProperty("finalized"))return !1;this.finalized=!0;const t=Object.getPrototypeOf(this);if(t.finalize(),this.elementProperties=new Map(t.elementProperties),this._$Ev=new Map,this.hasOwnProperty("properties")){const t=this.properties,i=[...Object.getOwnPropertyNames(t),...Object.getOwnPropertySymbols(t)];for(const s of i)this.createProperty(s,t[s]);}return this.elementStyles=this.finalizeStyles(this.styles),!0}static finalizeStyles(i){const s=[];if(Array.isArray(i)){const e=new Set(i.flat(1/0).reverse());for(const i of e)s.unshift(c$2(i));}else void 0!==i&&s.push(c$2(i));return s}static _$Ep(t,i){const s=i.attribute;return !1===s?void 0:"string"==typeof s?s:"string"==typeof t?t.toLowerCase():void 0}u(){var t;this._$E_=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$Eg(),this.requestUpdate(),null===(t=this.constructor.h)||void 0===t||t.forEach((t=>t(this)));}addController(t){var i,s;(null!==(i=this._$ES)&&void 0!==i?i:this._$ES=[]).push(t),void 0!==this.renderRoot&&this.isConnected&&(null===(s=t.hostConnected)||void 0===s||s.call(t));}removeController(t){var i;null===(i=this._$ES)||void 0===i||i.splice(this._$ES.indexOf(t)>>>0,1);}_$Eg(){this.constructor.elementProperties.forEach(((t,i)=>{this.hasOwnProperty(i)&&(this._$Ei.set(i,this[i]),delete this[i]);}));}createRenderRoot(){var t;const s=null!==(t=this.shadowRoot)&&void 0!==t?t:this.attachShadow(this.constructor.shadowRootOptions);return S$2(s,this.constructor.elementStyles),s}connectedCallback(){var t;void 0===this.renderRoot&&(this.renderRoot=this.createRenderRoot()),this.enableUpdating(!0),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostConnected)||void 0===i?void 0:i.call(t)}));}enableUpdating(t){}disconnectedCallback(){var t;null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostDisconnected)||void 0===i?void 0:i.call(t)}));}attributeChangedCallback(t,i,s){this._$AK(t,s);}_$EO(t,i,s=l$3){var e;const r=this.constructor._$Ep(t,s);if(void 0!==r&&!0===s.reflect){const h=(void 0!==(null===(e=s.converter)||void 0===e?void 0:e.toAttribute)?s.converter:n$3).toAttribute(i,s.type);this._$El=t,null==h?this.removeAttribute(r):this.setAttribute(r,h),this._$El=null;}}_$AK(t,i){var s;const e=this.constructor,r=e._$Ev.get(t);if(void 0!==r&&this._$El!==r){const t=e.getPropertyOptions(r),h="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==(null===(s=t.converter)||void 0===s?void 0:s.fromAttribute)?t.converter:n$3;this._$El=r,this[r]=h.fromAttribute(i,t.type),this._$El=null;}}requestUpdate(t,i,s){let e=!0;void 0!==t&&(((s=s||this.constructor.getPropertyOptions(t)).hasChanged||a$2)(this[t],i)?(this._$AL.has(t)||this._$AL.set(t,i),!0===s.reflect&&this._$El!==t&&(void 0===this._$EC&&(this._$EC=new Map),this._$EC.set(t,s))):e=!1),!this.isUpdatePending&&e&&(this._$E_=this._$Ej());}async _$Ej(){this.isUpdatePending=!0;try{await this._$E_;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){var t;if(!this.isUpdatePending)return;this.hasUpdated,this._$Ei&&(this._$Ei.forEach(((t,i)=>this[i]=t)),this._$Ei=void 0);let i=!1;const s=this._$AL;try{i=this.shouldUpdate(s),i?(this.willUpdate(s),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostUpdate)||void 0===i?void 0:i.call(t)})),this.update(s)):this._$Ek();}catch(t){throw i=!1,this._$Ek(),t}i&&this._$AE(s);}willUpdate(t){}_$AE(t){var i;null===(i=this._$ES)||void 0===i||i.forEach((t=>{var i;return null===(i=t.hostUpdated)||void 0===i?void 0:i.call(t)})),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}_$Ek(){this._$AL=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$E_}shouldUpdate(t){return !0}update(t){void 0!==this._$EC&&(this._$EC.forEach(((t,i)=>this._$EO(i,this[i],t))),this._$EC=void 0),this._$Ek();}updated(t){}firstUpdated(t){}}d$2.finalized=!0,d$2.elementProperties=new Map,d$2.elementStyles=[],d$2.shadowRootOptions={mode:"open"},null==o$3||o$3({ReactiveElement:d$2}),(null!==(s$3=e$2.reactiveElementVersions)&&void 0!==s$3?s$3:e$2.reactiveElementVersions=[]).push("1.4.0");
+ */var s$2;const e$1=window,r$1=e$1.trustedTypes,h$1=r$1?r$1.emptyScript:"",o$2=e$1.reactiveElementPolyfillSupport,n$3={toAttribute(t,i){switch(i){case Boolean:t=t?h$1:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,i){let s=t;switch(i){case Boolean:s=null!==t;break;case Number:s=null===t?null:Number(t);break;case Object:case Array:try{s=JSON.parse(t);}catch(t){s=null;}}return s}},a$1=(t,i)=>i!==t&&(i==i||t==t),l$2={attribute:!0,type:String,converter:n$3,reflect:!1,hasChanged:a$1};class d$1 extends HTMLElement{constructor(){super(),this._$Ei=new Map,this.isUpdatePending=!1,this.hasUpdated=!1,this._$El=null,this.u();}static addInitializer(t){var i;null!==(i=this.h)&&void 0!==i||(this.h=[]),this.h.push(t);}static get observedAttributes(){this.finalize();const t=[];return this.elementProperties.forEach(((i,s)=>{const e=this._$Ep(s,i);void 0!==e&&(this._$Ev.set(e,s),t.push(e));})),t}static createProperty(t,i=l$2){if(i.state&&(i.attribute=!1),this.finalize(),this.elementProperties.set(t,i),!i.noAccessor&&!this.prototype.hasOwnProperty(t)){const s="symbol"==typeof t?Symbol():"__"+t,e=this.getPropertyDescriptor(t,s,i);void 0!==e&&Object.defineProperty(this.prototype,t,e);}}static getPropertyDescriptor(t,i,s){return {get(){return this[i]},set(e){const r=this[t];this[i]=e,this.requestUpdate(t,r,s);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)||l$2}static finalize(){if(this.hasOwnProperty("finalized"))return !1;this.finalized=!0;const t=Object.getPrototypeOf(this);if(t.finalize(),this.elementProperties=new Map(t.elementProperties),this._$Ev=new Map,this.hasOwnProperty("properties")){const t=this.properties,i=[...Object.getOwnPropertyNames(t),...Object.getOwnPropertySymbols(t)];for(const s of i)this.createProperty(s,t[s]);}return this.elementStyles=this.finalizeStyles(this.styles),!0}static finalizeStyles(i){const s=[];if(Array.isArray(i)){const e=new Set(i.flat(1/0).reverse());for(const i of e)s.unshift(c$1(i));}else void 0!==i&&s.push(c$1(i));return s}static _$Ep(t,i){const s=i.attribute;return !1===s?void 0:"string"==typeof s?s:"string"==typeof t?t.toLowerCase():void 0}u(){var t;this._$E_=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$Eg(),this.requestUpdate(),null===(t=this.constructor.h)||void 0===t||t.forEach((t=>t(this)));}addController(t){var i,s;(null!==(i=this._$ES)&&void 0!==i?i:this._$ES=[]).push(t),void 0!==this.renderRoot&&this.isConnected&&(null===(s=t.hostConnected)||void 0===s||s.call(t));}removeController(t){var i;null===(i=this._$ES)||void 0===i||i.splice(this._$ES.indexOf(t)>>>0,1);}_$Eg(){this.constructor.elementProperties.forEach(((t,i)=>{this.hasOwnProperty(i)&&(this._$Ei.set(i,this[i]),delete this[i]);}));}createRenderRoot(){var t;const s=null!==(t=this.shadowRoot)&&void 0!==t?t:this.attachShadow(this.constructor.shadowRootOptions);return S$1(s,this.constructor.elementStyles),s}connectedCallback(){var t;void 0===this.renderRoot&&(this.renderRoot=this.createRenderRoot()),this.enableUpdating(!0),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostConnected)||void 0===i?void 0:i.call(t)}));}enableUpdating(t){}disconnectedCallback(){var t;null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostDisconnected)||void 0===i?void 0:i.call(t)}));}attributeChangedCallback(t,i,s){this._$AK(t,s);}_$EO(t,i,s=l$2){var e;const r=this.constructor._$Ep(t,s);if(void 0!==r&&!0===s.reflect){const h=(void 0!==(null===(e=s.converter)||void 0===e?void 0:e.toAttribute)?s.converter:n$3).toAttribute(i,s.type);this._$El=t,null==h?this.removeAttribute(r):this.setAttribute(r,h),this._$El=null;}}_$AK(t,i){var s;const e=this.constructor,r=e._$Ev.get(t);if(void 0!==r&&this._$El!==r){const t=e.getPropertyOptions(r),h="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==(null===(s=t.converter)||void 0===s?void 0:s.fromAttribute)?t.converter:n$3;this._$El=r,this[r]=h.fromAttribute(i,t.type),this._$El=null;}}requestUpdate(t,i,s){let e=!0;void 0!==t&&(((s=s||this.constructor.getPropertyOptions(t)).hasChanged||a$1)(this[t],i)?(this._$AL.has(t)||this._$AL.set(t,i),!0===s.reflect&&this._$El!==t&&(void 0===this._$EC&&(this._$EC=new Map),this._$EC.set(t,s))):e=!1),!this.isUpdatePending&&e&&(this._$E_=this._$Ej());}async _$Ej(){this.isUpdatePending=!0;try{await this._$E_;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){var t;if(!this.isUpdatePending)return;this.hasUpdated,this._$Ei&&(this._$Ei.forEach(((t,i)=>this[i]=t)),this._$Ei=void 0);let i=!1;const s=this._$AL;try{i=this.shouldUpdate(s),i?(this.willUpdate(s),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostUpdate)||void 0===i?void 0:i.call(t)})),this.update(s)):this._$Ek();}catch(t){throw i=!1,this._$Ek(),t}i&&this._$AE(s);}willUpdate(t){}_$AE(t){var i;null===(i=this._$ES)||void 0===i||i.forEach((t=>{var i;return null===(i=t.hostUpdated)||void 0===i?void 0:i.call(t)})),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}_$Ek(){this._$AL=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$E_}shouldUpdate(t){return !0}update(t){void 0!==this._$EC&&(this._$EC.forEach(((t,i)=>this._$EO(i,this[i],t))),this._$EC=void 0),this._$Ek();}updated(t){}firstUpdated(t){}}d$1.finalized=!0,d$1.elementProperties=new Map,d$1.elementStyles=[],d$1.shadowRootOptions={mode:"open"},null==o$2||o$2({ReactiveElement:d$1}),(null!==(s$2=e$1.reactiveElementVersions)&&void 0!==s$2?s$2:e$1.reactiveElementVersions=[]).push("1.4.1");
 
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-var t$1;const i$2=window,s$2=i$2.trustedTypes,e$1=s$2?s$2.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$2=`lit$${(Math.random()+"").slice(9)}$`,n$2="?"+o$2,l$2=`<${n$2}>`,h$1=document,r$1=(t="")=>h$1.createComment(t),d$1=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u$1=Array.isArray,c$1=t=>u$1(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),v$1=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,a$1=/-->/g,f$1=/>/g,_$1=RegExp(">|[ \t\n\f\r](?:([^\\s\"'>=/]+)([ \t\n\f\r]*=[ \t\n\f\r]*(?:[^ \t\n\f\r\"'`<>=]|(\"|')|))|$)","g"),m$1=/'/g,p$1=/"/g,$$1=/^(?:script|style|textarea|title)$/i,g$1=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),y$1=g$1(1),x$2=Symbol.for("lit-noChange"),b$1=Symbol.for("lit-nothing"),T$1=new WeakMap,A$1=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new S$1(i.insertBefore(r$1(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l},E$1=h$1.createTreeWalker(h$1,129,null,!1),C$1=(t,i)=>{const s=t.length-1,n=[];let h,r=2===i?"<svg>":"",d=v$1;for(let i=0;i<s;i++){const s=t[i];let e,u,c=-1,g=0;for(;g<s.length&&(d.lastIndex=g,u=d.exec(s),null!==u);)g=d.lastIndex,d===v$1?"!--"===u[1]?d=a$1:void 0!==u[1]?d=f$1:void 0!==u[2]?($$1.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=_$1):void 0!==u[3]&&(d=_$1):d===_$1?">"===u[0]?(d=null!=h?h:v$1,c=-1):void 0===u[1]?c=-2:(c=d.lastIndex-u[2].length,e=u[1],d=void 0===u[3]?_$1:'"'===u[3]?p$1:m$1):d===p$1||d===m$1?d=_$1:d===a$1||d===f$1?d=v$1:(d=_$1,h=void 0);const y=d===_$1&&t[i+1].startsWith("/>")?" ":"";r+=d===v$1?s+l$2:c>=0?(n.push(e),s.slice(0,c)+"$lit$"+s.slice(c)+o$2+y):s+o$2+(-2===c?(n.push(void 0),i):y);}const u=r+(t[s]||"<?>")+(2===i?"</svg>":"");if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return [void 0!==e$1?e$1.createHTML(u):u,n]};class P$1{constructor({strings:t,_$litType$:i},e){let l;this.parts=[];let h=0,d=0;const u=t.length-1,c=this.parts,[v,a]=C$1(t,i);if(this.el=P$1.createElement(v,e),E$1.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=E$1.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(o$2)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(o$2),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:h,name:i[2],strings:t,ctor:"."===i[1]?R$1:"?"===i[1]?H$1:"@"===i[1]?I$1:M$1});}else c.push({type:6,index:h});}for(const i of t)l.removeAttribute(i);}if($$1.test(l.tagName)){const t=l.textContent.split(o$2),i=t.length-1;if(i>0){l.textContent=s$2?s$2.emptyScript:"";for(let s=0;s<i;s++)l.append(t[s],r$1()),E$1.nextNode(),c.push({type:2,index:++h});l.append(t[i],r$1());}}}else if(8===l.nodeType)if(l.data===n$2)c.push({type:2,index:h});else {let t=-1;for(;-1!==(t=l.data.indexOf(o$2,t+1));)c.push({type:7,index:h}),t+=o$2.length-1;}h++;}}static createElement(t,i){const s=h$1.createElement("template");return s.innerHTML=t,s}}function V$1(t,i,s=t,e){var o,n,l,h;if(i===x$2)return i;let r=void 0!==e?null===(o=s._$Cl)||void 0===o?void 0:o[e]:s._$Cu;const u=d$1(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Cl)&&void 0!==l?l:h._$Cl=[])[e]=r:s._$Cu=r),void 0!==r&&(i=V$1(t,r._$AS(t,i.values),r,e)),i}class N$1{constructor(t,i){this.v=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}p(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:h$1).importNode(s,!0);E$1.currentNode=o;let n=E$1.nextNode(),l=0,r=0,d=e[0];for(;void 0!==d;){if(l===d.index){let i;2===d.type?i=new S$1(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new L$1(n,this,t)),this.v.push(i),d=e[++r];}l!==(null==d?void 0:d.index)&&(n=E$1.nextNode(),l++);}return o}m(t){let i=0;for(const s of this.v)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class S$1{constructor(t,i,s,e){var o;this.type=2,this._$AH=b$1,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$C_=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$C_}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=V$1(this,t,i),d$1(t)?t===b$1||null==t||""===t?(this._$AH!==b$1&&this._$AR(),this._$AH=b$1):t!==this._$AH&&t!==x$2&&this.$(t):void 0!==t._$litType$?this.T(t):void 0!==t.nodeType?this.k(t):c$1(t)?this.O(t):this.$(t);}S(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}k(t){this._$AH!==t&&(this._$AR(),this._$AH=this.S(t));}$(t){this._$AH!==b$1&&d$1(this._$AH)?this._$AA.nextSibling.data=t:this.k(h$1.createTextNode(t)),this._$AH=t;}T(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=P$1.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.m(s);else {const t=new N$1(o,this),i=t.p(this.options);t.m(s),this.k(i),this._$AH=t;}}_$AC(t){let i=T$1.get(t.strings);return void 0===i&&T$1.set(t.strings,i=new P$1(t)),i}O(t){u$1(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new S$1(this.S(r$1()),this.S(r$1()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$C_=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class M$1{constructor(t,i,s,e,o){this.type=1,this._$AH=b$1,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=b$1;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=V$1(this,t,i,0),n=!d$1(t)||t!==this._$AH&&t!==x$2,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=V$1(this,e[s+l],i,l),h===x$2&&(h=this._$AH[l]),n||(n=!d$1(h)||h!==this._$AH[l]),h===b$1?t=b$1:t!==b$1&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.P(t);}P(t){t===b$1?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class R$1 extends M$1{constructor(){super(...arguments),this.type=3;}P(t){this.element[this.name]=t===b$1?void 0:t;}}const k$1=s$2?s$2.emptyScript:"";class H$1 extends M$1{constructor(){super(...arguments),this.type=4;}P(t){t&&t!==b$1?this.element.setAttribute(this.name,k$1):this.element.removeAttribute(this.name);}}class I$1 extends M$1{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=V$1(this,t,i,0))&&void 0!==s?s:b$1)===x$2)return;const e=this._$AH,o=t===b$1&&e!==b$1||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==b$1&&(e===b$1||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class L$1{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){V$1(this,t);}}const Z$1=i$2.litHtmlPolyfillSupport;null==Z$1||Z$1(P$1,S$1),(null!==(t$1=i$2.litHtmlVersions)&&void 0!==t$1?t$1:i$2.litHtmlVersions=[]).push("2.3.0");
+var t$1;const i$1=window,s$1=i$1.trustedTypes,e=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$1=`lit$${(Math.random()+"").slice(9)}$`,n$2="?"+o$1,l$1=`<${n$2}>`,h=document,r=(t="")=>h.createComment(t),d=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u=Array.isArray,c=t=>u(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),v=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,a=/-->/g,f=/>/g,_=RegExp(">|[ \t\n\f\r](?:([^\\s\"'>=/]+)([ \t\n\f\r]*=[ \t\n\f\r]*(?:[^ \t\n\f\r\"'`<>=]|(\"|')|))|$)","g"),m=/'/g,p$1=/"/g,$=/^(?:script|style|textarea|title)$/i,g$1=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),y=g$1(1),x$2=Symbol.for("lit-noChange"),b=Symbol.for("lit-nothing"),T=new WeakMap,A$1=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new S(i.insertBefore(r(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l},E=h.createTreeWalker(h,129,null,!1),C$1=(t,i)=>{const s=t.length-1,n=[];let h,r=2===i?"<svg>":"",d=v;for(let i=0;i<s;i++){const s=t[i];let e,u,c=-1,g=0;for(;g<s.length&&(d.lastIndex=g,u=d.exec(s),null!==u);)g=d.lastIndex,d===v?"!--"===u[1]?d=a:void 0!==u[1]?d=f:void 0!==u[2]?($.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=_):void 0!==u[3]&&(d=_):d===_?">"===u[0]?(d=null!=h?h:v,c=-1):void 0===u[1]?c=-2:(c=d.lastIndex-u[2].length,e=u[1],d=void 0===u[3]?_:'"'===u[3]?p$1:m):d===p$1||d===m?d=_:d===a||d===f?d=v:(d=_,h=void 0);const y=d===_&&t[i+1].startsWith("/>")?" ":"";r+=d===v?s+l$1:c>=0?(n.push(e),s.slice(0,c)+"$lit$"+s.slice(c)+o$1+y):s+o$1+(-2===c?(n.push(void 0),i):y);}const u=r+(t[s]||"<?>")+(2===i?"</svg>":"");if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return [void 0!==e?e.createHTML(u):u,n]};class P{constructor({strings:t,_$litType$:i},e){let l;this.parts=[];let h=0,d=0;const u=t.length-1,c=this.parts,[v,a]=C$1(t,i);if(this.el=P.createElement(v,e),E.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=E.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(o$1)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(o$1),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:h,name:i[2],strings:t,ctor:"."===i[1]?R:"?"===i[1]?H:"@"===i[1]?I$1:M});}else c.push({type:6,index:h});}for(const i of t)l.removeAttribute(i);}if($.test(l.tagName)){const t=l.textContent.split(o$1),i=t.length-1;if(i>0){l.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)l.append(t[s],r()),E.nextNode(),c.push({type:2,index:++h});l.append(t[i],r());}}}else if(8===l.nodeType)if(l.data===n$2)c.push({type:2,index:h});else {let t=-1;for(;-1!==(t=l.data.indexOf(o$1,t+1));)c.push({type:7,index:h}),t+=o$1.length-1;}h++;}}static createElement(t,i){const s=h.createElement("template");return s.innerHTML=t,s}}function V(t,i,s=t,e){var o,n,l,h;if(i===x$2)return i;let r=void 0!==e?null===(o=s._$Cl)||void 0===o?void 0:o[e]:s._$Cu;const u=d(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Cl)&&void 0!==l?l:h._$Cl=[])[e]=r:s._$Cu=r),void 0!==r&&(i=V(t,r._$AS(t,i.values),r,e)),i}class N{constructor(t,i){this.v=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}p(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:h).importNode(s,!0);E.currentNode=o;let n=E.nextNode(),l=0,r=0,d=e[0];for(;void 0!==d;){if(l===d.index){let i;2===d.type?i=new S(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new L(n,this,t)),this.v.push(i),d=e[++r];}l!==(null==d?void 0:d.index)&&(n=E.nextNode(),l++);}return o}m(t){let i=0;for(const s of this.v)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class S{constructor(t,i,s,e){var o;this.type=2,this._$AH=b,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$C_=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$C_}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=V(this,t,i),d(t)?t===b||null==t||""===t?(this._$AH!==b&&this._$AR(),this._$AH=b):t!==this._$AH&&t!==x$2&&this.$(t):void 0!==t._$litType$?this.T(t):void 0!==t.nodeType?this.k(t):c(t)?this.O(t):this.$(t);}S(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}k(t){this._$AH!==t&&(this._$AR(),this._$AH=this.S(t));}$(t){this._$AH!==b&&d(this._$AH)?this._$AA.nextSibling.data=t:this.k(h.createTextNode(t)),this._$AH=t;}T(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=P.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.m(s);else {const t=new N(o,this),i=t.p(this.options);t.m(s),this.k(i),this._$AH=t;}}_$AC(t){let i=T.get(t.strings);return void 0===i&&T.set(t.strings,i=new P(t)),i}O(t){u(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new S(this.S(r()),this.S(r()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$C_=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class M{constructor(t,i,s,e,o){this.type=1,this._$AH=b,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=b;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=V(this,t,i,0),n=!d(t)||t!==this._$AH&&t!==x$2,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=V(this,e[s+l],i,l),h===x$2&&(h=this._$AH[l]),n||(n=!d(h)||h!==this._$AH[l]),h===b?t=b:t!==b&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.P(t);}P(t){t===b?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class R extends M{constructor(){super(...arguments),this.type=3;}P(t){this.element[this.name]=t===b?void 0:t;}}const k=s$1?s$1.emptyScript:"";class H extends M{constructor(){super(...arguments),this.type=4;}P(t){t&&t!==b?this.element.setAttribute(this.name,k):this.element.removeAttribute(this.name);}}class I$1 extends M{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=V(this,t,i,0))&&void 0!==s?s:b)===x$2)return;const e=this._$AH,o=t===b&&e!==b||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==b&&(e===b||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class L{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){V(this,t);}}const Z=i$1.litHtmlPolyfillSupport;null==Z||Z(P,S),(null!==(t$1=i$1.litHtmlVersions)&&void 0!==t$1?t$1:i$1.litHtmlVersions=[]).push("2.3.1");
 
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */var l$1,o$1;class s$1 extends d$2{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){var t,e;const i=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=i.firstChild),i}update(t){const i=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=A$1(i,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!1);}render(){return x$2}}s$1.finalized=!0,s$1._$litElement$=!0,null===(l$1=globalThis.litElementHydrateSupport)||void 0===l$1||l$1.call(globalThis,{LitElement:s$1});const n$1=globalThis.litElementPolyfillSupport;null==n$1||n$1({LitElement:s$1});(null!==(o$1=globalThis.litElementVersions)&&void 0!==o$1?o$1:globalThis.litElementVersions=[]).push("3.2.2");
+ */var l,o;class s extends d$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){var t,e;const i=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=i.firstChild),i}update(t){const i=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=A$1(i,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!1);}render(){return x$2}}s.finalized=!0,s._$litElement$=!0,null===(l=globalThis.litElementHydrateSupport)||void 0===l||l.call(globalThis,{LitElement:s});const n$1=globalThis.litElementPolyfillSupport;null==n$1||n$1({LitElement:s});(null!==(o=globalThis.litElementVersions)&&void 0!==o?o:globalThis.litElementVersions=[]).push("3.2.2");
 
 /* @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -36546,17 +36585,31 @@ const IS_ANDROID = /android/i.test(navigator.userAgent);
 // @see https://github.com/google/model-viewer/issues/758
 const IS_IOS = (/iPad|iPhone|iPod/.test(navigator.userAgent) && !self.MSStream) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const IS_AR_QUICKLOOK_CANDIDATE = (() => {
-    const tempAnchor = document.createElement('a');
-    return Boolean(tempAnchor.relList && tempAnchor.relList.supports &&
-        tempAnchor.relList.supports('ar'));
-})();
 // @see https://developer.chrome.com/multidevice/user-agent
 /Safari\//.test(navigator.userAgent);
 const IS_FIREFOX = /firefox/i.test(navigator.userAgent);
 const IS_OCULUS = /OculusBrowser/.test(navigator.userAgent);
 IS_IOS && /CriOS\//.test(navigator.userAgent);
 const IS_SCENEVIEWER_CANDIDATE = IS_ANDROID && !IS_FIREFOX && !IS_OCULUS;
+const IS_WKWEBVIEW = Boolean(window.webkit && window.webkit.messageHandlers);
+// If running in iOS Safari proper, and not within a WKWebView component instance, check for ARQL feature support.
+// Otherwise, if running in a WKWebView instance, check for known ARQL compatible iOS browsers, including:
+// Chrome (CriOS), Edge (EdgiOS), Firefox (FxiOS), Google App (GSA), DuckDuckGo (DuckDuckGo).
+// All other iOS browsers / apps will fail by default.
+const IS_AR_QUICKLOOK_CANDIDATE = (() => {
+    if (IS_IOS) {
+        if (!IS_WKWEBVIEW) {
+            const tempAnchor = document.createElement('a');
+            return Boolean(tempAnchor.relList && tempAnchor.relList.supports && tempAnchor.relList.supports('ar'));
+        }
+        else {
+            return Boolean(/CriOS\/|EdgiOS\/|FxiOS\/|GSA\/|DuckDuckGo\//.test(navigator.userAgent));
+        }
+    }
+    else {
+        return false;
+    }
+})();
 
 /* @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -36572,7 +36625,296 @@ const IS_SCENEVIEWER_CANDIDATE = IS_ANDROID && !IS_FIREFOX && !IS_OCULUS;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var CloseIcon = y$1 `
+const deserializeUrl = (url) => (!!url && url !== 'null') ? toFullUrl(url) : null;
+const assertIsArCandidate = () => {
+    if (IS_WEBXR_AR_CANDIDATE) {
+        return;
+    }
+    const missingApis = [];
+    if (!HAS_WEBXR_DEVICE_API) {
+        missingApis.push('WebXR Device API');
+    }
+    if (!HAS_WEBXR_HIT_TEST_API) {
+        missingApis.push('WebXR Hit Test API');
+    }
+    throw new Error(`The following APIs are required for AR, but are missing in this browser: ${missingApis.join(', ')}`);
+};
+/**
+ * Converts a partial URL string to a fully qualified URL string.
+ *
+ * @param {String} url
+ * @return {String}
+ */
+const toFullUrl = (partialUrl) => {
+    const url = new URL(partialUrl, window.location.toString());
+    return url.toString();
+};
+/**
+ * Returns a throttled version of a given function that is only invoked at most
+ * once within a given threshold of time in milliseconds.
+ *
+ * The throttled version of the function has a "flush" property that resets the
+ * threshold for cases when immediate invocation is desired.
+ */
+const throttle = (fn, ms) => {
+    let timer = null;
+    const throttled = (...args) => {
+        if (timer != null) {
+            return;
+        }
+        fn(...args);
+        timer = self.setTimeout(() => timer = null, ms);
+    };
+    throttled.flush = () => {
+        if (timer != null) {
+            self.clearTimeout(timer);
+            timer = null;
+        }
+    };
+    return throttled;
+};
+const debounce = (fn, ms) => {
+    let timer = null;
+    return (...args) => {
+        if (timer != null) {
+            self.clearTimeout(timer);
+        }
+        timer = self.setTimeout(() => {
+            timer = null;
+            fn(...args);
+        }, ms);
+    };
+};
+/**
+ * @param {Number} value
+ * @param {Number} lowerLimit
+ * @param {Number} upperLimit
+ * @return {Number} value clamped within lowerLimit..upperLimit
+ */
+const clamp = (value, lowerLimit, upperLimit) => Math.max(lowerLimit, Math.min(upperLimit, value));
+// The DPR we use for a "capped" scenario (see resolveDpr below):
+const CAPPED_DEVICE_PIXEL_RATIO = 1;
+/**
+ * This helper analyzes the layout of the current page to decide if we should
+ * use the natural device pixel ratio, or a capped value.
+ *
+ * We cap DPR if there is no meta viewport (suggesting that user is not
+ * consciously specifying how to scale the viewport relative to the device
+ * screen size).
+ *
+ * The rationale is that this condition typically leads to a pathological
+ * outcome on mobile devices. When the window dimensions are scaled up on a
+ * device with a high DPR, we create a canvas that is much larger than
+ * appropriate to accommodate for the pixel density if we naively use the
+ * reported DPR.
+ *
+ * This value needs to be measured in real time, as device pixel ratio can
+ * change over time (e.g., when a user zooms the page). Also, in some cases
+ * (such as Firefox on Android), the window's innerWidth is initially reported
+ * as the same as the screen's availWidth but changes later.
+ *
+ * A user who specifies a meta viewport, thereby consciously creating scaling
+ * conditions where <model-viewer> is slow, will be encouraged to live their
+ * best life.
+ */
+const resolveDpr = (() => {
+    // If true, implies that the user is conscious of the viewport scaling
+    // relative to the device screen size.
+    const HAS_META_VIEWPORT_TAG = (() => {
+        var _a;
+        // Search result pages sometimes do not include a meta viewport tag even
+        // though they are certainly modern and work properly with devicePixelRatio.
+        if ((_a = document.documentElement.getAttribute('itemtype')) === null || _a === void 0 ? void 0 : _a.includes('schema.org/SearchResultsPage')) {
+            return true;
+        }
+        const metas = document.head != null ?
+            Array.from(document.head.querySelectorAll('meta')) :
+            [];
+        for (const meta of metas) {
+            if (meta.name === 'viewport') {
+                return true;
+            }
+        }
+        return false;
+    })();
+    if (!HAS_META_VIEWPORT_TAG) {
+        console.warn('No <meta name="viewport"> detected; <model-viewer> will cap pixel density at 1.');
+    }
+    return () => HAS_META_VIEWPORT_TAG ? window.devicePixelRatio :
+        CAPPED_DEVICE_PIXEL_RATIO;
+})();
+/**
+ * Debug mode is enabled when one of the two following conditions is true:
+ *
+ *  1. A 'model-viewer-debug-mode' query parameter is present in the current
+ *     search string
+ *  2. There is a global object ModelViewerElement with a debugMode property set
+ *     to true
+ */
+const isDebugMode = (() => {
+    const debugQueryParameterName = 'model-viewer-debug-mode';
+    const debugQueryParameter = new RegExp(`[?&]${debugQueryParameterName}(&|$)`);
+    return () => (self.ModelViewerElement &&
+        self.ModelViewerElement.debugMode) ||
+        (self.location && self.location.search &&
+            self.location.search.match(debugQueryParameter));
+})();
+const timePasses = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms));
+/**
+ * @param {EventTarget|EventDispatcher} target
+ * @param {string} eventName
+ * @param {?Function} predicate
+ */
+const waitForEvent = (target, eventName, predicate = null) => new Promise(resolve => {
+    function handler(event) {
+        if (!predicate || predicate(event)) {
+            resolve(event);
+            target.removeEventListener(eventName, handler);
+        }
+    }
+    target.addEventListener(eventName, handler);
+});
+
+/* @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var __decorate$7 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof undefined === "function") r = undefined(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+const BASE_OPACITY = 0.5;
+const DEFAULT_SHADOW_INTENSITY = 0.0;
+const DEFAULT_SHADOW_SOFTNESS = 1.0;
+const DEFAULT_EXPOSURE = 1.0;
+const $currentEnvironmentMap = Symbol('currentEnvironmentMap');
+const $currentBackground = Symbol('currentBackground');
+const $updateEnvironment = Symbol('updateEnvironment');
+const $cancelEnvironmentUpdate = Symbol('cancelEnvironmentUpdate');
+const EnvironmentMixin = (ModelViewerElement) => {
+    var _a, _b, _c;
+    class EnvironmentModelViewerElement extends ModelViewerElement {
+        constructor() {
+            super(...arguments);
+            this.environmentImage = null;
+            this.skyboxImage = null;
+            this.shadowIntensity = DEFAULT_SHADOW_INTENSITY;
+            this.shadowSoftness = DEFAULT_SHADOW_SOFTNESS;
+            this.exposure = DEFAULT_EXPOSURE;
+            this[_a] = null;
+            this[_b] = null;
+            this[_c] = null;
+        }
+        updated(changedProperties) {
+            super.updated(changedProperties);
+            if (changedProperties.has('shadowIntensity')) {
+                this[$scene].setShadowIntensity(this.shadowIntensity * BASE_OPACITY);
+                this[$needsRender]();
+            }
+            if (changedProperties.has('shadowSoftness')) {
+                this[$scene].setShadowSoftness(this.shadowSoftness);
+                this[$needsRender]();
+            }
+            if (changedProperties.has('exposure')) {
+                this[$scene].exposure = this.exposure;
+                this[$needsRender]();
+            }
+            if ((changedProperties.has('environmentImage') ||
+                changedProperties.has('skyboxImage')) &&
+                this[$shouldAttemptPreload]()) {
+                this[$updateEnvironment]();
+            }
+        }
+        hasBakedShadow() {
+            return this[$scene].bakedShadows.size > 0;
+        }
+        async [(_a = $currentEnvironmentMap, _b = $currentBackground, _c = $cancelEnvironmentUpdate, $updateEnvironment)]() {
+            const { skyboxImage, environmentImage } = this;
+            if (this[$cancelEnvironmentUpdate] != null) {
+                this[$cancelEnvironmentUpdate]();
+                this[$cancelEnvironmentUpdate] = null;
+            }
+            const { textureUtils } = this[$renderer];
+            if (textureUtils == null) {
+                return;
+            }
+            const updateEnvProgress = this[$progressTracker].beginActivity();
+            try {
+                const { environmentMap, skybox } = await textureUtils.generateEnvironmentMapAndSkybox(deserializeUrl(skyboxImage), environmentImage, (progress) => updateEnvProgress(clamp(progress, 0, 1)));
+                if (this[$currentEnvironmentMap] !== environmentMap) {
+                    this[$currentEnvironmentMap] = environmentMap;
+                    this.dispatchEvent(new CustomEvent('environment-change'));
+                }
+                if (skybox != null) {
+                    // When using the same environment and skybox, use the environment as
+                    // it gives HDR filtering.
+                    this[$currentBackground] =
+                        skybox.name === environmentMap.name ? environmentMap : skybox;
+                }
+                else {
+                    this[$currentBackground] = null;
+                }
+                this[$scene].setEnvironmentAndSkybox(this[$currentEnvironmentMap], this[$currentBackground]);
+                this[$scene].dispatchEvent({ type: 'envmap-update' });
+            }
+            catch (errorOrPromise) {
+                if (errorOrPromise instanceof Error) {
+                    this[$scene].setEnvironmentAndSkybox(null, null);
+                    throw errorOrPromise;
+                }
+            }
+            finally {
+                updateEnvProgress(1.0);
+            }
+        }
+    }
+    __decorate$7([
+        e$3({ type: String, attribute: 'environment-image' })
+    ], EnvironmentModelViewerElement.prototype, "environmentImage", void 0);
+    __decorate$7([
+        e$3({ type: String, attribute: 'skybox-image' })
+    ], EnvironmentModelViewerElement.prototype, "skyboxImage", void 0);
+    __decorate$7([
+        e$3({ type: Number, attribute: 'shadow-intensity' })
+    ], EnvironmentModelViewerElement.prototype, "shadowIntensity", void 0);
+    __decorate$7([
+        e$3({ type: Number, attribute: 'shadow-softness' })
+    ], EnvironmentModelViewerElement.prototype, "shadowSoftness", void 0);
+    __decorate$7([
+        e$3({
+            type: Number,
+        })
+    ], EnvironmentModelViewerElement.prototype, "exposure", void 0);
+    return EnvironmentModelViewerElement;
+};
+
+/* @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var CloseIcon = y `
 <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="#000000">
     <!-- NOTE(cdata): This SVG filter is a stop-gap until we can implement
          support for dynamic re-coloring of UI components -->
@@ -36606,7 +36948,7 @@ var CloseIcon = y$1 `
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var ControlsPrompt = y$1 `
+var ControlsPrompt = y `
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="25" height="36">
     <defs>
         <path id="A" d="M.001.232h24.997V36H.001z" />
@@ -36641,7 +36983,7 @@ var ControlsPrompt = y$1 `
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var ARGlyph = y$1 `
+var ARGlyph = y `
 <svg version="1.1" id="view_x5F_in_x5F_AR_x5F_icon"
 	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="24px" height="24px"
 	 viewBox="0 0 24 24" enable-background="new 0 0 24 24" xml:space="preserve">
@@ -36673,7 +37015,7 @@ var ARGlyph = y$1 `
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const templateResult = y$1 `
+const templateResult = y `
 <style>
 :host {
   display: block;
@@ -37104,21 +37446,12 @@ class DRACOLoader extends Loader {
 
 		loader.load( url, ( buffer ) => {
 
-			const taskConfig = {
-				attributeIDs: this.defaultAttributeIDs,
-				attributeTypes: this.defaultAttributeTypes,
-				useUniqueIDs: false
-			};
-
-			this.decodeGeometry( buffer, taskConfig )
-				.then( onLoad )
-				.catch( onError );
+			this.decodeDracoFile( buffer, onLoad ).catch( onError );
 
 		}, onProgress, onError );
 
 	}
 
-	/** @deprecated Kept for backward-compatibility with previous DRACOLoader versions. */
 	decodeDracoFile( buffer, callback, attributeIDs, attributeTypes ) {
 
 		const taskConfig = {
@@ -37127,28 +37460,11 @@ class DRACOLoader extends Loader {
 			useUniqueIDs: !! attributeIDs
 		};
 
-		this.decodeGeometry( buffer, taskConfig ).then( callback );
+		return this.decodeGeometry( buffer, taskConfig ).then( callback );
 
 	}
 
 	decodeGeometry( buffer, taskConfig ) {
-
-		// TODO: For backward-compatibility, support 'attributeTypes' objects containing
-		// references (rather than names) to typed array constructors. These must be
-		// serialized before sending them to the worker.
-		for ( const attribute in taskConfig.attributeTypes ) {
-
-			const type = taskConfig.attributeTypes[ attribute ];
-
-			if ( type.BYTES_PER_ELEMENT !== undefined ) {
-
-				taskConfig.attributeTypes[ attribute ] = type.name;
-
-			}
-
-		}
-
-		//
 
 		const taskKey = JSON.stringify( taskConfig );
 
@@ -38893,7 +39209,7 @@ class GLTFMeshoptCompression {
 
 			}
 
-			return Promise.all( [ buffer, decoder.ready ] ).then( function ( res ) {
+			return buffer.then( function ( res ) {
 
 				const byteOffset = extensionDef.byteOffset || 0;
 				const byteLength = extensionDef.byteLength || 0;
@@ -38901,11 +39217,28 @@ class GLTFMeshoptCompression {
 				const count = extensionDef.count;
 				const stride = extensionDef.byteStride;
 
-				const result = new ArrayBuffer( count * stride );
-				const source = new Uint8Array( res[ 0 ], byteOffset, byteLength );
+				const source = new Uint8Array( res, byteOffset, byteLength );
 
-				decoder.decodeGltfBuffer( new Uint8Array( result ), count, stride, source, extensionDef.mode, extensionDef.filter );
-				return result;
+				if ( decoder.decodeGltfBufferAsync ) {
+
+					return decoder.decodeGltfBufferAsync( count, stride, source, extensionDef.mode, extensionDef.filter ).then( function ( res ) {
+
+						return res.buffer;
+
+					} );
+
+				} else {
+
+					// Support for MeshoptDecoder 0.18 or earlier, without decodeGltfBufferAsync
+					return decoder.ready.then( function () {
+
+						const result = new ArrayBuffer( count * stride );
+						decoder.decodeGltfBuffer( new Uint8Array( result ), count, stride, source, extensionDef.mode, extensionDef.filter );
+						return result;
+
+					} );
+
+				}
 
 			} );
 
@@ -39039,7 +39372,7 @@ class GLTFDracoMeshCompressionExtension {
 				const accessorDef = json.accessors[ primitive.attributes[ attributeName ] ];
 				const componentType = WEBGL_COMPONENT_TYPES[ accessorDef.componentType ];
 
-				attributeTypeMap[ threeAttributeName ] = componentType;
+				attributeTypeMap[ threeAttributeName ] = componentType.name;
 				attributeNormalizedMap[ threeAttributeName ] = accessorDef.normalized === true;
 
 			}
@@ -41328,7 +41661,7 @@ class GLTFParser {
 			const channel = animationDef.channels[ i ];
 			const sampler = animationDef.samplers[ channel.sampler ];
 			const target = channel.target;
-			const name = target.node !== undefined ? target.node : target.id; // NOTE: target.id is deprecated.
+			const name = target.node;
 			const input = animationDef.parameters !== undefined ? animationDef.parameters[ sampler.input ] : sampler.input;
 			const output = animationDef.parameters !== undefined ? animationDef.parameters[ sampler.output ] : sampler.output;
 
@@ -42195,258 +42528,9 @@ class WorkerPool {
 
 }
 
-const t=0,e=1,n=2,i$1=3,s=0,a=0,r=2,o=0,l=1,f=160,U=161,c=162,h=163,_=0,p=1,g=0,y=1,x$1=2,u=3,b=4,d=5,m=6,w=7,D=8,B=9,L=10,A=11,k=12,v=13,S=14,I=15,O=16,T=17,V=18,E=0,F=1,P=2,C=3,z=4,M=5,W=6,N=7,H=8,K=9,X=10,j=11,R=0,Y=1,q=2,G=13,J=14,Q=15,Z=128,$=64,tt=32,et$1=16,nt=0,it=1,st=2,at=3,rt=4,ot=5,lt=6,ft=7,Ut=8,ct=9,ht=10,_t=13,pt=14,gt=15,yt=16,xt=17,ut=20,bt=21,dt=22,mt=23,wt=24,Dt=27,Bt=28,Lt=29,At=30,kt=31,vt=34,St=35,It=36,Ot=37,Tt=38,Vt=41,Et=42,Ft=43,Pt=44,Ct=45,zt=48,Mt=49,Wt=50,Nt=58,Ht=59,Kt=62,Xt=63,jt=64,Rt=65,Yt=68,qt=69,Gt=70,Jt=71,Qt=74,Zt=75,$t=76,te$1=77,ee=78,ne=81,ie=82,se=83,ae=84,re=85,oe=88,le=89,fe=90,Ue=91,ce=92,he=95,_e$2=96,pe=97,ge=98,ye=99,xe=100,ue=101,be=102,de=103,me=104,we=105,De=106,Be=107,Le=108,Ae=109,ke=110,ve=111,Se=112,Ie=113,Oe=114,Te=115,Ve=116,Ee=117,Fe=118,Pe=119,Ce=120,ze=121,Me=122,We=123,Ne=124,He=125,Ke=126,Xe=127,je=128,Re=129,Ye=130,qe=131,Ge=132,Je=133,Qe=134,Ze=135,$e=136,tn=137,en=138,nn=139,sn=140,an=141,rn=142,on=143,ln$1=144,fn=145,Un=146,cn=147,hn=148,_n=149,pn=150,gn=151,yn=152,xn=153,un=154,bn=155,dn=156,mn=157,wn=158,Dn=159,Bn=160,Ln=161,An=162,kn=163,vn=164,Sn=165,In=166,On=167,Tn=168,Vn=169,En=170,Fn=171,Pn=172,Cn=173,zn=174,Mn=175,Wn=176,Nn=177,Hn=178,Kn=179,Xn=180,jn=181,Rn=182,Yn=183,qn=184,Gn=1000156007,Jn=1000156008,Qn=1000156009,Zn=1000156010,$n=1000156011,ti=1000156017,ei=1000156018,ni=1000156019,ii=1000156020,si=1000156021,ai=1000054e3,ri=1000054001,oi=1000054002,li=1000054003,fi=1000054004,Ui=1000054005,ci=1000054006,hi=1000054007,_i=1000066e3,pi=1000066001,gi=1000066002,yi=1000066003,xi=1000066004,ui=1000066005,bi=1000066006,di=1000066007,mi=1000066008,wi=1000066009,Di=1000066010,Bi=1000066011,Li=1000066012,Ai=1000066013,ki=100034e4,vi=1000340001;class Si{constructor(){this.vkFormat=0,this.typeSize=1,this.pixelWidth=0,this.pixelHeight=0,this.pixelDepth=0,this.layerCount=0,this.faceCount=1,this.supercompressionScheme=0,this.levels=[],this.dataFormatDescriptor=[{vendorId:0,descriptorType:0,descriptorBlockSize:0,versionNumber:2,colorModel:0,colorPrimaries:1,transferFunction:2,flags:0,texelBlockDimension:[0,0,0,0],bytesPlane:[0,0,0,0,0,0,0,0],samples:[]}],this.keyValue={},this.globalData=null;}}class Ii{constructor(t,e,n,i){this._dataView=new DataView(t.buffer,t.byteOffset+e,n),this._littleEndian=i,this._offset=0;}_nextUint8(){const t=this._dataView.getUint8(this._offset);return this._offset+=1,t}_nextUint16(){const t=this._dataView.getUint16(this._offset,this._littleEndian);return this._offset+=2,t}_nextUint32(){const t=this._dataView.getUint32(this._offset,this._littleEndian);return this._offset+=4,t}_nextUint64(){const t=this._dataView.getUint32(this._offset,this._littleEndian)+2**32*this._dataView.getUint32(this._offset+4,this._littleEndian);return this._offset+=8,t}_nextInt32(){const t=this._dataView.getInt32(this._offset,this._littleEndian);return this._offset+=4,t}_skip(t){return this._offset+=t,this}_scan(t,e=0){const n=this._offset;let i=0;for(;this._dataView.getUint8(this._offset)!==e&&i<t;)i++,this._offset++;return i<t&&this._offset++,new Uint8Array(this._dataView.buffer,this._dataView.byteOffset+n,i)}}const Oi=new Uint8Array([0]),Ti=[171,75,84,88,32,50,48,187,13,10,26,10];function Vi(t){return "undefined"!=typeof TextEncoder?(new TextEncoder).encode(t):Buffer.from(t)}function Ei(t){return "undefined"!=typeof TextDecoder?(new TextDecoder).decode(t):Buffer.from(t).toString("utf8")}function Fi(t){let e=0;for(const n of t)e+=n.byteLength;const n=new Uint8Array(e);let i=0;for(const e of t)n.set(new Uint8Array(e),i),i+=e.byteLength;return n}function Pi(t){const e=new Uint8Array(t.buffer,t.byteOffset,Ti.length);if(e[0]!==Ti[0]||e[1]!==Ti[1]||e[2]!==Ti[2]||e[3]!==Ti[3]||e[4]!==Ti[4]||e[5]!==Ti[5]||e[6]!==Ti[6]||e[7]!==Ti[7]||e[8]!==Ti[8]||e[9]!==Ti[9]||e[10]!==Ti[10]||e[11]!==Ti[11])throw new Error("Missing KTX 2.0 identifier.");const n=new Si,i=17*Uint32Array.BYTES_PER_ELEMENT,s=new Ii(t,Ti.length,i,!0);n.vkFormat=s._nextUint32(),n.typeSize=s._nextUint32(),n.pixelWidth=s._nextUint32(),n.pixelHeight=s._nextUint32(),n.pixelDepth=s._nextUint32(),n.layerCount=s._nextUint32(),n.faceCount=s._nextUint32();const a=s._nextUint32();n.supercompressionScheme=s._nextUint32();const r=s._nextUint32(),o=s._nextUint32(),l=s._nextUint32(),f=s._nextUint32(),U=s._nextUint64(),c=s._nextUint64(),h=new Ii(t,Ti.length+i,3*a*8,!0);for(let e=0;e<a;e++)n.levels.push({levelData:new Uint8Array(t.buffer,t.byteOffset+h._nextUint64(),h._nextUint64()),uncompressedByteLength:h._nextUint64()});const _=new Ii(t,r,o,!0),p={vendorId:_._skip(4)._nextUint16(),descriptorType:_._nextUint16(),versionNumber:_._nextUint16(),descriptorBlockSize:_._nextUint16(),colorModel:_._nextUint8(),colorPrimaries:_._nextUint8(),transferFunction:_._nextUint8(),flags:_._nextUint8(),texelBlockDimension:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],bytesPlane:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],samples:[]},g=(p.descriptorBlockSize/4-6)/4;for(let t=0;t<g;t++){const e={bitOffset:_._nextUint16(),bitLength:_._nextUint8(),channelType:_._nextUint8(),samplePosition:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],sampleLower:-Infinity,sampleUpper:Infinity};64&e.channelType?(e.sampleLower=_._nextInt32(),e.sampleUpper=_._nextInt32()):(e.sampleLower=_._nextUint32(),e.sampleUpper=_._nextUint32()),p.samples[t]=e;}n.dataFormatDescriptor.length=0,n.dataFormatDescriptor.push(p);const y=new Ii(t,l,f,!0);for(;y._offset<f;){const t=y._nextUint32(),e=y._scan(t),i=Ei(e),s=y._scan(t-e.byteLength);n.keyValue[i]=i.match(/^ktx/i)?Ei(s):s,y._offset%4&&y._skip(4-y._offset%4);}if(c<=0)return n;const x=new Ii(t,U,c,!0),u=x._nextUint16(),b=x._nextUint16(),d=x._nextUint32(),m=x._nextUint32(),w=x._nextUint32(),D=x._nextUint32(),B=[];for(let t=0;t<a;t++)B.push({imageFlags:x._nextUint32(),rgbSliceByteOffset:x._nextUint32(),rgbSliceByteLength:x._nextUint32(),alphaSliceByteOffset:x._nextUint32(),alphaSliceByteLength:x._nextUint32()});const L=U+x._offset,A=L+d,k=A+m,v=k+w,S=new Uint8Array(t.buffer,t.byteOffset+L,d),I=new Uint8Array(t.buffer,t.byteOffset+A,m),O=new Uint8Array(t.buffer,t.byteOffset+k,w),T=new Uint8Array(t.buffer,t.byteOffset+v,D);return n.globalData={endpointCount:u,selectorCount:b,imageDescs:B,endpointsData:S,selectorsData:I,tablesData:O,extendedData:T},n}function Ci(){return (Ci=Object.assign||function(t){for(var e=1;e<arguments.length;e++){var n=arguments[e];for(var i in n)Object.prototype.hasOwnProperty.call(n,i)&&(t[i]=n[i]);}return t}).apply(this,arguments)}const zi={keepWriter:!1};function Mi(t,e={}){e=Ci({},zi,e);let n=new ArrayBuffer(0);if(t.globalData){const e=new ArrayBuffer(20+5*t.globalData.imageDescs.length*4),i=new DataView(e);i.setUint16(0,t.globalData.endpointCount,!0),i.setUint16(2,t.globalData.selectorCount,!0),i.setUint32(4,t.globalData.endpointsData.byteLength,!0),i.setUint32(8,t.globalData.selectorsData.byteLength,!0),i.setUint32(12,t.globalData.tablesData.byteLength,!0),i.setUint32(16,t.globalData.extendedData.byteLength,!0);for(let e=0;e<t.globalData.imageDescs.length;e++){const n=t.globalData.imageDescs[e];i.setUint32(20+5*e*4+0,n.imageFlags,!0),i.setUint32(20+5*e*4+4,n.rgbSliceByteOffset,!0),i.setUint32(20+5*e*4+8,n.rgbSliceByteLength,!0),i.setUint32(20+5*e*4+12,n.alphaSliceByteOffset,!0),i.setUint32(20+5*e*4+16,n.alphaSliceByteLength,!0);}n=Fi([e,t.globalData.endpointsData,t.globalData.selectorsData,t.globalData.tablesData,t.globalData.extendedData]);}const i=[];let s=t.keyValue;e.keepWriter||(s=Ci({},t.keyValue,{KTXwriter:"KTX-Parse v0.3.1"}));for(const t in s){const e=s[t],n=Vi(t),a="string"==typeof e?Vi(e):e,r=n.byteLength+1+a.byteLength+1,o=r%4?4-r%4:0;i.push(Fi([new Uint32Array([r]),n,Oi,a,Oi,new Uint8Array(o).fill(0)]));}const a=Fi(i);if(1!==t.dataFormatDescriptor.length||0!==t.dataFormatDescriptor[0].descriptorType)throw new Error("Only BASICFORMAT Data Format Descriptor output supported.");const r=t.dataFormatDescriptor[0],o=new ArrayBuffer(28+16*r.samples.length),l=new DataView(o),f=24+16*r.samples.length;if(l.setUint32(0,o.byteLength,!0),l.setUint16(4,r.vendorId,!0),l.setUint16(6,r.descriptorType,!0),l.setUint16(8,r.versionNumber,!0),l.setUint16(10,f,!0),l.setUint8(12,r.colorModel),l.setUint8(13,r.colorPrimaries),l.setUint8(14,r.transferFunction),l.setUint8(15,r.flags),!Array.isArray(r.texelBlockDimension))throw new Error("texelBlockDimension is now an array. For dimensionality `d`, set `d - 1`.");l.setUint8(16,r.texelBlockDimension[0]),l.setUint8(17,r.texelBlockDimension[1]),l.setUint8(18,r.texelBlockDimension[2]),l.setUint8(19,r.texelBlockDimension[3]);for(let t=0;t<8;t++)l.setUint8(20+t,r.bytesPlane[t]);for(let t=0;t<r.samples.length;t++){const e=r.samples[t],n=28+16*t;if(e.channelID)throw new Error("channelID has been renamed to channelType.");l.setUint16(n+0,e.bitOffset,!0),l.setUint8(n+2,e.bitLength),l.setUint8(n+3,e.channelType),l.setUint8(n+4,e.samplePosition[0]),l.setUint8(n+5,e.samplePosition[1]),l.setUint8(n+6,e.samplePosition[2]),l.setUint8(n+7,e.samplePosition[3]),64&e.channelType?(l.setInt32(n+8,e.sampleLower,!0),l.setInt32(n+12,e.sampleUpper,!0)):(l.setUint32(n+8,e.sampleLower,!0),l.setUint32(n+12,e.sampleUpper,!0));}const U=Ti.length+68+3*t.levels.length*8,c=U+o.byteLength;let h=n.byteLength>0?c+a.byteLength:0;h%8&&(h+=8-h%8);const _=[],p=new DataView(new ArrayBuffer(3*t.levels.length*8));let g=(h||c+a.byteLength)+n.byteLength;for(let e=0;e<t.levels.length;e++){const n=t.levels[e];_.push(n.levelData),p.setBigUint64(24*e+0,BigInt(g),!0),p.setBigUint64(24*e+8,BigInt(n.levelData.byteLength),!0),p.setBigUint64(24*e+16,BigInt(n.uncompressedByteLength),!0),g+=n.levelData.byteLength;}const y=new ArrayBuffer(68),x=new DataView(y);return x.setUint32(0,t.vkFormat,!0),x.setUint32(4,t.typeSize,!0),x.setUint32(8,t.pixelWidth,!0),x.setUint32(12,t.pixelHeight,!0),x.setUint32(16,t.pixelDepth,!0),x.setUint32(20,t.layerCount,!0),x.setUint32(24,t.faceCount,!0),x.setUint32(28,t.levels.length,!0),x.setUint32(32,t.supercompressionScheme,!0),x.setUint32(36,U,!0),x.setUint32(40,o.byteLength,!0),x.setUint32(44,c,!0),x.setUint32(48,a.byteLength,!0),x.setBigUint64(52,BigInt(n.byteLength>0?h:0),!0),x.setBigUint64(60,BigInt(n.byteLength),!0),new Uint8Array(Fi([new Uint8Array(Ti).buffer,y,p.buffer,o,a,h>0?new ArrayBuffer(h-(c+a.byteLength)):new ArrayBuffer(0),n,..._]))}
+const t=0,n=2,p=1,x$1=2,nt=0,ct=9,gt=15,yt=16,dt=22,Ot=37,Ft=43,$t=76,se=83,pe=97,xe=100,de=103,Ae=109;class Si{constructor(){this.vkFormat=0,this.typeSize=1,this.pixelWidth=0,this.pixelHeight=0,this.pixelDepth=0,this.layerCount=0,this.faceCount=1,this.supercompressionScheme=0,this.levels=[],this.dataFormatDescriptor=[{vendorId:0,descriptorType:0,descriptorBlockSize:0,versionNumber:2,colorModel:0,colorPrimaries:1,transferFunction:2,flags:0,texelBlockDimension:[0,0,0,0],bytesPlane:[0,0,0,0,0,0,0,0],samples:[]}],this.keyValue={},this.globalData=null;}}class Ii{constructor(t,e,n,i){this._dataView=new DataView(t.buffer,t.byteOffset+e,n),this._littleEndian=i,this._offset=0;}_nextUint8(){const t=this._dataView.getUint8(this._offset);return this._offset+=1,t}_nextUint16(){const t=this._dataView.getUint16(this._offset,this._littleEndian);return this._offset+=2,t}_nextUint32(){const t=this._dataView.getUint32(this._offset,this._littleEndian);return this._offset+=4,t}_nextUint64(){const t=this._dataView.getUint32(this._offset,this._littleEndian)+2**32*this._dataView.getUint32(this._offset+4,this._littleEndian);return this._offset+=8,t}_nextInt32(){const t=this._dataView.getInt32(this._offset,this._littleEndian);return this._offset+=4,t}_skip(t){return this._offset+=t,this}_scan(t,e=0){const n=this._offset;let i=0;for(;this._dataView.getUint8(this._offset)!==e&&i<t;)i++,this._offset++;return i<t&&this._offset++,new Uint8Array(this._dataView.buffer,this._dataView.byteOffset+n,i)}}const Ti=[171,75,84,88,32,50,48,187,13,10,26,10];function Ei(t){return "undefined"!=typeof TextDecoder?(new TextDecoder).decode(t):Buffer.from(t).toString("utf8")}function Pi(t){const e=new Uint8Array(t.buffer,t.byteOffset,Ti.length);if(e[0]!==Ti[0]||e[1]!==Ti[1]||e[2]!==Ti[2]||e[3]!==Ti[3]||e[4]!==Ti[4]||e[5]!==Ti[5]||e[6]!==Ti[6]||e[7]!==Ti[7]||e[8]!==Ti[8]||e[9]!==Ti[9]||e[10]!==Ti[10]||e[11]!==Ti[11])throw new Error("Missing KTX 2.0 identifier.");const n=new Si,i=17*Uint32Array.BYTES_PER_ELEMENT,s=new Ii(t,Ti.length,i,!0);n.vkFormat=s._nextUint32(),n.typeSize=s._nextUint32(),n.pixelWidth=s._nextUint32(),n.pixelHeight=s._nextUint32(),n.pixelDepth=s._nextUint32(),n.layerCount=s._nextUint32(),n.faceCount=s._nextUint32();const a=s._nextUint32();n.supercompressionScheme=s._nextUint32();const r=s._nextUint32(),o=s._nextUint32(),l=s._nextUint32(),f=s._nextUint32(),U=s._nextUint64(),c=s._nextUint64(),h=new Ii(t,Ti.length+i,3*a*8,!0);for(let e=0;e<a;e++)n.levels.push({levelData:new Uint8Array(t.buffer,t.byteOffset+h._nextUint64(),h._nextUint64()),uncompressedByteLength:h._nextUint64()});const _=new Ii(t,r,o,!0),p={vendorId:_._skip(4)._nextUint16(),descriptorType:_._nextUint16(),versionNumber:_._nextUint16(),descriptorBlockSize:_._nextUint16(),colorModel:_._nextUint8(),colorPrimaries:_._nextUint8(),transferFunction:_._nextUint8(),flags:_._nextUint8(),texelBlockDimension:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],bytesPlane:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],samples:[]},g=(p.descriptorBlockSize/4-6)/4;for(let t=0;t<g;t++){const e={bitOffset:_._nextUint16(),bitLength:_._nextUint8(),channelType:_._nextUint8(),samplePosition:[_._nextUint8(),_._nextUint8(),_._nextUint8(),_._nextUint8()],sampleLower:-Infinity,sampleUpper:Infinity};64&e.channelType?(e.sampleLower=_._nextInt32(),e.sampleUpper=_._nextInt32()):(e.sampleLower=_._nextUint32(),e.sampleUpper=_._nextUint32()),p.samples[t]=e;}n.dataFormatDescriptor.length=0,n.dataFormatDescriptor.push(p);const y=new Ii(t,l,f,!0);for(;y._offset<f;){const t=y._nextUint32(),e=y._scan(t),i=Ei(e),s=y._scan(t-e.byteLength);n.keyValue[i]=i.match(/^ktx/i)?Ei(s):s,y._offset%4&&y._skip(4-y._offset%4);}if(c<=0)return n;const x=new Ii(t,U,c,!0),u=x._nextUint16(),b=x._nextUint16(),d=x._nextUint32(),m=x._nextUint32(),w=x._nextUint32(),D=x._nextUint32(),B=[];for(let t=0;t<a;t++)B.push({imageFlags:x._nextUint32(),rgbSliceByteOffset:x._nextUint32(),rgbSliceByteLength:x._nextUint32(),alphaSliceByteOffset:x._nextUint32(),alphaSliceByteLength:x._nextUint32()});const L=U+x._offset,A=L+d,k=A+m,v=k+w,S=new Uint8Array(t.buffer,t.byteOffset+L,d),I=new Uint8Array(t.buffer,t.byteOffset+A,m),O=new Uint8Array(t.buffer,t.byteOffset+k,w),T=new Uint8Array(t.buffer,t.byteOffset+v,D);return n.globalData={endpointCount:u,selectorCount:b,imageDescs:B,endpointsData:S,selectorsData:I,tablesData:O,extendedData:T},n}
 
-var KTX = /*#__PURE__*/Object.freeze({
-	__proto__: null,
-	KHR_DF_CHANNEL_RGBSDA_ALPHA: Q,
-	KHR_DF_CHANNEL_RGBSDA_BLUE: q,
-	KHR_DF_CHANNEL_RGBSDA_DEPTH: J,
-	KHR_DF_CHANNEL_RGBSDA_GREEN: Y,
-	KHR_DF_CHANNEL_RGBSDA_RED: R,
-	KHR_DF_CHANNEL_RGBSDA_STENCIL: G,
-	KHR_DF_FLAG_ALPHA_PREMULTIPLIED: p,
-	KHR_DF_FLAG_ALPHA_STRAIGHT: _,
-	KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT: s,
-	KHR_DF_MODEL_ASTC: c,
-	KHR_DF_MODEL_ETC1: f,
-	KHR_DF_MODEL_ETC1S: h,
-	KHR_DF_MODEL_ETC2: U,
-	KHR_DF_MODEL_RGBSDA: l,
-	KHR_DF_MODEL_UNSPECIFIED: o,
-	KHR_DF_PRIMARIES_ACES: W,
-	KHR_DF_PRIMARIES_ACESCC: N,
-	KHR_DF_PRIMARIES_ADOBERGB: j,
-	KHR_DF_PRIMARIES_BT2020: z,
-	KHR_DF_PRIMARIES_BT601_EBU: P,
-	KHR_DF_PRIMARIES_BT601_SMPTE: C,
-	KHR_DF_PRIMARIES_BT709: F,
-	KHR_DF_PRIMARIES_CIEXYZ: M,
-	KHR_DF_PRIMARIES_DISPLAYP3: X,
-	KHR_DF_PRIMARIES_NTSC1953: H,
-	KHR_DF_PRIMARIES_PAL525: K,
-	KHR_DF_PRIMARIES_UNSPECIFIED: E,
-	KHR_DF_SAMPLE_DATATYPE_EXPONENT: tt,
-	KHR_DF_SAMPLE_DATATYPE_FLOAT: Z,
-	KHR_DF_SAMPLE_DATATYPE_LINEAR: et$1,
-	KHR_DF_SAMPLE_DATATYPE_SIGNED: $,
-	KHR_DF_TRANSFER_ACESCC: O,
-	KHR_DF_TRANSFER_ACESCCT: T,
-	KHR_DF_TRANSFER_ADOBERGB: V,
-	KHR_DF_TRANSFER_BT1886: w,
-	KHR_DF_TRANSFER_DCIP3: k,
-	KHR_DF_TRANSFER_HLG_EOTF: B,
-	KHR_DF_TRANSFER_HLG_OETF: D,
-	KHR_DF_TRANSFER_ITU: u,
-	KHR_DF_TRANSFER_LINEAR: y,
-	KHR_DF_TRANSFER_NTSC: b,
-	KHR_DF_TRANSFER_PAL625_EOTF: S,
-	KHR_DF_TRANSFER_PAL_OETF: v,
-	KHR_DF_TRANSFER_PQ_EOTF: L,
-	KHR_DF_TRANSFER_PQ_OETF: A,
-	KHR_DF_TRANSFER_SLOG: d,
-	KHR_DF_TRANSFER_SLOG2: m,
-	KHR_DF_TRANSFER_SRGB: x$1,
-	KHR_DF_TRANSFER_ST240: I,
-	KHR_DF_TRANSFER_UNSPECIFIED: g,
-	KHR_DF_VENDORID_KHRONOS: a,
-	KHR_DF_VERSION: r,
-	KHR_SUPERCOMPRESSION_BASISLZ: e,
-	KHR_SUPERCOMPRESSION_NONE: t,
-	KHR_SUPERCOMPRESSION_ZLIB: i$1,
-	KHR_SUPERCOMPRESSION_ZSTD: n,
-	KTX2Container: Si,
-	VK_FORMAT_A1R5G5B5_UNORM_PACK16: Ut,
-	VK_FORMAT_A2B10G10R10_SINT_PACK32: qt,
-	VK_FORMAT_A2B10G10R10_SNORM_PACK32: Rt,
-	VK_FORMAT_A2B10G10R10_UINT_PACK32: Yt,
-	VK_FORMAT_A2B10G10R10_UNORM_PACK32: jt,
-	VK_FORMAT_A2R10G10B10_SINT_PACK32: Xt,
-	VK_FORMAT_A2R10G10B10_SNORM_PACK32: Ht,
-	VK_FORMAT_A2R10G10B10_UINT_PACK32: Kt,
-	VK_FORMAT_A2R10G10B10_UNORM_PACK32: Nt,
-	VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT: vi,
-	VK_FORMAT_A4R4G4B4_UNORM_PACK16_EXT: ki,
-	VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT: Bi,
-	VK_FORMAT_ASTC_10x10_SRGB_BLOCK: Xn,
-	VK_FORMAT_ASTC_10x10_UNORM_BLOCK: Kn,
-	VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK_EXT: mi,
-	VK_FORMAT_ASTC_10x5_SRGB_BLOCK: zn,
-	VK_FORMAT_ASTC_10x5_UNORM_BLOCK: Cn,
-	VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK_EXT: wi,
-	VK_FORMAT_ASTC_10x6_SRGB_BLOCK: Wn,
-	VK_FORMAT_ASTC_10x6_UNORM_BLOCK: Mn,
-	VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK_EXT: Di,
-	VK_FORMAT_ASTC_10x8_SRGB_BLOCK: Hn,
-	VK_FORMAT_ASTC_10x8_UNORM_BLOCK: Nn,
-	VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT: Li,
-	VK_FORMAT_ASTC_12x10_SRGB_BLOCK: Rn,
-	VK_FORMAT_ASTC_12x10_UNORM_BLOCK: jn,
-	VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT: Ai,
-	VK_FORMAT_ASTC_12x12_SRGB_BLOCK: qn,
-	VK_FORMAT_ASTC_12x12_UNORM_BLOCK: Yn,
-	VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT: _i,
-	VK_FORMAT_ASTC_4x4_SRGB_BLOCK: wn,
-	VK_FORMAT_ASTC_4x4_UNORM_BLOCK: mn,
-	VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK_EXT: pi,
-	VK_FORMAT_ASTC_5x4_SRGB_BLOCK: Bn,
-	VK_FORMAT_ASTC_5x4_UNORM_BLOCK: Dn,
-	VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK_EXT: gi,
-	VK_FORMAT_ASTC_5x5_SRGB_BLOCK: An,
-	VK_FORMAT_ASTC_5x5_UNORM_BLOCK: Ln,
-	VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK_EXT: yi,
-	VK_FORMAT_ASTC_6x5_SRGB_BLOCK: vn,
-	VK_FORMAT_ASTC_6x5_UNORM_BLOCK: kn,
-	VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK_EXT: xi,
-	VK_FORMAT_ASTC_6x6_SRGB_BLOCK: In,
-	VK_FORMAT_ASTC_6x6_UNORM_BLOCK: Sn,
-	VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK_EXT: ui,
-	VK_FORMAT_ASTC_8x5_SRGB_BLOCK: Tn,
-	VK_FORMAT_ASTC_8x5_UNORM_BLOCK: On,
-	VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK_EXT: bi,
-	VK_FORMAT_ASTC_8x6_SRGB_BLOCK: En,
-	VK_FORMAT_ASTC_8x6_UNORM_BLOCK: Vn,
-	VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK_EXT: di,
-	VK_FORMAT_ASTC_8x8_SRGB_BLOCK: Pn,
-	VK_FORMAT_ASTC_8x8_UNORM_BLOCK: Fn,
-	VK_FORMAT_B10G11R11_UFLOAT_PACK32: Me,
-	VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16: $n,
-	VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16: si,
-	VK_FORMAT_B4G4R4A4_UNORM_PACK16: at,
-	VK_FORMAT_B5G5R5A1_UNORM_PACK16: ft,
-	VK_FORMAT_B5G6R5_UNORM_PACK16: ot,
-	VK_FORMAT_B8G8R8A8_SINT: Mt,
-	VK_FORMAT_B8G8R8A8_SNORM: Ct,
-	VK_FORMAT_B8G8R8A8_SRGB: Wt,
-	VK_FORMAT_B8G8R8A8_UINT: zt,
-	VK_FORMAT_B8G8R8A8_UNORM: Pt,
-	VK_FORMAT_B8G8R8_SINT: St,
-	VK_FORMAT_B8G8R8_SNORM: kt,
-	VK_FORMAT_B8G8R8_SRGB: It,
-	VK_FORMAT_B8G8R8_UINT: vt,
-	VK_FORMAT_B8G8R8_UNORM: At,
-	VK_FORMAT_BC1_RGBA_SRGB_BLOCK: Qe,
-	VK_FORMAT_BC1_RGBA_UNORM_BLOCK: Je,
-	VK_FORMAT_BC1_RGB_SRGB_BLOCK: Ge,
-	VK_FORMAT_BC1_RGB_UNORM_BLOCK: qe,
-	VK_FORMAT_BC2_SRGB_BLOCK: $e,
-	VK_FORMAT_BC2_UNORM_BLOCK: Ze,
-	VK_FORMAT_BC3_SRGB_BLOCK: en,
-	VK_FORMAT_BC3_UNORM_BLOCK: tn,
-	VK_FORMAT_BC4_SNORM_BLOCK: sn,
-	VK_FORMAT_BC4_UNORM_BLOCK: nn,
-	VK_FORMAT_BC5_SNORM_BLOCK: rn,
-	VK_FORMAT_BC5_UNORM_BLOCK: an,
-	VK_FORMAT_BC6H_SFLOAT_BLOCK: ln$1,
-	VK_FORMAT_BC6H_UFLOAT_BLOCK: on,
-	VK_FORMAT_BC7_SRGB_BLOCK: Un,
-	VK_FORMAT_BC7_UNORM_BLOCK: fn,
-	VK_FORMAT_D16_UNORM: Ne,
-	VK_FORMAT_D16_UNORM_S8_UINT: je,
-	VK_FORMAT_D24_UNORM_S8_UINT: Re,
-	VK_FORMAT_D32_SFLOAT: Ke,
-	VK_FORMAT_D32_SFLOAT_S8_UINT: Ye,
-	VK_FORMAT_E5B9G9R9_UFLOAT_PACK32: We,
-	VK_FORMAT_EAC_R11G11_SNORM_BLOCK: dn,
-	VK_FORMAT_EAC_R11G11_UNORM_BLOCK: bn,
-	VK_FORMAT_EAC_R11_SNORM_BLOCK: un,
-	VK_FORMAT_EAC_R11_UNORM_BLOCK: xn,
-	VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK: pn,
-	VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK: _n,
-	VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK: yn,
-	VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK: gn,
-	VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK: hn,
-	VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK: cn,
-	VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16: Zn,
-	VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16: ii,
-	VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG: fi,
-	VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG: ai,
-	VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG: Ui,
-	VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG: ri,
-	VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG: ci,
-	VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG: oi,
-	VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG: hi,
-	VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG: li,
-	VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16: Qn,
-	VK_FORMAT_R10X6G10X6_UNORM_2PACK16: Jn,
-	VK_FORMAT_R10X6_UNORM_PACK16: Gn,
-	VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16: ni,
-	VK_FORMAT_R12X4G12X4_UNORM_2PACK16: ei,
-	VK_FORMAT_R12X4_UNORM_PACK16: ti,
-	VK_FORMAT_R16G16B16A16_SFLOAT: pe,
-	VK_FORMAT_R16G16B16A16_SINT: _e$2,
-	VK_FORMAT_R16G16B16A16_SNORM: ce,
-	VK_FORMAT_R16G16B16A16_UINT: he,
-	VK_FORMAT_R16G16B16A16_UNORM: Ue,
-	VK_FORMAT_R16G16B16_SFLOAT: fe,
-	VK_FORMAT_R16G16B16_SINT: le,
-	VK_FORMAT_R16G16B16_SNORM: re,
-	VK_FORMAT_R16G16B16_UINT: oe,
-	VK_FORMAT_R16G16B16_UNORM: ae,
-	VK_FORMAT_R16G16_SFLOAT: se,
-	VK_FORMAT_R16G16_SINT: ie,
-	VK_FORMAT_R16G16_SNORM: ee,
-	VK_FORMAT_R16G16_UINT: ne,
-	VK_FORMAT_R16G16_UNORM: te$1,
-	VK_FORMAT_R16_SFLOAT: $t,
-	VK_FORMAT_R16_SINT: Zt,
-	VK_FORMAT_R16_SNORM: Jt,
-	VK_FORMAT_R16_UINT: Qt,
-	VK_FORMAT_R16_UNORM: Gt,
-	VK_FORMAT_R32G32B32A32_SFLOAT: Ae,
-	VK_FORMAT_R32G32B32A32_SINT: Le,
-	VK_FORMAT_R32G32B32A32_UINT: Be,
-	VK_FORMAT_R32G32B32_SFLOAT: De,
-	VK_FORMAT_R32G32B32_SINT: we,
-	VK_FORMAT_R32G32B32_UINT: me,
-	VK_FORMAT_R32G32_SFLOAT: de,
-	VK_FORMAT_R32G32_SINT: be,
-	VK_FORMAT_R32G32_UINT: ue,
-	VK_FORMAT_R32_SFLOAT: xe,
-	VK_FORMAT_R32_SINT: ye,
-	VK_FORMAT_R32_UINT: ge,
-	VK_FORMAT_R4G4B4A4_UNORM_PACK16: st,
-	VK_FORMAT_R4G4_UNORM_PACK8: it,
-	VK_FORMAT_R5G5B5A1_UNORM_PACK16: lt,
-	VK_FORMAT_R5G6B5_UNORM_PACK16: rt,
-	VK_FORMAT_R64G64B64A64_SFLOAT: ze,
-	VK_FORMAT_R64G64B64A64_SINT: Ce,
-	VK_FORMAT_R64G64B64A64_UINT: Pe,
-	VK_FORMAT_R64G64B64_SFLOAT: Fe,
-	VK_FORMAT_R64G64B64_SINT: Ee,
-	VK_FORMAT_R64G64B64_UINT: Ve,
-	VK_FORMAT_R64G64_SFLOAT: Te,
-	VK_FORMAT_R64G64_SINT: Oe,
-	VK_FORMAT_R64G64_UINT: Ie,
-	VK_FORMAT_R64_SFLOAT: Se,
-	VK_FORMAT_R64_SINT: ve,
-	VK_FORMAT_R64_UINT: ke,
-	VK_FORMAT_R8G8B8A8_SINT: Et,
-	VK_FORMAT_R8G8B8A8_SNORM: Tt,
-	VK_FORMAT_R8G8B8A8_SRGB: Ft,
-	VK_FORMAT_R8G8B8A8_UINT: Vt,
-	VK_FORMAT_R8G8B8A8_UNORM: Ot,
-	VK_FORMAT_R8G8B8_SINT: Bt,
-	VK_FORMAT_R8G8B8_SNORM: wt,
-	VK_FORMAT_R8G8B8_SRGB: Lt,
-	VK_FORMAT_R8G8B8_UINT: Dt,
-	VK_FORMAT_R8G8B8_UNORM: mt,
-	VK_FORMAT_R8G8_SINT: bt,
-	VK_FORMAT_R8G8_SNORM: xt,
-	VK_FORMAT_R8G8_SRGB: dt,
-	VK_FORMAT_R8G8_UINT: ut,
-	VK_FORMAT_R8G8_UNORM: yt,
-	VK_FORMAT_R8_SINT: pt,
-	VK_FORMAT_R8_SNORM: ht,
-	VK_FORMAT_R8_SRGB: gt,
-	VK_FORMAT_R8_UINT: _t,
-	VK_FORMAT_R8_UNORM: ct,
-	VK_FORMAT_S8_UINT: Xe,
-	VK_FORMAT_UNDEFINED: nt,
-	VK_FORMAT_X8_D24_UNORM_PACK32: He,
-	read: Pi,
-	write: Mi
-});
+let A,I,B;const g={env:{emscripten_notify_memory_growth:function(A){B=new Uint8Array(I.exports.memory.buffer);}}};class Q{init(){return A||(A="undefined"!=typeof fetch?fetch("data:application/wasm;base64,"+C).then(A=>A.arrayBuffer()).then(A=>WebAssembly.instantiate(A,g)).then(this._init):WebAssembly.instantiate(Buffer.from(C,"base64"),g).then(this._init),A)}_init(A){I=A.instance,g.env.emscripten_notify_memory_growth(0);}decode(A,g=0){if(!I)throw new Error("ZSTDDecoder: Await .init() before decoding.");const Q=A.byteLength,C=I.exports.malloc(Q);B.set(A,C),g=g||Number(I.exports.ZSTD_findDecompressedSize(C,Q));const E=I.exports.malloc(g),i=I.exports.ZSTD_decompress(E,g,C,Q),D=B.slice(E,E+i);return I.exports.free(C),I.exports.free(E),D}}const C="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IAMNACAEQQNxBEADQCACRQ0FIAAgAkF/aiICaiIDIAEgAmotAAA6AAAgA0EDcQ0ACwsgAkEDTQ0AA0AgACACQXxqIgJqIAEgAmooAgA2AgAgAkEDSw0ACwsgAkUNAgNAIAAgAkF/aiICaiABIAJqLQAAOgAAIAINAAsMAgsgAkEDTQ0AIAIhBANAIAMgASgCADYCACABQQRqIQEgA0EEaiEDIARBfGoiBEEDSw0ACyACQQNxIQILIAJFDQADQCADIAEtAAA6AAAgA0EBaiEDIAFBAWohASACQX9qIgINAAsLIAAL8wICAn8BfgJAIAJFDQAgACACaiIDQX9qIAE6AAAgACABOgAAIAJBA0kNACADQX5qIAE6AAAgACABOgABIANBfWogAToAACAAIAE6AAIgAkEHSQ0AIANBfGogAToAACAAIAE6AAMgAkEJSQ0AIABBACAAa0EDcSIEaiIDIAFB/wFxQYGChAhsIgE2AgAgAyACIARrQXxxIgRqIgJBfGogATYCACAEQQlJDQAgAyABNgIIIAMgATYCBCACQXhqIAE2AgAgAkF0aiABNgIAIARBGUkNACADIAE2AhggAyABNgIUIAMgATYCECADIAE2AgwgAkFwaiABNgIAIAJBbGogATYCACACQWhqIAE2AgAgAkFkaiABNgIAIAQgA0EEcUEYciIEayICQSBJDQAgAa0iBUIghiAFhCEFIAMgBGohAQNAIAEgBTcDGCABIAU3AxAgASAFNwMIIAEgBTcDACABQSBqIQEgAkFgaiICQR9LDQALCyAACy8BAn8gACgCBCAAKAIAQQJ0aiICLQACIQMgACACLwEAIAEgAi0AAxAIajYCACADCy8BAn8gACgCBCAAKAIAQQJ0aiICLQACIQMgACACLwEAIAEgAi0AAxAFajYCACADCx8AIAAgASACKAIEEAg2AgAgARAEGiAAIAJBCGo2AgQLCAAgAGdBH3MLugUBDX8jAEEQayIKJAACfyAEQQNNBEAgCkEANgIMIApBDGogAyAEEAsaIAAgASACIApBDGpBBBAVIgBBbCAAEAMbIAAgACAESxsMAQsgAEEAIAEoAgBBAXRBAmoQECENQVQgAygAACIGQQ9xIgBBCksNABogAiAAQQVqNgIAIAMgBGoiAkF8aiEMIAJBeWohDiACQXtqIRAgAEEGaiELQQQh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ASIDNgLE4AEgACgCvOABIQQgACABNgK84AEgACABIAJqNgK44AEgACABIAQgA2tqNgLA4AELpgEBAX8gACAAKALs4QEQFjYCyOABIABCADcD+OABIABCADcDuOABIABBwOABakIANwMAIABBqNAAaiIBQYyAgOAANgIAIABBADYCmOIBIABCADcDiOEBIABCAzcDgOEBIABBrNABakHgEikCADcCACAAQbTQAWpB6BIoAgA2AgAgACABNgIMIAAgAEGYIGo2AgggACAAQaAwajYCBCAAIABBEGo2AgALYQEBf0G4fyEDAkAgAUEDSQ0AIAIgABAhIgFBA3YiADYCCCACIAFBAXE2AgQgAiABQQF2QQNxIgM2AgACQCADQX9qIgFBAksNAAJAIAFBAWsOAgEAAgtBbA8LIAAhAwsgAwsMACAAIAEgAkEAEC4LiAQCA38CfiADEBYhBCAAQQBBKBAQIQAgBCACSwRAIAQPCyABRQRAQX8PCwJAAkAgA0EBRg0AIAEoAAAiBkGo6r5pRg0AQXYhAyAGQXBxQdDUtMIBRw0BQQghAyACQQhJDQEgAEEAQSgQECEAIAEoAAQhASAAQQE2AhQgACABrTcDAEEADwsgASACIAMQLyIDIAJLDQAgACADNgIYQXIhAyABIARqIgVBf2otAAAiAkEIcQ0AIAJBIHEiBkUEQEFwIQMgBS0AACIFQacBSw0BIAVBB3GtQgEgBUEDdkEKaq2GIgdCA4h+IAd8IQggBEEBaiEECyACQQZ2IQMgAkECdiEFAkAgAkEDcUF/aiICQQJLBEBBACECDAELAkACQAJAIAJBAWsOAgECAAsgASAEai0AACECIARBAWohBAwCCyABIARqLwAAIQIgBEECaiEEDAELIAEgBGooAAAhAiAEQQRqIQQLIAVBAXEhBQJ+AkACQAJAIANBf2oiA0ECTQRAIANBAWsOAgIDAQtCfyAGRQ0DGiABIARqMQAADAMLIAEgBGovAACtQoACfAwCCyABIARqKAAArQwBCyABIARqKQAACyEHIAAgBTYCICAAIAI2AhwgACAHNwMAQQAhAyAAQQA2AhQgACAHIAggBhsiBzcDCCAAIAdCgIAIIAdCgIAIVBs+AhALIAMLWwEBf0G4fyEDIAIQFiICIAFNBH8gACACakF/ai0AACIAQQNxQQJ0QaAeaigCACACaiAAQQZ2IgFBAnRBsB5qKAIAaiAAQSBxIgBFaiABRSAAQQV2cWoFQbh/CwsdACAAKAKQ4gEQWiAAQQA2AqDiASAAQgA3A5DiAQu1AwEFfyMAQZACayIKJABBuH8hBgJAIAVFDQAgBCwAACIIQf8BcSEHAkAgCEF/TARAIAdBgn9qQQF2IgggBU8NAkFsIQYgB0GBf2oiBUGAAk8NAiAEQQFqIQdBACEGA0AgBiAFTwRAIAUhBiAIIQcMAwUgACAGaiAHIAZBAXZqIgQtAABBBHY6AAAgACAGQQFyaiAELQAAQQ9xOgAAIAZBAmohBgwBCwAACwALIAcgBU8NASAAIARBAWogByAKEFMiBhADDQELIAYhBEEAIQYgAUEAQTQQECEJQQAhBQNAIAQgBkcEQCAAIAZqIggtAAAiAUELSwRAQWwhBgwDBSAJIAFBAnRqIgEgASgCAEEBajYCACAGQQFqIQZBASAILQAAdEEBdSAFaiEFDAILAAsLQWwhBiAFRQ0AIAUQFEEBaiIBQQxLDQAgAyABNgIAQQFBASABdCAFayIDEBQiAXQgA0cNACAAIARqIAFBAWoiADoAACAJIABBAnRqIgAgACgCAEEBajYCACAJKAIEIgBBAkkgAEEBcXINACACIARBAWo2AgAgB0EBaiEGCyAKQZACaiQAIAYLxhEBDH8jAEHwAGsiBSQAQWwhCwJAIANBCkkNACACLwAAIQogAi8AAiEJIAIvAAQhByAFQQhqIAQQDgJAIAMgByAJIApqakEGaiIMSQ0AIAUtAAohCCAFQdgAaiACQQZqIgIgChAGIgsQAw0BIAVBQGsgAiAKaiICIAkQBiILEAMNASAFQShqIAIgCWoiAiAHEAYiCxADDQEgBUEQaiACIAdqIAMgDGsQBiILEAMNASAAIAFqIg9BfWohECAEQQRqIQZBASELIAAgAUEDakECdiIDaiIMIANqIgIgA2oiDiEDIAIhBCAMIQcDQCALIAMgEElxBEAgACAGIAVB2ABqIAgQAkECdGoiCS8BADsAACAFQdgAaiAJLQACEAEgCS0AAyELIAcgBiAFQUBrIAgQAkECdGoiCS8BADsAACAFQUBrIAktAAIQASAJLQADIQogBCAGIAVBKGogCBACQQJ0aiIJLwEAOwAAIAVBKGogCS0AAhABIAktAAMhCSADIAYgBUEQaiAIEAJBAnRqIg0vAQA7AAAgBUEQaiANLQACEAEgDS0AAyENIAAgC2oiCyAGIAVB2ABqIAgQAkECdGoiAC8BADsAACAFQdgAaiAALQACEAEgAC0AAyEAIAcgCmoiCiAGIAVBQGsgCBACQQJ0aiIHLwEAOwAAIAVBQGsgBy0AAhABIActAAMhByAEIAlqIgkgBiAFQShqIAgQAkECdGoiBC8BADsAACAFQShqIAQtAAIQASAELQADIQQgAyANaiIDIAYgBUEQaiAIEAJBAnRqIg0vAQA7AAAgBUEQaiANLQACEAEgACALaiEAIAcgCmohByAEIAlqIQQgAyANLQADaiEDIAVB2ABqEA0gBUFAaxANciAFQShqEA1yIAVBEGoQDXJFIQsMAQsLIAQgDksgByACS3INAEFsIQsgACAMSw0BIAxBfWohCQNAQQAgACAJSSAFQdgAahAEGwRAIAAgBiAFQdgAaiAIEAJBAnRqIgovAQA7AAAgBUHYAGogCi0AAhABIAAgCi0AA2oiACAGIAVB2ABqIAgQAkECdGoiCi8BADsAACAFQdgAaiAKLQACEAEgACAKLQADaiEADAEFIAxBfmohCgNAIAVB2ABqEAQgACAKS3JFBEAgACAGIAVB2ABqIAgQAkECdGoiCS8BADsAACAFQdgAaiAJLQACEAEgACAJLQADaiEADAELCwNAIAAgCk0EQCAAIAYgBUHYAGogCBACQQJ0aiIJLwEAOwAAIAVB2ABqIAktAAIQASAAIAktAANqIQAMAQsLAkAgACAMTw0AIAAgBiAFQdgAaiAIEAIiAEECdGoiDC0AADoAACAMLQADQQFGBEAgBUHYAGogDC0AAhABDAELIAUoAlxBH0sNACAFQdgAaiAGIABBAnRqLQACEAEgBSgCXEEhSQ0AIAVBIDYCXAsgAkF9aiEMA0BBACAHIAxJIAVBQGsQBBsEQCAHIAYgBUFAayAIEAJBAnRqIgAvAQA7AAAgBUFAayAALQACEAEgByAALQADaiIAIAYgBUFAayAIEAJBAnRqIgcvAQA7AAAgBUFAayAHLQACEAEgACAHLQADaiEHDAEFIAJBfmohDANAIAVBQGsQBCAHIAxLckUEQCAHIAYgBUFAayAIEAJBAnRqIgAvAQA7AAAgBUFAayAALQACEAEgByAALQADaiEHDAELCwNAIAcgDE0EQCAHIAYgBUFAayAIEAJBAnRqIgAvAQA7AAAgBUFAayAALQACEAEgByAALQADaiEHDAELCwJAIAcgAk8NACAHIAYgBUFAayAIEAIiAEECdGoiAi0AADoAACACLQADQQFGBEAgBUFAayACLQACEAEMAQsgBSgCREEfSw0AIAVBQGsgBiAAQQJ0ai0AAhABIAUoAkRBIUkNACAFQSA2AkQLIA5BfWohAgNAQQAgBCACSSAFQShqEAQbBEAgBCAGIAVBKGogCBACQQJ0aiIALwEAOwAAIAVBKGogAC0AAhABIAQgAC0AA2oiACAGIAVBKGogCBACQQJ0aiIELwEAOwAAIAVBKGogBC0AAhABIAAgBC0AA2ohBAwBBSAOQX5qIQIDQCAFQShqEAQgBCACS3JFBEAgBCAGIAVBKGogCBACQQJ0aiIALwEAOwAAIAVBKGogAC0AAhABIAQgAC0AA2ohBAwBCwsDQCAEIAJNBEAgBCAGIAVBKGogCBACQQJ0aiIALwEAOwAAIAVBKGogAC0AAhABIAQgAC0AA2ohBAwBCwsCQCAEIA5PDQAgBCAGIAVBKGogCBACIgBBAnRqIgItAAA6AAAgAi0AA0EBRgRAIAVBKGogAi0AAhABDAELIAUoAixBH0sNACAFQShqIAYgAEECdGotAAIQASAFKAIsQSFJDQAgBUEgNgIsCwNAQQAgAyAQSSAFQRBqEAQbBEAgAyAGIAVBEGogCBACQQJ0aiIALwEAOwAAIAVBEGogAC0AAhABIAMgAC0AA2oiACAGIAVBEGogCBACQQJ0aiICLwEAOwAAIAVBEGogAi0AAhABIAAgAi0AA2ohAwwBBSAPQX5qIQIDQCAFQRBqEAQgAyACS3JFBEAgAyAGIAVBEGogCBACQQJ0aiIALwEAOwAAIAVBEGogAC0AAhABIAMgAC0AA2ohAwwBCwsDQCADIAJNBEAgAyAGIAVBEGogCBACQQJ0aiIALwEAOwAAIAVBEGogAC0AAhABIAMgAC0AA2ohAwwBCwsCQCADIA9PDQAgAyAGIAVBEGogCBACIgBBAnRqIgItAAA6AAAgAi0AA0EBRgRAIAVBEGogAi0AAhABDAELIAUoAhRBH0sNACAFQRBqIAYgAEECdGotAAIQASAFKAIUQSFJDQAgBUEgNgIUCyABQWwgBUHYAGoQCiAFQUBrEApxIAVBKGoQCnEgBUEQahAKcRshCwwJCwAACwALAAALAAsAAAsACwAACwALQWwhCwsgBUHwAGokACALC7UEAQ5/IwBBEGsiBiQAIAZBBGogABAOQVQhBQJAIARB3AtJDQAgBi0ABCEHIANB8ARqQQBB7AAQECEIIAdBDEsNACADQdwJaiIJIAggBkEIaiAGQQxqIAEgAhAxIhAQA0UEQCAGKAIMIgQgB0sNASADQdwFaiEPIANBpAVqIREgAEEEaiESIANBqAVqIQEgBCEFA0AgBSICQX9qIQUgCCACQQJ0aigCAEUNAAsgAkEBaiEOQQEhBQNAIAUgDk9FBEAgCCAFQQJ0IgtqKAIAIQwgASALaiAKNgIAIAVBAWohBSAKIAxqIQoMAQsLIAEgCjYCAEEAIQUgBigCCCELA0AgBSALRkUEQCABIAUgCWotAAAiDEECdGoiDSANKAIAIg1BAWo2AgAgDyANQQF0aiINIAw6AAEgDSAFOgAAIAVBAWohBQwBCwtBACEBIANBADYCqAUgBEF/cyAHaiEJQQEhBQNAIAUgDk9FBEAgCCAFQQJ0IgtqKAIAIQwgAyALaiABNgIAIAwgBSAJanQgAWohASAFQQFqIQUMAQsLIAcgBEEBaiIBIAJrIgRrQQFqIQgDQEEBIQUgBCAIT0UEQANAIAUgDk9FBEAgBUECdCIJIAMgBEE0bGpqIAMgCWooAgAgBHY2AgAgBUEBaiEFDAELCyAEQQFqIQQMAQsLIBIgByAPIAogESADIAIgARBkIAZBAToABSAGIAc6AAYgACAGKAIENgIACyAQIQULIAZBEGokACAFC8ENAQt/IwBB8ABrIgUkAEFsIQkCQCADQQpJDQAgAi8AACEKIAIvAAIhDCACLwAEIQYgBUEIaiAEEA4CQCADIAYgCiAMampBBmoiDUkNACAFLQAKIQcgBUHYAGogAkEGaiICIAoQBiIJEAMNASAFQUBrIAIgCmoiAiAMEAYiCRADDQEgBUEoaiACIAxqIgIgBhAGIgkQAw0BIAVBEGogAiAGaiADIA1rEAYiCRADDQEgACABaiIOQX1qIQ8gBEEEaiEGQQEhCSAAIAFBA2pBAnYiAmoiCiACaiIMIAJqIg0hAyAMIQQgCiECA0AgCSADIA9JcQRAIAYgBUHYAGogBxACQQF0aiIILQAAIQsgBUHYAGogCC0AARABIAAgCzoAACAGIAVBQGsgBxACQQF0aiIILQAAIQsgBUFAayAILQABEAEgAiALOgAAIAYgBUEoaiAHEAJBAXRqIggtAAAhCyAFQShqIAgtAAEQASAEIAs6AAAgBiAFQRBqIAcQAkEBdGoiCC0AACELIAVBEGogCC0AARABIAMgCzoAACAGIAVB2ABqIAcQAkEBdGoiCC0AACELIAVB2ABqIAgtAAEQASAAIAs6AAEgBiAFQUBrIAcQAkEBdGoiCC0AACELIAVBQGsgCC0AARABIAIgCzoAASAGIAVBKGogBxACQQF0aiIILQAAIQsgBUEoaiAILQABEAEgBCALOgABIAYgBUEQaiAHEAJBAXRqIggtAAAhCyAFQRBqIAgtAAEQASADIAs6AAEgA0ECaiEDIARBAmohBCACQQJqIQIgAEECaiEAIAkgBUHYAGoQDUVxIAVBQGsQDUVxIAVBKGoQDUVxIAVBEGoQDUVxIQkMAQsLIAQgDUsgAiAMS3INAEFsIQkgACAKSw0BIApBfWohCQNAIAVB2ABqEAQgACAJT3JFBEAgBiAFQdgAaiAHEAJBAXRqIggtAAAhCyAFQdgAaiAILQABEAEgACALOgAAIAYgBUHYAGogBxACQQF0aiIILQAAIQsgBUHYAGogCC0AARABIAAgCzoAASAAQQJqIQAMAQsLA0AgBUHYAGoQBCAAIApPckUEQCAGIAVB2ABqIAcQAkEBdGoiCS0AACEIIAVB2ABqIAktAAEQASAAIAg6AAAgAEEBaiEADAELCwNAIAAgCkkEQCAGIAVB2ABqIAcQAkEBdGoiCS0AACEIIAVB2ABqIAktAAEQASAAIAg6AAAgAEEBaiEADAELCyAMQX1qIQADQCAFQUBrEAQgAiAAT3JFBEAgBiAFQUBrIAcQAkEBdGoiCi0AACEJIAVBQGsgCi0AARABIAIgCToAACAGIAVBQGsgBxACQQF0aiIKLQAAIQkgBUFAayAKLQABEAEgAiAJOgABIAJBAmohAgwBCwsDQCAFQUBrEAQgAiAMT3JFBEAgBiAFQUBrIAcQAkEBdGoiAC0AACEKIAVBQGsgAC0AARABIAIgCjoAACACQQFqIQIMAQsLA0AgAiAMSQRAIAYgBUFAayAHEAJBAXRqIgAtAAAhCiAFQUBrIAAtAAEQASACIAo6AAAgAkEBaiECDAELCyANQX1qIQADQCAFQShqEAQgBCAAT3JFBEAgBiAFQShqIAcQAkEBdGoiAi0AACEKIAVBKGogAi0AARABIAQgCjoAACAGIAVBKGogBxACQQF0aiICLQAAIQogBUEoaiACLQABEAEgBCAKOgABIARBAmohBAwBCwsDQCAFQShqEAQgBCANT3JFBEAgBiAFQShqIAcQAkEBdGoiAC0AACECIAVBKGogAC0AARABIAQgAjoAACAEQQFqIQQMAQsLA0AgBCANSQRAIAYgBUEoaiAHEAJBAXRqIgAtAAAhAiAFQShqIAAtAAEQASAEIAI6AAAgBEEBaiEEDAELCwNAIAVBEGoQBCADIA9PckUEQCAGIAVBEGogBxACQQF0aiIALQAAIQIgBUEQaiAALQABEAEgAyACOgAAIAYgBUEQaiAHEAJBAXRqIgAtAAAhAiAFQRBqIAAtAAEQASADIAI6AAEgA0ECaiEDDAELCwNAIAVBEGoQBCADIA5PckUEQCAGIAVBEGogBxACQQF0aiIALQAAIQIgBUEQaiAALQABEAEgAyACOgAAIANBAWohAwwBCwsDQCADIA5JBEAgBiAFQRBqIAcQAkEBdGoiAC0AACECIAVBEGogAC0AARABIAMgAjoAACADQQFqIQMMAQsLIAFBbCAFQdgAahAKIAVBQGsQCnEgBUEoahAKcSAFQRBqEApxGyEJDAELQWwhCQsgBUHwAGokACAJC8oCAQR/IwBBIGsiBSQAIAUgBBAOIAUtAAIhByAFQQhqIAIgAxAGIgIQA0UEQCAEQQRqIQIgACABaiIDQX1qIQQDQCAFQQhqEAQgACAET3JFBEAgAiAFQQhqIAcQAkEBdGoiBi0AACEIIAVBCGogBi0AARABIAAgCDoAACACIAVBCGogBxACQQF0aiIGLQAAIQggBUEIaiAGLQABEAEgACAIOgABIABBAmohAAwBCwsDQCAFQQhqEAQgACADT3JFBEAgAiAFQQhqIAcQAkEBdGoiBC0AACEGIAVBCGogBC0AARABIAAgBjoAACAAQQFqIQAMAQsLA0AgACADT0UEQCACIAVBCGogBxACQQF0aiIELQAAIQYgBUEIaiAELQABEAEgACAGOgAAIABBAWohAAwBCwsgAUFsIAVBCGoQChshAgsgBUEgaiQAIAILtgMBCX8jAEEQayIGJAAgBkEANgIMIAZBADYCCEFUIQQCQAJAIANBQGsiDCADIAZBCGogBkEMaiABIAIQMSICEAMNACAGQQRqIAAQDiAGKAIMIgcgBi0ABEEBaksNASAAQQRqIQogBkEAOgAFIAYgBzoABiAAIAYoAgQ2AgAgB0EBaiEJQQEhBANAIAQgCUkEQCADIARBAnRqIgEoAgAhACABIAU2AgAgACAEQX9qdCAFaiEFIARBAWohBAwBCwsgB0EBaiEHQQAhBSAGKAIIIQkDQCAFIAlGDQEgAyAFIAxqLQAAIgRBAnRqIgBBASAEdEEBdSILIAAoAgAiAWoiADYCACAHIARrIQhBACEEAkAgC0EDTQRAA0AgBCALRg0CIAogASAEakEBdGoiACAIOgABIAAgBToAACAEQQFqIQQMAAALAAsDQCABIABPDQEgCiABQQF0aiIEIAg6AAEgBCAFOgAAIAQgCDoAAyAEIAU6AAIgBCAIOgAFIAQgBToABCAEIAg6AAcgBCAFOgAGIAFBBGohAQwAAAsACyAFQQFqIQUMAAALAAsgAiEECyAGQRBqJAAgBAutAQECfwJAQYQgKAIAIABHIAAoAgBBAXYiAyABa0F4aiICQXhxQQhHcgR/IAIFIAMQJ0UNASACQQhqC0EQSQ0AIAAgACgCACICQQFxIAAgAWpBD2pBeHEiASAAa0EBdHI2AgAgASAANgIEIAEgASgCAEEBcSAAIAJBAXZqIAFrIgJBAXRyNgIAQYQgIAEgAkH/////B3FqQQRqQYQgKAIAIABGGyABNgIAIAEQJQsLygIBBX8CQAJAAkAgAEEIIABBCEsbZ0EfcyAAaUEBR2oiAUEESSAAIAF2cg0AIAFBAnRB/B5qKAIAIgJFDQADQCACQXhqIgMoAgBBAXZBeGoiBSAATwRAIAIgBUEIIAVBCEsbZ0Efc0ECdEGAH2oiASgCAEYEQCABIAIoAgQ2AgALDAMLIARBHksNASAEQQFqIQQgAigCBCICDQALC0EAIQMgAUEgTw0BA0AgAUECdEGAH2ooAgAiAkUEQCABQR5LIQIgAUEBaiEBIAJFDQEMAwsLIAIgAkF4aiIDKAIAQQF2QXhqIgFBCCABQQhLG2dBH3NBAnRBgB9qIgEoAgBGBEAgASACKAIENgIACwsgAigCACIBBEAgASACKAIENgIECyACKAIEIgEEQCABIAIoAgA2AgALIAMgAygCAEEBcjYCACADIAAQNwsgAwvhCwINfwV+IwBB8ABrIgckACAHIAAoAvDhASIINgJcIAEgAmohDSAIIAAoAoDiAWohDwJAAkAgBUUEQCABIQQMAQsgACgCxOABIRAgACgCwOABIREgACgCvOABIQ4gAEEBNgKM4QFBACEIA0AgCEEDRwRAIAcgCEECdCICaiAAIAJqQazQAWooAgA2AkQgCEEBaiEIDAELC0FsIQwgB0EYaiADIAQQBhADDQEgB0EsaiAHQRhqIAAoAgAQEyAHQTRqIAdBGGogACgCCBATIAdBPGogB0EYaiAAKAIEEBMgDUFgaiESIAEhBEEAIQwDQCAHKAIwIAcoAixBA3RqKQIAIhRCEIinQf8BcSEIIAcoAkAgBygCPEEDdGopAgAiFUIQiKdB/wFxIQsgBygCOCAHKAI0QQN0aikCACIWQiCIpyEJIBVCIIghFyAUQiCIpyECAkAgFkIQiKdB/wFxIgNBAk8EQAJAIAZFIANBGUlyRQRAIAkgB0EYaiADQSAgBygCHGsiCiAKIANLGyIKEAUgAyAKayIDdGohCSAHQRhqEAQaIANFDQEgB0EYaiADEAUgCWohCQwBCyAHQRhqIAMQBSAJaiEJIAdBGGoQBBoLIAcpAkQhGCAHIAk2AkQgByAYNwNIDAELAkAgA0UEQCACBEAgBygCRCEJDAMLIAcoAkghCQwBCwJAAkAgB0EYakEBEAUgCSACRWpqIgNBA0YEQCAHKAJEQX9qIgMgA0VqIQkMAQsgA0ECdCAHaigCRCIJIAlFaiEJIANBAUYNAQsgByAHKAJINgJMCwsgByAHKAJENgJIIAcgCTYCRAsgF6chAyALBEAgB0EYaiALEAUgA2ohAwsgCCALakEUTwRAIAdBGGoQBBoLIAgEQCAHQRhqIAgQBSACaiECCyAHQRhqEAQaIAcgB0EYaiAUQhiIp0H/AXEQCCAUp0H//wNxajYCLCAHIAdBGGogFUIYiKdB/wFxEAggFadB//8DcWo2AjwgB0EYahAEGiAHIAdBGGogFkIYiKdB/wFxEAggFqdB//8DcWo2AjQgByACNgJgIAcoAlwhCiAHIAk2AmggByADNgJkAkACQAJAIAQgAiADaiILaiASSw0AIAIgCmoiEyAPSw0AIA0gBGsgC0Egak8NAQsgByAHKQNoNwMQIAcgBykDYDcDCCAEIA0gB0EIaiAHQdwAaiAPIA4gESAQEB4hCwwBCyACIARqIQggBCAKEAcgAkERTwRAIARBEGohAgNAIAIgCkEQaiIKEAcgAkEQaiICIAhJDQALCyAIIAlrIQIgByATNgJcIAkgCCAOa0sEQCAJIAggEWtLBEBBbCELDAILIBAgAiAOayICaiIKIANqIBBNBEAgCCAKIAMQDxoMAgsgCCAKQQAgAmsQDyEIIAcgAiADaiIDNgJkIAggAmshCCAOIQILIAlBEE8EQCADIAhqIQMDQCAIIAIQByACQRBqIQIgCEEQaiIIIANJDQALDAELAkAgCUEHTQRAIAggAi0AADoAACAIIAItAAE6AAEgCCACLQACOgACIAggAi0AAzoAAyAIQQRqIAIgCUECdCIDQcAeaigCAGoiAhAXIAIgA0HgHmooAgBrIQIgBygCZCEDDAELIAggAhAMCyADQQlJDQAgAyAIaiEDIAhBCGoiCCACQQhqIgJrQQ9MBEADQCAIIAIQDCACQQhqIQIgCEEIaiIIIANJDQAMAgALAAsDQCAIIAIQByACQRBqIQIgCEEQaiIIIANJDQALCyAHQRhqEAQaIAsgDCALEAMiAhshDCAEIAQgC2ogAhshBCAFQX9qIgUNAAsgDBADDQFBbCEMIAdBGGoQBEECSQ0BQQAhCANAIAhBA0cEQCAAIAhBAnQiAmpBrNABaiACIAdqKAJENgIAIAhBAWohCAwBCwsgBygCXCEIC0G6fyEMIA8gCGsiACANIARrSw0AIAQEfyAEIAggABALIABqBUEACyABayEMCyAHQfAAaiQAIAwLkRcCFn8FfiMAQdABayIHJAAgByAAKALw4QEiCDYCvAEgASACaiESIAggACgCgOIBaiETAkACQCAFRQRAIAEhAwwBCyAAKALE4AEhESAAKALA4AEhFSAAKAK84AEhDyAAQQE2AozhAUEAIQgDQCAIQQNHBEAgByAIQQJ0IgJqIAAgAmpBrNABaigCADYCVCAIQQFqIQgMAQsLIAcgETYCZCAHIA82AmAgByABIA9rNgJoQWwhECAHQShqIAMgBBAGEAMNASAFQQQgBUEESBshFyAHQTxqIAdBKGogACgCABATIAdBxABqIAdBKGogACgCCBATIAdBzABqIAdB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IAdB0AFqJAAgEAslACAAQgA3AgAgAEEAOwEIIABBADoACyAAIAE2AgwgACACOgAKC7QFAQN/IwBBMGsiBCQAIABB/wFqIgVBfWohBgJAIAMvAQIEQCAEQRhqIAEgAhAGIgIQAw0BIARBEGogBEEYaiADEBwgBEEIaiAEQRhqIAMQHCAAIQMDQAJAIARBGGoQBCADIAZPckUEQCADIARBEGogBEEYahASOgAAIAMgBEEIaiAEQRhqEBI6AAEgBEEYahAERQ0BIANBAmohAwsgBUF+aiEFAn8DQEG6fyECIAMiASAFSw0FIAEgBEEQaiAEQRhqEBI6AAAgAUEBaiEDIARBGGoQBEEDRgRAQQIhAiAEQQhqDAILIAMgBUsNBSABIARBCGogBEEYahASOgABIAFBAmohA0EDIQIgBEEYahAEQQNHDQALIARBEGoLIQUgAyAFIARBGGoQEjoAACABIAJqIABrIQIMAwsgAyAEQRBqIARBGGoQEjoAAiADIARBCGogBEEYahASOgADIANBBGohAwwAAAsACyAEQRhqIAEgAhAGIgIQAw0AIARBEGogBEEYaiADEBwgBEEIaiAEQRhqIAMQHCAAIQMDQAJAIARBGGoQBCADIAZPckUEQCADIARBEGogBEEYahAROgAAIAMgBEEIaiAEQRhqEBE6AAEgBEEYahAERQ0BIANBAmohAwsgBUF+aiEFAn8DQEG6fyECIAMiASAFSw0EIAEgBEEQaiAEQRhqEBE6AAAgAUEBaiEDIARBGGoQBEEDRgRAQQIhAiAEQQhqDAILIAMgBUsNBCABIARBCGogBEEYahAROgABIAFBAmohA0EDIQIgBEEYahAEQQNHDQALIARBEGoLIQUgAyAFIARBGGoQEToAACABIAJqIABrIQIMAgsgAyAEQRBqIARBGGoQEToAAiADIARBCGogBEEYahAROgADIANBBGohAwwAAAsACyAEQTBqJAAgAgtpAQF/An8CQAJAIAJBB00NACABKAAAQbfIwuF+Rw0AIAAgASgABDYCmOIBQWIgAEEQaiABIAIQPiIDEAMNAhogAEKBgICAEDcDiOEBIAAgASADaiACIANrECoMAQsgACABIAIQKgtBAAsLrQMBBn8jAEGAAWsiAyQAQWIhCAJAIAJBCUkNACAAQZjQAGogAUEIaiIEIAJBeGogAEGY0AAQMyIFEAMiBg0AIANBHzYCfCADIANB/ABqIANB+ABqIAQgBCAFaiAGGyIEIAEgAmoiAiAEaxAVIgUQAw0AIAMoAnwiBkEfSw0AIAMoAngiB0EJTw0AIABBiCBqIAMgBkGAC0GADCAHEBggA0E0NgJ8IAMgA0H8AGogA0H4AGogBCAFaiIEIAIgBGsQFSIFEAMNACADKAJ8IgZBNEsNACADKAJ4IgdBCk8NACAAQZAwaiADIAZBgA1B4A4gBxAYIANBIzYCfCADIANB/ABqIANB+ABqIAQgBWoiBCACIARrEBUiBRADDQAgAygCfCIGQSNLDQAgAygCeCIHQQpPDQAgACADIAZBwBBB0BEgBxAYIAQgBWoiBEEMaiIFIAJLDQAgAiAFayEFQQAhAgNAIAJBA0cEQCAEKAAAIgZBf2ogBU8NAiAAIAJBAnRqQZzQAWogBjYCACACQQFqIQIgBEEEaiEEDAELCyAEIAFrIQgLIANBgAFqJAAgCAtGAQN/IABBCGohAyAAKAIEIQJBACEAA0AgACACdkUEQCABIAMgAEEDdGotAAJBFktqIQEgAEEBaiEADAELCyABQQggAmt0C4YDAQV/Qbh/IQcCQCADRQ0AIAItAAAiBEUEQCABQQA2AgBBAUG4fyADQQFGGw8LAn8gAkEBaiIFIARBGHRBGHUiBkF/Sg0AGiAGQX9GBEAgA0EDSA0CIAUvAABBgP4BaiEEIAJBA2oMAQsgA0ECSA0BIAItAAEgBEEIdHJBgIB+aiEEIAJBAmoLIQUgASAENgIAIAVBAWoiASACIANqIgNLDQBBbCEHIABBEGogACAFLQAAIgVBBnZBI0EJIAEgAyABa0HAEEHQEUHwEiAAKAKM4QEgACgCnOIBIAQQHyIGEAMiCA0AIABBmCBqIABBCGogBUEEdkEDcUEfQQggASABIAZqIAgbIgEgAyABa0GAC0GADEGAFyAAKAKM4QEgACgCnOIBIAQQHyIGEAMiCA0AIABBoDBqIABBBGogBUECdkEDcUE0QQkgASABIAZqIAgbIgEgAyABa0GADUHgDkGQGSAAKAKM4QEgACgCnOIBIAQQHyIAEAMNACAAIAFqIAJrIQcLIAcLrQMBCn8jAEGABGsiCCQAAn9BUiACQf8BSw0AGkFUIANBDEsNABogAkEBaiELIABBBGohCUGAgAQgA0F/anRBEHUhCkEAIQJBASEEQQEgA3QiB0F/aiIMIQUDQCACIAtGRQRAAkAgASACQQF0Ig1qLwEAIgZB//8DRgRAIAkgBUECdGogAjoAAiAFQX9qIQVBASEGDAELIARBACAKIAZBEHRBEHVKGyEECyAIIA1qIAY7AQAgAkEBaiECDAELCyAAIAQ7AQIgACADOwEAIAdBA3YgB0EBdmpBA2ohBkEAIQRBACECA0AgBCALRkUEQCABIARBAXRqLgEAIQpBACEAA0AgACAKTkUEQCAJIAJBAnRqIAQ6AAIDQCACIAZqIAxxIgIgBUsNAAsgAEEBaiEADAELCyAEQQFqIQQMAQsLQX8gAg0AGkEAIQIDfyACIAdGBH9BAAUgCCAJIAJBAnRqIgAtAAJBAXRqIgEgAS8BACIBQQFqOwEAIAAgAyABEBRrIgU6AAMgACABIAVB/wFxdCAHazsBACACQQFqIQIMAQsLCyEFIAhBgARqJAAgBQvjBgEIf0FsIQcCQCACQQNJDQACQAJAAkACQCABLQAAIgNBA3EiCUEBaw4DAwEAAgsgACgCiOEBDQBBYg8LIAJBBUkNAkEDIQYgASgAACEFAn8CQAJAIANBAnZBA3EiCEF+aiIEQQFNBEAgBEEBaw0BDAILIAVBDnZB/wdxIQQgBUEEdkH/B3EhAyAIRQwCCyAFQRJ2IQRBBCEGIAVBBHZB//8AcSEDQQAMAQsgBUEEdkH//w9xIgNBgIAISw0DIAEtAARBCnQgBUEWdnIhBEEFIQZBAAshBSAEIAZqIgogAksNAgJAIANBgQZJDQAgACgCnOIBRQ0AQQAhAgNAIAJBg4ABSw0BIAJBQGshAgwAAAsACwJ/IAlBA0YEQCABIAZqIQEgAEHw4gFqIQIgACgCDCEGIAUEQCACIAMgASAEIAYQXwwCCyACIAMgASAEIAYQXQwBCyAAQbjQAWohAiABIAZqIQEgAEHw4gFqIQYgAEGo0ABqIQggBQRAIAggBiADIAEgBCACEF4MAQsgCCAGIAMgASAEIAIQXAsQAw0CIAAgAzYCgOIBIABBATYCiOEBIAAgAEHw4gFqNgLw4QEgCUECRgRAIAAgAEGo0ABqNgIMCyAAIANqIgBBiOMBakIANwAAIABBgOMBakIANwAAIABB+OIBakIANwAAIABB8OIBakIANwAAIAoPCwJ/AkACQAJAIANBAnZBA3FBf2oiBEECSw0AIARBAWsOAgACAQtBASEEIANBA3YMAgtBAiEEIAEvAABBBHYMAQtBAyEEIAEQIUEEdgsiAyAEaiIFQSBqIAJLBEAgBSACSw0CIABB8OIBaiABIARqIAMQCyEBIAAgAzYCgOIBIAAgATYC8OEBIAEgA2oiAEIANwAYIABCADcAECAAQgA3AAggAEIANwAAIAUPCyAAIAM2AoDiASAAIAEgBGo2AvDhASAFDwsCfwJAAkACQCADQQJ2QQNxQX9qIgRBAksNACAEQQFrDgIAAgELQQEhByADQQN2DAILQQIhByABLwAAQQR2DAELIAJBBEkgARAhIgJBj4CAAUtyDQFBAyEHIAJBBHYLIQIgAEHw4gFqIAEgB2otAAAgAkEgahAQIQEgACACNgKA4gEgACABNgLw4QEgB0EBaiEHCyAHC0sAIABC+erQ0OfJoeThADcDICAAQgA3AxggAELP1tO+0ser2UI3AxAgAELW64Lu6v2J9eAANwMIIABCADcDACAAQShqQQBBKBAQGgviAgICfwV+IABBKGoiASAAKAJIaiECAn4gACkDACIDQiBaBEAgACkDECIEQgeJIAApAwgiBUIBiXwgACkDGCIGQgyJfCAAKQMgIgdCEol8IAUQGSAEEBkgBhAZIAcQGQwBCyAAKQMYQsXP2bLx5brqJ3wLIAN8IQMDQCABQQhqIgAgAk0EQEIAIAEpAAAQCSADhUIbiUKHla+vmLbem55/fkLj3MqV/M7y9YV/fCEDIAAhAQwBCwsCQCABQQRqIgAgAksEQCABIQAMAQsgASgAAK1Ch5Wvr5i23puef34gA4VCF4lCz9bTvtLHq9lCfkL5893xmfaZqxZ8IQMLA0AgACACSQRAIAAxAABCxc/ZsvHluuonfiADhUILiUKHla+vmLbem55/fiEDIABBAWohAAwBCwsgA0IhiCADhULP1tO+0ser2UJ+IgNCHYggA4VC+fPd8Zn2masWfiIDQiCIIAOFC+8CAgJ/BH4gACAAKQMAIAKtfDcDAAJAAkAgACgCSCIDIAJqIgRBH00EQCABRQ0BIAAgA2pBKGogASACECAgACgCSCACaiEEDAELIAEgAmohAgJ/IAMEQCAAQShqIgQgA2ogAUEgIANrECAgACAAKQMIIAQpAAAQCTcDCCAAIAApAxAgACkAMBAJNwMQIAAgACkDGCAAKQA4EAk3AxggACAAKQMgIABBQGspAAAQCTcDICAAKAJIIQMgAEEANgJIIAEgA2tBIGohAQsgAUEgaiACTQsEQCACQWBqIQMgACkDICEFIAApAxghBiAAKQMQIQcgACkDCCEIA0AgCCABKQAAEAkhCCAHIAEpAAgQCSEHIAYgASkAEBAJIQYgBSABKQAYEAkhBSABQSBqIgEgA00NAAsgACAFNwMgIAAgBjcDGCAAIAc3AxAgACAINwMICyABIAJPDQEgAEEoaiABIAIgAWsiBBAgCyAAIAQ2AkgLCy8BAX8gAEUEQEG2f0EAIAMbDwtBun8hBCADIAFNBH8gACACIAMQEBogAwVBun8LCy8BAX8gAEUEQEG2f0EAIAMbDwtBun8hBCADIAFNBH8gACACIAMQCxogAwVBun8LC6gCAQZ/IwBBEGsiByQAIABB2OABaikDAEKAgIAQViEIQbh/IQUCQCAEQf//B0sNACAAIAMgBBBCIgUQAyIGDQAgACgCnOIBIQkgACAHQQxqIAMgAyAFaiAGGyIKIARBACAFIAYbayIGEEAiAxADBEAgAyEFDAELIAcoAgwhBCABRQRAQbp/IQUgBEEASg0BCyAGIANrIQUgAyAKaiEDAkAgCQRAIABBADYCnOIBDAELAkACQAJAIARBBUgNACAAQdjgAWopAwBCgICACFgNAAwBCyAAQQA2ApziAQwBCyAAKAIIED8hBiAAQQA2ApziASAGQRRPDQELIAAgASACIAMgBSAEIAgQOSEFDAELIAAgASACIAMgBSAEIAgQOiEFCyAHQRBqJAAgBQtnACAAQdDgAWogASACIAAoAuzhARAuIgEQAwRAIAEPC0G4fyECAkAgAQ0AIABB7OABaigCACIBBEBBYCECIAAoApjiASABRw0BC0EAIQIgAEHw4AFqKAIARQ0AIABBkOEBahBDCyACCycBAX8QVyIERQRAQUAPCyAEIAAgASACIAMgBBBLEE8hACAEEFYgAAs/AQF/AkACQAJAIAAoAqDiAUEBaiIBQQJLDQAgAUEBaw4CAAECCyAAEDBBAA8LIABBADYCoOIBCyAAKAKU4gELvAMCB38BfiMAQRBrIgkkAEG4fyEGAkAgBCgCACIIQQVBCSAAKALs4QEiBRtJDQAgAygCACIHQQFBBSAFGyAFEC8iBRADBEAgBSEGDAELIAggBUEDakkNACAAIAcgBRBJIgYQAw0AIAEgAmohCiAAQZDhAWohCyAIIAVrIQIgBSAHaiEHIAEhBQNAIAcgAiAJECwiBhADDQEgAkF9aiICIAZJBEBBuH8hBgwCCyAJKAIAIghBAksEQEFsIQYMAgsgB0EDaiEHAn8CQAJAAkAgCEEBaw4CAgABCyAAIAUgCiAFayAHIAYQSAwCCyAFIAogBWsgByAGEEcMAQsgBSAKIAVrIActAAAgCSgCCBBGCyIIEAMEQCAIIQYMAgsgACgC8OABBEAgCyAFIAgQRQsgAiAGayECIAYgB2ohByAFIAhqIQUgCSgCBEUNAAsgACkD0OABIgxCf1IEQEFsIQYgDCAFIAFrrFINAQsgACgC8OABBEBBaiEGIAJBBEkNASALEEQhDCAHKAAAIAynRw0BIAdBBGohByACQXxqIQILIAMgBzYCACAEIAI2AgAgBSABayEGCyAJQRBqJAAgBgsuACAAECsCf0EAQQAQAw0AGiABRSACRXJFBEBBYiAAIAEgAhA9EAMNARoLQQALCzcAIAEEQCAAIAAoAsTgASABKAIEIAEoAghqRzYCnOIBCyAAECtBABADIAFFckUEQCAAIAEQWwsL0QIBB38jAEEQayIGJAAgBiAENgIIIAYgAzYCDCAFBEAgBSgCBCEKIAUoAgghCQsgASEIAkACQANAIAAoAuzhARAWIQsCQANAIAQgC0kNASADKAAAQXBxQdDUtMIBRgRAIAMgBBAiIgcQAw0EIAQgB2shBCADIAdqIQMMAQsLIAYgAzYCDCAGIAQ2AggCQCAFBEAgACAFEE5BACEHQQAQA0UNAQwFCyAAIAogCRBNIgcQAw0ECyAAIAgQUCAMQQFHQQAgACAIIAIgBkEMaiAGQQhqEEwiByIDa0EAIAMQAxtBCkdyRQRAQbh/IQcMBAsgBxADDQMgAiAHayECIAcgCGohCEEBIQwgBigCDCEDIAYoAgghBAwBCwsgBiADNgIMIAYgBDYCCEG4fyEHIAQNASAIIAFrIQcMAQsgBiADNgIMIAYgBDYCCAsgBkEQaiQAIAcLRgECfyABIAAoArjgASICRwRAIAAgAjYCxOABIAAgATYCuOABIAAoArzgASEDIAAgATYCvOABIAAgASADIAJrajYCwOABCwutAgIEfwF+IwBBQGoiBCQAAkACQCACQQhJDQAgASgAAEFwcUHQ1LTCAUcNACABIAIQIiEBIABCADcDCCAAQQA2AgQgACABNgIADAELIARBGGogASACEC0iAxADBEAgACADEBoMAQsgAwRAIABBuH8QGgwBCyACIAQoAjAiA2shAiABIANqIQMDQAJAIAAgAyACIARBCGoQLCIFEAMEfyAFBSACIAVBA2oiBU8NAUG4fwsQGgwCCyAGQQFqIQYgAiAFayECIAMgBWohAyAEKAIMRQ0ACyAEKAI4BEAgAkEDTQRAIABBuH8QGgwCCyADQQRqIQMLIAQoAighAiAEKQMYIQcgAEEANgIEIAAgAyABazYCACAAIAIgBmytIAcgB0J/URs3AwgLIARBQGskAAslAQF/IwBBEGsiAiQAIAIgACABEFEgAigCACEAIAJBEGokACAAC30BBH8jAEGQBGsiBCQAIARB/wE2AggCQCAEQRBqIARBCGogBEEMaiABIAIQFSIGEAMEQCAGIQUMAQtBVCEFIAQoAgwiB0EGSw0AIAMgBEEQaiAEKAIIIAcQQSIFEAMNACAAIAEgBmogAiAGayADEDwhBQsgBEGQBGokACAFC4cBAgJ/An5BABAWIQMCQANAIAEgA08EQAJAIAAoAABBcHFB0NS0wgFGBEAgACABECIiAhADRQ0BQn4PCyAAIAEQVSIEQn1WDQMgBCAFfCIFIARUIQJCfiEEIAINAyAAIAEQUiICEAMNAwsgASACayEBIAAgAmohAAwBCwtCfiAFIAEbIQQLIAQLPwIBfwF+IwBBMGsiAiQAAn5CfiACQQhqIAAgARAtDQAaQgAgAigCHEEBRg0AGiACKQMICyEDIAJBMGokACADC40BAQJ/IwBBMGsiASQAAkAgAEUNACAAKAKI4gENACABIABB/OEBaigCADYCKCABIAApAvThATcDICAAEDAgACgCqOIBIQIgASABKAIoNgIYIAEgASkDIDcDECACIAFBEGoQGyAAQQA2AqjiASABIAEoAig2AgggASABKQMgNwMAIAAgARAbCyABQTBqJAALKgECfyMAQRBrIgAkACAAQQA2AgggAEIANwMAIAAQWCEBIABBEGokACABC4cBAQN/IwBBEGsiAiQAAkAgACgCAEUgACgCBEVzDQAgAiAAKAIINgIIIAIgACkCADcDAAJ/IAIoAgAiAQRAIAIoAghBqOMJIAERBQAMAQtBqOMJECgLIgFFDQAgASAAKQIANwL04QEgAUH84QFqIAAoAgg2AgAgARBZIAEhAwsgAkEQaiQAIAMLywEBAn8jAEEgayIBJAAgAEGBgIDAADYCtOIBIABBADYCiOIBIABBADYC7OEBIABCADcDkOIBIABBADYCpOMJIABBADYC3OIBIABCADcCzOIBIABBADYCvOIBIABBADYCxOABIABCADcCnOIBIABBpOIBakIANwIAIABBrOIBakEANgIAIAFCADcCECABQgA3AhggASABKQMYNwMIIAEgASkDEDcDACABKAIIQQh2QQFxIQIgAEEANgLg4gEgACACNgKM4gEgAUEgaiQAC3YBA38jAEEwayIBJAAgAARAIAEgAEHE0AFqIgIoAgA2AiggASAAKQK80AE3AyAgACgCACEDIAEgAigCADYCGCABIAApArzQATcDECADIAFBEGoQGyABIAEoAig2AgggASABKQMgNwMAIAAgARAbCyABQTBqJAALzAEBAX8gACABKAK00AE2ApjiASAAIAEoAgQiAjYCwOABIAAgAjYCvOABIAAgAiABKAIIaiICNgK44AEgACACNgLE4AEgASgCuNABBEAgAEKBgICAEDcDiOEBIAAgAUGk0ABqNgIMIAAgAUGUIGo2AgggACABQZwwajYCBCAAIAFBDGo2AgAgAEGs0AFqIAFBqNABaigCADYCACAAQbDQAWogAUGs0AFqKAIANgIAIABBtNABaiABQbDQAWooAgA2AgAPCyAAQgA3A4jhAQs7ACACRQRAQbp/DwsgBEUEQEFsDwsgAiAEEGAEQCAAIAEgAiADIAQgBRBhDwsgACABIAIgAyAEIAUQZQtGAQF/IwBBEGsiBSQAIAVBCGogBBAOAn8gBS0ACQRAIAAgASACIAMgBBAyDAELIAAgASACIAMgBBA0CyEAIAVBEGokACAACzQAIAAgAyAEIAUQNiIFEAMEQCAFDwsgBSAESQR/IAEgAiADIAVqIAQgBWsgABA1BUG4fwsLRgEBfyMAQRBrIgUkACAFQQhqIAQQDgJ/IAUtAAkEQCAAIAEgAiADIAQQYgwBCyAAIAEgAiADIAQQNQshACAFQRBqJAAgAAtZAQF/QQ8hAiABIABJBEAgAUEE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";
 
 /**
  * Loader for KTX 2.0 GPU Texture containers.
@@ -42461,28 +42545,11 @@ var KTX = /*#__PURE__*/Object.freeze({
  * - DFD: https://www.khronos.org/registry/DataFormat/specs/1.3/dataformat.1.3.html#basicdescriptor
  */
 
-const {
-	read,
-	KHR_DF_FLAG_ALPHA_PREMULTIPLIED,
-	KHR_DF_TRANSFER_SRGB,
-	VK_FORMAT_UNDEFINED,
-	VK_FORMAT_R16_SFLOAT,
-	VK_FORMAT_R16G16_SFLOAT,
-	VK_FORMAT_R16G16B16A16_SFLOAT,
-	VK_FORMAT_R32_SFLOAT,
-	VK_FORMAT_R32G32_SFLOAT,
-	VK_FORMAT_R32G32B32A32_SFLOAT,
-	VK_FORMAT_R8_SRGB,
-	VK_FORMAT_R8_UNORM,
-	VK_FORMAT_R8G8_SRGB,
-	VK_FORMAT_R8G8_UNORM,
-	VK_FORMAT_R8G8B8A8_SRGB,
-	VK_FORMAT_R8G8B8A8_UNORM,
-} = KTX; // eslint-disable-line no-undef
-
 const _taskCache = new WeakMap();
 
 let _activeLoaders = 0;
+
+let _zstd;
 
 class KTX2Loader extends Loader {
 
@@ -42665,8 +42732,8 @@ class KTX2Loader extends Loader {
 		texture.magFilter = LinearFilter;
 		texture.generateMipmaps = false;
 		texture.needsUpdate = true;
-		texture.encoding = dfdTransferFn === KHR_DF_TRANSFER_SRGB ? sRGBEncoding : LinearEncoding;
-		texture.premultiplyAlpha = !! ( dfdFlags & KHR_DF_FLAG_ALPHA_PREMULTIPLIED );
+		texture.encoding = dfdTransferFn === x$1 ? sRGBEncoding : LinearEncoding;
+		texture.premultiplyAlpha = !! ( dfdFlags & p );
 
 		return texture;
 
@@ -42679,9 +42746,9 @@ class KTX2Loader extends Loader {
 	 */
 	_createTexture( buffer, config = {} ) {
 
-		const container = read( new Uint8Array( buffer ) );
+		const container = Pi( new Uint8Array( buffer ) );
 
-		if ( container.vkFormat !== VK_FORMAT_UNDEFINED ) {
+		if ( container.vkFormat !== nt ) {
 
 			return createDataTexture( container );
 
@@ -43037,51 +43104,51 @@ KTX2Loader.BasisWorker = function () {
 
 const FORMAT_MAP = {
 
-	[ VK_FORMAT_R32G32B32A32_SFLOAT ]: RGBAFormat,
-	[ VK_FORMAT_R16G16B16A16_SFLOAT ]: RGBAFormat,
-	[ VK_FORMAT_R8G8B8A8_UNORM ]: RGBAFormat,
-	[ VK_FORMAT_R8G8B8A8_SRGB ]: RGBAFormat,
+	[ Ae ]: RGBAFormat,
+	[ pe ]: RGBAFormat,
+	[ Ot ]: RGBAFormat,
+	[ Ft ]: RGBAFormat,
 
-	[ VK_FORMAT_R32G32_SFLOAT ]: RGFormat,
-	[ VK_FORMAT_R16G16_SFLOAT ]: RGFormat,
-	[ VK_FORMAT_R8G8_UNORM ]: RGFormat,
-	[ VK_FORMAT_R8G8_SRGB ]: RGFormat,
+	[ de ]: RGFormat,
+	[ se ]: RGFormat,
+	[ yt ]: RGFormat,
+	[ dt ]: RGFormat,
 
-	[ VK_FORMAT_R32_SFLOAT ]: RedFormat,
-	[ VK_FORMAT_R16_SFLOAT ]: RedFormat,
-	[ VK_FORMAT_R8_SRGB ]: RedFormat,
-	[ VK_FORMAT_R8_UNORM ]: RedFormat,
+	[ xe ]: RedFormat,
+	[ $t ]: RedFormat,
+	[ gt ]: RedFormat,
+	[ ct ]: RedFormat,
 
 };
 
 const TYPE_MAP = {
 
-	[ VK_FORMAT_R32G32B32A32_SFLOAT ]: FloatType,
-	[ VK_FORMAT_R16G16B16A16_SFLOAT ]: HalfFloatType,
-	[ VK_FORMAT_R8G8B8A8_UNORM ]: UnsignedByteType,
-	[ VK_FORMAT_R8G8B8A8_SRGB ]: UnsignedByteType,
+	[ Ae ]: FloatType,
+	[ pe ]: HalfFloatType,
+	[ Ot ]: UnsignedByteType,
+	[ Ft ]: UnsignedByteType,
 
-	[ VK_FORMAT_R32G32_SFLOAT ]: FloatType,
-	[ VK_FORMAT_R16G16_SFLOAT ]: HalfFloatType,
-	[ VK_FORMAT_R8G8_UNORM ]: UnsignedByteType,
-	[ VK_FORMAT_R8G8_SRGB ]: UnsignedByteType,
+	[ de ]: FloatType,
+	[ se ]: HalfFloatType,
+	[ yt ]: UnsignedByteType,
+	[ dt ]: UnsignedByteType,
 
-	[ VK_FORMAT_R32_SFLOAT ]: FloatType,
-	[ VK_FORMAT_R16_SFLOAT ]: HalfFloatType,
-	[ VK_FORMAT_R8_SRGB ]: UnsignedByteType,
-	[ VK_FORMAT_R8_UNORM ]: UnsignedByteType,
+	[ xe ]: FloatType,
+	[ $t ]: HalfFloatType,
+	[ gt ]: UnsignedByteType,
+	[ ct ]: UnsignedByteType,
 
 };
 
 const ENCODING_MAP = {
 
-	[ VK_FORMAT_R8G8B8A8_SRGB ]: sRGBEncoding,
-	[ VK_FORMAT_R8G8_SRGB ]: sRGBEncoding,
-	[ VK_FORMAT_R8_SRGB ]: sRGBEncoding,
+	[ Ft ]: sRGBEncoding,
+	[ dt ]: sRGBEncoding,
+	[ gt ]: sRGBEncoding,
 
 };
 
-function createDataTexture( container ) {
+async function createDataTexture( container ) {
 
 	const { vkFormat, pixelWidth, pixelHeight, pixelDepth } = container;
 
@@ -43093,9 +43160,36 @@ function createDataTexture( container ) {
 
 	//
 
+	const level = container.levels[ 0 ];
+
+	let levelData;
 	let view;
 
-	const levelData = container.levels[ 0 ].levelData;
+	if ( container.supercompressionScheme === t ) {
+
+		levelData = level.levelData;
+
+	} else if ( container.supercompressionScheme === n ) {
+
+		if ( ! _zstd ) {
+
+			_zstd = new Promise( async ( resolve ) => {
+
+				const zstd = new Q();
+				await zstd.init();
+				resolve( zstd );
+
+			} );
+
+		}
+
+		levelData = ( await _zstd ).decode( level.levelData, level.uncompressedByteLength );
+
+	} else {
+
+		throw new Error( 'THREE.KTX2Loader: Unsupported supercompressionScheme.' );
+
+	}
 
 	if ( TYPE_MAP[ vkFormat ] === FloatType ) {
 
@@ -43612,8 +43706,8 @@ class CSS2DRenderer {
 
 		this.render = function ( scene, camera ) {
 
-			if ( scene.autoUpdate === true ) scene.updateMatrixWorld();
-			if ( camera.parent === null ) camera.updateMatrixWorld();
+			if ( scene.matrixWorldAutoUpdate === true ) scene.updateMatrixWorld();
+			if ( camera.parent === null && camera.matrixWorldAutoUpdate === true ) camera.updateMatrixWorld();
 
 			_viewMatrix.copy( camera.matrixWorldInverse );
 			_viewProjectionMatrix.multiplyMatrices( camera.projectionMatrix, _viewMatrix );
@@ -43732,239 +43826,6 @@ class CSS2DRenderer {
 
 	}
 
-}
-
-/* @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-const deserializeUrl = (url) => (!!url && url !== 'null') ? toFullUrl(url) : null;
-const assertIsArCandidate = () => {
-    if (IS_WEBXR_AR_CANDIDATE) {
-        return;
-    }
-    const missingApis = [];
-    if (!HAS_WEBXR_DEVICE_API) {
-        missingApis.push('WebXR Device API');
-    }
-    if (!HAS_WEBXR_HIT_TEST_API) {
-        missingApis.push('WebXR Hit Test API');
-    }
-    throw new Error(`The following APIs are required for AR, but are missing in this browser: ${missingApis.join(', ')}`);
-};
-/**
- * Converts a partial URL string to a fully qualified URL string.
- *
- * @param {String} url
- * @return {String}
- */
-const toFullUrl = (partialUrl) => {
-    const url = new URL(partialUrl, window.location.toString());
-    return url.toString();
-};
-/**
- * Returns a throttled version of a given function that is only invoked at most
- * once within a given threshold of time in milliseconds.
- *
- * The throttled version of the function has a "flush" property that resets the
- * threshold for cases when immediate invocation is desired.
- */
-const throttle = (fn, ms) => {
-    let timer = null;
-    const throttled = (...args) => {
-        if (timer != null) {
-            return;
-        }
-        fn(...args);
-        timer = self.setTimeout(() => timer = null, ms);
-    };
-    throttled.flush = () => {
-        if (timer != null) {
-            self.clearTimeout(timer);
-            timer = null;
-        }
-    };
-    return throttled;
-};
-const debounce = (fn, ms) => {
-    let timer = null;
-    return (...args) => {
-        if (timer != null) {
-            self.clearTimeout(timer);
-        }
-        timer = self.setTimeout(() => {
-            timer = null;
-            fn(...args);
-        }, ms);
-    };
-};
-/**
- * @param {Number} value
- * @param {Number} lowerLimit
- * @param {Number} upperLimit
- * @return {Number} value clamped within lowerLimit..upperLimit
- */
-const clamp = (value, lowerLimit, upperLimit) => Math.max(lowerLimit, Math.min(upperLimit, value));
-// The DPR we use for a "capped" scenario (see resolveDpr below):
-const CAPPED_DEVICE_PIXEL_RATIO = 1;
-/**
- * This helper analyzes the layout of the current page to decide if we should
- * use the natural device pixel ratio, or a capped value.
- *
- * We cap DPR if there is no meta viewport (suggesting that user is not
- * consciously specifying how to scale the viewport relative to the device
- * screen size).
- *
- * The rationale is that this condition typically leads to a pathological
- * outcome on mobile devices. When the window dimensions are scaled up on a
- * device with a high DPR, we create a canvas that is much larger than
- * appropriate to accommodate for the pixel density if we naively use the
- * reported DPR.
- *
- * This value needs to be measured in real time, as device pixel ratio can
- * change over time (e.g., when a user zooms the page). Also, in some cases
- * (such as Firefox on Android), the window's innerWidth is initially reported
- * as the same as the screen's availWidth but changes later.
- *
- * A user who specifies a meta viewport, thereby consciously creating scaling
- * conditions where <model-viewer> is slow, will be encouraged to live their
- * best life.
- */
-const resolveDpr = (() => {
-    // If true, implies that the user is conscious of the viewport scaling
-    // relative to the device screen size.
-    const HAS_META_VIEWPORT_TAG = (() => {
-        var _a;
-        // Search result pages sometimes do not include a meta viewport tag even
-        // though they are certainly modern and work properly with devicePixelRatio.
-        if ((_a = document.documentElement.getAttribute('itemtype')) === null || _a === void 0 ? void 0 : _a.includes('schema.org/SearchResultsPage')) {
-            return true;
-        }
-        const metas = document.head != null ?
-            Array.from(document.head.querySelectorAll('meta')) :
-            [];
-        for (const meta of metas) {
-            if (meta.name === 'viewport') {
-                return true;
-            }
-        }
-        return false;
-    })();
-    if (!HAS_META_VIEWPORT_TAG) {
-        console.warn('No <meta name="viewport"> detected; <model-viewer> will cap pixel density at 1.');
-    }
-    return () => HAS_META_VIEWPORT_TAG ? window.devicePixelRatio :
-        CAPPED_DEVICE_PIXEL_RATIO;
-})();
-/**
- * Debug mode is enabled when one of the two following conditions is true:
- *
- *  1. A 'model-viewer-debug-mode' query parameter is present in the current
- *     search string
- *  2. There is a global object ModelViewerElement with a debugMode property set
- *     to true
- */
-const isDebugMode = (() => {
-    const debugQueryParameterName = 'model-viewer-debug-mode';
-    const debugQueryParameter = new RegExp(`[?&]${debugQueryParameterName}(&|$)`);
-    return () => (self.ModelViewerElement &&
-        self.ModelViewerElement.debugMode) ||
-        (self.location && self.location.search &&
-            self.location.search.match(debugQueryParameter));
-})();
-const timePasses = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms));
-/**
- * @param {EventTarget|EventDispatcher} target
- * @param {string} eventName
- * @param {?Function} predicate
- */
-const waitForEvent = (target, eventName, predicate = null) => new Promise(resolve => {
-    function handler(event) {
-        if (!predicate || predicate(event)) {
-            resolve(event);
-            target.removeEventListener(eventName, handler);
-        }
-    }
-    target.addEventListener(eventName, handler);
-});
-
-/* @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-const SETTLING_TIME = 10000; // plenty long enough
-const MIN_DECAY_MILLISECONDS = 0.001;
-const DECAY_MILLISECONDS = 50;
-/**
- * The Damper class is a generic second-order critically damped system that does
- * one linear step of the desired length of time. The only parameter is
- * DECAY_MILLISECONDS. This common parameter makes all states converge at the
- * same rate regardless of scale. xNormalization is a number to provide the
- * rough scale of x, such that NIL_SPEED clamping also happens at roughly the
- * same convergence for all states.
- */
-class Damper {
-    constructor(decayMilliseconds = DECAY_MILLISECONDS) {
-        this.velocity = 0;
-        this.naturalFrequency = 0;
-        this.setDecayTime(decayMilliseconds);
-    }
-    setDecayTime(decayMilliseconds) {
-        this.naturalFrequency =
-            1 / Math.max(MIN_DECAY_MILLISECONDS, decayMilliseconds);
-    }
-    update(x, xGoal, timeStepMilliseconds, xNormalization) {
-        const nilSpeed = 0.0002 * this.naturalFrequency;
-        if (x == null || xNormalization === 0) {
-            return xGoal;
-        }
-        if (x === xGoal && this.velocity === 0) {
-            return xGoal;
-        }
-        if (timeStepMilliseconds < 0) {
-            return x;
-        }
-        // Exact solution to a critically damped second-order system, where:
-        // acceleration = this.naturalFrequency * this.naturalFrequency * (xGoal
-        // - x) - 2 * this.naturalFrequency * this.velocity;
-        const deltaX = (x - xGoal);
-        const intermediateVelocity = this.velocity + this.naturalFrequency * deltaX;
-        const intermediateX = deltaX + timeStepMilliseconds * intermediateVelocity;
-        const decay = Math.exp(-this.naturalFrequency * timeStepMilliseconds);
-        const newVelocity = (intermediateVelocity - this.naturalFrequency * intermediateX) * decay;
-        const acceleration = -this.naturalFrequency * (newVelocity + intermediateVelocity * decay);
-        if (Math.abs(newVelocity) < nilSpeed * Math.abs(xNormalization) &&
-            acceleration * deltaX >= 0) {
-            // This ensures the controls settle and stop calling this function instead
-            // of asymptotically approaching their goal.
-            this.velocity = 0;
-            return xGoal;
-        }
-        else {
-            this.velocity = newVelocity;
-            return xGoal + intermediateX * decay;
-        }
-    }
 }
 
 /* @license
@@ -44305,6 +44166,75 @@ const normalizeUnit = (() => {
         return normalize(node);
     };
 })();
+
+/* @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+const SETTLING_TIME = 10000; // plenty long enough
+const MIN_DECAY_MILLISECONDS = 0.001;
+const DECAY_MILLISECONDS = 50;
+/**
+ * The Damper class is a generic second-order critically damped system that does
+ * one linear step of the desired length of time. The only parameter is
+ * DECAY_MILLISECONDS. This common parameter makes all states converge at the
+ * same rate regardless of scale. xNormalization is a number to provide the
+ * rough scale of x, such that NIL_SPEED clamping also happens at roughly the
+ * same convergence for all states.
+ */
+class Damper {
+    constructor(decayMilliseconds = DECAY_MILLISECONDS) {
+        this.velocity = 0;
+        this.naturalFrequency = 0;
+        this.setDecayTime(decayMilliseconds);
+    }
+    setDecayTime(decayMilliseconds) {
+        this.naturalFrequency =
+            1 / Math.max(MIN_DECAY_MILLISECONDS, decayMilliseconds);
+    }
+    update(x, xGoal, timeStepMilliseconds, xNormalization) {
+        const nilSpeed = 0.0002 * this.naturalFrequency;
+        if (x == null || xNormalization === 0) {
+            return xGoal;
+        }
+        if (x === xGoal && this.velocity === 0) {
+            return xGoal;
+        }
+        if (timeStepMilliseconds < 0) {
+            return x;
+        }
+        // Exact solution to a critically damped second-order system, where:
+        // acceleration = this.naturalFrequency * this.naturalFrequency * (xGoal
+        // - x) - 2 * this.naturalFrequency * this.velocity;
+        const deltaX = (x - xGoal);
+        const intermediateVelocity = this.velocity + this.naturalFrequency * deltaX;
+        const intermediateX = deltaX + timeStepMilliseconds * intermediateVelocity;
+        const decay = Math.exp(-this.naturalFrequency * timeStepMilliseconds);
+        const newVelocity = (intermediateVelocity - this.naturalFrequency * intermediateX) * decay;
+        const acceleration = -this.naturalFrequency * (newVelocity + intermediateVelocity * decay);
+        if (Math.abs(newVelocity) < nilSpeed * Math.abs(xNormalization) &&
+            acceleration * deltaX >= 0) {
+            // This ensures the controls settle and stop calling this function instead
+            // of asymptotically approaching their goal.
+            this.velocity = 0;
+            return xGoal;
+        }
+        else {
+            this.velocity = newVelocity;
+            return xGoal + intermediateX * decay;
+        }
+    }
+}
 
 /* @license
  * Copyright 2020 Google LLC. All Rights Reserved.
@@ -44926,7 +44856,6 @@ class ModelScene extends Scene {
         this.xrCamera = null;
         this.url = null;
         this.target = new Object3D();
-        this.modelContainer = new Object3D();
         this.animationNames = [];
         this.boundingBox = new Box3();
         this.boundingSphere = new Sphere();
@@ -44945,6 +44874,7 @@ class ModelScene extends Scene {
         this.targetDamperY = new Damper();
         this.targetDamperZ = new Damper();
         this._currentGLTF = null;
+        this._model = null;
         this.cancelPendingSourceChange = null;
         this.animationsByName = new Map();
         this.currentAnimationAction = null;
@@ -44958,9 +44888,7 @@ class ModelScene extends Scene {
         this.add(this.target);
         this.setSize(width, height);
         this.target.name = 'Target';
-        this.modelContainer.name = 'ModelContainer';
-        this.target.add(this.modelContainer);
-        this.mixer = new AnimationMixer(this.modelContainer);
+        this.mixer = new AnimationMixer(this.target);
         const { domElement } = this.annotationRenderer;
         const { style } = domElement;
         style.display = 'none';
@@ -45001,7 +44929,8 @@ class ModelScene extends Scene {
      */
     async setObject(model) {
         this.reset();
-        this.modelContainer.add(model);
+        this._model = model;
+        this.target.add(model);
         await this.setupScene();
     }
     /**
@@ -45018,7 +44947,6 @@ class ModelScene extends Scene {
             const framingInfo = await this.externalRenderer.load(progressCallback);
             this.boundingSphere.radius = framingInfo.framedRadius;
             this.idealAspect = framingInfo.fieldOfViewAspect;
-            this.dispatchEvent({ type: 'model-load', url: this.url });
             return;
         }
         // If we have pending work due to a previous source change in progress,
@@ -45051,7 +44979,8 @@ class ModelScene extends Scene {
         this.url = url;
         this._currentGLTF = gltf;
         if (gltf != null) {
-            this.modelContainer.add(gltf.scene);
+            this._model = gltf.scene;
+            this.target.add(gltf.scene);
         }
         const { animations } = gltf;
         const animationsByName = new Map();
@@ -45066,11 +44995,11 @@ class ModelScene extends Scene {
         await this.setupScene();
     }
     async setupScene() {
+        this.applyTransform();
         this.updateBoundingBox();
         await this.updateFraming();
         this.updateShadow();
         this.setShadowIntensity(this.shadowIntensity);
-        this.dispatchEvent({ type: 'model-load', url: this.url });
     }
     reset() {
         this.url = null;
@@ -45079,12 +45008,13 @@ class ModelScene extends Scene {
             this.shadow.setIntensity(0);
         }
         this.bakedShadows.clear();
+        const { _model } = this;
+        if (_model != null) {
+            _model.removeFromParent();
+            this._model = null;
+        }
         const gltf = this._currentGLTF;
-        // Remove all current children
         if (gltf != null) {
-            for (const child of this.modelContainer.children) {
-                this.modelContainer.remove(child);
-            }
             gltf.dispose();
             this._currentGLTF = null;
         }
@@ -45167,24 +45097,43 @@ class ModelScene extends Scene {
             this.unmarkBakedShadow(mesh);
         }
     }
+    applyTransform() {
+        const { model } = this;
+        if (model == null) {
+            return;
+        }
+        const orientation = parseExpressions(this.element.orientation)[0]
+            .terms;
+        const roll = normalizeUnit(orientation[0]).number;
+        const pitch = normalizeUnit(orientation[1]).number;
+        const yaw = normalizeUnit(orientation[2]).number;
+        model.quaternion.setFromEuler(new Euler(pitch, yaw, roll, 'YXZ'));
+        const scale = parseExpressions(this.element.scale)[0]
+            .terms;
+        model.scale.set(scale[0].number, scale[1].number, scale[2].number);
+    }
     updateBoundingBox() {
-        this.target.remove(this.modelContainer);
-        this.findBakedShadows(this.modelContainer);
+        const { model } = this;
+        if (model == null) {
+            return;
+        }
+        this.target.remove(model);
+        this.findBakedShadows(model);
         const bound = (box, vertex) => {
             return box.expandByPoint(vertex);
         };
         this.setBakedShadowVisibility(false);
-        this.boundingBox = reduceVertices(this.modelContainer, bound, new Box3());
+        this.boundingBox = reduceVertices(model, bound, new Box3());
         // If there's nothing but the baked shadow, then it's not a baked shadow.
         if (this.boundingBox.isEmpty()) {
             this.setBakedShadowVisibility(true);
             this.bakedShadows.forEach((mesh) => this.unmarkBakedShadow(mesh));
-            this.boundingBox = reduceVertices(this.modelContainer, bound, new Box3());
+            this.boundingBox = reduceVertices(model, bound, new Box3());
         }
         this.checkBakedShadows();
         this.setBakedShadowVisibility();
         this.boundingBox.getSize(this.size);
-        this.target.add(this.modelContainer);
+        this.target.add(model);
     }
     /**
      * Calculates the boundingSphere and idealAspect that allows the 3D
@@ -45195,7 +45144,11 @@ class ModelScene extends Scene {
      * one side instead of both. Proper choice of center can correct this.
      */
     async updateFraming() {
-        this.target.remove(this.modelContainer);
+        const { model } = this;
+        if (model == null) {
+            return;
+        }
+        this.target.remove(model);
         this.setBakedShadowVisibility(false);
         const { center } = this.boundingSphere;
         this.element.requestUpdate('cameraTarget');
@@ -45205,17 +45158,16 @@ class ModelScene extends Scene {
             return Math.max(value, center.distanceToSquared(vertex));
         };
         this.boundingSphere.radius =
-            Math.sqrt(reduceVertices(this.modelContainer, radiusSquared, 0));
+            Math.sqrt(reduceVertices(model, radiusSquared, 0));
         const horizontalTanFov = (value, vertex) => {
             vertex.sub(center);
             const radiusXZ = Math.sqrt(vertex.x * vertex.x + vertex.z * vertex.z);
             return Math.max(value, radiusXZ / (this.idealCameraDistance() - Math.abs(vertex.y)));
         };
-        this.idealAspect =
-            reduceVertices(this.modelContainer, horizontalTanFov, 0) /
-                Math.tan((this.framedFoVDeg / 2) * Math.PI / 180);
+        this.idealAspect = reduceVertices(model, horizontalTanFov, 0) /
+            Math.tan((this.framedFoVDeg / 2) * Math.PI / 180);
         this.setBakedShadowVisibility();
-        this.target.add(this.modelContainer);
+        this.target.add(model);
     }
     setBakedShadowVisibility(visible = this.shadowIntensity <= 0) {
         for (const shadow of this.bakedShadows) {
@@ -45315,6 +45267,9 @@ class ModelScene extends Scene {
     pointTowards(worldX, worldZ) {
         const { x, z } = this.position;
         this.yaw = Math.atan2(worldX - x, worldZ - z);
+    }
+    get model() {
+        return this._model;
     }
     /**
      * Yaw is the scene's orientation about the y-axis, around the rotation
@@ -45611,153 +45566,6 @@ class ModelScene extends Scene {
         }
     }
 }
-
-/* @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var __decorate$7 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof undefined === "function") r = undefined(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-const BASE_OPACITY = 0.5;
-const DEFAULT_SHADOW_INTENSITY = 0.0;
-const DEFAULT_SHADOW_SOFTNESS = 1.0;
-const DEFAULT_EXPOSURE = 1.0;
-const $currentEnvironmentMap = Symbol('currentEnvironmentMap');
-const $currentBackground = Symbol('currentBackground');
-const $updateEnvironment = Symbol('updateEnvironment');
-const $cancelEnvironmentUpdate = Symbol('cancelEnvironmentUpdate');
-const $onPreload = Symbol('onPreload');
-const EnvironmentMixin = (ModelViewerElement) => {
-    var _a, _b, _c, _d;
-    class EnvironmentModelViewerElement extends ModelViewerElement {
-        constructor() {
-            super(...arguments);
-            this.environmentImage = null;
-            this.skyboxImage = null;
-            this.shadowIntensity = DEFAULT_SHADOW_INTENSITY;
-            this.shadowSoftness = DEFAULT_SHADOW_SOFTNESS;
-            this.exposure = DEFAULT_EXPOSURE;
-            this[_a] = null;
-            this[_b] = null;
-            this[_c] = null;
-            this[_d] = (event) => {
-                if (event.element === this) {
-                    this[$updateEnvironment]();
-                }
-            };
-        }
-        connectedCallback() {
-            super.connectedCallback();
-            this[$renderer].loader.addEventListener('preload', this[$onPreload]);
-        }
-        disconnectedCallback() {
-            super.disconnectedCallback();
-            this[$renderer].loader.removeEventListener('preload', this[$onPreload]);
-        }
-        updated(changedProperties) {
-            super.updated(changedProperties);
-            if (changedProperties.has('shadowIntensity')) {
-                this[$scene].setShadowIntensity(this.shadowIntensity * BASE_OPACITY);
-                this[$needsRender]();
-            }
-            if (changedProperties.has('shadowSoftness')) {
-                this[$scene].setShadowSoftness(this.shadowSoftness);
-                this[$needsRender]();
-            }
-            if (changedProperties.has('exposure')) {
-                this[$scene].exposure = this.exposure;
-                this[$needsRender]();
-            }
-            if ((changedProperties.has('environmentImage') ||
-                changedProperties.has('skyboxImage')) &&
-                this[$shouldAttemptPreload]()) {
-                this[$updateEnvironment]();
-            }
-        }
-        hasBakedShadow() {
-            return this[$scene].bakedShadows.size > 0;
-        }
-        [(_a = $currentEnvironmentMap, _b = $currentBackground, _c = $cancelEnvironmentUpdate, _d = $onPreload, $onModelLoad)]() {
-            super[$onModelLoad]();
-            this[$scene].setEnvironmentAndSkybox(this[$currentEnvironmentMap], this[$currentBackground]);
-        }
-        async [$updateEnvironment]() {
-            const { skyboxImage, environmentImage } = this;
-            if (this[$cancelEnvironmentUpdate] != null) {
-                this[$cancelEnvironmentUpdate]();
-                this[$cancelEnvironmentUpdate] = null;
-            }
-            const { textureUtils } = this[$renderer];
-            if (textureUtils == null) {
-                return;
-            }
-            const updateEnvProgress = this[$progressTracker].beginActivity();
-            try {
-                const { environmentMap, skybox } = await textureUtils.generateEnvironmentMapAndSkybox(deserializeUrl(skyboxImage), environmentImage, (progress) => updateEnvProgress(clamp(progress, 0, 1) * 0.99));
-                if (this[$currentEnvironmentMap] !== environmentMap) {
-                    this[$currentEnvironmentMap] = environmentMap;
-                    this.dispatchEvent(new CustomEvent('environment-change'));
-                }
-                if (skybox != null) {
-                    // When using the same environment and skybox, use the environment as
-                    // it gives HDR filtering.
-                    this[$currentBackground] =
-                        skybox.name === environmentMap.name ? environmentMap : skybox;
-                }
-                else {
-                    this[$currentBackground] = null;
-                }
-                this[$scene].setEnvironmentAndSkybox(this[$currentEnvironmentMap], this[$currentBackground]);
-                this[$scene].dispatchEvent({ type: 'envmap-update' });
-            }
-            catch (errorOrPromise) {
-                if (errorOrPromise instanceof Error) {
-                    this[$scene].setEnvironmentAndSkybox(null, null);
-                    throw errorOrPromise;
-                }
-            }
-            finally {
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        updateEnvProgress(1.0);
-                    });
-                });
-            }
-        }
-    }
-    __decorate$7([
-        e$4({ type: String, attribute: 'environment-image' })
-    ], EnvironmentModelViewerElement.prototype, "environmentImage", void 0);
-    __decorate$7([
-        e$4({ type: String, attribute: 'skybox-image' })
-    ], EnvironmentModelViewerElement.prototype, "skyboxImage", void 0);
-    __decorate$7([
-        e$4({ type: Number, attribute: 'shadow-intensity' })
-    ], EnvironmentModelViewerElement.prototype, "shadowIntensity", void 0);
-    __decorate$7([
-        e$4({ type: Number, attribute: 'shadow-softness' })
-    ], EnvironmentModelViewerElement.prototype, "shadowSoftness", void 0);
-    __decorate$7([
-        e$4({
-            type: Number,
-        })
-    ], EnvironmentModelViewerElement.prototype, "exposure", void 0);
-    return EnvironmentModelViewerElement;
-};
 
 class SessionLightProbe {
 
@@ -46349,7 +46157,7 @@ class ARRenderer extends EventDispatcher {
         this.oldShadowIntensity = scene.shadowIntensity;
         scene.setShadowIntensity(0.01); // invisible, but not changing the shader
         this.oldTarget.copy(scene.getTarget());
-        scene.addEventListener('model-load', this.onUpdateScene);
+        scene.element.addEventListener('load', this.onUpdateScene);
         const radians = HIT_ANGLE_DEG * Math.PI / 180;
         const ray = this.placeOnWall === true ?
             undefined :
@@ -46442,7 +46250,7 @@ class ARRenderer extends EventDispatcher {
             const point = this.oldTarget;
             scene.setTarget(point.x, point.y, point.z);
             scene.xrCamera = null;
-            scene.removeEventListener('model-load', this.onUpdateScene);
+            scene.element.removeEventListener('load', this.onUpdateScene);
             scene.orientHotspots(0);
             element.requestUpdate('cameraTarget');
             element.requestUpdate('maxCameraOrbit');
@@ -48319,9 +48127,9 @@ class TextureUtils extends EventDispatcher {
  */
 // Between 0 and 1: larger means the average responds faster and is less smooth.
 const DURATION_DECAY = 0.2;
-const LOW_FRAME_DURATION_MS = 18;
-const HIGH_FRAME_DURATION_MS = 26;
-const MAX_AVG_CHANGE_MS = 2;
+const LOW_FRAME_DURATION_MS = 40;
+const HIGH_FRAME_DURATION_MS = 60;
+const MAX_AVG_CHANGE_MS = 5;
 const SCALE_STEPS = [1, 0.79, 0.62, 0.5, 0.4, 0.31, 0.25];
 const DEFAULT_LAST_STEP = 3;
 const DEFAULT_POWER_PREFERENCE = 'high-performance';
@@ -48429,6 +48237,62 @@ class Renderer extends EventDispatcher {
         }
         this.lastStep = i - 1;
     }
+    registerScene(scene) {
+        this.scenes.add(scene);
+        scene.forceRescale();
+        if (this.canRender && this.scenes.size > 0) {
+            this.threeRenderer.setAnimationLoop((time, frame) => this.render(time, frame));
+        }
+        if (this.debugger != null) {
+            this.debugger.addScene(scene);
+        }
+    }
+    unregisterScene(scene) {
+        this.scenes.delete(scene);
+        if (this.canvas3D.parentElement === scene.canvas.parentElement) {
+            scene.canvas.parentElement.removeChild(this.canvas3D);
+        }
+        if (this.canRender && this.scenes.size === 0) {
+            this.threeRenderer.setAnimationLoop(null);
+        }
+        if (this.debugger != null) {
+            this.debugger.removeScene(scene);
+        }
+    }
+    displayCanvas(scene) {
+        return this.multipleScenesVisible ? scene.element[$canvas] : this.canvas3D;
+    }
+    /**
+     * The function enables an optimization, where when there is only a single
+     * <model-viewer> element, we can use the renderer's 3D canvas directly for
+     * display. Otherwise we need to use the element's 2D canvas and copy the
+     * renderer's result into it.
+     */
+    countVisibleScenes() {
+        const { canvas3D } = this;
+        let visibleScenes = 0;
+        let canvas3DScene = null;
+        for (const scene of this.scenes) {
+            const { element } = scene;
+            if (element.modelIsVisible && scene.externalRenderer == null) {
+                ++visibleScenes;
+            }
+            if (canvas3D.parentElement === scene.canvas.parentElement) {
+                canvas3DScene = scene;
+            }
+        }
+        const multipleScenesVisible = visibleScenes > 1;
+        if (canvas3DScene != null) {
+            const newlyMultiple = multipleScenesVisible && !this.multipleScenesVisible;
+            const disappearing = !canvas3DScene.element.modelIsVisible;
+            if (newlyMultiple || disappearing) {
+                const { width, height } = this.sceneSize(canvas3DScene);
+                this.copyPixels(canvas3DScene, width, height);
+                canvas3D.parentElement.removeChild(canvas3D);
+            }
+        }
+        this.multipleScenesVisible = multipleScenesVisible;
+    }
     /**
      * Updates the renderer's size based on the largest scene and any changes to
      * device pixel ratio.
@@ -48487,8 +48351,34 @@ class Renderer extends EventDispatcher {
                 (HIGH_FRAME_DURATION_MS + LOW_FRAME_DURATION_MS) / 2;
         }
     }
-    dispatchRenderScale(scene) {
+    shouldRender(scene) {
+        if (!scene.shouldRender()) {
+            // The first frame we stop rendering the scene (because it stops moving),
+            // trigger one extra render at full scale.
+            if (scene.scaleStep != 0) {
+                scene.scaleStep = 0;
+                this.rescaleCanvas(scene);
+            }
+            else {
+                return false;
+            }
+        }
+        else if (scene.scaleStep != this.scaleStep) {
+            // Update render scale
+            scene.scaleStep = this.scaleStep;
+            this.rescaleCanvas(scene);
+        }
+        return true;
+    }
+    rescaleCanvas(scene) {
         const scale = SCALE_STEPS[scene.scaleStep];
+        const width = Math.ceil(this.width / scale);
+        const height = Math.ceil(this.height / scale);
+        const { style } = scene.canvas;
+        style.width = `${width}px`;
+        style.height = `${height}px`;
+        this.canvas3D.style.width = `${width}px`;
+        this.canvas3D.style.height = `${height}px`;
         const renderedDpr = this.dpr * scale;
         const reason = scale < 1 ? 'GPU throttling' :
             this.dpr !== window.devicePixelRatio ? 'No meta viewport tag' :
@@ -48503,97 +48393,6 @@ class Renderer extends EventDispatcher {
                 reason: reason
             }
         }));
-    }
-    registerScene(scene) {
-        this.scenes.add(scene);
-        scene.forceRescale();
-        if (this.canRender && this.scenes.size > 0) {
-            this.threeRenderer.setAnimationLoop((time, frame) => this.render(time, frame));
-        }
-        if (this.debugger != null) {
-            this.debugger.addScene(scene);
-        }
-    }
-    unregisterScene(scene) {
-        this.scenes.delete(scene);
-        if (this.canvas3D.parentElement === scene.canvas.parentElement) {
-            scene.canvas.parentElement.removeChild(this.canvas3D);
-        }
-        if (this.canRender && this.scenes.size === 0) {
-            this.threeRenderer.setAnimationLoop(null);
-        }
-        if (this.debugger != null) {
-            this.debugger.removeScene(scene);
-        }
-    }
-    displayCanvas(scene) {
-        return this.multipleScenesVisible ? scene.element[$canvas] : this.canvas3D;
-    }
-    /**
-     * The function enables an optimization, where when there is only a single
-     * <model-viewer> element, we can use the renderer's 3D canvas directly for
-     * display. Otherwise we need to use the element's 2D canvas and copy the
-     * renderer's result into it.
-     */
-    countVisibleScenes() {
-        const { canvas3D } = this;
-        let visibleScenes = 0;
-        let canvas3DScene = null;
-        for (const scene of this.scenes) {
-            const { element } = scene;
-            if (element.modelIsVisible && scene.externalRenderer == null) {
-                ++visibleScenes;
-            }
-            if (canvas3D.parentElement === scene.canvas.parentElement) {
-                canvas3DScene = scene;
-            }
-        }
-        const multipleScenesVisible = visibleScenes > 1;
-        if (canvas3DScene != null) {
-            const newlyMultiple = multipleScenesVisible && !this.multipleScenesVisible;
-            const disappearing = !canvas3DScene.element.modelIsVisible;
-            if (newlyMultiple || disappearing) {
-                const { width, height } = this.sceneSize(canvas3DScene);
-                this.copyPixels(canvas3DScene, width, height);
-                canvas3D.parentElement.removeChild(canvas3D);
-            }
-        }
-        this.multipleScenesVisible = multipleScenesVisible;
-    }
-    rescaleCanvas(scene) {
-        const { style } = scene.canvas;
-        if (!scene.shouldRender()) {
-            // The first frame we stop rendering the scene (because it stops moving),
-            // trigger one extra render at full scale.
-            if (scene.scaleStep != 0) {
-                scene.scaleStep = 0;
-                style.width = `${this.width}px`;
-                style.height = `${this.height}px`;
-                this.dispatchRenderScale(scene);
-                if (!this.multipleScenesVisible) {
-                    this.canvas3D.style.width = `${this.width}px`;
-                    this.canvas3D.style.height = `${this.height}px`;
-                }
-            }
-            else {
-                return true; // Skip rendering
-            }
-        }
-        else if (scene.scaleStep != this.scaleStep) {
-            // Update render scale
-            scene.scaleStep = this.scaleStep;
-            const scale = this.scaleFactor;
-            const width = Math.ceil(this.width / scale);
-            const height = Math.ceil(this.height / scale);
-            style.width = `${width}px`;
-            style.height = `${height}px`;
-            if (!this.multipleScenesVisible) {
-                this.canvas3D.style.width = `${width}px`;
-                this.canvas3D.style.height = `${height}px`;
-            }
-            this.dispatchRenderScale(scene);
-        }
-        return false; // Perform rendering
     }
     sceneSize(scene) {
         const { dpr } = this;
@@ -48666,7 +48465,7 @@ class Renderer extends EventDispatcher {
                 continue;
             }
             this.preRender(scene, t, delta);
-            if (this.rescaleCanvas(scene)) {
+            if (!this.shouldRender(scene)) {
                 continue;
             }
             if (scene.externalRenderer != null) {
@@ -48968,7 +48767,7 @@ const toVector2D = (v) => {
 /**
  * Definition for a basic <model-viewer> element.
  */
-class ModelViewerElementBase extends d$2 {
+class ModelViewerElementBase extends d$1 {
     /**
      * Creates a new ModelViewerElement.
      */
@@ -49037,13 +48836,6 @@ class ModelViewerElementBase extends d$2 {
         // Create the underlying ModelScene.
         this[$scene] =
             new ModelScene({ canvas: this[$canvas], element: this, width, height });
-        this[$scene].addEventListener('model-load', async (event) => {
-            this[$markLoaded]();
-            this[$onModelLoad]();
-            // Give loading async tasks a chance to complete.
-            await timePasses();
-            this.dispatchEvent(new CustomEvent('load', { detail: { url: event.url } }));
-        });
         // Update initial size on microtask timing so that subclasses have a
         // chance to initialize
         Promise.resolve().then(() => {
@@ -49329,52 +49121,60 @@ class ModelViewerElementBase extends d$2 {
     }
     /**
      * Parses the element for an appropriate source URL and
-     * sets the views to use the new model based off of the `preload`
-     * attribute.
+     * sets the views to use the new model based.
      */
     async [(_o = $onContextLost, $updateSource)]() {
-        if (this.loaded || !this[$shouldAttemptPreload]()) {
+        const scene = this[$scene];
+        if (this.loaded || !this[$shouldAttemptPreload]() ||
+            this.src === scene.url) {
             return;
         }
         if (this.generateSchema) {
-            this[$scene].updateSchema(this.src);
+            scene.updateSchema(this.src);
         }
         this[$updateStatus]('Loading');
         // If we are loading a new model, we need to stop the animation of
         // the current one (if any is playing). Otherwise, we might lose
         // the reference to the scene root and running actions start to
         // throw exceptions and/or behave in unexpected ways:
-        this[$scene].stopAnimation();
+        scene.stopAnimation();
         const updateSourceProgress = this[$progressTracker].beginActivity();
         const source = this.src;
         try {
-            await this[$scene].setSource(source, (progress) => updateSourceProgress(clamp(progress, 0, 1) * 0.95));
-            const detail = { url: source };
-            this.dispatchEvent(new CustomEvent('preload', { detail }));
+            const srcUpdated = scene.setSource(source, (progress) => updateSourceProgress(clamp(progress, 0, 1) * 0.95));
+            const envUpdated = this[$updateEnvironment]();
+            await Promise.all([srcUpdated, envUpdated]);
+            this[$markLoaded]();
+            this[$onModelLoad]();
+            // Wait for shaders to compile and pixels to be drawn.
+            await new Promise(resolve => {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        this.dispatchEvent(new CustomEvent('load', { detail: { url: source } }));
+                        resolve();
+                    });
+                });
+            });
         }
         catch (error) {
             this.dispatchEvent(new CustomEvent('error', { detail: { type: 'loadfailure', sourceError: error } }));
         }
         finally {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    updateSourceProgress(1.0);
-                });
-            });
+            updateSourceProgress(1.0);
         }
     }
 }
 __decorate$6([
-    e$4({ type: String })
+    e$3({ type: String })
 ], ModelViewerElementBase.prototype, "alt", void 0);
 __decorate$6([
-    e$4({ type: String })
+    e$3({ type: String })
 ], ModelViewerElementBase.prototype, "src", void 0);
 __decorate$6([
-    e$4({ type: Boolean, attribute: 'with-credentials' })
+    e$3({ type: Boolean, attribute: 'with-credentials' })
 ], ModelViewerElementBase.prototype, "withCredentials", void 0);
 __decorate$6([
-    e$4({ type: Boolean, attribute: 'generate-schema' })
+    e$3({ type: Boolean, attribute: 'generate-schema' })
 ], ModelViewerElementBase.prototype, "generateSchema", void 0);
 
 /* @license
@@ -49505,13 +49305,13 @@ const AnimationMixin = (ModelViewerElement) => {
         }
     }
     __decorate$5([
-        e$4({ type: Boolean })
+        e$3({ type: Boolean })
     ], AnimationModelViewerElement.prototype, "autoplay", void 0);
     __decorate$5([
-        e$4({ type: String, attribute: 'animation-name' })
+        e$3({ type: String, attribute: 'animation-name' })
     ], AnimationModelViewerElement.prototype, "animationName", void 0);
     __decorate$5([
-        e$4({ type: Number, attribute: 'animation-crossfade-duration' })
+        e$3({ type: Number, attribute: 'animation-crossfade-duration' })
     ], AnimationModelViewerElement.prototype, "animationCrossfadeDuration", void 0);
     return AnimationModelViewerElement;
 };
@@ -50407,10 +50207,10 @@ class USDZExporter {
 
 			if ( object.isMesh ) {
 
-				if ( object.material.isMeshStandardMaterial ) {
+				const geometry = object.geometry;
+				const material = object.material;
 
-					const geometry = object.geometry;
-					const material = object.material;
+				if ( material.isMeshStandardMaterial ) {
 
 					const geometryFileName = 'geometries/Geometry_' + geometry.id + '.usd';
 
@@ -51017,7 +50817,7 @@ let isWebXRBlocked = false;
 let isSceneViewerBlocked = false;
 const noArViewerSigil = '#model-viewer-no-ar-fallback';
 const deserializeARModes = enumerationDeserializer(['quick-look', 'scene-viewer', 'webxr', 'none']);
-const DEFAULT_AR_MODES = 'webxr scene-viewer';
+const DEFAULT_AR_MODES = 'webxr scene-viewer quick-look';
 const ARMode = {
     QUICK_LOOK: 'quick-look',
     SCENE_VIEWER: 'scene-viewer',
@@ -51311,8 +51111,10 @@ configuration or device capabilities');
         async prepareUSDZ() {
             const updateSourceProgress = this[$progressTracker].beginActivity();
             await this[$triggerLoad]();
-            const scene = this[$scene];
-            const shadow = scene.shadow;
+            const { model, shadow } = this[$scene];
+            if (model == null) {
+                return '';
+            }
             let visible = false;
             // Remove shadow from export
             if (shadow != null) {
@@ -51321,7 +51123,7 @@ configuration or device capabilities');
             }
             updateSourceProgress(0.2);
             const exporter = new USDZExporter();
-            const arraybuffer = await exporter.parse(scene.modelContainer);
+            const arraybuffer = await exporter.parse(model);
             const blob = new Blob([arraybuffer], {
                 type: 'model/vnd.usdz+zip',
             });
@@ -51334,22 +51136,22 @@ configuration or device capabilities');
         }
     }
     __decorate$4([
-        e$4({ type: Boolean, attribute: 'ar' })
+        e$3({ type: Boolean, attribute: 'ar' })
     ], ARModelViewerElement.prototype, "ar", void 0);
     __decorate$4([
-        e$4({ type: String, attribute: 'ar-scale' })
+        e$3({ type: String, attribute: 'ar-scale' })
     ], ARModelViewerElement.prototype, "arScale", void 0);
     __decorate$4([
-        e$4({ type: String, attribute: 'ar-placement' })
+        e$3({ type: String, attribute: 'ar-placement' })
     ], ARModelViewerElement.prototype, "arPlacement", void 0);
     __decorate$4([
-        e$4({ type: String, attribute: 'ar-modes' })
+        e$3({ type: String, attribute: 'ar-modes' })
     ], ARModelViewerElement.prototype, "arModes", void 0);
     __decorate$4([
-        e$4({ type: String, attribute: 'ios-src' })
+        e$3({ type: String, attribute: 'ios-src' })
     ], ARModelViewerElement.prototype, "iosSrc", void 0);
     __decorate$4([
-        e$4({ type: Boolean, attribute: 'xr-environment' })
+        e$3({ type: Boolean, attribute: 'xr-environment' })
     ], ARModelViewerElement.prototype, "xrEnvironment", void 0);
     return ARModelViewerElement;
 };
@@ -53342,7 +53144,7 @@ const ControlsMixin = (ModelViewerElement) => {
     }
     _p = $onChange, _q = $onPointerChange;
     __decorate$3([
-        e$4({ type: Boolean, attribute: 'camera-controls' })
+        e$3({ type: Boolean, attribute: 'camera-controls' })
     ], ControlsModelViewerElement.prototype, "cameraControls", void 0);
     __decorate$3([
         style({
@@ -53350,7 +53152,7 @@ const ControlsMixin = (ModelViewerElement) => {
             observeEffects: true,
             updateHandler: $syncCameraOrbit
         }),
-        e$4({ type: String, attribute: 'camera-orbit', hasChanged: () => true })
+        e$3({ type: String, attribute: 'camera-orbit', hasChanged: () => true })
     ], ControlsModelViewerElement.prototype, "cameraOrbit", void 0);
     __decorate$3([
         style({
@@ -53358,7 +53160,7 @@ const ControlsMixin = (ModelViewerElement) => {
             observeEffects: true,
             updateHandler: $syncCameraTarget
         }),
-        e$4({ type: String, attribute: 'camera-target', hasChanged: () => true })
+        e$3({ type: String, attribute: 'camera-target', hasChanged: () => true })
     ], ControlsModelViewerElement.prototype, "cameraTarget", void 0);
     __decorate$3([
         style({
@@ -53366,56 +53168,56 @@ const ControlsMixin = (ModelViewerElement) => {
             observeEffects: true,
             updateHandler: $syncFieldOfView
         }),
-        e$4({ type: String, attribute: 'field-of-view', hasChanged: () => true })
+        e$3({ type: String, attribute: 'field-of-view', hasChanged: () => true })
     ], ControlsModelViewerElement.prototype, "fieldOfView", void 0);
     __decorate$3([
         style({
             intrinsics: minCameraOrbitIntrinsics,
             updateHandler: $syncMinCameraOrbit
         }),
-        e$4({ type: String, attribute: 'min-camera-orbit', hasChanged: () => true })
+        e$3({ type: String, attribute: 'min-camera-orbit', hasChanged: () => true })
     ], ControlsModelViewerElement.prototype, "minCameraOrbit", void 0);
     __decorate$3([
         style({
             intrinsics: maxCameraOrbitIntrinsics,
             updateHandler: $syncMaxCameraOrbit
         }),
-        e$4({ type: String, attribute: 'max-camera-orbit', hasChanged: () => true })
+        e$3({ type: String, attribute: 'max-camera-orbit', hasChanged: () => true })
     ], ControlsModelViewerElement.prototype, "maxCameraOrbit", void 0);
     __decorate$3([
         style({
             intrinsics: minFieldOfViewIntrinsics,
             updateHandler: $syncMinFieldOfView
         }),
-        e$4({ type: String, attribute: 'min-field-of-view', hasChanged: () => true })
+        e$3({ type: String, attribute: 'min-field-of-view', hasChanged: () => true })
     ], ControlsModelViewerElement.prototype, "minFieldOfView", void 0);
     __decorate$3([
         style({ intrinsics: fieldOfViewIntrinsics, updateHandler: $syncMaxFieldOfView }),
-        e$4({ type: String, attribute: 'max-field-of-view', hasChanged: () => true })
+        e$3({ type: String, attribute: 'max-field-of-view', hasChanged: () => true })
     ], ControlsModelViewerElement.prototype, "maxFieldOfView", void 0);
     __decorate$3([
-        e$4({ type: Number, attribute: 'interaction-prompt-threshold' })
+        e$3({ type: Number, attribute: 'interaction-prompt-threshold' })
     ], ControlsModelViewerElement.prototype, "interactionPromptThreshold", void 0);
     __decorate$3([
-        e$4({ type: String, attribute: 'interaction-prompt' })
+        e$3({ type: String, attribute: 'interaction-prompt' })
     ], ControlsModelViewerElement.prototype, "interactionPrompt", void 0);
     __decorate$3([
-        e$4({ type: Number, attribute: 'orbit-sensitivity' })
+        e$3({ type: Number, attribute: 'orbit-sensitivity' })
     ], ControlsModelViewerElement.prototype, "orbitSensitivity", void 0);
     __decorate$3([
-        e$4({ type: String, attribute: 'touch-action' })
+        e$3({ type: String, attribute: 'touch-action' })
     ], ControlsModelViewerElement.prototype, "touchAction", void 0);
     __decorate$3([
-        e$4({ type: Boolean, attribute: 'disable-zoom' })
+        e$3({ type: Boolean, attribute: 'disable-zoom' })
     ], ControlsModelViewerElement.prototype, "disableZoom", void 0);
     __decorate$3([
-        e$4({ type: Boolean, attribute: 'disable-pan' })
+        e$3({ type: Boolean, attribute: 'disable-pan' })
     ], ControlsModelViewerElement.prototype, "disablePan", void 0);
     __decorate$3([
-        e$4({ type: Boolean, attribute: 'disable-tap' })
+        e$3({ type: Boolean, attribute: 'disable-tap' })
     ], ControlsModelViewerElement.prototype, "disableTap", void 0);
     __decorate$3([
-        e$4({ type: Number, attribute: 'interpolation-decay' })
+        e$3({ type: Number, attribute: 'interpolation-decay' })
     ], ControlsModelViewerElement.prototype, "interpolationDecay", void 0);
     return ControlsModelViewerElement;
 };
@@ -53722,13 +53524,13 @@ const LoadingMixin = (ModelViewerElement) => {
         }
     }
     __decorate$2([
-        e$4({ type: String })
+        e$3({ type: String })
     ], LoadingModelViewerElement.prototype, "poster", void 0);
     __decorate$2([
-        e$4({ type: String })
+        e$3({ type: String })
     ], LoadingModelViewerElement.prototype, "reveal", void 0);
     __decorate$2([
-        e$4({ type: String })
+        e$3({ type: String })
     ], LoadingModelViewerElement.prototype, "loading", void 0);
     return LoadingModelViewerElement;
 };
@@ -53815,14 +53617,6 @@ class GLTFExporter {
 	 * @param  {Object} options options
 	 */
 	parse( input, onDone, onError, options ) {
-
-		if ( typeof onError === 'object' ) {
-
-			console.warn( 'THREE.GLTFExporter: parse() expects options as the fourth argument now.' );
-
-			options = onError;
-
-		}
 
 		const writer = new GLTFWriter();
 		const plugins = [];
@@ -54451,7 +54245,7 @@ class GLTFWriter {
 
 					return ( c < 0.04045 ) ? c * 0.0773993808 : Math.pow( c * 0.9478672986 + 0.0521327014, 2.4 );
 
-				}
+				};
 
 			}
 
@@ -54459,7 +54253,7 @@ class GLTFWriter {
 
 				return c;
 
-			}
+			};
 
 		}
 
@@ -55201,12 +54995,6 @@ class GLTFWriter {
 		} else {
 
 			mode = mesh.material.wireframe ? WEBGL_CONSTANTS.LINES : WEBGL_CONSTANTS.TRIANGLES;
-
-		}
-
-		if ( geometry.isBufferGeometry !== true ) {
-
-			throw new Error( 'THREE.GLTFExporter: Geometry is not of type THREE.BufferGeometry.' );
 
 		}
 
@@ -57915,18 +57703,13 @@ const SceneGraphMixin = (ModelViewerElement) => {
             }
             if (changedProperties.has('orientation') ||
                 changedProperties.has('scale')) {
-                const { modelContainer } = this[$scene];
-                const orientation = parseExpressions(this.orientation)[0]
-                    .terms;
-                const roll = normalizeUnit(orientation[0]).number;
-                const pitch = normalizeUnit(orientation[1]).number;
-                const yaw = normalizeUnit(orientation[2]).number;
-                modelContainer.quaternion.setFromEuler(new Euler(pitch, yaw, roll, 'YXZ'));
-                const scale = parseExpressions(this.scale)[0]
-                    .terms;
-                modelContainer.scale.set(scale[0].number, scale[1].number, scale[2].number);
-                this[$scene].updateBoundingBox();
-                this[$scene].updateShadow();
+                if (!this.loaded) {
+                    return;
+                }
+                const scene = this[$scene];
+                scene.applyTransform();
+                scene.updateBoundingBox();
+                scene.updateShadow();
                 this[$renderer].arRenderer.onUpdateScene();
                 this[$needsRender]();
             }
@@ -57977,7 +57760,7 @@ const SceneGraphMixin = (ModelViewerElement) => {
                 await this[$model][$prepareVariantsForExport]();
                 const exporter = new GLTFExporter()
                     .register((writer) => new GLTFExporterMaterialsVariantsExtension(writer));
-                exporter.parse(scene.modelContainer.children[0], (gltf) => {
+                exporter.parse(scene.model, (gltf) => {
                     return resolve(new Blob([opts.binary ? gltf : JSON.stringify(gltf)], {
                         type: opts.binary ? 'application/octet-stream' :
                             'application/json'
@@ -57998,13 +57781,13 @@ const SceneGraphMixin = (ModelViewerElement) => {
         }
     }
     __decorate$1([
-        e$4({ type: String, attribute: 'variant-name' })
+        e$3({ type: String, attribute: 'variant-name' })
     ], SceneGraphModelViewerElement.prototype, "variantName", void 0);
     __decorate$1([
-        e$4({ type: String, attribute: 'orientation' })
+        e$3({ type: String, attribute: 'orientation' })
     ], SceneGraphModelViewerElement.prototype, "orientation", void 0);
     __decorate$1([
-        e$4({ type: String, attribute: 'scale' })
+        e$3({ type: String, attribute: 'scale' })
     ], SceneGraphModelViewerElement.prototype, "scale", void 0);
     return SceneGraphModelViewerElement;
 };
@@ -58100,14 +57883,14 @@ const StagingMixin = (ModelViewerElement) => {
     }
     _c = $onCameraChange;
     __decorate([
-        e$4({ type: Boolean, attribute: 'auto-rotate' })
+        e$3({ type: Boolean, attribute: 'auto-rotate' })
     ], StagingModelViewerElement.prototype, "autoRotate", void 0);
     __decorate([
-        e$4({ type: Number, attribute: 'auto-rotate-delay' })
+        e$3({ type: Number, attribute: 'auto-rotate-delay' })
     ], StagingModelViewerElement.prototype, "autoRotateDelay", void 0);
     __decorate([
         style({ intrinsics: rotationRateIntrinsics, updateHandler: $syncRotationRate }),
-        e$4({ type: String, attribute: 'rotation-per-second' })
+        e$3({ type: String, attribute: 'rotation-per-second' })
     ], StagingModelViewerElement.prototype, "rotationPerSecond", void 0);
     return StagingModelViewerElement;
 };

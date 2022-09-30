@@ -24,6 +24,12 @@ export function getError(err) {
           code: 'ERR_QUOTA_LIMIT_REACHED',
         }
       }
+      case 'ErrForbidden': {
+        return {
+          message: 'アクセスが拒否されました',
+          code: 'ERR_FORBIDDEN',
+        }
+      }
     }
   }
   if (err.message) {

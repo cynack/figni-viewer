@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- 閲覧できない時のエラーメッセージを追加
+
 ### Changed
 
 ### Deprecated

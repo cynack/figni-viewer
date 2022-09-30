@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { endMesure, getElapsedTime, startMesure } from './mesure'
+import { endMesure, getElapsedTime, getSumTime, startMesure } from './mesure'
 import { ModelViewerElement } from './model-viewer'
 
 const VIEW_THRESHOLD = 0.7
@@ -130,6 +130,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     }
     startMesure('view-time')
     endMesure('initial-interaction-time')
+    endMesure('initial-interaction-from-display-time')
   }
 
   /**
@@ -151,6 +152,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     this.#wantUseArCount++
     startMesure('view-time')
     endMesure('initial-interaction-time')
+    endMesure('initial-interaction-from-display-time')
     if (this.canActivateAR) {
       this.#arCount++
       if (this.#arCount == 1) {
@@ -352,12 +354,18 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       let wasInViewport = this.#isInViewport
       if (wasInViewport) {
         startMesure('display-time')
+        if (getSumTime('initial-interaction-from-display-time') === 0) {
+          startMesure('initial-interaction-from-display-time', true)
+        }
       }
       this.#registerEventListener(
         'scroll',
         () => {
           if (!wasInViewport && this.#isInViewport) {
             startMesure('display-time')
+            if (getSumTime('initial-interaction-from-display-time') === 0) {
+              startMesure('initial-interaction-from-display-time', true)
+            }
           } else if (wasInViewport && !this.#isInViewport) {
             endMesure('display-time')
             endMesure('view-time')
@@ -391,6 +399,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         startMesure('view-time')
         startMesure('interaction-time')
         endMesure('initial-interaction-time')
+        endMesure('initial-interaction-from-display-time')
       })
       this.#registerEventListener('interaction-end', () => {
         endMesure('interaction-time')
@@ -410,6 +419,8 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
               interaction_time: this.#interactionTime,
               initial_model_view_time: this.#initialModelViewTime,
               initial_interaction_time: this.#initialInteractionTime,
+              initial_interaction_from_display_time:
+                this.#initialInteractionFromDisplayTime,
               ar_count: this.#arCount,
               want_use_ar_count: this.#wantUseArCount,
               initial_ar_use_time: this.#initialArUseTime,
@@ -457,6 +468,12 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
 
   get #initialInteractionTime() {
     return Number(getElapsedTime('initial-interaction-time').toFixed(2))
+  }
+
+  get #initialInteractionFromDisplayTime() {
+    return Number(
+      getElapsedTime('initial-interaction-from-display-time').toFixed(2)
+    )
   }
 
   get #isInViewport() {

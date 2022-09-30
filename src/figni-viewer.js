@@ -1021,7 +1021,7 @@ export default class FigniViewerElement extends HTMLElement {
 
     const panels = hotspot.querySelectorAll('[slot^="panel-"]')
     this.#panels.push(...Array.from(panels))
-    this.#panels.forEach((panel) => {
+    panels.forEach((panel) => {
       this.#modifyPanel(panel)
     })
     hotspot.addEventListener('click', (e) => {
@@ -1147,7 +1147,8 @@ export default class FigniViewerElement extends HTMLElement {
     }
 
     const name = panel.getAttribute('slot').replace(/^panel-/, '')
-    new ClassWatcher(
+    delete panel.classWatcher
+    panel.classWatcher = new ClassWatcher(
       panel,
       'figni-viewer-panel-hide',
       (p) => {

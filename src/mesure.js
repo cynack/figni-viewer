@@ -6,12 +6,13 @@ const db = {}
 /**
  * 時間の計測を開始する
  * @param {string} name 計測している時間の名前
+ * @param {boolean} restart 計測開始時間をリセットするかどうか
  */
-export function startMesure(name) {
+export function startMesure(name, restart = false) {
   if (!db[name]) {
     db[name] = { mark: 0, sum: 0, mesuring: false }
   }
-  if (!db[name].mesuring) {
+  if (!db[name].mesuring || restart) {
     db[name].mark = performance.now()
   }
   db[name].mesuring = true
@@ -36,6 +37,15 @@ export function endMesure(name) {
 
 /**
  * 任意の計測している時間の現在までの経過時間の累積を取得する
+ * @param {string} name 計測している時間の名前
+ * @return {number} 経過時間の累積
+ */
+export function getSumTime(name) {
+  return db[name] ? db[name].sum : 0
+}
+
+/**
+ * 任意の計測している時間の現在までの経過時間の累積と計測中の値を足したものを取得する
  * @param {string} name 計測している時間の名前
  * @return {number} 経過時間の累積
  */

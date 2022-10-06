@@ -91,9 +91,7 @@ export default class FigniViewerElement extends HTMLElement {
   #tipsHideCallback = null
   #toggleStates = {}
 
-  #ABTEST = {
-    IS_OPEN_AR_TIPS: true,
-  }
+  #ABTEST = {}
 
   get itemId() {
     return this.getAttribute('item-id')
@@ -205,11 +203,9 @@ export default class FigniViewerElement extends HTMLElement {
 
     // AB TEST
     if (Math.random() > 0.5) {
-      this.#ABTEST.IS_OPEN_AR_TIPS = true
-      this.base.registerABTestResult('is-open-ar-tips', true)
+      // this.#ABTEST.IS_OPEN_AR_TIPS = true
+      // this.base.registerABTestResult('is-open-ar-tips', true)
     } else {
-      this.#ABTEST.IS_OPEN_AR_TIPS = false
-      this.base.registerABTestResult('is-open-ar-tips', false)
     }
 
     // Figni Help Panel
@@ -1331,9 +1327,7 @@ export default class FigniViewerElement extends HTMLElement {
       })
       this.addEventListener('load', () => {
         this.#hideLoadingPanel()
-        if (this.#ABTEST.IS_OPEN_AR_TIPS) {
-          this.openTipsPanel(TIPS.AR)
-        }
+        this.openTipsPanel(TIPS.AR)
       })
     } else {
       this.#loadingPanel.style.display = ''

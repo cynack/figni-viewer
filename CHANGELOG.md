@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- パネルの表示が少しぼやける問題を修正
+
 ## [1.6.10] - 2022-10-06
 
 ### Added

@@ -1,6 +1,6 @@
 {
   "name": "@cynack/figni-viewer",
-  "version": "1.6.10",
+  "version": "1.6.11",
   "description": "Web module for easy introduction of 3D/AR to websites",
   "main": "./dist/figni-viewer.min.js",
   "files": [

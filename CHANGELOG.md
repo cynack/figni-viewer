@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [1.6.11] - 2022-10-28
+
+### Fixed
+
 - パネルの表示が少しぼやける問題を修正
 
 ## [1.6.10] - 2022-10-06
@@ -453,7 +457,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - キャプションの表示非表示を変化させる`to-state`属性を追加
 - キャプションの表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.6.10...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.6.11...HEAD
+[1.6.11]: https://github.com/cynack/figni-viewer/compare/v1.6.10...v1.6.11
 [1.6.10]: https://github.com/cynack/figni-viewer/compare/v1.6.9...v1.6.10
 [1.6.9]: https://github.com/cynack/figni-viewer/compare/v1.6.8...v1.6.9
 [1.6.8]: https://github.com/cynack/figni-viewer/compare/v1.6.7...v1.6.8

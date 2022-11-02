@@ -224,10 +224,13 @@ export default class FigniViewerElement extends HTMLElement {
       this.#hotspots.push(this.base.appendChild(hotspot))
     })
     await this.base.updateComplete
+    this.#hotspots = Array.from(new Set(this.#hotspots))
     this.#hotspots.forEach((hotspot) => {
-      this.#modifyHotspot(hotspot)
+      if (!hotspot.classList.contains('figni-viewer-hotspot')) {
+        this.#modifyHotspot(hotspot)
+      }
     })
-    this.addEventListener('load', () => {
+    this.addEventListener('model-visibility', () => {
       setTimeout(() => {
         this.#enableAllHotspots()
       }, 100)

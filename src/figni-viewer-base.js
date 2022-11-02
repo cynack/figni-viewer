@@ -111,8 +111,8 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   }
 
   /**
-   * カメラのFoVを設定する
-   * @param {string} fov
+   * カメラの垂直方向の視野を設定する
+   * @param {string} fov 角度("deg", "rad", etc.)
    */
   setFieldOfView(fov) {
     this.fieldOfView = fov

@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- カメラの垂直方向の視野を変更できる属性`fov`を追加
+
 ### Changed
 
 ### Deprecated

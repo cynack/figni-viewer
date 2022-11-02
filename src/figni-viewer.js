@@ -37,6 +37,7 @@ const OBSERBED_ATTRIBUTES = [
   'model-tag',
   'target',
   'orbit',
+  'fov',
   'screenshot',
   'toggle-caption',
   'state',
@@ -44,6 +45,7 @@ const OBSERBED_ATTRIBUTES = [
 const SETTINGS = {
   DEFAULT_CAMERA_TARGET: 'auto auto auto',
   DEFAULT_CAMERA_ORBIT: '0deg 75deg 105%',
+  DEFAULT_CAMERA_FOV: 'auto',
   DEFAULT_HOTSPOT_POSITION: '0m 0m 0m',
   DEFAULT_HOTSPOT_NORMAL: '0m 1m 0m',
   DEFAULT_PANEL_PLACE: 'left middle',
@@ -142,6 +144,14 @@ export default class FigniViewerElement extends HTMLElement {
 
   set orbit(value) {
     this.setAttribute('orbit', value)
+  }
+
+  get fov() {
+    return this.getAttribute('fov') || SETTINGS.DEFAULT_CAMERA_FOV
+  }
+
+  set fov(value) {
+    this.setAttribute('fov', value)
   }
 
   get state() {
@@ -309,12 +319,27 @@ export default class FigniViewerElement extends HTMLElement {
   }
 
   /**
+   * カメラの垂直方向の視野を設定する
+   * @param {string} fov 角度("deg", "rad", etc.)
+   */
+  setCameraFov(fov) {
+    if (this.base.fieldOfView !== fov) {
+      this.#showInitCameraButton()
+    }
+    this.#setCameraFov(fov)
+  }
+
+  #setCameraFov(fov) {
+    this.base.setFieldOfView(fov)
+  }
+
+  /**
    * カメラ位置を初期位置に戻す
    */
   resetCameraTargetAndOrbit() {
     this.setCameraTarget(this.target)
     this.setCameraOrbit(this.orbit)
-    this.base.setFieldOfView('auto')
+    this.setCameraFov(this.fov)
     this.#showTemporaryHidedHotspot()
     this.#hideInitCameraButton()
   }
@@ -921,6 +946,7 @@ export default class FigniViewerElement extends HTMLElement {
     const isCloseup =
       hotspot.getAttribute('target') != null ||
       hotspot.getAttribute('orbit') != null ||
+      hotspot.getAttribute('fov') != null ||
       hotspot.getAttribute('closeup') == ''
     const isVisible = hotspot.getAttribute('to-state') != null
     const isToggle = hotspot.getAttribute('toggle-clip') != null
@@ -1013,16 +1039,19 @@ export default class FigniViewerElement extends HTMLElement {
             const target =
               hotspot.getAttribute('target') ||
               hotspot.getAttribute('position') ||
-              SETTINGS.DEFAULT_HOTSPOT_POSITION
+              this.target
             const orbit = hotspot.getAttribute('orbit') || this.orbit
+            const fov = hotspot.getAttribute('fov') || this.fov
             if (
               this.base.cameraTarget === target &&
-              this.base.cameraOrbit === orbit
+              this.base.cameraOrbit === orbit &&
+              this.base.fieldOfView === fov
             ) {
               this.resetCameraTargetAndOrbit()
             } else {
               this.#setCameraTarget(target)
               this.#setCameraOrbit(orbit)
+              this.#setCameraFov(fov)
               this.#temporaryHideHotspot(name, hotspot)
             }
           }

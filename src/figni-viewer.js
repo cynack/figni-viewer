@@ -712,7 +712,11 @@ export default class FigniViewerElement extends HTMLElement {
         text = 'ドラッグするとコンテンツを回転できます'
         animation = CONTENT_OPERATION_ANIMATION
         help = HELP.CONTENT
-        style = 'top: 0.75em; right: 0.75em; transform-origin: top right;'
+        style = {
+          top: '0.75em',
+          right: '0.75em',
+          'transform-origin': 'top right',
+        }
         minimizeHelpButton = true
         break
       }
@@ -720,7 +724,11 @@ export default class FigniViewerElement extends HTMLElement {
         text = '目の前に実物大の商品を表示できます'
         animation = HOW_TO_AR_ANIMATION
         help = HELP.AR
-        style = 'bottom: 3.75em; left: 0.75em; transform-origin: bottom left;'
+        style = {
+          bottom: '3.75em',
+          left: '0.75em',
+          'transform-origin': 'bottom left',
+        }
         minimizeHelpButton = false
         break
       }
@@ -729,7 +737,11 @@ export default class FigniViewerElement extends HTMLElement {
       if (minimizeHelpButton) {
         this.#helpButton.innerHTML = `${SVG_HELP_ICON}`
       }
-      this.#tipsPanel.style = style
+      for (const key in style) {
+        if (style.hasOwnProperty(key)) {
+          this.#tipsPanel.style[key] = style[key]
+        }
+      }
       this.#tipsPanel.querySelector('.figni-viewer-tips-panel-text').innerHTML =
         text
       const animationElement = this.#tipsPanel.querySelector(
@@ -1379,7 +1391,7 @@ export default class FigniViewerElement extends HTMLElement {
           `${Math.ceil(p * 100)}%`
         )
       })
-      this.addEventListener('load', () => {
+      this.addEventListener('model-visibility', () => {
         this.#hideLoadingPanel()
         this.openTipsPanel(TIPS.AR)
       })

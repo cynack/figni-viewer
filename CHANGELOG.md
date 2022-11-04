@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- 軽微な修正
+
 ## [1.6.11] - 2022-10-28
 
 ### Fixed

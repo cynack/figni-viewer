@@ -11,13 +11,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- カメラの垂直方向の視野を変更できる属性`fov`を追加
-
 ### Changed
 
 ### Deprecated
 
 ### Removed
+
+### Fixed
+
+## [1.7.0] - 2022-11-07
+
+### Added
+
+- カメラの垂直方向の視野を変更できる属性`fov`を追加
 
 ### Fixed
 
@@ -461,7 +467,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - キャプションの表示非表示を変化させる`to-state`属性を追加
 - キャプションの表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.6.11...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/cynack/figni-viewer/compare/v1.6.11...v1.7.0
 [1.6.11]: https://github.com/cynack/figni-viewer/compare/v1.6.10...v1.6.11
 [1.6.10]: https://github.com/cynack/figni-viewer/compare/v1.6.9...v1.6.10
 [1.6.9]: https://github.com/cynack/figni-viewer/compare/v1.6.8...v1.6.9

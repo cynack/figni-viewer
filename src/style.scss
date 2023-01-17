@@ -1,4 +1,4 @@
-figni-viewer-base::not(style[outline='none']) {
+figni-viewer-base:not(style[outline='none']) {
   outline: none !important;
 }
 figni-viewer-base::part(default-progress-bar) {

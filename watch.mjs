@@ -32,27 +32,34 @@ const ctx = await esbuild.context({
   outfile: 'dist/figni-viewer.min.js',
   define: {
     VERSION: JSON.stringify(process.env.VERSION || ''),
-    API_BASE: JSON.stringify('https://api.figni.io/api'),
-    WEBSOCKET_BASE: JSON.stringify('wss://api.figni.io/ws'),
+    API_BASE: JSON.stringify('https://api.stg.figni.io/api'),
+    WEBSOCKET_BASE: JSON.stringify('wss://api.stg.figni.io/ws'),
   },
   plugins: [
     sassPlugin({ type: 'style' }),
     {
       name: 'on-end',
       setup(build) {
-        build.onEnd((error, result) => {
+        build.onEnd((result) => {
           console.log('----------------------------')
-          if (error) {
+          if (result.errors.length > 0) {
             console.error(new Date().toLocaleString(), ' watch build failed ')
-            if (error.warnings) warningLog(error.warnings)
-            if (error.errors) errorLog(error.errors)
+            if (result.warnings.length) {
+              result.warnings.forEach((warn) => {
+                warningLog(warn)
+              })
+            }
+            if (result.errors.length) {
+              result.errors.forEach((err) => {
+                errorLog(err)
+              })
+            }
           } else {
-            if (result) {
-              console.log(
-                new Date().toLocaleString(),
-                ' watch build succeeded '
-              )
-              if (result.warnings) warningLog(result.warnings)
+            console.log(new Date().toLocaleString(), ' watch build succeeded ')
+            if (result.warnings.length) {
+              result.warnings.forEach((warn) => {
+                warningLog(warn)
+              })
             }
           }
         })

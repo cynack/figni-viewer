@@ -35,12 +35,8 @@ const OBSERBED_ATTRIBUTES = [
   'item-id',
   'token',
   'model-tag',
-  'target',
-  'orbit',
-  'fov',
   'screenshot',
   'toggle-caption',
-  'state',
 ]
 const SETTINGS = {
   DEFAULT_CAMERA_TARGET: 'auto auto auto',
@@ -162,6 +158,10 @@ export default class FigniViewerElement extends HTMLElement {
     this.setAttribute('state', value)
   }
 
+  get enablePan() {
+    return this.getAttribute('enable-pan') === ''
+  }
+
   get isStaging() {
     return this.getAttribute('staging') === ''
   }
@@ -256,6 +256,9 @@ export default class FigniViewerElement extends HTMLElement {
     this.#showHelpButton()
 
     this.#completedInitialModelLoad = true
+    if (this.enablePan) {
+      this.base.disablePan = false
+    }
 
     this.updateColorSettings()
   }

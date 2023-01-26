@@ -16,7 +16,7 @@ const i$2=(i,e)=>"method"===e.kind&&e.descriptor&&!("value"in e.descriptor)?{...
  * Copyright 2010-2022 Three.js Authors
  * SPDX-License-Identifier: MIT
  */
-const REVISION = '144';
+const REVISION = '148';
 const CullFaceNone = 0;
 const CullFaceBack = 1;
 const CullFaceFront = 2;
@@ -26,6 +26,7 @@ const VSMShadowMap = 3;
 const FrontSide = 0;
 const BackSide = 1;
 const DoubleSide = 2;
+const TwoPassDoubleSide = 3;
 const NoBlending = 0;
 const NormalBlending = 1;
 const AdditiveBlending = 2;
@@ -1262,12 +1263,11 @@ class Matrix3 {
 
 	}
 
+	//
+
 	scale( sx, sy ) {
 
-		const te = this.elements;
-
-		te[ 0 ] *= sx; te[ 3 ] *= sx; te[ 6 ] *= sx;
-		te[ 1 ] *= sy; te[ 4 ] *= sy; te[ 7 ] *= sy;
+		this.premultiply( _m3.makeScale( sx, sy ) );
 
 		return this;
 
@@ -1275,21 +1275,7 @@ class Matrix3 {
 
 	rotate( theta ) {
 
-		const c = Math.cos( theta );
-		const s = Math.sin( theta );
-
-		const te = this.elements;
-
-		const a11 = te[ 0 ], a12 = te[ 3 ], a13 = te[ 6 ];
-		const a21 = te[ 1 ], a22 = te[ 4 ], a23 = te[ 7 ];
-
-		te[ 0 ] = c * a11 + s * a21;
-		te[ 3 ] = c * a12 + s * a22;
-		te[ 6 ] = c * a13 + s * a23;
-
-		te[ 1 ] = - s * a11 + c * a21;
-		te[ 4 ] = - s * a12 + c * a22;
-		te[ 7 ] = - s * a13 + c * a23;
+		this.premultiply( _m3.makeRotation( - theta ) );
 
 		return this;
 
@@ -1297,14 +1283,62 @@ class Matrix3 {
 
 	translate( tx, ty ) {
 
-		const te = this.elements;
-
-		te[ 0 ] += tx * te[ 2 ]; te[ 3 ] += tx * te[ 5 ]; te[ 6 ] += tx * te[ 8 ];
-		te[ 1 ] += ty * te[ 2 ]; te[ 4 ] += ty * te[ 5 ]; te[ 7 ] += ty * te[ 8 ];
+		this.premultiply( _m3.makeTranslation( tx, ty ) );
 
 		return this;
 
 	}
+
+	// for 2D Transforms
+
+	makeTranslation( x, y ) {
+
+		this.set(
+
+			1, 0, x,
+			0, 1, y,
+			0, 0, 1
+
+		);
+
+		return this;
+
+	}
+
+	makeRotation( theta ) {
+
+		// counterclockwise
+
+		const c = Math.cos( theta );
+		const s = Math.sin( theta );
+
+		this.set(
+
+			c, - s, 0,
+			s, c, 0,
+			0, 0, 1
+
+		);
+
+		return this;
+
+	}
+
+	makeScale( x, y ) {
+
+		this.set(
+
+			x, 0, 0,
+			0, y, 0,
+			0, 0, 1
+
+		);
+
+		return this;
+
+	}
+
+	//
 
 	equals( matrix ) {
 
@@ -1360,6 +1394,8 @@ class Matrix3 {
 	}
 
 }
+
+const _m3 = /*@__PURE__*/ new Matrix3();
 
 function arrayNeedsUint32( array ) {
 
@@ -1479,7 +1515,7 @@ const _colorKeywords = { 'aliceblue': 0xF0F8FF, 'antiquewhite': 0xFAEBD7, 'aqua'
 	'springgreen': 0x00FF7F, 'steelblue': 0x4682B4, 'tan': 0xD2B48C, 'teal': 0x008080, 'thistle': 0xD8BFD8, 'tomato': 0xFF6347, 'turquoise': 0x40E0D0,
 	'violet': 0xEE82EE, 'wheat': 0xF5DEB3, 'white': 0xFFFFFF, 'whitesmoke': 0xF5F5F5, 'yellow': 0xFFFF00, 'yellowgreen': 0x9ACD32 };
 
-const _rgb = { r: 0, g: 0, b: 0 };
+const _rgb$1 = { r: 0, g: 0, b: 0 };
 const _hslA = { h: 0, s: 0, l: 0 };
 const _hslB = { h: 0, s: 0, l: 0 };
 
@@ -1569,7 +1605,7 @@ class Color {
 
 	}
 
-	setRGB( r, g, b, colorSpace = LinearSRGBColorSpace ) {
+	setRGB( r, g, b, colorSpace = ColorManagement.workingColorSpace ) {
 
 		this.r = r;
 		this.g = g;
@@ -1581,7 +1617,7 @@ class Color {
 
 	}
 
-	setHSL( h, s, l, colorSpace = LinearSRGBColorSpace ) {
+	setHSL( h, s, l, colorSpace = ColorManagement.workingColorSpace ) {
 
 		// h,s,l ranges are in 0.0 - 1.0
 		h = euclideanModulo( h, 1 );
@@ -1809,9 +1845,9 @@ class Color {
 
 	getHex( colorSpace = SRGBColorSpace ) {
 
-		ColorManagement.fromWorkingColorSpace( toComponents( this, _rgb ), colorSpace );
+		ColorManagement.fromWorkingColorSpace( toComponents( this, _rgb$1 ), colorSpace );
 
-		return clamp$1( _rgb.r * 255, 0, 255 ) << 16 ^ clamp$1( _rgb.g * 255, 0, 255 ) << 8 ^ clamp$1( _rgb.b * 255, 0, 255 ) << 0;
+		return clamp$1( _rgb$1.r * 255, 0, 255 ) << 16 ^ clamp$1( _rgb$1.g * 255, 0, 255 ) << 8 ^ clamp$1( _rgb$1.b * 255, 0, 255 ) << 0;
 
 	}
 
@@ -1821,13 +1857,13 @@ class Color {
 
 	}
 
-	getHSL( target, colorSpace = LinearSRGBColorSpace ) {
+	getHSL( target, colorSpace = ColorManagement.workingColorSpace ) {
 
 		// h,s,l ranges are in 0.0 - 1.0
 
-		ColorManagement.fromWorkingColorSpace( toComponents( this, _rgb ), colorSpace );
+		ColorManagement.fromWorkingColorSpace( toComponents( this, _rgb$1 ), colorSpace );
 
-		const r = _rgb.r, g = _rgb.g, b = _rgb.b;
+		const r = _rgb$1.r, g = _rgb$1.g, b = _rgb$1.b;
 
 		const max = Math.max( r, g, b );
 		const min = Math.min( r, g, b );
@@ -1866,13 +1902,13 @@ class Color {
 
 	}
 
-	getRGB( target, colorSpace = LinearSRGBColorSpace ) {
+	getRGB( target, colorSpace = ColorManagement.workingColorSpace ) {
 
-		ColorManagement.fromWorkingColorSpace( toComponents( this, _rgb ), colorSpace );
+		ColorManagement.fromWorkingColorSpace( toComponents( this, _rgb$1 ), colorSpace );
 
-		target.r = _rgb.r;
-		target.g = _rgb.g;
-		target.b = _rgb.b;
+		target.r = _rgb$1.r;
+		target.g = _rgb$1.g;
+		target.b = _rgb$1.b;
 
 		return target;
 
@@ -1880,16 +1916,16 @@ class Color {
 
 	getStyle( colorSpace = SRGBColorSpace ) {
 
-		ColorManagement.fromWorkingColorSpace( toComponents( this, _rgb ), colorSpace );
+		ColorManagement.fromWorkingColorSpace( toComponents( this, _rgb$1 ), colorSpace );
 
 		if ( colorSpace !== SRGBColorSpace ) {
 
 			// Requires CSS Color Module Level 4 (https://www.w3.org/TR/css-color-4/).
-			return `color(${ colorSpace } ${ _rgb.r } ${ _rgb.g } ${ _rgb.b })`;
+			return `color(${ colorSpace } ${ _rgb$1.r } ${ _rgb$1.g } ${ _rgb$1.b })`;
 
 		}
 
-		return `rgb(${( _rgb.r * 255 ) | 0},${( _rgb.g * 255 ) | 0},${( _rgb.b * 255 ) | 0})`;
+		return `rgb(${( _rgb$1.r * 255 ) | 0},${( _rgb$1.g * 255 ) | 0},${( _rgb$1.b * 255 ) | 0})`;
 
 	}
 
@@ -2302,7 +2338,7 @@ let textureId = 0;
 
 class Texture$1 extends EventDispatcher {
 
-	constructor( image = Texture$1.DEFAULT_IMAGE, mapping = Texture$1.DEFAULT_MAPPING, wrapS = ClampToEdgeWrapping, wrapT = ClampToEdgeWrapping, magFilter = LinearFilter, minFilter = LinearMipmapLinearFilter, format = RGBAFormat, type = UnsignedByteType, anisotropy = 1, encoding = LinearEncoding ) {
+	constructor( image = Texture$1.DEFAULT_IMAGE, mapping = Texture$1.DEFAULT_MAPPING, wrapS = ClampToEdgeWrapping, wrapT = ClampToEdgeWrapping, magFilter = LinearFilter, minFilter = LinearMipmapLinearFilter, format = RGBAFormat, type = UnsignedByteType, anisotropy = Texture$1.DEFAULT_ANISOTROPY, encoding = LinearEncoding ) {
 
 		super();
 
@@ -2469,12 +2505,13 @@ class Texture$1 extends EventDispatcher {
 
 			flipY: this.flipY,
 
+			generateMipmaps: this.generateMipmaps,
 			premultiplyAlpha: this.premultiplyAlpha,
 			unpackAlignment: this.unpackAlignment
 
 		};
 
-		if ( JSON.stringify( this.userData ) !== '{}' ) output.userData = this.userData;
+		if ( Object.keys( this.userData ).length > 0 ) output.userData = this.userData;
 
 		if ( ! isRootObject ) {
 
@@ -2587,6 +2624,7 @@ class Texture$1 extends EventDispatcher {
 
 Texture$1.DEFAULT_IMAGE = null;
 Texture$1.DEFAULT_MAPPING = UVMapping;
+Texture$1.DEFAULT_ANISOTROPY = 1;
 
 class Vector4 {
 
@@ -3238,7 +3276,7 @@ class Vector4 {
 */
 class WebGLRenderTarget extends EventDispatcher {
 
-	constructor( width, height, options = {} ) {
+	constructor( width = 1, height = 1, options = {} ) {
 
 		super();
 
@@ -5124,12 +5162,12 @@ class Box3 {
 		// translate triangle to aabb origin
 		_v0$2.subVectors( triangle.a, _center );
 		_v1$7.subVectors( triangle.b, _center );
-		_v2$3.subVectors( triangle.c, _center );
+		_v2$4.subVectors( triangle.c, _center );
 
 		// compute edge vectors for triangle
 		_f0.subVectors( _v1$7, _v0$2 );
-		_f1.subVectors( _v2$3, _v1$7 );
-		_f2.subVectors( _v0$2, _v2$3 );
+		_f1.subVectors( _v2$4, _v1$7 );
+		_f2.subVectors( _v0$2, _v2$4 );
 
 		// test against axes that are given by cross product combinations of the edges of the triangle and the edges of the aabb
 		// make an axis testing of each of the 3 sides of the aabb against each of the 3 sides of the triangle = 9 axis of separation
@@ -5139,7 +5177,7 @@ class Box3 {
 			_f0.z, 0, - _f0.x, _f1.z, 0, - _f1.x, _f2.z, 0, - _f2.x,
 			- _f0.y, _f0.x, 0, - _f1.y, _f1.x, 0, - _f2.y, _f2.x, 0
 		];
-		if ( ! satForAxes( axes, _v0$2, _v1$7, _v2$3, _extents ) ) {
+		if ( ! satForAxes( axes, _v0$2, _v1$7, _v2$4, _extents ) ) {
 
 			return false;
 
@@ -5147,7 +5185,7 @@ class Box3 {
 
 		// test 3 face normals from the aabb
 		axes = [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ];
-		if ( ! satForAxes( axes, _v0$2, _v1$7, _v2$3, _extents ) ) {
+		if ( ! satForAxes( axes, _v0$2, _v1$7, _v2$4, _extents ) ) {
 
 			return false;
 
@@ -5158,7 +5196,7 @@ class Box3 {
 		_triangleNormal.crossVectors( _f0, _f1 );
 		axes = [ _triangleNormal.x, _triangleNormal.y, _triangleNormal.z ];
 
-		return satForAxes( axes, _v0$2, _v1$7, _v2$3, _extents );
+		return satForAxes( axes, _v0$2, _v1$7, _v2$4, _extents );
 
 	}
 
@@ -5264,7 +5302,7 @@ const _box$3 = /*@__PURE__*/ new Box3();
 
 const _v0$2 = /*@__PURE__*/ new Vector3();
 const _v1$7 = /*@__PURE__*/ new Vector3();
-const _v2$3 = /*@__PURE__*/ new Vector3();
+const _v2$4 = /*@__PURE__*/ new Vector3();
 
 // triangle edge vectors
 
@@ -5305,8 +5343,7 @@ function satForAxes( axes, v0, v1, v2, extents ) {
 
 const _box$2 = /*@__PURE__*/ new Box3();
 const _v1$6 = /*@__PURE__*/ new Vector3();
-const _toFarthestPoint = /*@__PURE__*/ new Vector3();
-const _toPoint = /*@__PURE__*/ new Vector3();
+const _v2$3 = /*@__PURE__*/ new Vector3();
 
 class Sphere {
 
@@ -5463,23 +5500,31 @@ class Sphere {
 
 	expandByPoint( point ) {
 
-		// from https://github.com/juj/MathGeoLib/blob/2940b99b99cfe575dd45103ef20f4019dee15b54/src/Geometry/Sphere.cpp#L649-L671
+		if ( this.isEmpty() ) {
 
-		_toPoint.subVectors( point, this.center );
+			this.center.copy( point );
 
-		const lengthSq = _toPoint.lengthSq();
+			this.radius = 0;
+
+			return this;
+
+		}
+
+		_v1$6.subVectors( point, this.center );
+
+		const lengthSq = _v1$6.lengthSq();
 
 		if ( lengthSq > ( this.radius * this.radius ) ) {
 
+			// calculate the minimal sphere
+
 			const length = Math.sqrt( lengthSq );
-			const missingRadiusHalf = ( length - this.radius ) * 0.5;
 
-			// Nudge this sphere towards the target point. Add half the missing distance to radius,
-			// and the other half to position. This gives a tighter enclosure, instead of if
-			// the whole missing distance were just added to radius.
+			const delta = ( length - this.radius ) * 0.5;
 
-			this.center.add( _toPoint.multiplyScalar( missingRadiusHalf / length ) );
-			this.radius += missingRadiusHalf;
+			this.center.addScaledVector( _v1$6, delta / length );
+
+			this.radius += delta;
 
 		}
 
@@ -5489,25 +5534,33 @@ class Sphere {
 
 	union( sphere ) {
 
-		// from https://github.com/juj/MathGeoLib/blob/2940b99b99cfe575dd45103ef20f4019dee15b54/src/Geometry/Sphere.cpp#L759-L769
+		if ( sphere.isEmpty() ) {
 
-		// To enclose another sphere into this sphere, we only need to enclose two points:
-		// 1) Enclose the farthest point on the other sphere into this sphere.
-		// 2) Enclose the opposite point of the farthest point into this sphere.
-
-		 if ( this.center.equals( sphere.center ) === true ) {
-
-			 _toFarthestPoint.set( 0, 0, 1 ).multiplyScalar( sphere.radius );
-
-
-		} else {
-
-			_toFarthestPoint.subVectors( sphere.center, this.center ).normalize().multiplyScalar( sphere.radius );
+			return this;
 
 		}
 
-		this.expandByPoint( _v1$6.copy( sphere.center ).add( _toFarthestPoint ) );
-		this.expandByPoint( _v1$6.copy( sphere.center ).sub( _toFarthestPoint ) );
+		if ( this.isEmpty() ) {
+
+			this.copy( sphere );
+
+			return this;
+
+		}
+
+		if ( this.center.equals( sphere.center ) === true ) {
+
+			 this.radius = Math.max( this.radius, sphere.radius );
+
+		} else {
+
+			_v2$3.subVectors( sphere.center, this.center ).setLength( sphere.radius );
+
+			this.expandByPoint( _v1$6.copy( sphere.center ).add( _v2$3 ) );
+
+			this.expandByPoint( _v1$6.copy( sphere.center ).sub( _v2$3 ) );
+
+		}
 
 		return this;
 
@@ -5883,12 +5936,9 @@ class Ray {
 
 		if ( ( tmin > tymax ) || ( tymin > tmax ) ) return null;
 
-		// These lines also handle the case where tmin or tmax is NaN
-		// (result of 0 * Infinity). x !== x returns true if x is NaN
+		if ( tymin > tmin || isNaN( tmin ) ) tmin = tymin;
 
-		if ( tymin > tmin || tmin !== tmin ) tmin = tymin;
-
-		if ( tymax < tmax || tmax !== tmax ) tmax = tymax;
+		if ( tymax < tmax || isNaN( tmax ) ) tmax = tymax;
 
 		if ( invdirz >= 0 ) {
 
@@ -7494,11 +7544,15 @@ class Object3D extends EventDispatcher {
 
 	localToWorld( vector ) {
 
+		this.updateWorldMatrix( true, false );
+
 		return vector.applyMatrix4( this.matrixWorld );
 
 	}
 
 	worldToLocal( vector ) {
+
+		this.updateWorldMatrix( true, false );
 
 		return vector.applyMatrix4( _m1$1.copy( this.matrixWorld ).invert() );
 
@@ -7710,6 +7764,28 @@ class Object3D extends EventDispatcher {
 		}
 
 		return undefined;
+
+	}
+
+	getObjectsByProperty( name, value ) {
+
+		let result = [];
+
+		if ( this[ name ] === value ) result.push( this );
+
+		for ( let i = 0, l = this.children.length; i < l; i ++ ) {
+
+			const childResult = this.children[ i ].getObjectsByProperty( name, value );
+
+			if ( childResult.length > 0 ) {
+
+				result = result.concat( childResult );
+
+			}
+
+		}
+
+		return result;
 
 	}
 
@@ -7934,7 +8010,7 @@ class Object3D extends EventDispatcher {
 		if ( this.visible === false ) object.visible = false;
 		if ( this.frustumCulled === false ) object.frustumCulled = false;
 		if ( this.renderOrder !== 0 ) object.renderOrder = this.renderOrder;
-		if ( JSON.stringify( this.userData ) !== '{}' ) object.userData = this.userData;
+		if ( Object.keys( this.userData ).length > 0 ) object.userData = this.userData;
 
 		object.layers = this.layers.mask;
 		object.matrix = this.matrix.toArray();
@@ -8782,7 +8858,7 @@ class Material$1 extends EventDispatcher {
 		if ( this.transmissionMap && this.transmissionMap.isTexture ) data.transmissionMap = this.transmissionMap.toJSON( meta ).uuid;
 		if ( this.thickness !== undefined ) data.thickness = this.thickness;
 		if ( this.thicknessMap && this.thicknessMap.isTexture ) data.thicknessMap = this.thicknessMap.toJSON( meta ).uuid;
-		if ( this.attenuationDistance !== undefined ) data.attenuationDistance = this.attenuationDistance;
+		if ( this.attenuationDistance !== undefined && this.attenuationDistance !== Infinity ) data.attenuationDistance = this.attenuationDistance;
 		if ( this.attenuationColor !== undefined ) data.attenuationColor = this.attenuationColor.getHex();
 
 		if ( this.size !== undefined ) data.size = this.size;
@@ -8841,7 +8917,7 @@ class Material$1 extends EventDispatcher {
 
 		if ( this.fog === false ) data.fog = false;
 
-		if ( JSON.stringify( this.userData ) !== '{}' ) data.userData = this.userData;
+		if ( Object.keys( this.userData ).length > 0 ) data.userData = this.userData;
 
 		// TODO: Copied from Object3D.toJSON
 
@@ -9053,7 +9129,7 @@ const _vector2$1 = /*@__PURE__*/ new Vector2();
 
 class BufferAttribute {
 
-	constructor( array, itemSize, normalized ) {
+	constructor( array, itemSize, normalized = false ) {
 
 		if ( Array.isArray( array ) ) {
 
@@ -9068,7 +9144,7 @@ class BufferAttribute {
 		this.array = array;
 		this.itemSize = itemSize;
 		this.count = array !== undefined ? array.length / itemSize : 0;
-		this.normalized = normalized === true;
+		this.normalized = normalized;
 
 		this.usage = StaticDrawUsage;
 		this.updateRange = { offset: 0, count: - 1 };
@@ -10405,7 +10481,7 @@ class BufferGeometry extends EventDispatcher {
 
 	clone() {
 
-		 return new this.constructor().copy( this );
+		return new this.constructor().copy( this );
 
 	}
 
@@ -10535,12 +10611,7 @@ const _vB$1 = /*@__PURE__*/ new Vector3();
 const _vC$1 = /*@__PURE__*/ new Vector3();
 
 const _tempA = /*@__PURE__*/ new Vector3();
-const _tempB = /*@__PURE__*/ new Vector3();
-const _tempC = /*@__PURE__*/ new Vector3();
-
 const _morphA = /*@__PURE__*/ new Vector3();
-const _morphB = /*@__PURE__*/ new Vector3();
-const _morphC = /*@__PURE__*/ new Vector3();
 
 const _uvA$1 = /*@__PURE__*/ new Vector2();
 const _uvB$1 = /*@__PURE__*/ new Vector2();
@@ -10620,6 +10691,56 @@ class Mesh extends Object3D {
 
 	}
 
+	getVertexPosition( vert, target ) {
+
+		const geometry = this.geometry;
+		const position = geometry.attributes.position;
+		const morphPosition = geometry.morphAttributes.position;
+		const morphTargetsRelative = geometry.morphTargetsRelative;
+
+		target.fromBufferAttribute( position, vert );
+
+		const morphInfluences = this.morphTargetInfluences;
+
+		if ( morphPosition && morphInfluences ) {
+
+			_morphA.set( 0, 0, 0 );
+
+			for ( let i = 0, il = morphPosition.length; i < il; i ++ ) {
+
+				const influence = morphInfluences[ i ];
+				const morphAttribute = morphPosition[ i ];
+
+				if ( influence === 0 ) continue;
+
+				_tempA.fromBufferAttribute( morphAttribute, vert );
+
+				if ( morphTargetsRelative ) {
+
+					_morphA.addScaledVector( _tempA, influence );
+
+				} else {
+
+					_morphA.addScaledVector( _tempA.sub( target ), influence );
+
+				}
+
+			}
+
+			target.add( _morphA );
+
+		}
+
+		if ( this.isSkinnedMesh ) {
+
+			this.boneTransform( vert, target );
+
+		}
+
+		return target;
+
+	}
+
 	raycast( raycaster, intersects ) {
 
 		const geometry = this.geometry;
@@ -10654,8 +10775,6 @@ class Mesh extends Object3D {
 
 		const index = geometry.index;
 		const position = geometry.attributes.position;
-		const morphPosition = geometry.morphAttributes.position;
-		const morphTargetsRelative = geometry.morphTargetsRelative;
 		const uv = geometry.attributes.uv;
 		const uv2 = geometry.attributes.uv2;
 		const groups = geometry.groups;
@@ -10681,7 +10800,7 @@ class Mesh extends Object3D {
 						const b = index.getX( j + 1 );
 						const c = index.getX( j + 2 );
 
-						intersection = checkBufferGeometryIntersection( this, groupMaterial, raycaster, _ray$2, position, morphPosition, morphTargetsRelative, uv, uv2, a, b, c );
+						intersection = checkBufferGeometryIntersection( this, groupMaterial, raycaster, _ray$2, uv, uv2, a, b, c );
 
 						if ( intersection ) {
 
@@ -10706,7 +10825,7 @@ class Mesh extends Object3D {
 					const b = index.getX( i + 1 );
 					const c = index.getX( i + 2 );
 
-					intersection = checkBufferGeometryIntersection( this, material, raycaster, _ray$2, position, morphPosition, morphTargetsRelative, uv, uv2, a, b, c );
+					intersection = checkBufferGeometryIntersection( this, material, raycaster, _ray$2, uv, uv2, a, b, c );
 
 					if ( intersection ) {
 
@@ -10739,7 +10858,7 @@ class Mesh extends Object3D {
 						const b = j + 1;
 						const c = j + 2;
 
-						intersection = checkBufferGeometryIntersection( this, groupMaterial, raycaster, _ray$2, position, morphPosition, morphTargetsRelative, uv, uv2, a, b, c );
+						intersection = checkBufferGeometryIntersection( this, groupMaterial, raycaster, _ray$2, uv, uv2, a, b, c );
 
 						if ( intersection ) {
 
@@ -10764,7 +10883,7 @@ class Mesh extends Object3D {
 					const b = i + 1;
 					const c = i + 2;
 
-					intersection = checkBufferGeometryIntersection( this, material, raycaster, _ray$2, position, morphPosition, morphTargetsRelative, uv, uv2, a, b, c );
+					intersection = checkBufferGeometryIntersection( this, material, raycaster, _ray$2, uv, uv2, a, b, c );
 
 					if ( intersection ) {
 
@@ -10793,7 +10912,7 @@ function checkIntersection( object, material, raycaster, ray, pA, pB, pC, point 
 
 	} else {
 
-		intersect = ray.intersectTriangle( pA, pB, pC, material.side !== DoubleSide, point );
+		intersect = ray.intersectTriangle( pA, pB, pC, ( material.side === FrontSide ), point );
 
 	}
 
@@ -10814,60 +10933,11 @@ function checkIntersection( object, material, raycaster, ray, pA, pB, pC, point 
 
 }
 
-function checkBufferGeometryIntersection( object, material, raycaster, ray, position, morphPosition, morphTargetsRelative, uv, uv2, a, b, c ) {
+function checkBufferGeometryIntersection( object, material, raycaster, ray, uv, uv2, a, b, c ) {
 
-	_vA$1.fromBufferAttribute( position, a );
-	_vB$1.fromBufferAttribute( position, b );
-	_vC$1.fromBufferAttribute( position, c );
-
-	const morphInfluences = object.morphTargetInfluences;
-
-	if ( morphPosition && morphInfluences ) {
-
-		_morphA.set( 0, 0, 0 );
-		_morphB.set( 0, 0, 0 );
-		_morphC.set( 0, 0, 0 );
-
-		for ( let i = 0, il = morphPosition.length; i < il; i ++ ) {
-
-			const influence = morphInfluences[ i ];
-			const morphAttribute = morphPosition[ i ];
-
-			if ( influence === 0 ) continue;
-
-			_tempA.fromBufferAttribute( morphAttribute, a );
-			_tempB.fromBufferAttribute( morphAttribute, b );
-			_tempC.fromBufferAttribute( morphAttribute, c );
-
-			if ( morphTargetsRelative ) {
-
-				_morphA.addScaledVector( _tempA, influence );
-				_morphB.addScaledVector( _tempB, influence );
-				_morphC.addScaledVector( _tempC, influence );
-
-			} else {
-
-				_morphA.addScaledVector( _tempA.sub( _vA$1 ), influence );
-				_morphB.addScaledVector( _tempB.sub( _vB$1 ), influence );
-				_morphC.addScaledVector( _tempC.sub( _vC$1 ), influence );
-
-			}
-
-		}
-
-		_vA$1.add( _morphA );
-		_vB$1.add( _morphB );
-		_vC$1.add( _morphC );
-
-	}
-
-	if ( object.isSkinnedMesh ) {
-
-		object.boneTransform( a, _vA$1 );
-		object.boneTransform( b, _vB$1 );
-		object.boneTransform( c, _vC$1 );
-
-	}
+	object.getVertexPosition( a, _vA$1 );
+	object.getVertexPosition( b, _vB$1 );
+	object.getVertexPosition( c, _vC$1 );
 
 	const intersection = checkIntersection( object, material, raycaster, ray, _vA$1, _vB$1, _vC$1, _intersectionPoint );
 
@@ -11148,6 +11218,19 @@ function cloneUniformsGroups( src ) {
 	}
 
 	return dst;
+
+}
+
+function getUnlitUniformColorSpace( renderer ) {
+
+	if ( renderer.getRenderTarget() === null ) {
+
+		// https://github.com/mrdoob/three.js/pull/23937#issuecomment-1111067398
+		return renderer.outputEncoding === sRGBEncoding ? SRGBColorSpace : LinearSRGBColorSpace;
+
+	}
+
+	return LinearSRGBColorSpace;
 
 }
 
@@ -11627,7 +11710,8 @@ class PerspectiveCamera extends Camera {
 
 }
 
-const fov = 90, aspect = 1;
+const fov = - 90; // negative fov is not an error
+const aspect = 1;
 
 class CubeCamera extends Object3D {
 
@@ -11641,38 +11725,38 @@ class CubeCamera extends Object3D {
 
 		const cameraPX = new PerspectiveCamera( fov, aspect, near, far );
 		cameraPX.layers = this.layers;
-		cameraPX.up.set( 0, - 1, 0 );
-		cameraPX.lookAt( new Vector3( 1, 0, 0 ) );
+		cameraPX.up.set( 0, 1, 0 );
+		cameraPX.lookAt( 1, 0, 0 );
 		this.add( cameraPX );
 
 		const cameraNX = new PerspectiveCamera( fov, aspect, near, far );
 		cameraNX.layers = this.layers;
-		cameraNX.up.set( 0, - 1, 0 );
-		cameraNX.lookAt( new Vector3( - 1, 0, 0 ) );
+		cameraNX.up.set( 0, 1, 0 );
+		cameraNX.lookAt( - 1, 0, 0 );
 		this.add( cameraNX );
 
 		const cameraPY = new PerspectiveCamera( fov, aspect, near, far );
 		cameraPY.layers = this.layers;
-		cameraPY.up.set( 0, 0, 1 );
-		cameraPY.lookAt( new Vector3( 0, 1, 0 ) );
+		cameraPY.up.set( 0, 0, - 1 );
+		cameraPY.lookAt( 0, 1, 0 );
 		this.add( cameraPY );
 
 		const cameraNY = new PerspectiveCamera( fov, aspect, near, far );
 		cameraNY.layers = this.layers;
-		cameraNY.up.set( 0, 0, - 1 );
-		cameraNY.lookAt( new Vector3( 0, - 1, 0 ) );
+		cameraNY.up.set( 0, 0, 1 );
+		cameraNY.lookAt( 0, - 1, 0 );
 		this.add( cameraNY );
 
 		const cameraPZ = new PerspectiveCamera( fov, aspect, near, far );
 		cameraPZ.layers = this.layers;
-		cameraPZ.up.set( 0, - 1, 0 );
-		cameraPZ.lookAt( new Vector3( 0, 0, 1 ) );
+		cameraPZ.up.set( 0, 1, 0 );
+		cameraPZ.lookAt( 0, 0, 1 );
 		this.add( cameraPZ );
 
 		const cameraNZ = new PerspectiveCamera( fov, aspect, near, far );
 		cameraNZ.layers = this.layers;
-		cameraNZ.up.set( 0, - 1, 0 );
-		cameraNZ.lookAt( new Vector3( 0, 0, - 1 ) );
+		cameraNZ.up.set( 0, 1, 0 );
+		cameraNZ.lookAt( 0, 0, - 1 );
 		this.add( cameraNZ );
 
 	}
@@ -11759,7 +11843,7 @@ class CubeTexture extends Texture$1 {
 
 class WebGLCubeRenderTarget extends WebGLRenderTarget {
 
-	constructor( size, options = {} ) {
+	constructor( size = 1, options = {} ) {
 
 		super( size, size, options );
 
@@ -12416,6 +12500,8 @@ function WebGLAttributes( gl, capabilities ) {
 
 		}
 
+		attribute.onUploadCallback();
+
 	}
 
 	//
@@ -12617,7 +12703,7 @@ var color_vertex = "#if defined( USE_COLOR_ALPHA )\n\tvColor = vec4( 1.0 );\n#el
 
 var common = "#define PI 3.141592653589793\n#define PI2 6.283185307179586\n#define PI_HALF 1.5707963267948966\n#define RECIPROCAL_PI 0.3183098861837907\n#define RECIPROCAL_PI2 0.15915494309189535\n#define EPSILON 1e-6\n#ifndef saturate\n#define saturate( a ) clamp( a, 0.0, 1.0 )\n#endif\n#define whiteComplement( a ) ( 1.0 - saturate( a ) )\nfloat pow2( const in float x ) { return x*x; }\nvec3 pow2( const in vec3 x ) { return x*x; }\nfloat pow3( const in float x ) { return x*x*x; }\nfloat pow4( const in float x ) { float x2 = x*x; return x2*x2; }\nfloat max3( const in vec3 v ) { return max( max( v.x, v.y ), v.z ); }\nfloat average( const in vec3 v ) { return dot( v, vec3( 0.3333333 ) ); }\nhighp float rand( const in vec2 uv ) {\n\tconst highp float a = 12.9898, b = 78.233, c = 43758.5453;\n\thighp float dt = dot( uv.xy, vec2( a,b ) ), sn = mod( dt, PI );\n\treturn fract( sin( sn ) * c );\n}\n#ifdef HIGH_PRECISION\n\tfloat precisionSafeLength( vec3 v ) { return length( v ); }\n#else\n\tfloat precisionSafeLength( vec3 v ) {\n\t\tfloat maxComponent = max3( abs( v ) );\n\t\treturn length( v / maxComponent ) * maxComponent;\n\t}\n#endif\nstruct IncidentLight {\n\tvec3 color;\n\tvec3 direction;\n\tbool visible;\n};\nstruct ReflectedLight {\n\tvec3 directDiffuse;\n\tvec3 directSpecular;\n\tvec3 indirectDiffuse;\n\tvec3 indirectSpecular;\n};\nstruct GeometricContext {\n\tvec3 position;\n\tvec3 normal;\n\tvec3 viewDir;\n#ifdef USE_CLEARCOAT\n\tvec3 clearcoatNormal;\n#endif\n};\nvec3 transformDirection( in vec3 dir, in mat4 matrix ) {\n\treturn normalize( ( matrix * vec4( dir, 0.0 ) ).xyz );\n}\nvec3 inverseTransformDirection( in vec3 dir, in mat4 matrix ) {\n\treturn normalize( ( vec4( dir, 0.0 ) * matrix ).xyz );\n}\nmat3 transposeMat3( const in mat3 m ) {\n\tmat3 tmp;\n\ttmp[ 0 ] = vec3( m[ 0 ].x, m[ 1 ].x, m[ 2 ].x );\n\ttmp[ 1 ] = vec3( m[ 0 ].y, m[ 1 ].y, m[ 2 ].y );\n\ttmp[ 2 ] = vec3( m[ 0 ].z, m[ 1 ].z, m[ 2 ].z );\n\treturn tmp;\n}\nfloat luminance( const in vec3 rgb ) {\n\tconst vec3 weights = vec3( 0.2126729, 0.7151522, 0.0721750 );\n\treturn dot( weights, rgb );\n}\nbool isPerspectiveMatrix( mat4 m ) {\n\treturn m[ 2 ][ 3 ] == - 1.0;\n}\nvec2 equirectUv( in vec3 dir ) {\n\tfloat u = atan( dir.z, dir.x ) * RECIPROCAL_PI2 + 0.5;\n\tfloat v = asin( clamp( dir.y, - 1.0, 1.0 ) ) * RECIPROCAL_PI + 0.5;\n\treturn vec2( u, v );\n}";
 
-var cube_uv_reflection_fragment = "#ifdef ENVMAP_TYPE_CUBE_UV\n\t#define cubeUV_minMipLevel 4.0\n\t#define cubeUV_minTileSize 16.0\n\tfloat getFace( vec3 direction ) {\n\t\tvec3 absDirection = abs( direction );\n\t\tfloat face = - 1.0;\n\t\tif ( absDirection.x > absDirection.z ) {\n\t\t\tif ( absDirection.x > absDirection.y )\n\t\t\t\tface = direction.x > 0.0 ? 0.0 : 3.0;\n\t\t\telse\n\t\t\t\tface = direction.y > 0.0 ? 1.0 : 4.0;\n\t\t} else {\n\t\t\tif ( absDirection.z > absDirection.y )\n\t\t\t\tface = direction.z > 0.0 ? 2.0 : 5.0;\n\t\t\telse\n\t\t\t\tface = direction.y > 0.0 ? 1.0 : 4.0;\n\t\t}\n\t\treturn face;\n\t}\n\tvec2 getUV( vec3 direction, float face ) {\n\t\tvec2 uv;\n\t\tif ( face == 0.0 ) {\n\t\t\tuv = vec2( direction.z, direction.y ) / abs( direction.x );\n\t\t} else if ( face == 1.0 ) {\n\t\t\tuv = vec2( - direction.x, - direction.z ) / abs( direction.y );\n\t\t} else if ( face == 2.0 ) {\n\t\t\tuv = vec2( - direction.x, direction.y ) / abs( direction.z );\n\t\t} else if ( face == 3.0 ) {\n\t\t\tuv = vec2( - direction.z, direction.y ) / abs( direction.x );\n\t\t} else if ( face == 4.0 ) {\n\t\t\tuv = vec2( - direction.x, direction.z ) / abs( direction.y );\n\t\t} else {\n\t\t\tuv = vec2( direction.x, direction.y ) / abs( direction.z );\n\t\t}\n\t\treturn 0.5 * ( uv + 1.0 );\n\t}\n\tvec3 bilinearCubeUV( sampler2D envMap, vec3 direction, float mipInt ) {\n\t\tfloat face = getFace( direction );\n\t\tfloat filterInt = max( cubeUV_minMipLevel - mipInt, 0.0 );\n\t\tmipInt = max( mipInt, cubeUV_minMipLevel );\n\t\tfloat faceSize = exp2( mipInt );\n\t\tvec2 uv = getUV( direction, face ) * ( faceSize - 2.0 ) + 1.0;\n\t\tif ( face > 2.0 ) {\n\t\t\tuv.y += faceSize;\n\t\t\tface -= 3.0;\n\t\t}\n\t\tuv.x += face * faceSize;\n\t\tuv.x += filterInt * 3.0 * cubeUV_minTileSize;\n\t\tuv.y += 4.0 * ( exp2( CUBEUV_MAX_MIP ) - faceSize );\n\t\tuv.x *= CUBEUV_TEXEL_WIDTH;\n\t\tuv.y *= CUBEUV_TEXEL_HEIGHT;\n\t\t#ifdef texture2DGradEXT\n\t\t\treturn texture2DGradEXT( envMap, uv, vec2( 0.0 ), vec2( 0.0 ) ).rgb;\n\t\t#else\n\t\t\treturn texture2D( envMap, uv ).rgb;\n\t\t#endif\n\t}\n\t#define cubeUV_r0 1.0\n\t#define cubeUV_v0 0.339\n\t#define cubeUV_m0 - 2.0\n\t#define cubeUV_r1 0.8\n\t#define cubeUV_v1 0.276\n\t#define cubeUV_m1 - 1.0\n\t#define cubeUV_r4 0.4\n\t#define cubeUV_v4 0.046\n\t#define cubeUV_m4 2.0\n\t#define cubeUV_r5 0.305\n\t#define cubeUV_v5 0.016\n\t#define cubeUV_m5 3.0\n\t#define cubeUV_r6 0.21\n\t#define cubeUV_v6 0.0038\n\t#define cubeUV_m6 4.0\n\tfloat roughnessToMip( float roughness ) {\n\t\tfloat mip = 0.0;\n\t\tif ( roughness >= cubeUV_r1 ) {\n\t\t\tmip = ( cubeUV_r0 - roughness ) * ( cubeUV_m1 - cubeUV_m0 ) / ( cubeUV_r0 - cubeUV_r1 ) + cubeUV_m0;\n\t\t} else if ( roughness >= cubeUV_r4 ) {\n\t\t\tmip = ( cubeUV_r1 - roughness ) * ( cubeUV_m4 - cubeUV_m1 ) / ( cubeUV_r1 - cubeUV_r4 ) + cubeUV_m1;\n\t\t} else if ( roughness >= cubeUV_r5 ) {\n\t\t\tmip = ( cubeUV_r4 - roughness ) * ( cubeUV_m5 - cubeUV_m4 ) / ( cubeUV_r4 - cubeUV_r5 ) + cubeUV_m4;\n\t\t} else if ( roughness >= cubeUV_r6 ) {\n\t\t\tmip = ( cubeUV_r5 - roughness ) * ( cubeUV_m6 - cubeUV_m5 ) / ( cubeUV_r5 - cubeUV_r6 ) + cubeUV_m5;\n\t\t} else {\n\t\t\tmip = - 2.0 * log2( 1.16 * roughness );\t\t}\n\t\treturn mip;\n\t}\n\tvec4 textureCubeUV( sampler2D envMap, vec3 sampleDir, float roughness ) {\n\t\tfloat mip = clamp( roughnessToMip( roughness ), cubeUV_m0, CUBEUV_MAX_MIP );\n\t\tfloat mipF = fract( mip );\n\t\tfloat mipInt = floor( mip );\n\t\tvec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );\n\t\tif ( mipF == 0.0 ) {\n\t\t\treturn vec4( color0, 1.0 );\n\t\t} else {\n\t\t\tvec3 color1 = bilinearCubeUV( envMap, sampleDir, mipInt + 1.0 );\n\t\t\treturn vec4( mix( color0, color1, mipF ), 1.0 );\n\t\t}\n\t}\n#endif";
+var cube_uv_reflection_fragment = "#ifdef ENVMAP_TYPE_CUBE_UV\n\t#define cubeUV_minMipLevel 4.0\n\t#define cubeUV_minTileSize 16.0\n\tfloat getFace( vec3 direction ) {\n\t\tvec3 absDirection = abs( direction );\n\t\tfloat face = - 1.0;\n\t\tif ( absDirection.x > absDirection.z ) {\n\t\t\tif ( absDirection.x > absDirection.y )\n\t\t\t\tface = direction.x > 0.0 ? 0.0 : 3.0;\n\t\t\telse\n\t\t\t\tface = direction.y > 0.0 ? 1.0 : 4.0;\n\t\t} else {\n\t\t\tif ( absDirection.z > absDirection.y )\n\t\t\t\tface = direction.z > 0.0 ? 2.0 : 5.0;\n\t\t\telse\n\t\t\t\tface = direction.y > 0.0 ? 1.0 : 4.0;\n\t\t}\n\t\treturn face;\n\t}\n\tvec2 getUV( vec3 direction, float face ) {\n\t\tvec2 uv;\n\t\tif ( face == 0.0 ) {\n\t\t\tuv = vec2( direction.z, direction.y ) / abs( direction.x );\n\t\t} else if ( face == 1.0 ) {\n\t\t\tuv = vec2( - direction.x, - direction.z ) / abs( direction.y );\n\t\t} else if ( face == 2.0 ) {\n\t\t\tuv = vec2( - direction.x, direction.y ) / abs( direction.z );\n\t\t} else if ( face == 3.0 ) {\n\t\t\tuv = vec2( - direction.z, direction.y ) / abs( direction.x );\n\t\t} else if ( face == 4.0 ) {\n\t\t\tuv = vec2( - direction.x, direction.z ) / abs( direction.y );\n\t\t} else {\n\t\t\tuv = vec2( direction.x, direction.y ) / abs( direction.z );\n\t\t}\n\t\treturn 0.5 * ( uv + 1.0 );\n\t}\n\tvec3 bilinearCubeUV( sampler2D envMap, vec3 direction, float mipInt ) {\n\t\tfloat face = getFace( direction );\n\t\tfloat filterInt = max( cubeUV_minMipLevel - mipInt, 0.0 );\n\t\tmipInt = max( mipInt, cubeUV_minMipLevel );\n\t\tfloat faceSize = exp2( mipInt );\n\t\thighp vec2 uv = getUV( direction, face ) * ( faceSize - 2.0 ) + 1.0;\n\t\tif ( face > 2.0 ) {\n\t\t\tuv.y += faceSize;\n\t\t\tface -= 3.0;\n\t\t}\n\t\tuv.x += face * faceSize;\n\t\tuv.x += filterInt * 3.0 * cubeUV_minTileSize;\n\t\tuv.y += 4.0 * ( exp2( CUBEUV_MAX_MIP ) - faceSize );\n\t\tuv.x *= CUBEUV_TEXEL_WIDTH;\n\t\tuv.y *= CUBEUV_TEXEL_HEIGHT;\n\t\t#ifdef texture2DGradEXT\n\t\t\treturn texture2DGradEXT( envMap, uv, vec2( 0.0 ), vec2( 0.0 ) ).rgb;\n\t\t#else\n\t\t\treturn texture2D( envMap, uv ).rgb;\n\t\t#endif\n\t}\n\t#define cubeUV_r0 1.0\n\t#define cubeUV_v0 0.339\n\t#define cubeUV_m0 - 2.0\n\t#define cubeUV_r1 0.8\n\t#define cubeUV_v1 0.276\n\t#define cubeUV_m1 - 1.0\n\t#define cubeUV_r4 0.4\n\t#define cubeUV_v4 0.046\n\t#define cubeUV_m4 2.0\n\t#define cubeUV_r5 0.305\n\t#define cubeUV_v5 0.016\n\t#define cubeUV_m5 3.0\n\t#define cubeUV_r6 0.21\n\t#define cubeUV_v6 0.0038\n\t#define cubeUV_m6 4.0\n\tfloat roughnessToMip( float roughness ) {\n\t\tfloat mip = 0.0;\n\t\tif ( roughness >= cubeUV_r1 ) {\n\t\t\tmip = ( cubeUV_r0 - roughness ) * ( cubeUV_m1 - cubeUV_m0 ) / ( cubeUV_r0 - cubeUV_r1 ) + cubeUV_m0;\n\t\t} else if ( roughness >= cubeUV_r4 ) {\n\t\t\tmip = ( cubeUV_r1 - roughness ) * ( cubeUV_m4 - cubeUV_m1 ) / ( cubeUV_r1 - cubeUV_r4 ) + cubeUV_m1;\n\t\t} else if ( roughness >= cubeUV_r5 ) {\n\t\t\tmip = ( cubeUV_r4 - roughness ) * ( cubeUV_m5 - cubeUV_m4 ) / ( cubeUV_r4 - cubeUV_r5 ) + cubeUV_m4;\n\t\t} else if ( roughness >= cubeUV_r6 ) {\n\t\t\tmip = ( cubeUV_r5 - roughness ) * ( cubeUV_m6 - cubeUV_m5 ) / ( cubeUV_r5 - cubeUV_r6 ) + cubeUV_m5;\n\t\t} else {\n\t\t\tmip = - 2.0 * log2( 1.16 * roughness );\t\t}\n\t\treturn mip;\n\t}\n\tvec4 textureCubeUV( sampler2D envMap, vec3 sampleDir, float roughness ) {\n\t\tfloat mip = clamp( roughnessToMip( roughness ), cubeUV_m0, CUBEUV_MAX_MIP );\n\t\tfloat mipF = fract( mip );\n\t\tfloat mipInt = floor( mip );\n\t\tvec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );\n\t\tif ( mipF == 0.0 ) {\n\t\t\treturn vec4( color0, 1.0 );\n\t\t} else {\n\t\t\tvec3 color1 = bilinearCubeUV( envMap, sampleDir, mipInt + 1.0 );\n\t\t\treturn vec4( mix( color0, color1, mipF ), 1.0 );\n\t\t}\n\t}\n#endif";
 
 var defaultnormal_vertex = "vec3 transformedNormal = objectNormal;\n#ifdef USE_INSTANCING\n\tmat3 m = mat3( instanceMatrix );\n\ttransformedNormal /= vec3( dot( m[ 0 ], m[ 0 ] ), dot( m[ 1 ], m[ 1 ] ), dot( m[ 2 ], m[ 2 ] ) );\n\ttransformedNormal = m * transformedNormal;\n#endif\ntransformedNormal = normalMatrix * transformedNormal;\n#ifdef FLIP_SIDED\n\ttransformedNormal = - transformedNormal;\n#endif\n#ifdef USE_TANGENT\n\tvec3 transformedTangent = ( modelViewMatrix * vec4( objectTangent, 0.0 ) ).xyz;\n\t#ifdef FLIP_SIDED\n\t\ttransformedTangent = - transformedTangent;\n\t#endif\n#endif";
 
@@ -12633,7 +12719,7 @@ var encodings_fragment = "gl_FragColor = linearToOutputTexel( gl_FragColor );";
 
 var encodings_pars_fragment = "vec4 LinearToLinear( in vec4 value ) {\n\treturn value;\n}\nvec4 LinearTosRGB( in vec4 value ) {\n\treturn vec4( mix( pow( value.rgb, vec3( 0.41666 ) ) * 1.055 - vec3( 0.055 ), value.rgb * 12.92, vec3( lessThanEqual( value.rgb, vec3( 0.0031308 ) ) ) ), value.a );\n}";
 
-var envmap_fragment = "#ifdef USE_ENVMAP\n\t#ifdef ENV_WORLDPOS\n\t\tvec3 cameraToFrag;\n\t\tif ( isOrthographic ) {\n\t\t\tcameraToFrag = normalize( vec3( - viewMatrix[ 0 ][ 2 ], - viewMatrix[ 1 ][ 2 ], - viewMatrix[ 2 ][ 2 ] ) );\n\t\t} else {\n\t\t\tcameraToFrag = normalize( vWorldPosition - cameraPosition );\n\t\t}\n\t\tvec3 worldNormal = inverseTransformDirection( normal, viewMatrix );\n\t\t#ifdef ENVMAP_MODE_REFLECTION\n\t\t\tvec3 reflectVec = reflect( cameraToFrag, worldNormal );\n\t\t#else\n\t\t\tvec3 reflectVec = refract( cameraToFrag, worldNormal, refractionRatio );\n\t\t#endif\n\t#else\n\t\tvec3 reflectVec = vReflect;\n\t#endif\n\t#ifdef ENVMAP_TYPE_CUBE\n\t\tvec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );\n\t#elif defined( ENVMAP_TYPE_CUBE_UV )\n\t\tvec4 envColor = textureCubeUV( envMap, reflectVec, 0.0 );\n\t#else\n\t\tvec4 envColor = vec4( 0.0 );\n\t#endif\n\t#ifdef ENVMAP_BLENDING_MULTIPLY\n\t\toutgoingLight = mix( outgoingLight, outgoingLight * envColor.xyz, specularStrength * reflectivity );\n\t#elif defined( ENVMAP_BLENDING_MIX )\n\t\toutgoingLight = mix( outgoingLight, envColor.xyz, specularStrength * reflectivity );\n\t#elif defined( ENVMAP_BLENDING_ADD )\n\t\toutgoingLight += envColor.xyz * specularStrength * reflectivity;\n\t#endif\n#endif";
+var envmap_fragment = "#ifdef USE_ENVMAP\n\t#ifdef ENV_WORLDPOS\n\t\tvec3 cameraToFrag;\n\t\tif ( isOrthographic ) {\n\t\t\tcameraToFrag = normalize( vec3( - viewMatrix[ 0 ][ 2 ], - viewMatrix[ 1 ][ 2 ], - viewMatrix[ 2 ][ 2 ] ) );\n\t\t} else {\n\t\t\tcameraToFrag = normalize( vWorldPosition - cameraPosition );\n\t\t}\n\t\tvec3 worldNormal = inverseTransformDirection( normal, viewMatrix );\n\t\t#ifdef ENVMAP_MODE_REFLECTION\n\t\t\tvec3 reflectVec = reflect( cameraToFrag, worldNormal );\n\t\t#else\n\t\t\tvec3 reflectVec = refract( cameraToFrag, worldNormal, refractionRatio );\n\t\t#endif\n\t#else\n\t\tvec3 reflectVec = vReflect;\n\t#endif\n\t#ifdef ENVMAP_TYPE_CUBE\n\t\tvec4 envColor = textureCube( envMap, vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );\n\t#else\n\t\tvec4 envColor = vec4( 0.0 );\n\t#endif\n\t#ifdef ENVMAP_BLENDING_MULTIPLY\n\t\toutgoingLight = mix( outgoingLight, outgoingLight * envColor.xyz, specularStrength * reflectivity );\n\t#elif defined( ENVMAP_BLENDING_MIX )\n\t\toutgoingLight = mix( outgoingLight, envColor.xyz, specularStrength * reflectivity );\n\t#elif defined( ENVMAP_BLENDING_ADD )\n\t\toutgoingLight += envColor.xyz * specularStrength * reflectivity;\n\t#endif\n#endif";
 
 var envmap_common_pars_fragment = "#ifdef USE_ENVMAP\n\tuniform float envMapIntensity;\n\tuniform float flipEnvMap;\n\t#ifdef ENVMAP_TYPE_CUBE\n\t\tuniform samplerCube envMap;\n\t#else\n\t\tuniform sampler2D envMap;\n\t#endif\n\t\n#endif";
 
@@ -12659,7 +12745,7 @@ var lightmap_pars_fragment = "#ifdef USE_LIGHTMAP\n\tuniform sampler2D lightMap;
 
 var lights_lambert_fragment = "LambertMaterial material;\nmaterial.diffuseColor = diffuseColor.rgb;\nmaterial.specularStrength = specularStrength;";
 
-var lights_lambert_pars_fragment = "varying vec3 vViewPosition;\nstruct LambertMaterial {\n\tvec3 diffuseColor;\n\tfloat specularStrength;\n};\nvoid RE_Direct_Lambert( const in IncidentLight directLight, const in GeometricContext geometry, const in LambertMaterial material, inout ReflectedLight reflectedLight ) {\n\tfloat dotNL = saturate( dot( geometry.normal, directLight.direction ) );\n\tvec3 irradiance = dotNL * directLight.color;\n\treflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\nvoid RE_IndirectDiffuse_Lambert( const in vec3 irradiance, const in GeometricContext geometry, const in LambertMaterial material, inout ReflectedLight reflectedLight ) {\n\treflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\n#define RE_Direct\t\t\t\tRE_Direct_Lambert\n#define RE_IndirectDiffuse\t\tRE_IndirectDiffuse_Lambert\n#define Material_LightProbeLOD( material )\t(0)";
+var lights_lambert_pars_fragment = "varying vec3 vViewPosition;\nstruct LambertMaterial {\n\tvec3 diffuseColor;\n\tfloat specularStrength;\n};\nvoid RE_Direct_Lambert( const in IncidentLight directLight, const in GeometricContext geometry, const in LambertMaterial material, inout ReflectedLight reflectedLight ) {\n\tfloat dotNL = saturate( dot( geometry.normal, directLight.direction ) );\n\tvec3 irradiance = dotNL * directLight.color;\n\treflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\nvoid RE_IndirectDiffuse_Lambert( const in vec3 irradiance, const in GeometricContext geometry, const in LambertMaterial material, inout ReflectedLight reflectedLight ) {\n\treflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\n#define RE_Direct\t\t\t\tRE_Direct_Lambert\n#define RE_IndirectDiffuse\t\tRE_IndirectDiffuse_Lambert";
 
 var lights_pars_begin = "uniform bool receiveShadow;\nuniform vec3 ambientLightColor;\nuniform vec3 lightProbe[ 9 ];\nvec3 shGetIrradianceAt( in vec3 normal, in vec3 shCoefficients[ 9 ] ) {\n\tfloat x = normal.x, y = normal.y, z = normal.z;\n\tvec3 result = shCoefficients[ 0 ] * 0.886227;\n\tresult += shCoefficients[ 1 ] * 2.0 * 0.511664 * y;\n\tresult += shCoefficients[ 2 ] * 2.0 * 0.511664 * z;\n\tresult += shCoefficients[ 3 ] * 2.0 * 0.511664 * x;\n\tresult += shCoefficients[ 4 ] * 2.0 * 0.429043 * x * y;\n\tresult += shCoefficients[ 5 ] * 2.0 * 0.429043 * y * z;\n\tresult += shCoefficients[ 6 ] * ( 0.743125 * z * z - 0.247708 );\n\tresult += shCoefficients[ 7 ] * 2.0 * 0.429043 * x * z;\n\tresult += shCoefficients[ 8 ] * 0.429043 * ( x * x - y * y );\n\treturn result;\n}\nvec3 getLightProbeIrradiance( const in vec3 lightProbe[ 9 ], const in vec3 normal ) {\n\tvec3 worldNormal = inverseTransformDirection( normal, viewMatrix );\n\tvec3 irradiance = shGetIrradianceAt( worldNormal, lightProbe );\n\treturn irradiance;\n}\nvec3 getAmbientLightIrradiance( const in vec3 ambientLightColor ) {\n\tvec3 irradiance = ambientLightColor;\n\treturn irradiance;\n}\nfloat getDistanceAttenuation( const in float lightDistance, const in float cutoffDistance, const in float decayExponent ) {\n\t#if defined ( PHYSICALLY_CORRECT_LIGHTS )\n\t\tfloat distanceFalloff = 1.0 / max( pow( lightDistance, decayExponent ), 0.01 );\n\t\tif ( cutoffDistance > 0.0 ) {\n\t\t\tdistanceFalloff *= pow2( saturate( 1.0 - pow4( lightDistance / cutoffDistance ) ) );\n\t\t}\n\t\treturn distanceFalloff;\n\t#else\n\t\tif ( cutoffDistance > 0.0 && decayExponent > 0.0 ) {\n\t\t\treturn pow( saturate( - lightDistance / cutoffDistance + 1.0 ), decayExponent );\n\t\t}\n\t\treturn 1.0;\n\t#endif\n}\nfloat getSpotAttenuation( const in float coneCosine, const in float penumbraCosine, const in float angleCosine ) {\n\treturn smoothstep( coneCosine, penumbraCosine, angleCosine );\n}\n#if NUM_DIR_LIGHTS > 0\n\tstruct DirectionalLight {\n\t\tvec3 direction;\n\t\tvec3 color;\n\t};\n\tuniform DirectionalLight directionalLights[ NUM_DIR_LIGHTS ];\n\tvoid getDirectionalLightInfo( const in DirectionalLight directionalLight, const in GeometricContext geometry, out IncidentLight light ) {\n\t\tlight.color = directionalLight.color;\n\t\tlight.direction = directionalLight.direction;\n\t\tlight.visible = true;\n\t}\n#endif\n#if NUM_POINT_LIGHTS > 0\n\tstruct PointLight {\n\t\tvec3 position;\n\t\tvec3 color;\n\t\tfloat distance;\n\t\tfloat decay;\n\t};\n\tuniform PointLight pointLights[ NUM_POINT_LIGHTS ];\n\tvoid getPointLightInfo( const in PointLight pointLight, const in GeometricContext geometry, out IncidentLight light ) {\n\t\tvec3 lVector = pointLight.position - geometry.position;\n\t\tlight.direction = normalize( lVector );\n\t\tfloat lightDistance = length( lVector );\n\t\tlight.color = pointLight.color;\n\t\tlight.color *= getDistanceAttenuation( lightDistance, pointLight.distance, pointLight.decay );\n\t\tlight.visible = ( light.color != vec3( 0.0 ) );\n\t}\n#endif\n#if NUM_SPOT_LIGHTS > 0\n\tstruct SpotLight {\n\t\tvec3 position;\n\t\tvec3 direction;\n\t\tvec3 color;\n\t\tfloat distance;\n\t\tfloat decay;\n\t\tfloat coneCos;\n\t\tfloat penumbraCos;\n\t};\n\tuniform SpotLight spotLights[ NUM_SPOT_LIGHTS ];\n\tvoid getSpotLightInfo( const in SpotLight spotLight, const in GeometricContext geometry, out IncidentLight light ) {\n\t\tvec3 lVector = spotLight.position - geometry.position;\n\t\tlight.direction = normalize( lVector );\n\t\tfloat angleCos = dot( light.direction, spotLight.direction );\n\t\tfloat spotAttenuation = getSpotAttenuation( spotLight.coneCos, spotLight.penumbraCos, angleCos );\n\t\tif ( spotAttenuation > 0.0 ) {\n\t\t\tfloat lightDistance = length( lVector );\n\t\t\tlight.color = spotLight.color * spotAttenuation;\n\t\t\tlight.color *= getDistanceAttenuation( lightDistance, spotLight.distance, spotLight.decay );\n\t\t\tlight.visible = ( light.color != vec3( 0.0 ) );\n\t\t} else {\n\t\t\tlight.color = vec3( 0.0 );\n\t\t\tlight.visible = false;\n\t\t}\n\t}\n#endif\n#if NUM_RECT_AREA_LIGHTS > 0\n\tstruct RectAreaLight {\n\t\tvec3 color;\n\t\tvec3 position;\n\t\tvec3 halfWidth;\n\t\tvec3 halfHeight;\n\t};\n\tuniform sampler2D ltc_1;\tuniform sampler2D ltc_2;\n\tuniform RectAreaLight rectAreaLights[ NUM_RECT_AREA_LIGHTS ];\n#endif\n#if NUM_HEMI_LIGHTS > 0\n\tstruct HemisphereLight {\n\t\tvec3 direction;\n\t\tvec3 skyColor;\n\t\tvec3 groundColor;\n\t};\n\tuniform HemisphereLight hemisphereLights[ NUM_HEMI_LIGHTS ];\n\tvec3 getHemisphereLightIrradiance( const in HemisphereLight hemiLight, const in vec3 normal ) {\n\t\tfloat dotNL = dot( normal, hemiLight.direction );\n\t\tfloat hemiDiffuseWeight = 0.5 * dotNL + 0.5;\n\t\tvec3 irradiance = mix( hemiLight.groundColor, hemiLight.skyColor, hemiDiffuseWeight );\n\t\treturn irradiance;\n\t}\n#endif";
 
@@ -12667,17 +12753,17 @@ var envmap_physical_pars_fragment = "#if defined( USE_ENVMAP )\n\tvec3 getIBLIrr
 
 var lights_toon_fragment = "ToonMaterial material;\nmaterial.diffuseColor = diffuseColor.rgb;";
 
-var lights_toon_pars_fragment = "varying vec3 vViewPosition;\nstruct ToonMaterial {\n\tvec3 diffuseColor;\n};\nvoid RE_Direct_Toon( const in IncidentLight directLight, const in GeometricContext geometry, const in ToonMaterial material, inout ReflectedLight reflectedLight ) {\n\tvec3 irradiance = getGradientIrradiance( geometry.normal, directLight.direction ) * directLight.color;\n\treflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\nvoid RE_IndirectDiffuse_Toon( const in vec3 irradiance, const in GeometricContext geometry, const in ToonMaterial material, inout ReflectedLight reflectedLight ) {\n\treflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\n#define RE_Direct\t\t\t\tRE_Direct_Toon\n#define RE_IndirectDiffuse\t\tRE_IndirectDiffuse_Toon\n#define Material_LightProbeLOD( material )\t(0)";
+var lights_toon_pars_fragment = "varying vec3 vViewPosition;\nstruct ToonMaterial {\n\tvec3 diffuseColor;\n};\nvoid RE_Direct_Toon( const in IncidentLight directLight, const in GeometricContext geometry, const in ToonMaterial material, inout ReflectedLight reflectedLight ) {\n\tvec3 irradiance = getGradientIrradiance( geometry.normal, directLight.direction ) * directLight.color;\n\treflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\nvoid RE_IndirectDiffuse_Toon( const in vec3 irradiance, const in GeometricContext geometry, const in ToonMaterial material, inout ReflectedLight reflectedLight ) {\n\treflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\n#define RE_Direct\t\t\t\tRE_Direct_Toon\n#define RE_IndirectDiffuse\t\tRE_IndirectDiffuse_Toon";
 
 var lights_phong_fragment = "BlinnPhongMaterial material;\nmaterial.diffuseColor = diffuseColor.rgb;\nmaterial.specularColor = specular;\nmaterial.specularShininess = shininess;\nmaterial.specularStrength = specularStrength;";
 
-var lights_phong_pars_fragment = "varying vec3 vViewPosition;\nstruct BlinnPhongMaterial {\n\tvec3 diffuseColor;\n\tvec3 specularColor;\n\tfloat specularShininess;\n\tfloat specularStrength;\n};\nvoid RE_Direct_BlinnPhong( const in IncidentLight directLight, const in GeometricContext geometry, const in BlinnPhongMaterial material, inout ReflectedLight reflectedLight ) {\n\tfloat dotNL = saturate( dot( geometry.normal, directLight.direction ) );\n\tvec3 irradiance = dotNL * directLight.color;\n\treflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n\treflectedLight.directSpecular += irradiance * BRDF_BlinnPhong( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularShininess ) * material.specularStrength;\n}\nvoid RE_IndirectDiffuse_BlinnPhong( const in vec3 irradiance, const in GeometricContext geometry, const in BlinnPhongMaterial material, inout ReflectedLight reflectedLight ) {\n\treflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\n#define RE_Direct\t\t\t\tRE_Direct_BlinnPhong\n#define RE_IndirectDiffuse\t\tRE_IndirectDiffuse_BlinnPhong\n#define Material_LightProbeLOD( material )\t(0)";
+var lights_phong_pars_fragment = "varying vec3 vViewPosition;\nstruct BlinnPhongMaterial {\n\tvec3 diffuseColor;\n\tvec3 specularColor;\n\tfloat specularShininess;\n\tfloat specularStrength;\n};\nvoid RE_Direct_BlinnPhong( const in IncidentLight directLight, const in GeometricContext geometry, const in BlinnPhongMaterial material, inout ReflectedLight reflectedLight ) {\n\tfloat dotNL = saturate( dot( geometry.normal, directLight.direction ) );\n\tvec3 irradiance = dotNL * directLight.color;\n\treflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n\treflectedLight.directSpecular += irradiance * BRDF_BlinnPhong( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularShininess ) * material.specularStrength;\n}\nvoid RE_IndirectDiffuse_BlinnPhong( const in vec3 irradiance, const in GeometricContext geometry, const in BlinnPhongMaterial material, inout ReflectedLight reflectedLight ) {\n\treflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\n#define RE_Direct\t\t\t\tRE_Direct_BlinnPhong\n#define RE_IndirectDiffuse\t\tRE_IndirectDiffuse_BlinnPhong";
 
 var lights_physical_fragment = "PhysicalMaterial material;\nmaterial.diffuseColor = diffuseColor.rgb * ( 1.0 - metalnessFactor );\nvec3 dxy = max( abs( dFdx( geometryNormal ) ), abs( dFdy( geometryNormal ) ) );\nfloat geometryRoughness = max( max( dxy.x, dxy.y ), dxy.z );\nmaterial.roughness = max( roughnessFactor, 0.0525 );material.roughness += geometryRoughness;\nmaterial.roughness = min( material.roughness, 1.0 );\n#ifdef IOR\n\tmaterial.ior = ior;\n\t#ifdef SPECULAR\n\t\tfloat specularIntensityFactor = specularIntensity;\n\t\tvec3 specularColorFactor = specularColor;\n\t\t#ifdef USE_SPECULARINTENSITYMAP\n\t\t\tspecularIntensityFactor *= texture2D( specularIntensityMap, vUv ).a;\n\t\t#endif\n\t\t#ifdef USE_SPECULARCOLORMAP\n\t\t\tspecularColorFactor *= texture2D( specularColorMap, vUv ).rgb;\n\t\t#endif\n\t\tmaterial.specularF90 = mix( specularIntensityFactor, 1.0, metalnessFactor );\n\t#else\n\t\tfloat specularIntensityFactor = 1.0;\n\t\tvec3 specularColorFactor = vec3( 1.0 );\n\t\tmaterial.specularF90 = 1.0;\n\t#endif\n\tmaterial.specularColor = mix( min( pow2( ( material.ior - 1.0 ) / ( material.ior + 1.0 ) ) * specularColorFactor, vec3( 1.0 ) ) * specularIntensityFactor, diffuseColor.rgb, metalnessFactor );\n#else\n\tmaterial.specularColor = mix( vec3( 0.04 ), diffuseColor.rgb, metalnessFactor );\n\tmaterial.specularF90 = 1.0;\n#endif\n#ifdef USE_CLEARCOAT\n\tmaterial.clearcoat = clearcoat;\n\tmaterial.clearcoatRoughness = clearcoatRoughness;\n\tmaterial.clearcoatF0 = vec3( 0.04 );\n\tmaterial.clearcoatF90 = 1.0;\n\t#ifdef USE_CLEARCOATMAP\n\t\tmaterial.clearcoat *= texture2D( clearcoatMap, vUv ).x;\n\t#endif\n\t#ifdef USE_CLEARCOAT_ROUGHNESSMAP\n\t\tmaterial.clearcoatRoughness *= texture2D( clearcoatRoughnessMap, vUv ).y;\n\t#endif\n\tmaterial.clearcoat = saturate( material.clearcoat );\tmaterial.clearcoatRoughness = max( material.clearcoatRoughness, 0.0525 );\n\tmaterial.clearcoatRoughness += geometryRoughness;\n\tmaterial.clearcoatRoughness = min( material.clearcoatRoughness, 1.0 );\n#endif\n#ifdef USE_IRIDESCENCE\n\tmaterial.iridescence = iridescence;\n\tmaterial.iridescenceIOR = iridescenceIOR;\n\t#ifdef USE_IRIDESCENCEMAP\n\t\tmaterial.iridescence *= texture2D( iridescenceMap, vUv ).r;\n\t#endif\n\t#ifdef USE_IRIDESCENCE_THICKNESSMAP\n\t\tmaterial.iridescenceThickness = (iridescenceThicknessMaximum - iridescenceThicknessMinimum) * texture2D( iridescenceThicknessMap, vUv ).g + iridescenceThicknessMinimum;\n\t#else\n\t\tmaterial.iridescenceThickness = iridescenceThicknessMaximum;\n\t#endif\n#endif\n#ifdef USE_SHEEN\n\tmaterial.sheenColor = sheenColor;\n\t#ifdef USE_SHEENCOLORMAP\n\t\tmaterial.sheenColor *= texture2D( sheenColorMap, vUv ).rgb;\n\t#endif\n\tmaterial.sheenRoughness = clamp( sheenRoughness, 0.07, 1.0 );\n\t#ifdef USE_SHEENROUGHNESSMAP\n\t\tmaterial.sheenRoughness *= texture2D( sheenRoughnessMap, vUv ).a;\n\t#endif\n#endif";
 
 var lights_physical_pars_fragment = "struct PhysicalMaterial {\n\tvec3 diffuseColor;\n\tfloat roughness;\n\tvec3 specularColor;\n\tfloat specularF90;\n\t#ifdef USE_CLEARCOAT\n\t\tfloat clearcoat;\n\t\tfloat clearcoatRoughness;\n\t\tvec3 clearcoatF0;\n\t\tfloat clearcoatF90;\n\t#endif\n\t#ifdef USE_IRIDESCENCE\n\t\tfloat iridescence;\n\t\tfloat iridescenceIOR;\n\t\tfloat iridescenceThickness;\n\t\tvec3 iridescenceFresnel;\n\t\tvec3 iridescenceF0;\n\t#endif\n\t#ifdef USE_SHEEN\n\t\tvec3 sheenColor;\n\t\tfloat sheenRoughness;\n\t#endif\n\t#ifdef IOR\n\t\tfloat ior;\n\t#endif\n\t#ifdef USE_TRANSMISSION\n\t\tfloat transmission;\n\t\tfloat transmissionAlpha;\n\t\tfloat thickness;\n\t\tfloat attenuationDistance;\n\t\tvec3 attenuationColor;\n\t#endif\n};\nvec3 clearcoatSpecular = vec3( 0.0 );\nvec3 sheenSpecular = vec3( 0.0 );\nfloat IBLSheenBRDF( const in vec3 normal, const in vec3 viewDir, const in float roughness ) {\n\tfloat dotNV = saturate( dot( normal, viewDir ) );\n\tfloat r2 = roughness * roughness;\n\tfloat a = roughness < 0.25 ? -339.2 * r2 + 161.4 * roughness - 25.9 : -8.48 * r2 + 14.3 * roughness - 9.95;\n\tfloat b = roughness < 0.25 ? 44.0 * r2 - 23.7 * roughness + 3.26 : 1.97 * r2 - 3.27 * roughness + 0.72;\n\tfloat DG = exp( a * dotNV + b ) + ( roughness < 0.25 ? 0.0 : 0.1 * ( roughness - 0.25 ) );\n\treturn saturate( DG * RECIPROCAL_PI );\n}\nvec2 DFGApprox( const in vec3 normal, const in vec3 viewDir, const in float roughness ) {\n\tfloat dotNV = saturate( dot( normal, viewDir ) );\n\tconst vec4 c0 = vec4( - 1, - 0.0275, - 0.572, 0.022 );\n\tconst vec4 c1 = vec4( 1, 0.0425, 1.04, - 0.04 );\n\tvec4 r = roughness * c0 + c1;\n\tfloat a004 = min( r.x * r.x, exp2( - 9.28 * dotNV ) ) * r.x + r.y;\n\tvec2 fab = vec2( - 1.04, 1.04 ) * a004 + r.zw;\n\treturn fab;\n}\nvec3 EnvironmentBRDF( const in vec3 normal, const in vec3 viewDir, const in vec3 specularColor, const in float specularF90, const in float roughness ) {\n\tvec2 fab = DFGApprox( normal, viewDir, roughness );\n\treturn specularColor * fab.x + specularF90 * fab.y;\n}\n#ifdef USE_IRIDESCENCE\nvoid computeMultiscatteringIridescence( const in vec3 normal, const in vec3 viewDir, const in vec3 specularColor, const in float specularF90, const in float iridescence, const in vec3 iridescenceF0, const in float roughness, inout vec3 singleScatter, inout vec3 multiScatter ) {\n#else\nvoid computeMultiscattering( const in vec3 normal, const in vec3 viewDir, const in vec3 specularColor, const in float specularF90, const in float roughness, inout vec3 singleScatter, inout vec3 multiScatter ) {\n#endif\n\tvec2 fab = DFGApprox( normal, viewDir, roughness );\n\t#ifdef USE_IRIDESCENCE\n\t\tvec3 Fr = mix( specularColor, iridescenceF0, iridescence );\n\t#else\n\t\tvec3 Fr = specularColor;\n\t#endif\n\tvec3 FssEss = Fr * fab.x + specularF90 * fab.y;\n\tfloat Ess = fab.x + fab.y;\n\tfloat Ems = 1.0 - Ess;\n\tvec3 Favg = Fr + ( 1.0 - Fr ) * 0.047619;\tvec3 Fms = FssEss * Favg / ( 1.0 - Ems * Favg );\n\tsingleScatter += FssEss;\n\tmultiScatter += Fms * Ems;\n}\n#if NUM_RECT_AREA_LIGHTS > 0\n\tvoid RE_Direct_RectArea_Physical( const in RectAreaLight rectAreaLight, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {\n\t\tvec3 normal = geometry.normal;\n\t\tvec3 viewDir = geometry.viewDir;\n\t\tvec3 position = geometry.position;\n\t\tvec3 lightPos = rectAreaLight.position;\n\t\tvec3 halfWidth = rectAreaLight.halfWidth;\n\t\tvec3 halfHeight = rectAreaLight.halfHeight;\n\t\tvec3 lightColor = rectAreaLight.color;\n\t\tfloat roughness = material.roughness;\n\t\tvec3 rectCoords[ 4 ];\n\t\trectCoords[ 0 ] = lightPos + halfWidth - halfHeight;\t\trectCoords[ 1 ] = lightPos - halfWidth - halfHeight;\n\t\trectCoords[ 2 ] = lightPos - halfWidth + halfHeight;\n\t\trectCoords[ 3 ] = lightPos + halfWidth + halfHeight;\n\t\tvec2 uv = LTC_Uv( normal, viewDir, roughness );\n\t\tvec4 t1 = texture2D( ltc_1, uv );\n\t\tvec4 t2 = texture2D( ltc_2, uv );\n\t\tmat3 mInv = mat3(\n\t\t\tvec3( t1.x, 0, t1.y ),\n\t\t\tvec3(    0, 1,    0 ),\n\t\t\tvec3( t1.z, 0, t1.w )\n\t\t);\n\t\tvec3 fresnel = ( material.specularColor * t2.x + ( vec3( 1.0 ) - material.specularColor ) * t2.y );\n\t\treflectedLight.directSpecular += lightColor * fresnel * LTC_Evaluate( normal, viewDir, position, mInv, rectCoords );\n\t\treflectedLight.directDiffuse += lightColor * material.diffuseColor * LTC_Evaluate( normal, viewDir, position, mat3( 1.0 ), rectCoords );\n\t}\n#endif\nvoid RE_Direct_Physical( const in IncidentLight directLight, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {\n\tfloat dotNL = saturate( dot( geometry.normal, directLight.direction ) );\n\tvec3 irradiance = dotNL * directLight.color;\n\t#ifdef USE_CLEARCOAT\n\t\tfloat dotNLcc = saturate( dot( geometry.clearcoatNormal, directLight.direction ) );\n\t\tvec3 ccIrradiance = dotNLcc * directLight.color;\n\t\tclearcoatSpecular += ccIrradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.clearcoatNormal, material.clearcoatF0, material.clearcoatF90, material.clearcoatRoughness );\n\t#endif\n\t#ifdef USE_SHEEN\n\t\tsheenSpecular += irradiance * BRDF_Sheen( directLight.direction, geometry.viewDir, geometry.normal, material.sheenColor, material.sheenRoughness );\n\t#endif\n\t#ifdef USE_IRIDESCENCE\n\t\treflectedLight.directSpecular += irradiance * BRDF_GGX_Iridescence( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.iridescence, material.iridescenceFresnel, material.roughness );\n\t#else\n\t\treflectedLight.directSpecular += irradiance * BRDF_GGX( directLight.direction, geometry.viewDir, geometry.normal, material.specularColor, material.specularF90, material.roughness );\n\t#endif\n\treflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\nvoid RE_IndirectDiffuse_Physical( const in vec3 irradiance, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {\n\treflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}\nvoid RE_IndirectSpecular_Physical( const in vec3 radiance, const in vec3 irradiance, const in vec3 clearcoatRadiance, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight) {\n\t#ifdef USE_CLEARCOAT\n\t\tclearcoatSpecular += clearcoatRadiance * EnvironmentBRDF( geometry.clearcoatNormal, geometry.viewDir, material.clearcoatF0, material.clearcoatF90, material.clearcoatRoughness );\n\t#endif\n\t#ifdef USE_SHEEN\n\t\tsheenSpecular += irradiance * material.sheenColor * IBLSheenBRDF( geometry.normal, geometry.viewDir, material.sheenRoughness );\n\t#endif\n\tvec3 singleScattering = vec3( 0.0 );\n\tvec3 multiScattering = vec3( 0.0 );\n\tvec3 cosineWeightedIrradiance = irradiance * RECIPROCAL_PI;\n\t#ifdef USE_IRIDESCENCE\n\t\tcomputeMultiscatteringIridescence( geometry.normal, geometry.viewDir, material.specularColor, material.specularF90, material.iridescence, material.iridescenceFresnel, material.roughness, singleScattering, multiScattering );\n\t#else\n\t\tcomputeMultiscattering( geometry.normal, geometry.viewDir, material.specularColor, material.specularF90, material.roughness, singleScattering, multiScattering );\n\t#endif\n\tvec3 totalScattering = singleScattering + multiScattering;\n\tvec3 diffuse = material.diffuseColor * ( 1.0 - max( max( totalScattering.r, totalScattering.g ), totalScattering.b ) );\n\treflectedLight.indirectSpecular += radiance * singleScattering;\n\treflectedLight.indirectSpecular += multiScattering * cosineWeightedIrradiance;\n\treflectedLight.indirectDiffuse += diffuse * cosineWeightedIrradiance;\n}\n#define RE_Direct\t\t\t\tRE_Direct_Physical\n#define RE_Direct_RectArea\t\tRE_Direct_RectArea_Physical\n#define RE_IndirectDiffuse\t\tRE_IndirectDiffuse_Physical\n#define RE_IndirectSpecular\t\tRE_IndirectSpecular_Physical\nfloat computeSpecularOcclusion( const in float dotNV, const in float ambientOcclusion, const in float roughness ) {\n\treturn saturate( pow( dotNV + ambientOcclusion, exp2( - 16.0 * roughness - 1.0 ) ) - 1.0 + ambientOcclusion );\n}";
 
-var lights_fragment_begin = "\nGeometricContext geometry;\ngeometry.position = - vViewPosition;\ngeometry.normal = normal;\ngeometry.viewDir = ( isOrthographic ) ? vec3( 0, 0, 1 ) : normalize( vViewPosition );\n#ifdef USE_CLEARCOAT\n\tgeometry.clearcoatNormal = clearcoatNormal;\n#endif\n#ifdef USE_IRIDESCENCE\n\tfloat dotNVi = saturate( dot( normal, geometry.viewDir ) );\n\tif ( material.iridescenceThickness == 0.0 ) {\n\t\tmaterial.iridescence = 0.0;\n\t} else {\n\t\tmaterial.iridescence = saturate( material.iridescence );\n\t}\n\tif ( material.iridescence > 0.0 ) {\n\t\tmaterial.iridescenceFresnel = evalIridescence( 1.0, material.iridescenceIOR, dotNVi, material.iridescenceThickness, material.specularColor );\n\t\tmaterial.iridescenceF0 = Schlick_to_F0( material.iridescenceFresnel, 1.0, dotNVi );\n\t}\n#endif\nIncidentLight directLight;\n#if ( NUM_POINT_LIGHTS > 0 ) && defined( RE_Direct )\n\tPointLight pointLight;\n\t#if defined( USE_SHADOWMAP ) && NUM_POINT_LIGHT_SHADOWS > 0\n\tPointLightShadow pointLightShadow;\n\t#endif\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {\n\t\tpointLight = pointLights[ i ];\n\t\tgetPointLightInfo( pointLight, geometry, directLight );\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_POINT_LIGHT_SHADOWS )\n\t\tpointLightShadow = pointLightShadows[ i ];\n\t\tdirectLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;\n\t\t#endif\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if ( NUM_SPOT_LIGHTS > 0 ) && defined( RE_Direct )\n\tSpotLight spotLight;\n\tvec4 spotColor;\n\tvec3 spotLightCoord;\n\tbool inSpotLightMap;\n\t#if defined( USE_SHADOWMAP ) && NUM_SPOT_LIGHT_SHADOWS > 0\n\tSpotLightShadow spotLightShadow;\n\t#endif\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {\n\t\tspotLight = spotLights[ i ];\n\t\tgetSpotLightInfo( spotLight, geometry, directLight );\n\t\t#if ( UNROLLED_LOOP_INDEX < NUM_SPOT_LIGHT_SHADOWS_WITH_MAPS )\n\t\t#define SPOT_LIGHT_MAP_INDEX UNROLLED_LOOP_INDEX\n\t\t#elif ( UNROLLED_LOOP_INDEX < NUM_SPOT_LIGHT_SHADOWS )\n\t\t#define SPOT_LIGHT_MAP_INDEX NUM_SPOT_LIGHT_MAPS\n\t\t#else\n\t\t#define SPOT_LIGHT_MAP_INDEX ( UNROLLED_LOOP_INDEX - NUM_SPOT_LIGHT_SHADOWS + NUM_SPOT_LIGHT_SHADOWS_WITH_MAPS )\n\t\t#endif\n\t\t#if ( SPOT_LIGHT_MAP_INDEX < NUM_SPOT_LIGHT_MAPS )\n\t\t\tspotLightCoord = vSpotLightCoord[ i ].xyz / vSpotLightCoord[ i ].w;\n\t\t\tinSpotLightMap = all( lessThan( abs( spotLightCoord * 2. - 1. ), vec3( 1.0 ) ) );\n\t\t\tspotColor = texture2D( spotLightMap[ SPOT_LIGHT_MAP_INDEX ], spotLightCoord.xy );\n\t\t\tdirectLight.color = inSpotLightMap ? directLight.color * spotColor.rgb : directLight.color;\n\t\t#endif\n\t\t#undef SPOT_LIGHT_MAP_INDEX\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_SPOT_LIGHT_SHADOWS )\n\t\tspotLightShadow = spotLightShadows[ i ];\n\t\tdirectLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotLightCoord[ i ] ) : 1.0;\n\t\t#endif\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )\n\tDirectionalLight directionalLight;\n\t#if defined( USE_SHADOWMAP ) && NUM_DIR_LIGHT_SHADOWS > 0\n\tDirectionalLightShadow directionalLightShadow;\n\t#endif\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {\n\t\tdirectionalLight = directionalLights[ i ];\n\t\tgetDirectionalLightInfo( directionalLight, geometry, directLight );\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_DIR_LIGHT_SHADOWS )\n\t\tdirectionalLightShadow = directionalLightShadows[ i ];\n\t\tdirectLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;\n\t\t#endif\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if ( NUM_RECT_AREA_LIGHTS > 0 ) && defined( RE_Direct_RectArea )\n\tRectAreaLight rectAreaLight;\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_RECT_AREA_LIGHTS; i ++ ) {\n\t\trectAreaLight = rectAreaLights[ i ];\n\t\tRE_Direct_RectArea( rectAreaLight, geometry, material, reflectedLight );\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if defined( RE_IndirectDiffuse )\n\tvec3 iblIrradiance = vec3( 0.0 );\n\tvec3 irradiance = getAmbientLightIrradiance( ambientLightColor );\n\tirradiance += getLightProbeIrradiance( lightProbe, geometry.normal );\n\t#if ( NUM_HEMI_LIGHTS > 0 )\n\t\t#pragma unroll_loop_start\n\t\tfor ( int i = 0; i < NUM_HEMI_LIGHTS; i ++ ) {\n\t\t\tirradiance += getHemisphereLightIrradiance( hemisphereLights[ i ], geometry.normal );\n\t\t}\n\t\t#pragma unroll_loop_end\n\t#endif\n#endif\n#if defined( RE_IndirectSpecular )\n\tvec3 radiance = vec3( 0.0 );\n\tvec3 clearcoatRadiance = vec3( 0.0 );\n#endif";
+var lights_fragment_begin = "\nGeometricContext geometry;\ngeometry.position = - vViewPosition;\ngeometry.normal = normal;\ngeometry.viewDir = ( isOrthographic ) ? vec3( 0, 0, 1 ) : normalize( vViewPosition );\n#ifdef USE_CLEARCOAT\n\tgeometry.clearcoatNormal = clearcoatNormal;\n#endif\n#ifdef USE_IRIDESCENCE\n\tfloat dotNVi = saturate( dot( normal, geometry.viewDir ) );\n\tif ( material.iridescenceThickness == 0.0 ) {\n\t\tmaterial.iridescence = 0.0;\n\t} else {\n\t\tmaterial.iridescence = saturate( material.iridescence );\n\t}\n\tif ( material.iridescence > 0.0 ) {\n\t\tmaterial.iridescenceFresnel = evalIridescence( 1.0, material.iridescenceIOR, dotNVi, material.iridescenceThickness, material.specularColor );\n\t\tmaterial.iridescenceF0 = Schlick_to_F0( material.iridescenceFresnel, 1.0, dotNVi );\n\t}\n#endif\nIncidentLight directLight;\n#if ( NUM_POINT_LIGHTS > 0 ) && defined( RE_Direct )\n\tPointLight pointLight;\n\t#if defined( USE_SHADOWMAP ) && NUM_POINT_LIGHT_SHADOWS > 0\n\tPointLightShadow pointLightShadow;\n\t#endif\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {\n\t\tpointLight = pointLights[ i ];\n\t\tgetPointLightInfo( pointLight, geometry, directLight );\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_POINT_LIGHT_SHADOWS )\n\t\tpointLightShadow = pointLightShadows[ i ];\n\t\tdirectLight.color *= ( directLight.visible && receiveShadow ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;\n\t\t#endif\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if ( NUM_SPOT_LIGHTS > 0 ) && defined( RE_Direct )\n\tSpotLight spotLight;\n\tvec4 spotColor;\n\tvec3 spotLightCoord;\n\tbool inSpotLightMap;\n\t#if defined( USE_SHADOWMAP ) && NUM_SPOT_LIGHT_SHADOWS > 0\n\tSpotLightShadow spotLightShadow;\n\t#endif\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {\n\t\tspotLight = spotLights[ i ];\n\t\tgetSpotLightInfo( spotLight, geometry, directLight );\n\t\t#if ( UNROLLED_LOOP_INDEX < NUM_SPOT_LIGHT_SHADOWS_WITH_MAPS )\n\t\t#define SPOT_LIGHT_MAP_INDEX UNROLLED_LOOP_INDEX\n\t\t#elif ( UNROLLED_LOOP_INDEX < NUM_SPOT_LIGHT_SHADOWS )\n\t\t#define SPOT_LIGHT_MAP_INDEX NUM_SPOT_LIGHT_MAPS\n\t\t#else\n\t\t#define SPOT_LIGHT_MAP_INDEX ( UNROLLED_LOOP_INDEX - NUM_SPOT_LIGHT_SHADOWS + NUM_SPOT_LIGHT_SHADOWS_WITH_MAPS )\n\t\t#endif\n\t\t#if ( SPOT_LIGHT_MAP_INDEX < NUM_SPOT_LIGHT_MAPS )\n\t\t\tspotLightCoord = vSpotLightCoord[ i ].xyz / vSpotLightCoord[ i ].w;\n\t\t\tinSpotLightMap = all( lessThan( abs( spotLightCoord * 2. - 1. ), vec3( 1.0 ) ) );\n\t\t\tspotColor = texture2D( spotLightMap[ SPOT_LIGHT_MAP_INDEX ], spotLightCoord.xy );\n\t\t\tdirectLight.color = inSpotLightMap ? directLight.color * spotColor.rgb : directLight.color;\n\t\t#endif\n\t\t#undef SPOT_LIGHT_MAP_INDEX\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_SPOT_LIGHT_SHADOWS )\n\t\tspotLightShadow = spotLightShadows[ i ];\n\t\tdirectLight.color *= ( directLight.visible && receiveShadow ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotLightCoord[ i ] ) : 1.0;\n\t\t#endif\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )\n\tDirectionalLight directionalLight;\n\t#if defined( USE_SHADOWMAP ) && NUM_DIR_LIGHT_SHADOWS > 0\n\tDirectionalLightShadow directionalLightShadow;\n\t#endif\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {\n\t\tdirectionalLight = directionalLights[ i ];\n\t\tgetDirectionalLightInfo( directionalLight, geometry, directLight );\n\t\t#if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_DIR_LIGHT_SHADOWS )\n\t\tdirectionalLightShadow = directionalLightShadows[ i ];\n\t\tdirectLight.color *= ( directLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;\n\t\t#endif\n\t\tRE_Direct( directLight, geometry, material, reflectedLight );\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if ( NUM_RECT_AREA_LIGHTS > 0 ) && defined( RE_Direct_RectArea )\n\tRectAreaLight rectAreaLight;\n\t#pragma unroll_loop_start\n\tfor ( int i = 0; i < NUM_RECT_AREA_LIGHTS; i ++ ) {\n\t\trectAreaLight = rectAreaLights[ i ];\n\t\tRE_Direct_RectArea( rectAreaLight, geometry, material, reflectedLight );\n\t}\n\t#pragma unroll_loop_end\n#endif\n#if defined( RE_IndirectDiffuse )\n\tvec3 iblIrradiance = vec3( 0.0 );\n\tvec3 irradiance = getAmbientLightIrradiance( ambientLightColor );\n\tirradiance += getLightProbeIrradiance( lightProbe, geometry.normal );\n\t#if ( NUM_HEMI_LIGHTS > 0 )\n\t\t#pragma unroll_loop_start\n\t\tfor ( int i = 0; i < NUM_HEMI_LIGHTS; i ++ ) {\n\t\t\tirradiance += getHemisphereLightIrradiance( hemisphereLights[ i ], geometry.normal );\n\t\t}\n\t\t#pragma unroll_loop_end\n\t#endif\n#endif\n#if defined( RE_IndirectSpecular )\n\tvec3 radiance = vec3( 0.0 );\n\tvec3 clearcoatRadiance = vec3( 0.0 );\n#endif";
 
 var lights_fragment_maps = "#if defined( RE_IndirectDiffuse )\n\t#ifdef USE_LIGHTMAP\n\t\tvec4 lightMapTexel = texture2D( lightMap, vUv2 );\n\t\tvec3 lightMapIrradiance = lightMapTexel.rgb * lightMapIntensity;\n\t\tirradiance += lightMapIrradiance;\n\t#endif\n\t#if defined( USE_ENVMAP ) && defined( STANDARD ) && defined( ENVMAP_TYPE_CUBE_UV )\n\t\tiblIrradiance += getIBLIrradiance( geometry.normal );\n\t#endif\n#endif\n#if defined( USE_ENVMAP ) && defined( RE_IndirectSpecular )\n\tradiance += getIBLRadiance( geometry.viewDir, geometry.normal, material.roughness );\n\t#ifdef USE_CLEARCOAT\n\t\tclearcoatRadiance += getIBLRadiance( geometry.viewDir, geometry.clearcoatNormal, material.clearcoatRoughness );\n\t#endif\n#endif";
 
@@ -12711,7 +12797,7 @@ var morphtarget_pars_vertex = "#ifdef USE_MORPHTARGETS\n\tuniform float morphTar
 
 var morphtarget_vertex = "#ifdef USE_MORPHTARGETS\n\ttransformed *= morphTargetBaseInfluence;\n\t#ifdef MORPHTARGETS_TEXTURE\n\t\tfor ( int i = 0; i < MORPHTARGETS_COUNT; i ++ ) {\n\t\t\tif ( morphTargetInfluences[ i ] != 0.0 ) transformed += getMorph( gl_VertexID, i, 0 ).xyz * morphTargetInfluences[ i ];\n\t\t}\n\t#else\n\t\ttransformed += morphTarget0 * morphTargetInfluences[ 0 ];\n\t\ttransformed += morphTarget1 * morphTargetInfluences[ 1 ];\n\t\ttransformed += morphTarget2 * morphTargetInfluences[ 2 ];\n\t\ttransformed += morphTarget3 * morphTargetInfluences[ 3 ];\n\t\t#ifndef USE_MORPHNORMALS\n\t\t\ttransformed += morphTarget4 * morphTargetInfluences[ 4 ];\n\t\t\ttransformed += morphTarget5 * morphTargetInfluences[ 5 ];\n\t\t\ttransformed += morphTarget6 * morphTargetInfluences[ 6 ];\n\t\t\ttransformed += morphTarget7 * morphTargetInfluences[ 7 ];\n\t\t#endif\n\t#endif\n#endif";
 
-var normal_fragment_begin = "float faceDirection = gl_FrontFacing ? 1.0 : - 1.0;\n#ifdef FLAT_SHADED\n\tvec3 fdx = vec3( dFdx( vViewPosition.x ), dFdx( vViewPosition.y ), dFdx( vViewPosition.z ) );\n\tvec3 fdy = vec3( dFdy( vViewPosition.x ), dFdy( vViewPosition.y ), dFdy( vViewPosition.z ) );\n\tvec3 normal = normalize( cross( fdx, fdy ) );\n#else\n\tvec3 normal = normalize( vNormal );\n\t#ifdef DOUBLE_SIDED\n\t\tnormal = normal * faceDirection;\n\t#endif\n\t#ifdef USE_TANGENT\n\t\tvec3 tangent = normalize( vTangent );\n\t\tvec3 bitangent = normalize( vBitangent );\n\t\t#ifdef DOUBLE_SIDED\n\t\t\ttangent = tangent * faceDirection;\n\t\t\tbitangent = bitangent * faceDirection;\n\t\t#endif\n\t\t#if defined( TANGENTSPACE_NORMALMAP ) || defined( USE_CLEARCOAT_NORMALMAP )\n\t\t\tmat3 vTBN = mat3( tangent, bitangent, normal );\n\t\t#endif\n\t#endif\n#endif\nvec3 geometryNormal = normal;";
+var normal_fragment_begin = "float faceDirection = gl_FrontFacing ? 1.0 : - 1.0;\n#ifdef FLAT_SHADED\n\tvec3 fdx = dFdx( vViewPosition );\n\tvec3 fdy = dFdy( vViewPosition );\n\tvec3 normal = normalize( cross( fdx, fdy ) );\n#else\n\tvec3 normal = normalize( vNormal );\n\t#ifdef DOUBLE_SIDED\n\t\tnormal = normal * faceDirection;\n\t#endif\n\t#ifdef USE_TANGENT\n\t\tvec3 tangent = normalize( vTangent );\n\t\tvec3 bitangent = normalize( vBitangent );\n\t\t#ifdef DOUBLE_SIDED\n\t\t\ttangent = tangent * faceDirection;\n\t\t\tbitangent = bitangent * faceDirection;\n\t\t#endif\n\t\t#if defined( TANGENTSPACE_NORMALMAP ) || defined( USE_CLEARCOAT_NORMALMAP )\n\t\t\tmat3 vTBN = mat3( tangent, bitangent, normal );\n\t\t#endif\n\t#endif\n#endif\nvec3 geometryNormal = normal;";
 
 var normal_fragment_maps = "#ifdef OBJECTSPACE_NORMALMAP\n\tnormal = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0;\n\t#ifdef FLIP_SIDED\n\t\tnormal = - normal;\n\t#endif\n\t#ifdef DOUBLE_SIDED\n\t\tnormal = normal * faceDirection;\n\t#endif\n\tnormal = normalize( normalMatrix * normal );\n#elif defined( TANGENTSPACE_NORMALMAP )\n\tvec3 mapN = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0;\n\tmapN.xy *= normalScale;\n\t#ifdef USE_TANGENT\n\t\tnormal = normalize( vTBN * mapN );\n\t#else\n\t\tnormal = perturbNormal2Arb( - vViewPosition, normal, mapN, faceDirection );\n\t#endif\n#elif defined( USE_BUMPMAP )\n\tnormal = perturbNormalArb( - vViewPosition, normal, dHdxy_fwd(), faceDirection );\n#endif";
 
@@ -12733,7 +12819,7 @@ var iridescence_pars_fragment = "#ifdef USE_IRIDESCENCEMAP\n\tuniform sampler2D 
 
 var output_fragment = "#ifdef OPAQUE\ndiffuseColor.a = 1.0;\n#endif\n#ifdef USE_TRANSMISSION\ndiffuseColor.a *= material.transmissionAlpha + 0.1;\n#endif\ngl_FragColor = vec4( outgoingLight, diffuseColor.a );";
 
-var packing = "vec3 packNormalToRGB( const in vec3 normal ) {\n\treturn normalize( normal ) * 0.5 + 0.5;\n}\nvec3 unpackRGBToNormal( const in vec3 rgb ) {\n\treturn 2.0 * rgb.xyz - 1.0;\n}\nconst float PackUpscale = 256. / 255.;const float UnpackDownscale = 255. / 256.;\nconst vec3 PackFactors = vec3( 256. * 256. * 256., 256. * 256., 256. );\nconst vec4 UnpackFactors = UnpackDownscale / vec4( PackFactors, 1. );\nconst float ShiftRight8 = 1. / 256.;\nvec4 packDepthToRGBA( const in float v ) {\n\tvec4 r = vec4( fract( v * PackFactors ), v );\n\tr.yzw -= r.xyz * ShiftRight8;\treturn r * PackUpscale;\n}\nfloat unpackRGBAToDepth( const in vec4 v ) {\n\treturn dot( v, UnpackFactors );\n}\nvec4 pack2HalfToRGBA( vec2 v ) {\n\tvec4 r = vec4( v.x, fract( v.x * 255.0 ), v.y, fract( v.y * 255.0 ) );\n\treturn vec4( r.x - r.y / 255.0, r.y, r.z - r.w / 255.0, r.w );\n}\nvec2 unpackRGBATo2Half( vec4 v ) {\n\treturn vec2( v.x + ( v.y / 255.0 ), v.z + ( v.w / 255.0 ) );\n}\nfloat viewZToOrthographicDepth( const in float viewZ, const in float near, const in float far ) {\n\treturn ( viewZ + near ) / ( near - far );\n}\nfloat orthographicDepthToViewZ( const in float linearClipZ, const in float near, const in float far ) {\n\treturn linearClipZ * ( near - far ) - near;\n}\nfloat viewZToPerspectiveDepth( const in float viewZ, const in float near, const in float far ) {\n\treturn ( ( near + viewZ ) * far ) / ( ( far - near ) * viewZ );\n}\nfloat perspectiveDepthToViewZ( const in float invClipZ, const in float near, const in float far ) {\n\treturn ( near * far ) / ( ( far - near ) * invClipZ - far );\n}";
+var packing = "vec3 packNormalToRGB( const in vec3 normal ) {\n\treturn normalize( normal ) * 0.5 + 0.5;\n}\nvec3 unpackRGBToNormal( const in vec3 rgb ) {\n\treturn 2.0 * rgb.xyz - 1.0;\n}\nconst float PackUpscale = 256. / 255.;const float UnpackDownscale = 255. / 256.;\nconst vec3 PackFactors = vec3( 256. * 256. * 256., 256. * 256., 256. );\nconst vec4 UnpackFactors = UnpackDownscale / vec4( PackFactors, 1. );\nconst float ShiftRight8 = 1. / 256.;\nvec4 packDepthToRGBA( const in float v ) {\n\tvec4 r = vec4( fract( v * PackFactors ), v );\n\tr.yzw -= r.xyz * ShiftRight8;\treturn r * PackUpscale;\n}\nfloat unpackRGBAToDepth( const in vec4 v ) {\n\treturn dot( v, UnpackFactors );\n}\nvec2 packDepthToRG( in highp float v ) {\n\treturn packDepthToRGBA( v ).yx;\n}\nfloat unpackRGToDepth( const in highp vec2 v ) {\n\treturn unpackRGBAToDepth( vec4( v.xy, 0.0, 0.0 ) );\n}\nvec4 pack2HalfToRGBA( vec2 v ) {\n\tvec4 r = vec4( v.x, fract( v.x * 255.0 ), v.y, fract( v.y * 255.0 ) );\n\treturn vec4( r.x - r.y / 255.0, r.y, r.z - r.w / 255.0, r.w );\n}\nvec2 unpackRGBATo2Half( vec4 v ) {\n\treturn vec2( v.x + ( v.y / 255.0 ), v.z + ( v.w / 255.0 ) );\n}\nfloat viewZToOrthographicDepth( const in float viewZ, const in float near, const in float far ) {\n\treturn ( viewZ + near ) / ( near - far );\n}\nfloat orthographicDepthToViewZ( const in float linearClipZ, const in float near, const in float far ) {\n\treturn linearClipZ * ( near - far ) - near;\n}\nfloat viewZToPerspectiveDepth( const in float viewZ, const in float near, const in float far ) {\n\treturn ( ( near + viewZ ) * far ) / ( ( far - near ) * viewZ );\n}\nfloat perspectiveDepthToViewZ( const in float invClipZ, const in float near, const in float far ) {\n\treturn ( near * far ) / ( ( far - near ) * invClipZ - far );\n}";
 
 var premultiplied_alpha_fragment = "#ifdef PREMULTIPLIED_ALPHA\n\tgl_FragColor.rgb *= gl_FragColor.a;\n#endif";
 
@@ -12747,7 +12833,7 @@ var roughnessmap_fragment = "float roughnessFactor = roughness;\n#ifdef USE_ROUG
 
 var roughnessmap_pars_fragment = "#ifdef USE_ROUGHNESSMAP\n\tuniform sampler2D roughnessMap;\n#endif";
 
-var shadowmap_pars_fragment = "#if NUM_SPOT_LIGHT_COORDS > 0\n  varying vec4 vSpotLightCoord[ NUM_SPOT_LIGHT_COORDS ];\n#endif\n#if NUM_SPOT_LIGHT_MAPS > 0\n  uniform sampler2D spotLightMap[ NUM_SPOT_LIGHT_MAPS ];\n#endif\n#ifdef USE_SHADOWMAP\n\t#if NUM_DIR_LIGHT_SHADOWS > 0\n\t\tuniform sampler2D directionalShadowMap[ NUM_DIR_LIGHT_SHADOWS ];\n\t\tvarying vec4 vDirectionalShadowCoord[ NUM_DIR_LIGHT_SHADOWS ];\n\t\tstruct DirectionalLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t};\n\t\tuniform DirectionalLightShadow directionalLightShadows[ NUM_DIR_LIGHT_SHADOWS ];\n\t#endif\n\t#if NUM_SPOT_LIGHT_SHADOWS > 0\n\t\tuniform sampler2D spotShadowMap[ NUM_SPOT_LIGHT_SHADOWS ];\n\t\tstruct SpotLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t};\n\t\tuniform SpotLightShadow spotLightShadows[ NUM_SPOT_LIGHT_SHADOWS ];\n\t#endif\n\t#if NUM_POINT_LIGHT_SHADOWS > 0\n\t\tuniform sampler2D pointShadowMap[ NUM_POINT_LIGHT_SHADOWS ];\n\t\tvarying vec4 vPointShadowCoord[ NUM_POINT_LIGHT_SHADOWS ];\n\t\tstruct PointLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t\tfloat shadowCameraNear;\n\t\t\tfloat shadowCameraFar;\n\t\t};\n\t\tuniform PointLightShadow pointLightShadows[ NUM_POINT_LIGHT_SHADOWS ];\n\t#endif\n\tfloat texture2DCompare( sampler2D depths, vec2 uv, float compare ) {\n\t\treturn step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );\n\t}\n\tvec2 texture2DDistribution( sampler2D shadow, vec2 uv ) {\n\t\treturn unpackRGBATo2Half( texture2D( shadow, uv ) );\n\t}\n\tfloat VSMShadow (sampler2D shadow, vec2 uv, float compare ){\n\t\tfloat occlusion = 1.0;\n\t\tvec2 distribution = texture2DDistribution( shadow, uv );\n\t\tfloat hard_shadow = step( compare , distribution.x );\n\t\tif (hard_shadow != 1.0 ) {\n\t\t\tfloat distance = compare - distribution.x ;\n\t\t\tfloat variance = max( 0.00000, distribution.y * distribution.y );\n\t\t\tfloat softness_probability = variance / (variance + distance * distance );\t\t\tsoftness_probability = clamp( ( softness_probability - 0.3 ) / ( 0.95 - 0.3 ), 0.0, 1.0 );\t\t\tocclusion = clamp( max( hard_shadow, softness_probability ), 0.0, 1.0 );\n\t\t}\n\t\treturn occlusion;\n\t}\n\tfloat getShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowBias, float shadowRadius, vec4 shadowCoord ) {\n\t\tfloat shadow = 1.0;\n\t\tshadowCoord.xyz /= shadowCoord.w;\n\t\tshadowCoord.z += shadowBias;\n\t\tbvec4 inFrustumVec = bvec4 ( shadowCoord.x >= 0.0, shadowCoord.x <= 1.0, shadowCoord.y >= 0.0, shadowCoord.y <= 1.0 );\n\t\tbool inFrustum = all( inFrustumVec );\n\t\tbvec2 frustumTestVec = bvec2( inFrustum, shadowCoord.z <= 1.0 );\n\t\tbool frustumTest = all( frustumTestVec );\n\t\tif ( frustumTest ) {\n\t\t#if defined( SHADOWMAP_TYPE_PCF )\n\t\t\tvec2 texelSize = vec2( 1.0 ) / shadowMapSize;\n\t\t\tfloat dx0 = - texelSize.x * shadowRadius;\n\t\t\tfloat dy0 = - texelSize.y * shadowRadius;\n\t\t\tfloat dx1 = + texelSize.x * shadowRadius;\n\t\t\tfloat dy1 = + texelSize.y * shadowRadius;\n\t\t\tfloat dx2 = dx0 / 2.0;\n\t\t\tfloat dy2 = dy0 / 2.0;\n\t\t\tfloat dx3 = dx1 / 2.0;\n\t\t\tfloat dy3 = dy1 / 2.0;\n\t\t\tshadow = (\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx0, dy0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1, dy0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx2, dy2 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy2 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx3, dy2 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx0, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx2, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy, shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx3, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx2, dy3 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy3 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx3, dy3 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx0, dy1 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy1 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1, dy1 ), shadowCoord.z )\n\t\t\t) * ( 1.0 / 17.0 );\n\t\t#elif defined( SHADOWMAP_TYPE_PCF_SOFT )\n\t\t\tvec2 texelSize = vec2( 1.0 ) / shadowMapSize;\n\t\t\tfloat dx = texelSize.x;\n\t\t\tfloat dy = texelSize.y;\n\t\t\tvec2 uv = shadowCoord.xy;\n\t\t\tvec2 f = fract( uv * shadowMapSize + 0.5 );\n\t\t\tuv -= f * texelSize;\n\t\t\tshadow = (\n\t\t\t\ttexture2DCompare( shadowMap, uv, shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, uv + vec2( dx, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, uv + vec2( 0.0, dy ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, uv + texelSize, shadowCoord.z ) +\n\t\t\t\tmix( texture2DCompare( shadowMap, uv + vec2( -dx, 0.0 ), shadowCoord.z ),\n\t\t\t\t\t texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, 0.0 ), shadowCoord.z ),\n\t\t\t\t\t f.x ) +\n\t\t\t\tmix( texture2DCompare( shadowMap, uv + vec2( -dx, dy ), shadowCoord.z ),\n\t\t\t\t\t texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, dy ), shadowCoord.z ),\n\t\t\t\t\t f.x ) +\n\t\t\t\tmix( texture2DCompare( shadowMap, uv + vec2( 0.0, -dy ), shadowCoord.z ),\n\t\t\t\t\t texture2DCompare( shadowMap, uv + vec2( 0.0, 2.0 * dy ), shadowCoord.z ),\n\t\t\t\t\t f.y ) +\n\t\t\t\tmix( texture2DCompare( shadowMap, uv + vec2( dx, -dy ), shadowCoord.z ),\n\t\t\t\t\t texture2DCompare( shadowMap, uv + vec2( dx, 2.0 * dy ), shadowCoord.z ),\n\t\t\t\t\t f.y ) +\n\t\t\t\tmix( mix( texture2DCompare( shadowMap, uv + vec2( -dx, -dy ), shadowCoord.z ),\n\t\t\t\t\t\t  texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, -dy ), shadowCoord.z ),\n\t\t\t\t\t\t  f.x ),\n\t\t\t\t\t mix( texture2DCompare( shadowMap, uv + vec2( -dx, 2.0 * dy ), shadowCoord.z ),\n\t\t\t\t\t\t  texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, 2.0 * dy ), shadowCoord.z ),\n\t\t\t\t\t\t  f.x ),\n\t\t\t\t\t f.y )\n\t\t\t) * ( 1.0 / 9.0 );\n\t\t#elif defined( SHADOWMAP_TYPE_VSM )\n\t\t\tshadow = VSMShadow( shadowMap, shadowCoord.xy, shadowCoord.z );\n\t\t#else\n\t\t\tshadow = texture2DCompare( shadowMap, shadowCoord.xy, shadowCoord.z );\n\t\t#endif\n\t\t}\n\t\treturn shadow;\n\t}\n\tvec2 cubeToUV( vec3 v, float texelSizeY ) {\n\t\tvec3 absV = abs( v );\n\t\tfloat scaleToCube = 1.0 / max( absV.x, max( absV.y, absV.z ) );\n\t\tabsV *= scaleToCube;\n\t\tv *= scaleToCube * ( 1.0 - 2.0 * texelSizeY );\n\t\tvec2 planar = v.xy;\n\t\tfloat almostATexel = 1.5 * texelSizeY;\n\t\tfloat almostOne = 1.0 - almostATexel;\n\t\tif ( absV.z >= almostOne ) {\n\t\t\tif ( v.z > 0.0 )\n\t\t\t\tplanar.x = 4.0 - v.x;\n\t\t} else if ( absV.x >= almostOne ) {\n\t\t\tfloat signX = sign( v.x );\n\t\t\tplanar.x = v.z * signX + 2.0 * signX;\n\t\t} else if ( absV.y >= almostOne ) {\n\t\t\tfloat signY = sign( v.y );\n\t\t\tplanar.x = v.x + 2.0 * signY + 2.0;\n\t\t\tplanar.y = v.z * signY - 2.0;\n\t\t}\n\t\treturn vec2( 0.125, 0.25 ) * planar + vec2( 0.375, 0.75 );\n\t}\n\tfloat getPointShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowBias, float shadowRadius, vec4 shadowCoord, float shadowCameraNear, float shadowCameraFar ) {\n\t\tvec2 texelSize = vec2( 1.0 ) / ( shadowMapSize * vec2( 4.0, 2.0 ) );\n\t\tvec3 lightToPosition = shadowCoord.xyz;\n\t\tfloat dp = ( length( lightToPosition ) - shadowCameraNear ) / ( shadowCameraFar - shadowCameraNear );\t\tdp += shadowBias;\n\t\tvec3 bd3D = normalize( lightToPosition );\n\t\t#if defined( SHADOWMAP_TYPE_PCF ) || defined( SHADOWMAP_TYPE_PCF_SOFT ) || defined( SHADOWMAP_TYPE_VSM )\n\t\t\tvec2 offset = vec2( - 1, 1 ) * shadowRadius * texelSize.y;\n\t\t\treturn (\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.xyy, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.yyy, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.xyx, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.yyx, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.xxy, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.yxy, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.xxx, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.yxx, texelSize.y ), dp )\n\t\t\t) * ( 1.0 / 9.0 );\n\t\t#else\n\t\t\treturn texture2DCompare( shadowMap, cubeToUV( bd3D, texelSize.y ), dp );\n\t\t#endif\n\t}\n#endif";
+var shadowmap_pars_fragment = "#if NUM_SPOT_LIGHT_COORDS > 0\n  varying vec4 vSpotLightCoord[ NUM_SPOT_LIGHT_COORDS ];\n#endif\n#if NUM_SPOT_LIGHT_MAPS > 0\n  uniform sampler2D spotLightMap[ NUM_SPOT_LIGHT_MAPS ];\n#endif\n#ifdef USE_SHADOWMAP\n\t#if NUM_DIR_LIGHT_SHADOWS > 0\n\t\tuniform sampler2D directionalShadowMap[ NUM_DIR_LIGHT_SHADOWS ];\n\t\tvarying vec4 vDirectionalShadowCoord[ NUM_DIR_LIGHT_SHADOWS ];\n\t\tstruct DirectionalLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t};\n\t\tuniform DirectionalLightShadow directionalLightShadows[ NUM_DIR_LIGHT_SHADOWS ];\n\t#endif\n\t#if NUM_SPOT_LIGHT_SHADOWS > 0\n\t\tuniform sampler2D spotShadowMap[ NUM_SPOT_LIGHT_SHADOWS ];\n\t\tstruct SpotLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t};\n\t\tuniform SpotLightShadow spotLightShadows[ NUM_SPOT_LIGHT_SHADOWS ];\n\t#endif\n\t#if NUM_POINT_LIGHT_SHADOWS > 0\n\t\tuniform sampler2D pointShadowMap[ NUM_POINT_LIGHT_SHADOWS ];\n\t\tvarying vec4 vPointShadowCoord[ NUM_POINT_LIGHT_SHADOWS ];\n\t\tstruct PointLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t\tfloat shadowCameraNear;\n\t\t\tfloat shadowCameraFar;\n\t\t};\n\t\tuniform PointLightShadow pointLightShadows[ NUM_POINT_LIGHT_SHADOWS ];\n\t#endif\n\tfloat texture2DCompare( sampler2D depths, vec2 uv, float compare ) {\n\t\treturn step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );\n\t}\n\tvec2 texture2DDistribution( sampler2D shadow, vec2 uv ) {\n\t\treturn unpackRGBATo2Half( texture2D( shadow, uv ) );\n\t}\n\tfloat VSMShadow (sampler2D shadow, vec2 uv, float compare ){\n\t\tfloat occlusion = 1.0;\n\t\tvec2 distribution = texture2DDistribution( shadow, uv );\n\t\tfloat hard_shadow = step( compare , distribution.x );\n\t\tif (hard_shadow != 1.0 ) {\n\t\t\tfloat distance = compare - distribution.x ;\n\t\t\tfloat variance = max( 0.00000, distribution.y * distribution.y );\n\t\t\tfloat softness_probability = variance / (variance + distance * distance );\t\t\tsoftness_probability = clamp( ( softness_probability - 0.3 ) / ( 0.95 - 0.3 ), 0.0, 1.0 );\t\t\tocclusion = clamp( max( hard_shadow, softness_probability ), 0.0, 1.0 );\n\t\t}\n\t\treturn occlusion;\n\t}\n\tfloat getShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowBias, float shadowRadius, vec4 shadowCoord ) {\n\t\tfloat shadow = 1.0;\n\t\tshadowCoord.xyz /= shadowCoord.w;\n\t\tshadowCoord.z += shadowBias;\n\t\tbool inFrustum = shadowCoord.x >= 0.0 && shadowCoord.x <= 1.0 && shadowCoord.y >= 0.0 && shadowCoord.y <= 1.0;\n\t\tbool frustumTest = inFrustum && shadowCoord.z <= 1.0;\n\t\tif ( frustumTest ) {\n\t\t#if defined( SHADOWMAP_TYPE_PCF )\n\t\t\tvec2 texelSize = vec2( 1.0 ) / shadowMapSize;\n\t\t\tfloat dx0 = - texelSize.x * shadowRadius;\n\t\t\tfloat dy0 = - texelSize.y * shadowRadius;\n\t\t\tfloat dx1 = + texelSize.x * shadowRadius;\n\t\t\tfloat dy1 = + texelSize.y * shadowRadius;\n\t\t\tfloat dx2 = dx0 / 2.0;\n\t\t\tfloat dy2 = dy0 / 2.0;\n\t\t\tfloat dx3 = dx1 / 2.0;\n\t\t\tfloat dy3 = dy1 / 2.0;\n\t\t\tshadow = (\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx0, dy0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1, dy0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx2, dy2 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy2 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx3, dy2 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx0, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx2, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy, shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx3, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx2, dy3 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy3 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx3, dy3 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx0, dy1 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy1 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1, dy1 ), shadowCoord.z )\n\t\t\t) * ( 1.0 / 17.0 );\n\t\t#elif defined( SHADOWMAP_TYPE_PCF_SOFT )\n\t\t\tvec2 texelSize = vec2( 1.0 ) / shadowMapSize;\n\t\t\tfloat dx = texelSize.x;\n\t\t\tfloat dy = texelSize.y;\n\t\t\tvec2 uv = shadowCoord.xy;\n\t\t\tvec2 f = fract( uv * shadowMapSize + 0.5 );\n\t\t\tuv -= f * texelSize;\n\t\t\tshadow = (\n\t\t\t\ttexture2DCompare( shadowMap, uv, shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, uv + vec2( dx, 0.0 ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, uv + vec2( 0.0, dy ), shadowCoord.z ) +\n\t\t\t\ttexture2DCompare( shadowMap, uv + texelSize, shadowCoord.z ) +\n\t\t\t\tmix( texture2DCompare( shadowMap, uv + vec2( -dx, 0.0 ), shadowCoord.z ),\n\t\t\t\t\t texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, 0.0 ), shadowCoord.z ),\n\t\t\t\t\t f.x ) +\n\t\t\t\tmix( texture2DCompare( shadowMap, uv + vec2( -dx, dy ), shadowCoord.z ),\n\t\t\t\t\t texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, dy ), shadowCoord.z ),\n\t\t\t\t\t f.x ) +\n\t\t\t\tmix( texture2DCompare( shadowMap, uv + vec2( 0.0, -dy ), shadowCoord.z ),\n\t\t\t\t\t texture2DCompare( shadowMap, uv + vec2( 0.0, 2.0 * dy ), shadowCoord.z ),\n\t\t\t\t\t f.y ) +\n\t\t\t\tmix( texture2DCompare( shadowMap, uv + vec2( dx, -dy ), shadowCoord.z ),\n\t\t\t\t\t texture2DCompare( shadowMap, uv + vec2( dx, 2.0 * dy ), shadowCoord.z ),\n\t\t\t\t\t f.y ) +\n\t\t\t\tmix( mix( texture2DCompare( shadowMap, uv + vec2( -dx, -dy ), shadowCoord.z ),\n\t\t\t\t\t\t  texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, -dy ), shadowCoord.z ),\n\t\t\t\t\t\t  f.x ),\n\t\t\t\t\t mix( texture2DCompare( shadowMap, uv + vec2( -dx, 2.0 * dy ), shadowCoord.z ),\n\t\t\t\t\t\t  texture2DCompare( shadowMap, uv + vec2( 2.0 * dx, 2.0 * dy ), shadowCoord.z ),\n\t\t\t\t\t\t  f.x ),\n\t\t\t\t\t f.y )\n\t\t\t) * ( 1.0 / 9.0 );\n\t\t#elif defined( SHADOWMAP_TYPE_VSM )\n\t\t\tshadow = VSMShadow( shadowMap, shadowCoord.xy, shadowCoord.z );\n\t\t#else\n\t\t\tshadow = texture2DCompare( shadowMap, shadowCoord.xy, shadowCoord.z );\n\t\t#endif\n\t\t}\n\t\treturn shadow;\n\t}\n\tvec2 cubeToUV( vec3 v, float texelSizeY ) {\n\t\tvec3 absV = abs( v );\n\t\tfloat scaleToCube = 1.0 / max( absV.x, max( absV.y, absV.z ) );\n\t\tabsV *= scaleToCube;\n\t\tv *= scaleToCube * ( 1.0 - 2.0 * texelSizeY );\n\t\tvec2 planar = v.xy;\n\t\tfloat almostATexel = 1.5 * texelSizeY;\n\t\tfloat almostOne = 1.0 - almostATexel;\n\t\tif ( absV.z >= almostOne ) {\n\t\t\tif ( v.z > 0.0 )\n\t\t\t\tplanar.x = 4.0 - v.x;\n\t\t} else if ( absV.x >= almostOne ) {\n\t\t\tfloat signX = sign( v.x );\n\t\t\tplanar.x = v.z * signX + 2.0 * signX;\n\t\t} else if ( absV.y >= almostOne ) {\n\t\t\tfloat signY = sign( v.y );\n\t\t\tplanar.x = v.x + 2.0 * signY + 2.0;\n\t\t\tplanar.y = v.z * signY - 2.0;\n\t\t}\n\t\treturn vec2( 0.125, 0.25 ) * planar + vec2( 0.375, 0.75 );\n\t}\n\tfloat getPointShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowBias, float shadowRadius, vec4 shadowCoord, float shadowCameraNear, float shadowCameraFar ) {\n\t\tvec2 texelSize = vec2( 1.0 ) / ( shadowMapSize * vec2( 4.0, 2.0 ) );\n\t\tvec3 lightToPosition = shadowCoord.xyz;\n\t\tfloat dp = ( length( lightToPosition ) - shadowCameraNear ) / ( shadowCameraFar - shadowCameraNear );\t\tdp += shadowBias;\n\t\tvec3 bd3D = normalize( lightToPosition );\n\t\t#if defined( SHADOWMAP_TYPE_PCF ) || defined( SHADOWMAP_TYPE_PCF_SOFT ) || defined( SHADOWMAP_TYPE_VSM )\n\t\t\tvec2 offset = vec2( - 1, 1 ) * shadowRadius * texelSize.y;\n\t\t\treturn (\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.xyy, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.yyy, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.xyx, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.yyx, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.xxy, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.yxy, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.xxx, texelSize.y ), dp ) +\n\t\t\t\ttexture2DCompare( shadowMap, cubeToUV( bd3D + offset.yxx, texelSize.y ), dp )\n\t\t\t) * ( 1.0 / 9.0 );\n\t\t#else\n\t\t\treturn texture2DCompare( shadowMap, cubeToUV( bd3D, texelSize.y ), dp );\n\t\t#endif\n\t}\n#endif";
 
 var shadowmap_pars_vertex = "#if NUM_SPOT_LIGHT_COORDS > 0\n  uniform mat4 spotLightMatrix[ NUM_SPOT_LIGHT_COORDS ];\n  varying vec4 vSpotLightCoord[ NUM_SPOT_LIGHT_COORDS ];\n#endif\n#ifdef USE_SHADOWMAP\n\t#if NUM_DIR_LIGHT_SHADOWS > 0\n\t\tuniform mat4 directionalShadowMatrix[ NUM_DIR_LIGHT_SHADOWS ];\n\t\tvarying vec4 vDirectionalShadowCoord[ NUM_DIR_LIGHT_SHADOWS ];\n\t\tstruct DirectionalLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t};\n\t\tuniform DirectionalLightShadow directionalLightShadows[ NUM_DIR_LIGHT_SHADOWS ];\n\t#endif\n\t#if NUM_SPOT_LIGHT_SHADOWS > 0\n\t\tstruct SpotLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t};\n\t\tuniform SpotLightShadow spotLightShadows[ NUM_SPOT_LIGHT_SHADOWS ];\n\t#endif\n\t#if NUM_POINT_LIGHT_SHADOWS > 0\n\t\tuniform mat4 pointShadowMatrix[ NUM_POINT_LIGHT_SHADOWS ];\n\t\tvarying vec4 vPointShadowCoord[ NUM_POINT_LIGHT_SHADOWS ];\n\t\tstruct PointLightShadow {\n\t\t\tfloat shadowBias;\n\t\t\tfloat shadowNormalBias;\n\t\t\tfloat shadowRadius;\n\t\t\tvec2 shadowMapSize;\n\t\t\tfloat shadowCameraNear;\n\t\t\tfloat shadowCameraFar;\n\t\t};\n\t\tuniform PointLightShadow pointLightShadows[ NUM_POINT_LIGHT_SHADOWS ];\n\t#endif\n#endif";
 
@@ -12773,7 +12859,7 @@ var tonemapping_pars_fragment = "#ifndef saturate\n#define saturate( a ) clamp( 
 
 var transmission_fragment = "#ifdef USE_TRANSMISSION\n\tmaterial.transmission = transmission;\n\tmaterial.transmissionAlpha = 1.0;\n\tmaterial.thickness = thickness;\n\tmaterial.attenuationDistance = attenuationDistance;\n\tmaterial.attenuationColor = attenuationColor;\n\t#ifdef USE_TRANSMISSIONMAP\n\t\tmaterial.transmission *= texture2D( transmissionMap, vUv ).r;\n\t#endif\n\t#ifdef USE_THICKNESSMAP\n\t\tmaterial.thickness *= texture2D( thicknessMap, vUv ).g;\n\t#endif\n\tvec3 pos = vWorldPosition;\n\tvec3 v = normalize( cameraPosition - pos );\n\tvec3 n = inverseTransformDirection( normal, viewMatrix );\n\tvec4 transmission = getIBLVolumeRefraction(\n\t\tn, v, material.roughness, material.diffuseColor, material.specularColor, material.specularF90,\n\t\tpos, modelMatrix, viewMatrix, projectionMatrix, material.ior, material.thickness,\n\t\tmaterial.attenuationColor, material.attenuationDistance );\n\tmaterial.transmissionAlpha = mix( material.transmissionAlpha, transmission.a, material.transmission );\n\ttotalDiffuse = mix( totalDiffuse, transmission.rgb, material.transmission );\n#endif";
 
-var transmission_pars_fragment = "#ifdef USE_TRANSMISSION\n\tuniform float transmission;\n\tuniform float thickness;\n\tuniform float attenuationDistance;\n\tuniform vec3 attenuationColor;\n\t#ifdef USE_TRANSMISSIONMAP\n\t\tuniform sampler2D transmissionMap;\n\t#endif\n\t#ifdef USE_THICKNESSMAP\n\t\tuniform sampler2D thicknessMap;\n\t#endif\n\tuniform vec2 transmissionSamplerSize;\n\tuniform sampler2D transmissionSamplerMap;\n\tuniform mat4 modelMatrix;\n\tuniform mat4 projectionMatrix;\n\tvarying vec3 vWorldPosition;\n\tvec3 getVolumeTransmissionRay( const in vec3 n, const in vec3 v, const in float thickness, const in float ior, const in mat4 modelMatrix ) {\n\t\tvec3 refractionVector = refract( - v, normalize( n ), 1.0 / ior );\n\t\tvec3 modelScale;\n\t\tmodelScale.x = length( vec3( modelMatrix[ 0 ].xyz ) );\n\t\tmodelScale.y = length( vec3( modelMatrix[ 1 ].xyz ) );\n\t\tmodelScale.z = length( vec3( modelMatrix[ 2 ].xyz ) );\n\t\treturn normalize( refractionVector ) * thickness * modelScale;\n\t}\n\tfloat applyIorToRoughness( const in float roughness, const in float ior ) {\n\t\treturn roughness * clamp( ior * 2.0 - 2.0, 0.0, 1.0 );\n\t}\n\tvec4 getTransmissionSample( const in vec2 fragCoord, const in float roughness, const in float ior ) {\n\t\tfloat framebufferLod = log2( transmissionSamplerSize.x ) * applyIorToRoughness( roughness, ior );\n\t\t#ifdef texture2DLodEXT\n\t\t\treturn texture2DLodEXT( transmissionSamplerMap, fragCoord.xy, framebufferLod );\n\t\t#else\n\t\t\treturn texture2D( transmissionSamplerMap, fragCoord.xy, framebufferLod );\n\t\t#endif\n\t}\n\tvec3 applyVolumeAttenuation( const in vec3 radiance, const in float transmissionDistance, const in vec3 attenuationColor, const in float attenuationDistance ) {\n\t\tif ( attenuationDistance == 0.0 ) {\n\t\t\treturn radiance;\n\t\t} else {\n\t\t\tvec3 attenuationCoefficient = -log( attenuationColor ) / attenuationDistance;\n\t\t\tvec3 transmittance = exp( - attenuationCoefficient * transmissionDistance );\t\t\treturn transmittance * radiance;\n\t\t}\n\t}\n\tvec4 getIBLVolumeRefraction( const in vec3 n, const in vec3 v, const in float roughness, const in vec3 diffuseColor,\n\t\tconst in vec3 specularColor, const in float specularF90, const in vec3 position, const in mat4 modelMatrix,\n\t\tconst in mat4 viewMatrix, const in mat4 projMatrix, const in float ior, const in float thickness,\n\t\tconst in vec3 attenuationColor, const in float attenuationDistance ) {\n\t\tvec3 transmissionRay = getVolumeTransmissionRay( n, v, thickness, ior, modelMatrix );\n\t\tvec3 refractedRayExit = position + transmissionRay;\n\t\tvec4 ndcPos = projMatrix * viewMatrix * vec4( refractedRayExit, 1.0 );\n\t\tvec2 refractionCoords = ndcPos.xy / ndcPos.w;\n\t\trefractionCoords += 1.0;\n\t\trefractionCoords /= 2.0;\n\t\tvec4 transmittedLight = getTransmissionSample( refractionCoords, roughness, ior );\n\t\tvec3 attenuatedColor = applyVolumeAttenuation( transmittedLight.rgb, length( transmissionRay ), attenuationColor, attenuationDistance );\n\t\tvec3 F = EnvironmentBRDF( n, v, specularColor, specularF90, roughness );\n\t\treturn vec4( ( 1.0 - F ) * attenuatedColor * diffuseColor, transmittedLight.a );\n\t}\n#endif";
+var transmission_pars_fragment = "#ifdef USE_TRANSMISSION\n\tuniform float transmission;\n\tuniform float thickness;\n\tuniform float attenuationDistance;\n\tuniform vec3 attenuationColor;\n\t#ifdef USE_TRANSMISSIONMAP\n\t\tuniform sampler2D transmissionMap;\n\t#endif\n\t#ifdef USE_THICKNESSMAP\n\t\tuniform sampler2D thicknessMap;\n\t#endif\n\tuniform vec2 transmissionSamplerSize;\n\tuniform sampler2D transmissionSamplerMap;\n\tuniform mat4 modelMatrix;\n\tuniform mat4 projectionMatrix;\n\tvarying vec3 vWorldPosition;\n\tvec3 getVolumeTransmissionRay( const in vec3 n, const in vec3 v, const in float thickness, const in float ior, const in mat4 modelMatrix ) {\n\t\tvec3 refractionVector = refract( - v, normalize( n ), 1.0 / ior );\n\t\tvec3 modelScale;\n\t\tmodelScale.x = length( vec3( modelMatrix[ 0 ].xyz ) );\n\t\tmodelScale.y = length( vec3( modelMatrix[ 1 ].xyz ) );\n\t\tmodelScale.z = length( vec3( modelMatrix[ 2 ].xyz ) );\n\t\treturn normalize( refractionVector ) * thickness * modelScale;\n\t}\n\tfloat applyIorToRoughness( const in float roughness, const in float ior ) {\n\t\treturn roughness * clamp( ior * 2.0 - 2.0, 0.0, 1.0 );\n\t}\n\tvec4 getTransmissionSample( const in vec2 fragCoord, const in float roughness, const in float ior ) {\n\t\tfloat framebufferLod = log2( transmissionSamplerSize.x ) * applyIorToRoughness( roughness, ior );\n\t\t#ifdef texture2DLodEXT\n\t\t\treturn texture2DLodEXT( transmissionSamplerMap, fragCoord.xy, framebufferLod );\n\t\t#else\n\t\t\treturn texture2D( transmissionSamplerMap, fragCoord.xy, framebufferLod );\n\t\t#endif\n\t}\n\tvec3 applyVolumeAttenuation( const in vec3 radiance, const in float transmissionDistance, const in vec3 attenuationColor, const in float attenuationDistance ) {\n\t\tif ( isinf( attenuationDistance ) ) {\n\t\t\treturn radiance;\n\t\t} else {\n\t\t\tvec3 attenuationCoefficient = -log( attenuationColor ) / attenuationDistance;\n\t\t\tvec3 transmittance = exp( - attenuationCoefficient * transmissionDistance );\t\t\treturn transmittance * radiance;\n\t\t}\n\t}\n\tvec4 getIBLVolumeRefraction( const in vec3 n, const in vec3 v, const in float roughness, const in vec3 diffuseColor,\n\t\tconst in vec3 specularColor, const in float specularF90, const in vec3 position, const in mat4 modelMatrix,\n\t\tconst in mat4 viewMatrix, const in mat4 projMatrix, const in float ior, const in float thickness,\n\t\tconst in vec3 attenuationColor, const in float attenuationDistance ) {\n\t\tvec3 transmissionRay = getVolumeTransmissionRay( n, v, thickness, ior, modelMatrix );\n\t\tvec3 refractedRayExit = position + transmissionRay;\n\t\tvec4 ndcPos = projMatrix * viewMatrix * vec4( refractedRayExit, 1.0 );\n\t\tvec2 refractionCoords = ndcPos.xy / ndcPos.w;\n\t\trefractionCoords += 1.0;\n\t\trefractionCoords /= 2.0;\n\t\tvec4 transmittedLight = getTransmissionSample( refractionCoords, roughness, ior );\n\t\tvec3 attenuatedColor = applyVolumeAttenuation( transmittedLight.rgb, length( transmissionRay ), attenuationColor, attenuationDistance );\n\t\tvec3 F = EnvironmentBRDF( n, v, specularColor, specularF90, roughness );\n\t\treturn vec4( ( 1.0 - F ) * attenuatedColor * diffuseColor, transmittedLight.a );\n\t}\n#endif";
 
 var uv_pars_fragment = "#if ( defined( USE_UV ) && ! defined( UVS_VERTEX_ONLY ) )\n\tvarying vec2 vUv;\n#endif";
 
@@ -12789,13 +12875,17 @@ var uv2_vertex = "#if defined( USE_LIGHTMAP ) || defined( USE_AOMAP )\n\tvUv2 = 
 
 var worldpos_vertex = "#if defined( USE_ENVMAP ) || defined( DISTANCE ) || defined ( USE_SHADOWMAP ) || defined ( USE_TRANSMISSION ) || NUM_SPOT_LIGHT_COORDS > 0\n\tvec4 worldPosition = vec4( transformed, 1.0 );\n\t#ifdef USE_INSTANCING\n\t\tworldPosition = instanceMatrix * worldPosition;\n\t#endif\n\tworldPosition = modelMatrix * worldPosition;\n#endif";
 
-const vertex$g = "varying vec2 vUv;\nuniform mat3 uvTransform;\nvoid main() {\n\tvUv = ( uvTransform * vec3( uv, 1 ) ).xy;\n\tgl_Position = vec4( position.xy, 1.0, 1.0 );\n}";
+const vertex$h = "varying vec2 vUv;\nuniform mat3 uvTransform;\nvoid main() {\n\tvUv = ( uvTransform * vec3( uv, 1 ) ).xy;\n\tgl_Position = vec4( position.xy, 1.0, 1.0 );\n}";
 
-const fragment$g = "uniform sampler2D t2D;\nvarying vec2 vUv;\nvoid main() {\n\tgl_FragColor = texture2D( t2D, vUv );\n\t#ifdef DECODE_VIDEO_TEXTURE\n\t\tgl_FragColor = vec4( mix( pow( gl_FragColor.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), gl_FragColor.rgb * 0.0773993808, vec3( lessThanEqual( gl_FragColor.rgb, vec3( 0.04045 ) ) ) ), gl_FragColor.w );\n\t#endif\n\t#include <tonemapping_fragment>\n\t#include <encodings_fragment>\n}";
+const fragment$h = "uniform sampler2D t2D;\nuniform float backgroundIntensity;\nvarying vec2 vUv;\nvoid main() {\n\tvec4 texColor = texture2D( t2D, vUv );\n\t#ifdef DECODE_VIDEO_TEXTURE\n\t\ttexColor = vec4( mix( pow( texColor.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), texColor.rgb * 0.0773993808, vec3( lessThanEqual( texColor.rgb, vec3( 0.04045 ) ) ) ), texColor.w );\n\t#endif\n\ttexColor.rgb *= backgroundIntensity;\n\tgl_FragColor = texColor;\n\t#include <tonemapping_fragment>\n\t#include <encodings_fragment>\n}";
+
+const vertex$g = "varying vec3 vWorldDirection;\n#include <common>\nvoid main() {\n\tvWorldDirection = transformDirection( position, modelMatrix );\n\t#include <begin_vertex>\n\t#include <project_vertex>\n\tgl_Position.z = gl_Position.w;\n}";
+
+const fragment$g = "#ifdef ENVMAP_TYPE_CUBE\n\tuniform samplerCube envMap;\n#elif defined( ENVMAP_TYPE_CUBE_UV )\n\tuniform sampler2D envMap;\n#endif\nuniform float flipEnvMap;\nuniform float backgroundBlurriness;\nuniform float backgroundIntensity;\nvarying vec3 vWorldDirection;\n#include <cube_uv_reflection_fragment>\nvoid main() {\n\t#ifdef ENVMAP_TYPE_CUBE\n\t\tvec4 texColor = textureCube( envMap, vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );\n\t#elif defined( ENVMAP_TYPE_CUBE_UV )\n\t\tvec4 texColor = textureCubeUV( envMap, vWorldDirection, backgroundBlurriness );\n\t#else\n\t\tvec4 texColor = vec4( 0.0, 0.0, 0.0, 1.0 );\n\t#endif\n\ttexColor.rgb *= backgroundIntensity;\n\tgl_FragColor = texColor;\n\t#include <tonemapping_fragment>\n\t#include <encodings_fragment>\n}";
 
 const vertex$f = "varying vec3 vWorldDirection;\n#include <common>\nvoid main() {\n\tvWorldDirection = transformDirection( position, modelMatrix );\n\t#include <begin_vertex>\n\t#include <project_vertex>\n\tgl_Position.z = gl_Position.w;\n}";
 
-const fragment$f = "#include <envmap_common_pars_fragment>\nuniform float opacity;\nvarying vec3 vWorldDirection;\n#include <cube_uv_reflection_fragment>\nvoid main() {\n\tvec3 vReflect = vWorldDirection;\n\t#include <envmap_fragment>\n\tgl_FragColor = envColor;\n\tgl_FragColor.a *= opacity;\n\t#include <tonemapping_fragment>\n\t#include <encodings_fragment>\n}";
+const fragment$f = "uniform samplerCube tCube;\nuniform float tFlip;\nuniform float opacity;\nvarying vec3 vWorldDirection;\nvoid main() {\n\tvec4 texColor = textureCube( tCube, vec3( tFlip * vWorldDirection.x, vWorldDirection.yz ) );\n\tgl_FragColor = texColor;\n\tgl_FragColor.a *= opacity;\n\t#include <tonemapping_fragment>\n\t#include <encodings_fragment>\n}";
 
 const vertex$e = "#include <common>\n#include <uv_pars_vertex>\n#include <displacementmap_pars_vertex>\n#include <morphtarget_pars_vertex>\n#include <skinning_pars_vertex>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\nvarying vec2 vHighPrecisionZW;\nvoid main() {\n\t#include <uv_vertex>\n\t#include <skinbase_vertex>\n\t#ifdef USE_DISPLACEMENTMAP\n\t\t#include <beginnormal_vertex>\n\t\t#include <morphnormal_vertex>\n\t\t#include <skinnormal_vertex>\n\t#endif\n\t#include <begin_vertex>\n\t#include <morphtarget_vertex>\n\t#include <skinning_vertex>\n\t#include <displacementmap_vertex>\n\t#include <project_vertex>\n\t#include <logdepthbuf_vertex>\n\t#include <clipping_planes_vertex>\n\tvHighPrecisionZW = gl_Position.zw;\n}";
 
@@ -12961,8 +13051,10 @@ const ShaderChunk = {
 	uv2_vertex: uv2_vertex,
 	worldpos_vertex: worldpos_vertex,
 
-	background_vert: vertex$g,
-	background_frag: fragment$g,
+	background_vert: vertex$h,
+	background_frag: fragment$h,
+	backgroundCube_vert: vertex$g,
+	backgroundCube_frag: fragment$g,
 	cube_vert: vertex$f,
 	cube_frag: fragment$f,
 	depth_vert: vertex$e,
@@ -13027,7 +13119,7 @@ const UniformsLib = {
 		flipEnvMap: { value: - 1 },
 		reflectivity: { value: 1.0 }, // basic, lambert, phong
 		ior: { value: 1.5 }, // physical
-		refractionRatio: { value: 0.98 } // basic, lambert, phong
+		refractionRatio: { value: 0.98 }, // basic, lambert, phong
 
 	},
 
@@ -13420,6 +13512,7 @@ const ShaderLib = {
 		uniforms: {
 			uvTransform: { value: /*@__PURE__*/ new Matrix3() },
 			t2D: { value: null },
+			backgroundIntensity: { value: 1 }
 		},
 
 		vertexShader: ShaderChunk.background_vert,
@@ -13427,14 +13520,27 @@ const ShaderLib = {
 
 	},
 
+	backgroundCube: {
+
+		uniforms: {
+			envMap: { value: null },
+			flipEnvMap: { value: - 1 },
+			backgroundBlurriness: { value: 0 },
+			backgroundIntensity: { value: 1 }
+		},
+
+		vertexShader: ShaderChunk.backgroundCube_vert,
+		fragmentShader: ShaderChunk.backgroundCube_frag
+
+	},
+
 	cube: {
 
-		uniforms: /*@__PURE__*/ mergeUniforms( [
-			UniformsLib.envmap,
-			{
-				opacity: { value: 1.0 }
-			}
-		] ),
+		uniforms: {
+			tCube: { value: null },
+			tFlip: { value: - 1 },
+			opacity: { value: 1.0 }
+		},
 
 		vertexShader: ShaderChunk.cube_vert,
 		fragmentShader: ShaderChunk.cube_frag
@@ -13529,7 +13635,9 @@ ShaderLib.physical = {
 
 };
 
-function WebGLBackground( renderer, cubemaps, state, objects, alpha, premultipliedAlpha ) {
+const _rgb = { r: 0, b: 0, g: 0 };
+
+function WebGLBackground( renderer, cubemaps, cubeuvmaps, state, objects, alpha, premultipliedAlpha ) {
 
 	const clearColor = new Color( 0x000000 );
 	let clearAlpha = alpha === true ? 0 : 1;
@@ -13548,7 +13656,8 @@ function WebGLBackground( renderer, cubemaps, state, objects, alpha, premultipli
 
 		if ( background && background.isTexture ) {
 
-			background = cubemaps.get( background );
+			const usePMREM = scene.backgroundBlurriness > 0; // use PMREM if the user wants to blur the background
+			background = ( usePMREM ? cubeuvmaps : cubemaps ).get( background );
 
 		}
 
@@ -13589,9 +13698,9 @@ function WebGLBackground( renderer, cubemaps, state, objects, alpha, premultipli
 					new BoxGeometry( 1, 1, 1 ),
 					new ShaderMaterial( {
 						name: 'BackgroundCubeMaterial',
-						uniforms: cloneUniforms( ShaderLib.cube.uniforms ),
-						vertexShader: ShaderLib.cube.vertexShader,
-						fragmentShader: ShaderLib.cube.fragmentShader,
+						uniforms: cloneUniforms( ShaderLib.backgroundCube.uniforms ),
+						vertexShader: ShaderLib.backgroundCube.vertexShader,
+						fragmentShader: ShaderLib.backgroundCube.fragmentShader,
 						side: BackSide,
 						depthTest: false,
 						depthWrite: false,
@@ -13625,6 +13734,9 @@ function WebGLBackground( renderer, cubemaps, state, objects, alpha, premultipli
 
 			boxMesh.material.uniforms.envMap.value = background;
 			boxMesh.material.uniforms.flipEnvMap.value = ( background.isCubeTexture && background.isRenderTargetTexture === false ) ? - 1 : 1;
+			boxMesh.material.uniforms.backgroundBlurriness.value = scene.backgroundBlurriness;
+			boxMesh.material.uniforms.backgroundIntensity.value = scene.backgroundIntensity;
+			boxMesh.material.toneMapped = ( background.encoding === sRGBEncoding ) ? false : true;
 
 			if ( currentBackground !== background ||
 				currentBackgroundVersion !== background.version ||
@@ -13679,6 +13791,8 @@ function WebGLBackground( renderer, cubemaps, state, objects, alpha, premultipli
 			}
 
 			planeMesh.material.uniforms.t2D.value = background;
+			planeMesh.material.uniforms.backgroundIntensity.value = scene.backgroundIntensity;
+			planeMesh.material.toneMapped = ( background.encoding === sRGBEncoding ) ? false : true;
 
 			if ( background.matrixAutoUpdate === true ) {
 
@@ -13711,7 +13825,9 @@ function WebGLBackground( renderer, cubemaps, state, objects, alpha, premultipli
 
 	function setClear( color, alpha ) {
 
-		state.buffers.color.setClear( color.r, color.g, color.b, alpha, premultipliedAlpha );
+		color.getRGB( _rgb, getUnlitUniformColorSpace( renderer ) );
+
+		state.buffers.color.setClear( _rgb.r, _rgb.g, _rgb.b, alpha, premultipliedAlpha );
 
 	}
 
@@ -17080,17 +17196,32 @@ function setValueV1i( gl, v ) {
 
 }
 
-// Single integer / boolean vector (from flat array)
+// Single integer / boolean vector (from flat array or THREE.VectorN)
 
 function setValueV2i( gl, v ) {
 
 	const cache = this.cache;
 
-	if ( arraysEqual( cache, v ) ) return;
+	if ( v.x !== undefined ) {
 
-	gl.uniform2iv( this.addr, v );
+		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y ) {
 
-	copyArray( cache, v );
+			gl.uniform2i( this.addr, v.x, v.y );
+
+			cache[ 0 ] = v.x;
+			cache[ 1 ] = v.y;
+
+		}
+
+	} else {
+
+		if ( arraysEqual( cache, v ) ) return;
+
+		gl.uniform2iv( this.addr, v );
+
+		copyArray( cache, v );
+
+	}
 
 }
 
@@ -17098,11 +17229,27 @@ function setValueV3i( gl, v ) {
 
 	const cache = this.cache;
 
-	if ( arraysEqual( cache, v ) ) return;
+	if ( v.x !== undefined ) {
 
-	gl.uniform3iv( this.addr, v );
+		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y || cache[ 2 ] !== v.z ) {
 
-	copyArray( cache, v );
+			gl.uniform3i( this.addr, v.x, v.y, v.z );
+
+			cache[ 0 ] = v.x;
+			cache[ 1 ] = v.y;
+			cache[ 2 ] = v.z;
+
+		}
+
+	} else {
+
+		if ( arraysEqual( cache, v ) ) return;
+
+		gl.uniform3iv( this.addr, v );
+
+		copyArray( cache, v );
+
+	}
 
 }
 
@@ -17110,11 +17257,28 @@ function setValueV4i( gl, v ) {
 
 	const cache = this.cache;
 
-	if ( arraysEqual( cache, v ) ) return;
+	if ( v.x !== undefined ) {
 
-	gl.uniform4iv( this.addr, v );
+		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y || cache[ 2 ] !== v.z || cache[ 3 ] !== v.w ) {
 
-	copyArray( cache, v );
+			gl.uniform4i( this.addr, v.x, v.y, v.z, v.w );
+
+			cache[ 0 ] = v.x;
+			cache[ 1 ] = v.y;
+			cache[ 2 ] = v.z;
+			cache[ 3 ] = v.w;
+
+		}
+
+	} else {
+
+		if ( arraysEqual( cache, v ) ) return;
+
+		gl.uniform4iv( this.addr, v );
+
+		copyArray( cache, v );
+
+	}
 
 }
 
@@ -17132,17 +17296,32 @@ function setValueV1ui( gl, v ) {
 
 }
 
-// Single unsigned integer vector (from flat array)
+// Single unsigned integer vector (from flat array or THREE.VectorN)
 
 function setValueV2ui( gl, v ) {
 
 	const cache = this.cache;
 
-	if ( arraysEqual( cache, v ) ) return;
+	if ( v.x !== undefined ) {
 
-	gl.uniform2uiv( this.addr, v );
+		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y ) {
 
-	copyArray( cache, v );
+			gl.uniform2ui( this.addr, v.x, v.y );
+
+			cache[ 0 ] = v.x;
+			cache[ 1 ] = v.y;
+
+		}
+
+	} else {
+
+		if ( arraysEqual( cache, v ) ) return;
+
+		gl.uniform2uiv( this.addr, v );
+
+		copyArray( cache, v );
+
+	}
 
 }
 
@@ -17150,11 +17329,27 @@ function setValueV3ui( gl, v ) {
 
 	const cache = this.cache;
 
-	if ( arraysEqual( cache, v ) ) return;
+	if ( v.x !== undefined ) {
 
-	gl.uniform3uiv( this.addr, v );
+		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y || cache[ 2 ] !== v.z ) {
 
-	copyArray( cache, v );
+			gl.uniform3ui( this.addr, v.x, v.y, v.z );
+
+			cache[ 0 ] = v.x;
+			cache[ 1 ] = v.y;
+			cache[ 2 ] = v.z;
+
+		}
+
+	} else {
+
+		if ( arraysEqual( cache, v ) ) return;
+
+		gl.uniform3uiv( this.addr, v );
+
+		copyArray( cache, v );
+
+	}
 
 }
 
@@ -17162,11 +17357,28 @@ function setValueV4ui( gl, v ) {
 
 	const cache = this.cache;
 
-	if ( arraysEqual( cache, v ) ) return;
+	if ( v.x !== undefined ) {
 
-	gl.uniform4uiv( this.addr, v );
+		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y || cache[ 2 ] !== v.z || cache[ 3 ] !== v.w ) {
 
-	copyArray( cache, v );
+			gl.uniform4ui( this.addr, v.x, v.y, v.z, v.w );
+
+			cache[ 0 ] = v.x;
+			cache[ 1 ] = v.y;
+			cache[ 2 ] = v.z;
+			cache[ 3 ] = v.w;
+
+		}
+
+	} else {
+
+		if ( arraysEqual( cache, v ) ) return;
+
+		gl.uniform4uiv( this.addr, v );
+
+		copyArray( cache, v );
+
+	}
 
 }
 
@@ -17412,11 +17624,19 @@ function setValueV4uiArray( gl, v ) {
 
 function setValueT1Array( gl, v, textures ) {
 
+	const cache = this.cache;
+
 	const n = v.length;
 
 	const units = allocTexUnits( textures, n );
 
-	gl.uniform1iv( this.addr, units );
+	if ( ! arraysEqual( cache, units ) ) {
+
+		gl.uniform1iv( this.addr, units );
+
+		copyArray( cache, units );
+
+	}
 
 	for ( let i = 0; i !== n; ++ i ) {
 
@@ -17428,11 +17648,19 @@ function setValueT1Array( gl, v, textures ) {
 
 function setValueT3DArray( gl, v, textures ) {
 
+	const cache = this.cache;
+
 	const n = v.length;
 
 	const units = allocTexUnits( textures, n );
 
-	gl.uniform1iv( this.addr, units );
+	if ( ! arraysEqual( cache, units ) ) {
+
+		gl.uniform1iv( this.addr, units );
+
+		copyArray( cache, units );
+
+	}
 
 	for ( let i = 0; i !== n; ++ i ) {
 
@@ -17444,11 +17672,19 @@ function setValueT3DArray( gl, v, textures ) {
 
 function setValueT6Array( gl, v, textures ) {
 
+	const cache = this.cache;
+
 	const n = v.length;
 
 	const units = allocTexUnits( textures, n );
 
-	gl.uniform1iv( this.addr, units );
+	if ( ! arraysEqual( cache, units ) ) {
+
+		gl.uniform1iv( this.addr, units );
+
+		copyArray( cache, units );
+
+	}
 
 	for ( let i = 0; i !== n; ++ i ) {
 
@@ -17460,11 +17696,19 @@ function setValueT6Array( gl, v, textures ) {
 
 function setValueT2DArrayArray( gl, v, textures ) {
 
+	const cache = this.cache;
+
 	const n = v.length;
 
 	const units = allocTexUnits( textures, n );
 
-	gl.uniform1iv( this.addr, units );
+	if ( ! arraysEqual( cache, units ) ) {
+
+		gl.uniform1iv( this.addr, units );
+
+		copyArray( cache, units );
+
+	}
 
 	for ( let i = 0; i !== n; ++ i ) {
 
@@ -19906,10 +20150,6 @@ function WebGLLights( extensions, capabilities ) {
 
 				const uniforms = cache.get( light );
 
-				// (a) intensity is the total visible light emitted
-				//uniforms.color.copy( color ).multiplyScalar( intensity / ( light.width * light.height * Math.PI ) );
-
-				// (b) intensity is the brightness of the light
 				uniforms.color.copy( color ).multiplyScalar( intensity );
 
 				uniforms.halfWidth.set( light.width * 0.5, 0.0, 0.0 );
@@ -20576,36 +20816,37 @@ function WebGLShadowMap( _renderer, _objects, _capabilities ) {
 
 			result = ( light.isPointLight === true ) ? _distanceMaterial : _depthMaterial;
 
-		}
+			if ( ( _renderer.localClippingEnabled && material.clipShadows === true && Array.isArray( material.clippingPlanes ) && material.clippingPlanes.length !== 0 ) ||
+				( material.displacementMap && material.displacementScale !== 0 ) ||
+				( material.alphaMap && material.alphaTest > 0 ) ||
+				( material.map && material.alphaTest > 0 ) ) {
 
-		if ( ( _renderer.localClippingEnabled && material.clipShadows === true && Array.isArray( material.clippingPlanes ) && material.clippingPlanes.length !== 0 ) ||
-			( material.displacementMap && material.displacementScale !== 0 ) ||
-			( material.alphaMap && material.alphaTest > 0 ) ) {
+				// in this case we need a unique material instance reflecting the
+				// appropriate state
 
-			// in this case we need a unique material instance reflecting the
-			// appropriate state
+				const keyA = result.uuid, keyB = material.uuid;
 
-			const keyA = result.uuid, keyB = material.uuid;
+				let materialsForVariant = _materialCache[ keyA ];
 
-			let materialsForVariant = _materialCache[ keyA ];
+				if ( materialsForVariant === undefined ) {
 
-			if ( materialsForVariant === undefined ) {
+					materialsForVariant = {};
+					_materialCache[ keyA ] = materialsForVariant;
 
-				materialsForVariant = {};
-				_materialCache[ keyA ] = materialsForVariant;
+				}
+
+				let cachedMaterial = materialsForVariant[ keyB ];
+
+				if ( cachedMaterial === undefined ) {
+
+					cachedMaterial = result.clone();
+					materialsForVariant[ keyB ] = cachedMaterial;
+
+				}
+
+				result = cachedMaterial;
 
 			}
-
-			let cachedMaterial = materialsForVariant[ keyB ];
-
-			if ( cachedMaterial === undefined ) {
-
-				cachedMaterial = result.clone();
-				materialsForVariant[ keyB ] = cachedMaterial;
-
-			}
-
-			result = cachedMaterial;
 
 		}
 
@@ -20624,6 +20865,7 @@ function WebGLShadowMap( _renderer, _objects, _capabilities ) {
 
 		result.alphaMap = material.alphaMap;
 		result.alphaTest = material.alphaTest;
+		result.map = material.map;
 
 		result.clipShadows = material.clipShadows;
 		result.clippingPlanes = material.clippingPlanes;
@@ -20808,59 +21050,51 @@ function WebGLState( gl, extensions, capabilities ) {
 
 				if ( currentDepthFunc !== depthFunc ) {
 
-					if ( depthFunc ) {
+					switch ( depthFunc ) {
 
-						switch ( depthFunc ) {
+						case NeverDepth:
 
-							case NeverDepth:
+							gl.depthFunc( 512 );
+							break;
 
-								gl.depthFunc( 512 );
-								break;
+						case AlwaysDepth:
 
-							case AlwaysDepth:
+							gl.depthFunc( 519 );
+							break;
 
-								gl.depthFunc( 519 );
-								break;
+						case LessDepth:
 
-							case LessDepth:
+							gl.depthFunc( 513 );
+							break;
 
-								gl.depthFunc( 513 );
-								break;
+						case LessEqualDepth:
 
-							case LessEqualDepth:
+							gl.depthFunc( 515 );
+							break;
 
-								gl.depthFunc( 515 );
-								break;
+						case EqualDepth:
 
-							case EqualDepth:
+							gl.depthFunc( 514 );
+							break;
 
-								gl.depthFunc( 514 );
-								break;
+						case GreaterEqualDepth:
 
-							case GreaterEqualDepth:
+							gl.depthFunc( 518 );
+							break;
 
-								gl.depthFunc( 518 );
-								break;
+						case GreaterDepth:
 
-							case GreaterDepth:
+							gl.depthFunc( 516 );
+							break;
 
-								gl.depthFunc( 516 );
-								break;
+						case NotEqualDepth:
 
-							case NotEqualDepth:
+							gl.depthFunc( 517 );
+							break;
 
-								gl.depthFunc( 517 );
-								break;
+						default:
 
-							default:
-
-								gl.depthFunc( 515 );
-
-						}
-
-					} else {
-
-						gl.depthFunc( 515 );
+							gl.depthFunc( 515 );
 
 					}
 
@@ -21020,7 +21254,7 @@ function WebGLState( gl, extensions, capabilities ) {
 	const stencilBuffer = new StencilBuffer();
 
 	const uboBindings = new WeakMap();
-	const uboProgamMap = new WeakMap();
+	const uboProgramMap = new WeakMap();
 
 	let enabledCapabilities = {};
 
@@ -21431,7 +21665,7 @@ function WebGLState( gl, extensions, capabilities ) {
 		}
 
 		currentBlending = blending;
-		currentPremultipledAlpha = null;
+		currentPremultipledAlpha = false;
 
 	}
 
@@ -21593,24 +21827,39 @@ function WebGLState( gl, extensions, capabilities ) {
 
 	}
 
-	function bindTexture( webglType, webglTexture ) {
+	function bindTexture( webglType, webglTexture, webglSlot ) {
 
-		if ( currentTextureSlot === null ) {
+		if ( webglSlot === undefined ) {
 
-			activeTexture();
+			if ( currentTextureSlot === null ) {
+
+				webglSlot = 33984 + maxTextures - 1;
+
+			} else {
+
+				webglSlot = currentTextureSlot;
+
+			}
 
 		}
 
-		let boundTexture = currentBoundTextures[ currentTextureSlot ];
+		let boundTexture = currentBoundTextures[ webglSlot ];
 
 		if ( boundTexture === undefined ) {
 
 			boundTexture = { type: undefined, texture: undefined };
-			currentBoundTextures[ currentTextureSlot ] = boundTexture;
+			currentBoundTextures[ webglSlot ] = boundTexture;
 
 		}
 
 		if ( boundTexture.type !== webglType || boundTexture.texture !== webglTexture ) {
+
+			if ( currentTextureSlot !== webglSlot ) {
+
+				gl.activeTexture( webglSlot );
+				currentTextureSlot = webglSlot;
+
+			}
 
 			gl.bindTexture( webglType, webglTexture || emptyTextures[ webglType ] );
 
@@ -21641,6 +21890,20 @@ function WebGLState( gl, extensions, capabilities ) {
 		try {
 
 			gl.compressedTexImage2D.apply( gl, arguments );
+
+		} catch ( error ) {
+
+			console.error( 'THREE.WebGLState:', error );
+
+		}
+
+	}
+
+	function compressedTexImage3D() {
+
+		try {
+
+			gl.compressedTexImage3D.apply( gl, arguments );
 
 		} catch ( error ) {
 
@@ -21683,6 +21946,20 @@ function WebGLState( gl, extensions, capabilities ) {
 		try {
 
 			gl.compressedTexSubImage2D.apply( gl, arguments );
+
+		} catch ( error ) {
+
+			console.error( 'THREE.WebGLState:', error );
+
+		}
+
+	}
+
+	function compressedTexSubImage3D() {
+
+		try {
+
+			gl.compressedTexSubImage3D.apply( gl, arguments );
 
 		} catch ( error ) {
 
@@ -21774,13 +22051,13 @@ function WebGLState( gl, extensions, capabilities ) {
 
 	function updateUBOMapping( uniformsGroup, program ) {
 
-		let mapping = uboProgamMap.get( program );
+		let mapping = uboProgramMap.get( program );
 
 		if ( mapping === undefined ) {
 
 			mapping = new WeakMap();
 
-			uboProgamMap.set( program, mapping );
+			uboProgramMap.set( program, mapping );
 
 		}
 
@@ -21798,16 +22075,15 @@ function WebGLState( gl, extensions, capabilities ) {
 
 	function uniformBlockBinding( uniformsGroup, program ) {
 
-		const mapping = uboProgamMap.get( program );
+		const mapping = uboProgramMap.get( program );
 		const blockIndex = mapping.get( uniformsGroup );
 
-		if ( uboBindings.get( uniformsGroup ) !== blockIndex ) {
+		if ( uboBindings.get( program ) !== blockIndex ) {
 
 			// bind shader specific block index to global block point
-
 			gl.uniformBlockBinding( program, blockIndex, uniformsGroup.__bindingPointIndex );
 
-			uboBindings.set( uniformsGroup, blockIndex );
+			uboBindings.set( program, blockIndex );
 
 		}
 
@@ -21937,6 +22213,7 @@ function WebGLState( gl, extensions, capabilities ) {
 		bindTexture: bindTexture,
 		unbindTexture: unbindTexture,
 		compressedTexImage2D: compressedTexImage2D,
+		compressedTexImage3D: compressedTexImage3D,
 		texImage2D: texImage2D,
 		texImage3D: texImage3D,
 
@@ -21948,6 +22225,7 @@ function WebGLState( gl, extensions, capabilities ) {
 		texSubImage2D: texSubImage2D,
 		texSubImage3D: texSubImage3D,
 		compressedTexSubImage2D: compressedTexSubImage2D,
+		compressedTexSubImage3D: compressedTexSubImage3D,
 
 		scissor: scissor,
 		viewport: viewport,
@@ -21966,7 +22244,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 	const maxTextureSize = capabilities.maxTextureSize;
 	const maxSamples = capabilities.maxSamples;
 	const multisampledRTTExt = extensions.has( 'WEBGL_multisampled_render_to_texture' ) ? extensions.get( 'WEBGL_multisampled_render_to_texture' ) : null;
-	const supportsInvalidateFramebuffer = /OculusBrowser/g.test( navigator.userAgent );
+	const supportsInvalidateFramebuffer = typeof navigator === 'undefined' ? false : /OculusBrowser/g.test( navigator.userAgent );
 
 	const _videoTextures = new WeakMap();
 	let _canvas;
@@ -22090,7 +22368,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
-	function getInternalFormat( internalFormatName, glFormat, glType, encoding, isVideoTexture = false ) {
+	function getInternalFormat( internalFormatName, glFormat, glType, encoding, forceLinearEncoding = false ) {
 
 		if ( isWebGL2 === false ) return glFormat;
 
@@ -22124,7 +22402,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 			if ( glType === 5126 ) internalFormat = 34836;
 			if ( glType === 5131 ) internalFormat = 34842;
-			if ( glType === 5121 ) internalFormat = ( encoding === sRGBEncoding && isVideoTexture === false ) ? 35907 : 32856;
+			if ( glType === 5121 ) internalFormat = ( encoding === sRGBEncoding && forceLinearEncoding === false ) ? 35907 : 32856;
 			if ( glType === 32819 ) internalFormat = 32854;
 			if ( glType === 32820 ) internalFormat = 32855;
 
@@ -22370,6 +22648,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 		array.push( texture.wrapS );
 		array.push( texture.wrapT );
+		array.push( texture.wrapR || 0 );
 		array.push( texture.magFilter );
 		array.push( texture.minFilter );
 		array.push( texture.anisotropy );
@@ -22415,8 +22694,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 		}
 
-		state.activeTexture( 33984 + slot );
-		state.bindTexture( 3553, textureProperties.__webglTexture );
+		state.bindTexture( 3553, textureProperties.__webglTexture, 33984 + slot );
 
 	}
 
@@ -22431,8 +22709,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 		}
 
-		state.activeTexture( 33984 + slot );
-		state.bindTexture( 35866, textureProperties.__webglTexture );
+		state.bindTexture( 35866, textureProperties.__webglTexture, 33984 + slot );
 
 	}
 
@@ -22447,8 +22724,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 		}
 
-		state.activeTexture( 33984 + slot );
-		state.bindTexture( 32879, textureProperties.__webglTexture );
+		state.bindTexture( 32879, textureProperties.__webglTexture, 33984 + slot );
 
 	}
 
@@ -22463,8 +22739,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 		}
 
-		state.activeTexture( 33984 + slot );
-		state.bindTexture( 34067, textureProperties.__webglTexture );
+		state.bindTexture( 34067, textureProperties.__webglTexture, 33984 + slot );
 
 	}
 
@@ -22532,6 +22807,8 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 			const extension = extensions.get( 'EXT_texture_filter_anisotropic' );
 
+			if ( texture.magFilter === NearestFilter ) return;
+			if ( texture.minFilter !== NearestMipmapLinearFilter && texture.minFilter !== LinearMipmapLinearFilter ) return;
 			if ( texture.type === FloatType && extensions.has( 'OES_texture_float_linear' ) === false ) return; // verify extension for WebGL 1 and WebGL 2
 			if ( isWebGL2 === false && ( texture.type === HalfFloatType && extensions.has( 'OES_texture_half_float_linear' ) === false ) ) return; // verify extension for WebGL 1 only
 
@@ -22630,16 +22907,19 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 		let textureType = 3553;
 
-		if ( texture.isDataArrayTexture ) textureType = 35866;
+		if ( texture.isDataArrayTexture || texture.isCompressedArrayTexture ) textureType = 35866;
 		if ( texture.isData3DTexture ) textureType = 32879;
 
 		const forceUpload = initTexture( textureProperties, texture );
 		const source = texture.source;
 
-		state.activeTexture( 33984 + slot );
-		state.bindTexture( textureType, textureProperties.__webglTexture );
+		state.bindTexture( textureType, textureProperties.__webglTexture, 33984 + slot );
 
-		if ( source.version !== source.__currentVersion || forceUpload === true ) {
+		const sourceProperties = properties.get( source );
+
+		if ( source.version !== sourceProperties.__version || forceUpload === true ) {
+
+			state.activeTexture( 33984 + slot );
 
 			_gl.pixelStorei( 37440, texture.flipY );
 			_gl.pixelStorei( 37441, texture.premultiplyAlpha );
@@ -22662,7 +22942,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 			const mipmaps = texture.mipmaps;
 
 			const useTexStorage = ( isWebGL2 && texture.isVideoTexture !== true );
-			const allocateMemory = ( source.__currentVersion === undefined ) || ( forceUpload === true );
+			const allocateMemory = ( sourceProperties.__version === undefined ) || ( forceUpload === true );
 			const levels = getMipLevels( texture, image, supportsMips );
 
 			if ( texture.isDepthTexture ) {
@@ -22809,45 +23089,97 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 			} else if ( texture.isCompressedTexture ) {
 
-				if ( useTexStorage && allocateMemory ) {
+				if ( texture.isCompressedArrayTexture ) {
 
-					state.texStorage2D( 3553, levels, glInternalFormat, mipmaps[ 0 ].width, mipmaps[ 0 ].height );
+					if ( useTexStorage && allocateMemory ) {
 
-				}
+						state.texStorage3D( 35866, levels, glInternalFormat, mipmaps[ 0 ].width, mipmaps[ 0 ].height, image.depth );
 
-				for ( let i = 0, il = mipmaps.length; i < il; i ++ ) {
+					}
 
-					mipmap = mipmaps[ i ];
+					for ( let i = 0, il = mipmaps.length; i < il; i ++ ) {
 
-					if ( texture.format !== RGBAFormat ) {
+						mipmap = mipmaps[ i ];
 
-						if ( glFormat !== null ) {
+						if ( texture.format !== RGBAFormat ) {
 
-							if ( useTexStorage ) {
+							if ( glFormat !== null ) {
 
-								state.compressedTexSubImage2D( 3553, i, 0, 0, mipmap.width, mipmap.height, glFormat, mipmap.data );
+								if ( useTexStorage ) {
+
+									state.compressedTexSubImage3D( 35866, i, 0, 0, 0, mipmap.width, mipmap.height, image.depth, glFormat, mipmap.data, 0, 0 );
+
+								} else {
+
+									state.compressedTexImage3D( 35866, i, glInternalFormat, mipmap.width, mipmap.height, image.depth, 0, mipmap.data, 0, 0 );
+
+								}
 
 							} else {
 
-								state.compressedTexImage2D( 3553, i, glInternalFormat, mipmap.width, mipmap.height, 0, mipmap.data );
+								console.warn( 'THREE.WebGLRenderer: Attempt to load unsupported compressed texture format in .uploadTexture()' );
 
 							}
 
 						} else {
 
-							console.warn( 'THREE.WebGLRenderer: Attempt to load unsupported compressed texture format in .uploadTexture()' );
+							if ( useTexStorage ) {
+
+								state.texSubImage3D( 35866, i, 0, 0, 0, mipmap.width, mipmap.height, image.depth, glFormat, glType, mipmap.data );
+
+							} else {
+
+								state.texImage3D( 35866, i, glInternalFormat, mipmap.width, mipmap.height, image.depth, 0, glFormat, glType, mipmap.data );
+
+							}
 
 						}
 
-					} else {
+					}
 
-						if ( useTexStorage ) {
+				} else {
 
-							state.texSubImage2D( 3553, i, 0, 0, mipmap.width, mipmap.height, glFormat, glType, mipmap.data );
+					if ( useTexStorage && allocateMemory ) {
+
+						state.texStorage2D( 3553, levels, glInternalFormat, mipmaps[ 0 ].width, mipmaps[ 0 ].height );
+
+					}
+
+					for ( let i = 0, il = mipmaps.length; i < il; i ++ ) {
+
+						mipmap = mipmaps[ i ];
+
+						if ( texture.format !== RGBAFormat ) {
+
+							if ( glFormat !== null ) {
+
+								if ( useTexStorage ) {
+
+									state.compressedTexSubImage2D( 3553, i, 0, 0, mipmap.width, mipmap.height, glFormat, mipmap.data );
+
+								} else {
+
+									state.compressedTexImage2D( 3553, i, glInternalFormat, mipmap.width, mipmap.height, 0, mipmap.data );
+
+								}
+
+							} else {
+
+								console.warn( 'THREE.WebGLRenderer: Attempt to load unsupported compressed texture format in .uploadTexture()' );
+
+							}
 
 						} else {
 
-							state.texImage2D( 3553, i, glInternalFormat, mipmap.width, mipmap.height, 0, glFormat, glType, mipmap.data );
+							if ( useTexStorage ) {
+
+								state.texSubImage2D( 3553, i, 0, 0, mipmap.width, mipmap.height, glFormat, glType, mipmap.data );
+
+							} else {
+
+								state.texImage2D( 3553, i, glInternalFormat, mipmap.width, mipmap.height, 0, glFormat, glType, mipmap.data );
+
+							}
 
 						}
 
@@ -22978,7 +23310,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 			}
 
-			source.__currentVersion = source.version;
+			sourceProperties.__version = source.version;
 
 			if ( texture.onUpdate ) texture.onUpdate( texture );
 
@@ -22995,10 +23327,13 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 		const forceUpload = initTexture( textureProperties, texture );
 		const source = texture.source;
 
-		state.activeTexture( 33984 + slot );
-		state.bindTexture( 34067, textureProperties.__webglTexture );
+		state.bindTexture( 34067, textureProperties.__webglTexture, 33984 + slot );
 
-		if ( source.version !== source.__currentVersion || forceUpload === true ) {
+		const sourceProperties = properties.get( source );
+
+		if ( source.version !== sourceProperties.__version || forceUpload === true ) {
+
+			state.activeTexture( 33984 + slot );
 
 			_gl.pixelStorei( 37440, texture.flipY );
 			_gl.pixelStorei( 37441, texture.premultiplyAlpha );
@@ -23033,7 +23368,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 				glInternalFormat = getInternalFormat( texture.internalFormat, glFormat, glType, texture.encoding );
 
 			const useTexStorage = ( isWebGL2 && texture.isVideoTexture !== true );
-			const allocateMemory = ( source.__currentVersion === undefined ) || ( forceUpload === true );
+			const allocateMemory = ( sourceProperties.__version === undefined ) || ( forceUpload === true );
 			let levels = getMipLevels( texture, image, supportsMips );
 
 			setTextureParameters( 34067, texture, supportsMips );
@@ -23182,7 +23517,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 			}
 
-			source.__currentVersion = source.version;
+			sourceProperties.__version = source.version;
 
 			if ( texture.onUpdate ) texture.onUpdate( texture );
 
@@ -23222,7 +23557,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 			multisampledRTTExt.framebufferTexture2DMultisampleEXT( 36160, attachment, textureTarget, properties.get( texture ).__webglTexture, 0, getRenderTargetSamples( renderTarget ) );
 
-		} else {
+		} else if ( textureTarget === 3553 || ( textureTarget >= 34069 && textureTarget <= 34074 ) ) { // see #24753
 
 			_gl.framebufferTexture2D( 36160, attachment, textureTarget, properties.get( texture ).__webglTexture, 0 );
 
@@ -23546,7 +23881,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 					const glFormat = utils.convert( texture.format, texture.encoding );
 					const glType = utils.convert( texture.type );
-					const glInternalFormat = getInternalFormat( texture.internalFormat, glFormat, glType, texture.encoding );
+					const glInternalFormat = getInternalFormat( texture.internalFormat, glFormat, glType, texture.encoding, renderTarget.isXRRenderTarget === true );
 					const samples = getRenderTargetSamples( renderTarget );
 					_gl.renderbufferStorageMultisample( 36161, samples, glInternalFormat, renderTarget.width, renderTarget.height );
 
@@ -23937,7 +24272,6 @@ function WebGLUtils( gl, extensions, capabilities ) {
 		if ( p === LuminanceAlphaFormat ) return 6410;
 		if ( p === DepthFormat ) return 6402;
 		if ( p === DepthStencilFormat ) return 34041;
-		if ( p === RedFormat ) return 6403;
 
 		// @deprecated since r137
 
@@ -23968,6 +24302,7 @@ function WebGLUtils( gl, extensions, capabilities ) {
 
 		// WebGL2 formats.
 
+		if ( p === RedFormat ) return 6403;
 		if ( p === RedIntegerFormat ) return 36244;
 		if ( p === RGFormat ) return 33319;
 		if ( p === RGIntegerFormat ) return 33320;
@@ -24273,6 +24608,31 @@ class WebXRController {
 
 	}
 
+	connect( inputSource ) {
+
+		if ( inputSource && inputSource.hand ) {
+
+			const hand = this._hand;
+
+			if ( hand ) {
+
+				for ( const inputjoint of inputSource.hand.values() ) {
+
+					// Initialize hand with joints when connected
+					this._getHandJoint( hand, inputjoint );
+
+				}
+
+			}
+
+		}
+
+		this.dispatchEvent( { type: 'connected', data: inputSource } );
+
+		return this;
+
+	}
+
 	disconnect( inputSource ) {
 
 		this.dispatchEvent( { type: 'disconnected', data: inputSource } );
@@ -24320,19 +24680,8 @@ class WebXRController {
 					// Update the joints groups with the XRJoint poses
 					const jointPose = frame.getJointPose( inputjoint, referenceSpace );
 
-					if ( hand.joints[ inputjoint.jointName ] === undefined ) {
-
-						// The transform of this joint will be updated with the joint pose on each frame
-						const joint = new Group();
-						joint.matrixAutoUpdate = false;
-						joint.visible = false;
-						hand.joints[ inputjoint.jointName ] = joint;
-						// ??
-						hand.add( joint );
-
-					}
-
-					const joint = hand.joints[ inputjoint.jointName ];
+					// The transform of this joint will be updated with the joint pose on each frame
+					const joint = this._getHandJoint( hand, inputjoint );
 
 					if ( jointPose !== null ) {
 
@@ -24484,6 +24833,25 @@ class WebXRController {
 
 	}
 
+	// private method
+
+	_getHandJoint( hand, inputjoint ) {
+
+		if ( hand.joints[ inputjoint.jointName ] === undefined ) {
+
+			const joint = new Group();
+			joint.matrixAutoUpdate = false;
+			joint.visible = false;
+			hand.joints[ inputjoint.jointName ] = joint;
+
+			hand.add( joint );
+
+		}
+
+		return hand.joints[ inputjoint.jointName ];
+
+	}
+
 }
 
 class DepthTexture extends Texture$1 {
@@ -24544,6 +24912,9 @@ class WebXRManager extends EventDispatcher {
 
 		const controllers = [];
 		const controllerInputSources = [];
+
+		const planes = new Set();
+		const planesLastChangedTimes = new Map();
 
 		//
 
@@ -24866,7 +25237,7 @@ class WebXRManager extends EventDispatcher {
 				if ( index >= 0 ) {
 
 					controllerInputSources[ index ] = null;
-					controllers[ index ].dispatchEvent( { type: 'disconnected', data: inputSource } );
+					controllers[ index ].disconnect( inputSource );
 
 				}
 
@@ -24912,7 +25283,7 @@ class WebXRManager extends EventDispatcher {
 
 				if ( controller ) {
 
-					controller.dispatchEvent( { type: 'connected', data: inputSource } );
+					controller.connect( inputSource );
 
 				}
 
@@ -25102,6 +25473,12 @@ class WebXRManager extends EventDispatcher {
 
 		};
 
+		this.getPlanes = function () {
+
+			return planes;
+
+		};
+
 		// Animation Loop
 
 		let onAnimationFrameCallback = null;
@@ -25210,6 +25587,65 @@ class WebXRManager extends EventDispatcher {
 
 			if ( onAnimationFrameCallback ) onAnimationFrameCallback( time, frame );
 
+			if ( frame.detectedPlanes ) {
+
+				scope.dispatchEvent( { type: 'planesdetected', data: frame.detectedPlanes } );
+
+				let planesToRemove = null;
+
+				for ( const plane of planes ) {
+
+					if ( ! frame.detectedPlanes.has( plane ) ) {
+
+						if ( planesToRemove === null ) {
+
+							planesToRemove = [];
+
+						}
+
+						planesToRemove.push( plane );
+
+					}
+
+				}
+
+				if ( planesToRemove !== null ) {
+
+					for ( const plane of planesToRemove ) {
+
+						planes.delete( plane );
+						planesLastChangedTimes.delete( plane );
+						scope.dispatchEvent( { type: 'planeremoved', data: plane } );
+
+					}
+
+				}
+
+				for ( const plane of frame.detectedPlanes ) {
+
+					if ( ! planes.has( plane ) ) {
+
+						planes.add( plane );
+						planesLastChangedTimes.set( plane, frame.lastChangedTime );
+						scope.dispatchEvent( { type: 'planeadded', data: plane } );
+
+					} else {
+
+						const lastKnownTime = planesLastChangedTimes.get( plane );
+
+						if ( plane.lastChangedTime > lastKnownTime ) {
+
+							planesLastChangedTimes.set( plane, plane.lastChangedTime );
+							scope.dispatchEvent( { type: 'planechanged', data: plane } );
+
+						}
+
+					}
+
+				}
+
+			}
+
 			xrFrame = null;
 
 		}
@@ -25234,7 +25670,7 @@ function WebGLMaterials( renderer, properties ) {
 
 	function refreshFogUniforms( uniforms, fog ) {
 
-		uniforms.fogColor.value.copy( fog.color );
+		fog.color.getRGB( uniforms.fogColor.value, getUnlitUniformColorSpace( renderer ) );
 
 		if ( fog.isFog ) {
 
@@ -26008,42 +26444,51 @@ function WebGLUniformsGroups( gl, info, capabilities, state ) {
 
 			if ( hasUniformChanged( uniform, i, cache ) === true ) {
 
-				const value = uniform.value;
 				const offset = uniform.__offset;
 
-				if ( typeof value === 'number' ) {
+				const values = Array.isArray( uniform.value ) ? uniform.value : [ uniform.value ];
 
-					uniform.__data[ 0 ] = value;
-					gl.bufferSubData( 35345, offset, uniform.__data );
+				let arrayOffset = 0;
 
-				} else {
+				for ( let i = 0; i < values.length; i ++ ) {
 
-					if ( uniform.value.isMatrix3 ) {
+					const value = values[ i ];
+
+					const info = getUniformSize( value );
+
+					if ( typeof value === 'number' ) {
+
+						uniform.__data[ 0 ] = value;
+						gl.bufferSubData( 35345, offset + arrayOffset, uniform.__data );
+
+					} else if ( value.isMatrix3 ) {
 
 						// manually converting 3x3 to 3x4
 
-						uniform.__data[ 0 ] = uniform.value.elements[ 0 ];
-						uniform.__data[ 1 ] = uniform.value.elements[ 1 ];
-						uniform.__data[ 2 ] = uniform.value.elements[ 2 ];
-						uniform.__data[ 3 ] = uniform.value.elements[ 0 ];
-						uniform.__data[ 4 ] = uniform.value.elements[ 3 ];
-						uniform.__data[ 5 ] = uniform.value.elements[ 4 ];
-						uniform.__data[ 6 ] = uniform.value.elements[ 5 ];
-						uniform.__data[ 7 ] = uniform.value.elements[ 0 ];
-						uniform.__data[ 8 ] = uniform.value.elements[ 6 ];
-						uniform.__data[ 9 ] = uniform.value.elements[ 7 ];
-						uniform.__data[ 10 ] = uniform.value.elements[ 8 ];
-						uniform.__data[ 11 ] = uniform.value.elements[ 0 ];
+						uniform.__data[ 0 ] = value.elements[ 0 ];
+						uniform.__data[ 1 ] = value.elements[ 1 ];
+						uniform.__data[ 2 ] = value.elements[ 2 ];
+						uniform.__data[ 3 ] = value.elements[ 0 ];
+						uniform.__data[ 4 ] = value.elements[ 3 ];
+						uniform.__data[ 5 ] = value.elements[ 4 ];
+						uniform.__data[ 6 ] = value.elements[ 5 ];
+						uniform.__data[ 7 ] = value.elements[ 0 ];
+						uniform.__data[ 8 ] = value.elements[ 6 ];
+						uniform.__data[ 9 ] = value.elements[ 7 ];
+						uniform.__data[ 10 ] = value.elements[ 8 ];
+						uniform.__data[ 11 ] = value.elements[ 0 ];
 
 					} else {
 
-						value.toArray( uniform.__data );
+						value.toArray( uniform.__data, arrayOffset );
+
+						arrayOffset += info.storage / Float32Array.BYTES_PER_ELEMENT;
 
 					}
 
-					gl.bufferSubData( 35345, offset, uniform.__data );
-
 				}
+
+				gl.bufferSubData( 35345, offset, uniform.__data );
 
 			}
 
@@ -26067,7 +26512,17 @@ function WebGLUniformsGroups( gl, info, capabilities, state ) {
 
 			} else {
 
-				cache[ index ] = value.clone();
+				const values = Array.isArray( value ) ? value : [ value ];
+
+				const tempValues = [];
+
+				for ( let i = 0; i < values.length; i ++ ) {
+
+					tempValues.push( values[ i ].clone() );
+
+				}
+
+				cache[ index ] = tempValues;
 
 			}
 
@@ -26088,12 +26543,19 @@ function WebGLUniformsGroups( gl, info, capabilities, state ) {
 
 			} else {
 
-				const cachedObject = cache[ index ];
+				const cachedObjects = Array.isArray( cache[ index ] ) ? cache[ index ] : [ cache[ index ] ];
+				const values = Array.isArray( value ) ? value : [ value ];
 
-				if ( cachedObject.equals( value ) === false ) {
+				for ( let i = 0; i < cachedObjects.length; i ++ ) {
 
-					cachedObject.copy( value );
-					return true;
+					const cachedObject = cachedObjects[ i ];
+
+					if ( cachedObject.equals( values[ i ] ) === false ) {
+
+						cachedObject.copy( values[ i ] );
+						return true;
+
+					}
 
 				}
 
@@ -26119,11 +26581,28 @@ function WebGLUniformsGroups( gl, info, capabilities, state ) {
 		for ( let i = 0, l = uniforms.length; i < l; i ++ ) {
 
 			const uniform = uniforms[ i ];
-			const info = getUniformSize( uniform );
+
+			const infos = {
+				boundary: 0, // bytes
+				storage: 0 // bytes
+			};
+
+			const values = Array.isArray( uniform.value ) ? uniform.value : [ uniform.value ];
+
+			for ( let j = 0, jl = values.length; j < jl; j ++ ) {
+
+				const value = values[ j ];
+
+				const info = getUniformSize( value );
+
+				infos.boundary += info.boundary;
+				infos.storage += info.storage;
+
+			}
 
 			// the following two properties will be used for partial buffer updates
 
-			uniform.__data = new Float32Array( info.storage / Float32Array.BYTES_PER_ELEMENT );
+			uniform.__data = new Float32Array( infos.storage / Float32Array.BYTES_PER_ELEMENT );
 			uniform.__offset = offset;
 
 			//
@@ -26136,7 +26615,7 @@ function WebGLUniformsGroups( gl, info, capabilities, state ) {
 
 				// check for chunk overflow
 
-				if ( chunkOffset !== 0 && ( remainingSizeInChunk - info.boundary ) < 0 ) {
+				if ( chunkOffset !== 0 && ( remainingSizeInChunk - infos.boundary ) < 0 ) {
 
 					// add padding and adjust offset
 
@@ -26147,7 +26626,7 @@ function WebGLUniformsGroups( gl, info, capabilities, state ) {
 
 			}
 
-			offset += info.storage;
+			offset += infos.storage;
 
 		}
 
@@ -26166,9 +26645,7 @@ function WebGLUniformsGroups( gl, info, capabilities, state ) {
 
 	}
 
-	function getUniformSize( uniform ) {
-
-		const value = uniform.value;
+	function getUniformSize( value ) {
 
 		const info = {
 			boundary: 0, // bytes
@@ -26361,28 +26838,6 @@ function WebGLRenderer( parameters = {} ) {
 	this.toneMapping = NoToneMapping;
 	this.toneMappingExposure = 1.0;
 
-	//
-
-	Object.defineProperties( this, {
-
-		// @deprecated since r136, 0e21088102b4de7e0a0a33140620b7a3424b9e6d
-
-		gammaFactor: {
-			get: function () {
-
-				console.warn( 'THREE.WebGLRenderer: .gammaFactor has been removed.' );
-				return 2;
-
-			},
-			set: function () {
-
-				console.warn( 'THREE.WebGLRenderer: .gammaFactor has been removed.' );
-
-			}
-		}
-
-	} );
-
 	// internal properties
 
 	const _this = this;
@@ -26564,7 +27019,7 @@ function WebGLRenderer( parameters = {} ) {
 		materials = new WebGLMaterials( _this, properties );
 		renderLists = new WebGLRenderLists();
 		renderStates = new WebGLRenderStates( extensions, capabilities );
-		background = new WebGLBackground( _this, cubemaps, state, objects, _alpha, _premultipliedAlpha );
+		background = new WebGLBackground( _this, cubemaps, cubeuvmaps, state, objects, _alpha, _premultipliedAlpha );
 		shadowMap = new WebGLShadowMap( _this, objects, capabilities );
 		uniformsGroups = new WebGLUniformsGroups( _gl, info, capabilities, state );
 
@@ -26949,22 +27404,6 @@ function WebGLRenderer( parameters = {} ) {
 		//
 
 		let index = geometry.index;
-		const position = geometry.attributes.position;
-
-		//
-
-		if ( index === null ) {
-
-			if ( position === undefined || position.count === 0 ) return;
-
-		} else if ( index.count === 0 ) {
-
-			return;
-
-		}
-
-		//
-
 		let rangeFactor = 1;
 
 		if ( material.wireframe === true ) {
@@ -26973,6 +27412,39 @@ function WebGLRenderer( parameters = {} ) {
 			rangeFactor = 2;
 
 		}
+
+		//
+
+		const drawRange = geometry.drawRange;
+		const position = geometry.attributes.position;
+
+		let drawStart = drawRange.start * rangeFactor;
+		let drawEnd = ( drawRange.start + drawRange.count ) * rangeFactor;
+
+		if ( group !== null ) {
+
+			drawStart = Math.max( drawStart, group.start * rangeFactor );
+			drawEnd = Math.min( drawEnd, ( group.start + group.count ) * rangeFactor );
+
+		}
+
+		if ( index !== null ) {
+
+			drawStart = Math.max( drawStart, 0 );
+			drawEnd = Math.min( drawEnd, index.count );
+
+		} else if ( position !== undefined && position !== null ) {
+
+			drawStart = Math.max( drawStart, 0 );
+			drawEnd = Math.min( drawEnd, position.count );
+
+		}
+
+		const drawCount = drawEnd - drawStart;
+
+		if ( drawCount < 0 || drawCount === Infinity ) return;
+
+		//
 
 		bindingStates.setup( object, material, program, geometry, index );
 
@@ -26987,23 +27459,6 @@ function WebGLRenderer( parameters = {} ) {
 			renderer.setIndex( attribute );
 
 		}
-
-		//
-
-		const dataCount = ( index !== null ) ? index.count : position.count;
-
-		const rangeStart = geometry.drawRange.start * rangeFactor;
-		const rangeCount = geometry.drawRange.count * rangeFactor;
-
-		const groupStart = group !== null ? group.start * rangeFactor : 0;
-		const groupCount = group !== null ? group.count * rangeFactor : Infinity;
-
-		const drawStart = Math.max( rangeStart, groupStart );
-		const drawEnd = Math.min( dataCount, rangeStart + rangeCount, groupStart + groupCount ) - 1;
-
-		const drawCount = Math.max( 0, drawEnd - drawStart + 1 );
-
-		if ( drawCount === 0 ) return;
 
 		//
 
@@ -27058,7 +27513,8 @@ function WebGLRenderer( parameters = {} ) {
 
 		} else if ( geometry.isInstancedBufferGeometry ) {
 
-			const instanceCount = Math.min( geometry.instanceCount, geometry._maxInstanceCount );
+			const maxInstanceCount = geometry._maxInstanceCount !== undefined ? geometry._maxInstanceCount : Infinity;
+			const instanceCount = Math.min( geometry.instanceCount, maxInstanceCount );
 
 			renderer.renderInstances( drawStart, drawCount, instanceCount );
 
@@ -27076,7 +27532,7 @@ function WebGLRenderer( parameters = {} ) {
 
 		function prepare( material, scene, object ) {
 
-			if ( material.transparent === true && material.side === DoubleSide ) {
+			if ( material.transparent === true && material.side === TwoPassDoubleSide ) {
 
 				material.side = BackSide;
 				material.needsUpdate = true;
@@ -27086,7 +27542,7 @@ function WebGLRenderer( parameters = {} ) {
 				material.needsUpdate = true;
 				getProgram( material, scene, object );
 
-				material.side = DoubleSide;
+				material.side = TwoPassDoubleSide;
 
 			} else {
 
@@ -27558,7 +28014,7 @@ function WebGLRenderer( parameters = {} ) {
 
 		material.onBeforeRender( _this, scene, camera, geometry, object, group );
 
-		if ( material.transparent === true && material.side === DoubleSide ) {
+		if ( material.transparent === true && material.side === TwoPassDoubleSide ) {
 
 			material.side = BackSide;
 			material.needsUpdate = true;
@@ -27568,7 +28024,7 @@ function WebGLRenderer( parameters = {} ) {
 			material.needsUpdate = true;
 			_this.renderBufferDirect( camera, scene, geometry, material, object, group );
 
-			material.side = DoubleSide;
+			material.side = TwoPassDoubleSide;
 
 		} else {
 
@@ -28162,6 +28618,9 @@ function WebGLRenderer( parameters = {} ) {
 		_currentActiveMipmapLevel = activeMipmapLevel;
 
 		let useDefaultFramebuffer = true;
+		let framebuffer = null;
+		let isCube = false;
+		let isRenderTarget3D = false;
 
 		if ( renderTarget ) {
 
@@ -28184,17 +28643,9 @@ function WebGLRenderer( parameters = {} ) {
 
 			}
 
-		}
-
-		let framebuffer = null;
-		let isCube = false;
-		let isRenderTarget3D = false;
-
-		if ( renderTarget ) {
-
 			const texture = renderTarget.texture;
 
-			if ( texture.isData3DTexture || texture.isDataArrayTexture ) {
+			if ( texture.isData3DTexture || texture.isDataArrayTexture || texture.isCompressedArrayTexture ) {
 
 				isRenderTarget3D = true;
 
@@ -28435,7 +28886,7 @@ function WebGLRenderer( parameters = {} ) {
 
 		} else {
 
-			if ( srcTexture.isCompressedTexture ) {
+			if ( srcTexture.isCompressedArrayTexture ) {
 
 				console.warn( 'THREE.WebGLRenderer.copyTextureToTexture3D: untested support for compressed srcTexture.' );
 				_gl.compressedTexSubImage3D( glTarget, level, position.x, position.y, position.z, width, height, depth, glFormat, image.data );
@@ -28471,7 +28922,7 @@ function WebGLRenderer( parameters = {} ) {
 
 			textures.setTexture3D( texture, 0 );
 
-		} else if ( texture.isDataArrayTexture ) {
+		} else if ( texture.isDataArrayTexture || texture.isCompressedArrayTexture ) {
 
 			textures.setTexture2DArray( texture, 0 );
 
@@ -28522,6 +28973,9 @@ class Scene extends Object3D {
 		this.environment = null;
 		this.fog = null;
 
+		this.backgroundBlurriness = 0;
+		this.backgroundIntensity = 1;
+
 		this.overrideMaterial = null;
 
 		if ( typeof __THREE_DEVTOOLS__ !== 'undefined' ) {
@@ -28540,6 +28994,9 @@ class Scene extends Object3D {
 		if ( source.environment !== null ) this.environment = source.environment.clone();
 		if ( source.fog !== null ) this.fog = source.fog.clone();
 
+		this.backgroundBlurriness = source.backgroundBlurriness;
+		this.backgroundIntensity = source.backgroundIntensity;
+
 		if ( source.overrideMaterial !== null ) this.overrideMaterial = source.overrideMaterial.clone();
 
 		this.matrixAutoUpdate = source.matrixAutoUpdate;
@@ -28553,6 +29010,8 @@ class Scene extends Object3D {
 		const data = super.toJSON( meta );
 
 		if ( this.fog !== null ) data.object.fog = this.fog.toJSON();
+		if ( this.backgroundBlurriness > 0 ) data.backgroundBlurriness = this.backgroundBlurriness;
+		if ( this.backgroundIntensity !== 1 ) data.backgroundIntensity = this.backgroundIntensity;
 
 		return data;
 
@@ -28731,7 +29190,7 @@ class InterleavedBufferAttribute {
 		this.itemSize = itemSize;
 		this.offset = offset;
 
-		this.normalized = normalized === true;
+		this.normalized = normalized;
 
 	}
 
@@ -28945,7 +29404,7 @@ class InterleavedBufferAttribute {
 
 		if ( data === undefined ) {
 
-			console.log( 'THREE.InterleavedBufferAttribute.clone(): Cloning an interleaved buffer attribute will deinterleave buffer data.' );
+			console.log( 'THREE.InterleavedBufferAttribute.clone(): Cloning an interleaved buffer attribute will de-interleave buffer data.' );
 
 			const array = [];
 
@@ -28987,7 +29446,7 @@ class InterleavedBufferAttribute {
 
 		if ( data === undefined ) {
 
-			console.log( 'THREE.InterleavedBufferAttribute.toJSON(): Serializing an interleaved buffer attribute will deinterleave buffer data.' );
+			console.log( 'THREE.InterleavedBufferAttribute.toJSON(): Serializing an interleaved buffer attribute will de-interleave buffer data.' );
 
 			const array = [];
 
@@ -29003,7 +29462,7 @@ class InterleavedBufferAttribute {
 
 			}
 
-			// deinterleave data and save it as an ordinary buffer attribute for now
+			// de-interleave data and save it as an ordinary buffer attribute for now
 
 			return {
 				itemSize: this.itemSize,
@@ -29014,7 +29473,7 @@ class InterleavedBufferAttribute {
 
 		} else {
 
-			// save as true interleaved attribtue
+			// save as true interleaved attribute
 
 			if ( data.interleavedBuffers === undefined ) {
 
@@ -29220,7 +29679,7 @@ class DataTexture extends Texture$1 {
 }
 
 const _offsetMatrix = /*@__PURE__*/ new Matrix4();
-const _identityMatrix = /*@__PURE__*/ new Matrix4();
+const _identityMatrix$1 = /*@__PURE__*/ new Matrix4();
 
 class Skeleton {
 
@@ -29352,7 +29811,7 @@ class Skeleton {
 
 			// compute the offset between the current and the original transform
 
-			const matrix = bones[ i ] ? bones[ i ].matrixWorld : _identityMatrix;
+			const matrix = bones[ i ] ? bones[ i ].matrixWorld : _identityMatrix$1;
 
 			_offsetMatrix.multiplyMatrices( matrix, boneInverses[ i ] );
 			_offsetMatrix.toArray( boneMatrices, i * 16 );
@@ -29485,6 +29944,170 @@ class Skeleton {
 		}
 
 		return data;
+
+	}
+
+}
+
+class InstancedBufferAttribute extends BufferAttribute {
+
+	constructor( array, itemSize, normalized, meshPerAttribute = 1 ) {
+
+		super( array, itemSize, normalized );
+
+		this.isInstancedBufferAttribute = true;
+
+		this.meshPerAttribute = meshPerAttribute;
+
+	}
+
+	copy( source ) {
+
+		super.copy( source );
+
+		this.meshPerAttribute = source.meshPerAttribute;
+
+		return this;
+
+	}
+
+	toJSON() {
+
+		const data = super.toJSON();
+
+		data.meshPerAttribute = this.meshPerAttribute;
+
+		data.isInstancedBufferAttribute = true;
+
+		return data;
+
+	}
+
+}
+
+const _instanceLocalMatrix = /*@__PURE__*/ new Matrix4();
+const _instanceWorldMatrix = /*@__PURE__*/ new Matrix4();
+
+const _instanceIntersects = [];
+
+const _identity = /*@__PURE__*/ new Matrix4();
+const _mesh = /*@__PURE__*/ new Mesh();
+
+class InstancedMesh extends Mesh {
+
+	constructor( geometry, material, count ) {
+
+		super( geometry, material );
+
+		this.isInstancedMesh = true;
+
+		this.instanceMatrix = new InstancedBufferAttribute( new Float32Array( count * 16 ), 16 );
+		this.instanceColor = null;
+
+		this.count = count;
+
+		this.frustumCulled = false;
+
+		for ( let i = 0; i < count; i ++ ) {
+
+			this.setMatrixAt( i, _identity );
+
+		}
+
+	}
+
+	copy( source, recursive ) {
+
+		super.copy( source, recursive );
+
+		this.instanceMatrix.copy( source.instanceMatrix );
+
+		if ( source.instanceColor !== null ) this.instanceColor = source.instanceColor.clone();
+
+		this.count = source.count;
+
+		return this;
+
+	}
+
+	getColorAt( index, color ) {
+
+		color.fromArray( this.instanceColor.array, index * 3 );
+
+	}
+
+	getMatrixAt( index, matrix ) {
+
+		matrix.fromArray( this.instanceMatrix.array, index * 16 );
+
+	}
+
+	raycast( raycaster, intersects ) {
+
+		const matrixWorld = this.matrixWorld;
+		const raycastTimes = this.count;
+
+		_mesh.geometry = this.geometry;
+		_mesh.material = this.material;
+
+		if ( _mesh.material === undefined ) return;
+
+		for ( let instanceId = 0; instanceId < raycastTimes; instanceId ++ ) {
+
+			// calculate the world matrix for each instance
+
+			this.getMatrixAt( instanceId, _instanceLocalMatrix );
+
+			_instanceWorldMatrix.multiplyMatrices( matrixWorld, _instanceLocalMatrix );
+
+			// the mesh represents this single instance
+
+			_mesh.matrixWorld = _instanceWorldMatrix;
+
+			_mesh.raycast( raycaster, _instanceIntersects );
+
+			// process the result of raycast
+
+			for ( let i = 0, l = _instanceIntersects.length; i < l; i ++ ) {
+
+				const intersect = _instanceIntersects[ i ];
+				intersect.instanceId = instanceId;
+				intersect.object = this;
+				intersects.push( intersect );
+
+			}
+
+			_instanceIntersects.length = 0;
+
+		}
+
+	}
+
+	setColorAt( index, color ) {
+
+		if ( this.instanceColor === null ) {
+
+			this.instanceColor = new InstancedBufferAttribute( new Float32Array( this.instanceMatrix.count * 3 ), 3 );
+
+		}
+
+		color.toArray( this.instanceColor.array, index * 3 );
+
+	}
+
+	setMatrixAt( index, matrix ) {
+
+		matrix.toArray( this.instanceMatrix.array, index * 16 );
+
+	}
+
+	updateMorphTargets() {
+
+	}
+
+	dispose() {
+
+		this.dispatchEvent( { type: 'dispose' } );
 
 	}
 
@@ -30010,6 +30633,57 @@ function testPoint( point, index, localThresholdSq, matrixWorld, raycaster, inte
 
 }
 
+class VideoTexture extends Texture$1 {
+
+	constructor( video, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy ) {
+
+		super( video, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy );
+
+		this.isVideoTexture = true;
+
+		this.minFilter = minFilter !== undefined ? minFilter : LinearFilter;
+		this.magFilter = magFilter !== undefined ? magFilter : LinearFilter;
+
+		this.generateMipmaps = false;
+
+		const scope = this;
+
+		function updateVideo() {
+
+			scope.needsUpdate = true;
+			video.requestVideoFrameCallback( updateVideo );
+
+		}
+
+		if ( 'requestVideoFrameCallback' in video ) {
+
+			video.requestVideoFrameCallback( updateVideo );
+
+		}
+
+	}
+
+	clone() {
+
+		return new this.constructor( this.image ).copy( this );
+
+	}
+
+	update() {
+
+		const video = this.image;
+		const hasVideoFrameCallback = 'requestVideoFrameCallback' in video;
+
+		if ( hasVideoFrameCallback === false && video.readyState >= video.HAVE_CURRENT_DATA ) {
+
+			this.needsUpdate = true;
+
+		}
+
+	}
+
+}
+
 class CompressedTexture extends Texture$1 {
 
 	constructor( mipmaps, width, height, format, type, mapping, wrapS, wrapT, magFilter, minFilter, anisotropy, encoding ) {
@@ -30030,6 +30704,34 @@ class CompressedTexture extends Texture$1 {
 		// mips must be embedded in DDS files
 
 		this.generateMipmaps = false;
+
+	}
+
+}
+
+class CompressedArrayTexture extends CompressedTexture {
+
+	constructor( mipmaps, width, height, depth, format, type ) {
+
+		super( mipmaps, width, height, format, type );
+
+		this.isCompressedArrayTexture = true;
+		this.image.depth = depth;
+		this.wrapR = ClampToEdgeWrapping;
+
+	}
+
+}
+
+class CanvasTexture extends Texture$1 {
+
+	constructor( canvas, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy ) {
+
+		super( canvas, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy );
+
+		this.isCanvasTexture = true;
+
+		this.needsUpdate = true;
 
 	}
 
@@ -30205,7 +30907,7 @@ class MeshPhysicalMaterial extends MeshStandardMaterial {
 
 		this.thickness = 0;
 		this.thicknessMap = null;
-		this.attenuationDistance = 0.0;
+		this.attenuationDistance = Infinity;
 		this.attenuationColor = new Color( 1, 1, 1 );
 
 		this.specularIntensity = 1.0;
@@ -32304,7 +33006,10 @@ class FileLoader extends Loader {
 
 					const callbacks = loading[ url ];
 					const reader = response.body.getReader();
-					const contentLength = response.headers.get( 'Content-Length' );
+
+					// Nginx needs X-File-Size check
+					// https://serverfault.com/questions/482875/why-does-nginx-remove-content-length-header-for-chunked-content
+					const contentLength = response.headers.get( 'Content-Length' ) || response.headers.get( 'X-File-Size' );
 					const total = contentLength ? parseInt( contentLength ) : 0;
 					const lengthComputable = total !== 0;
 					let loaded = 0;
@@ -32824,8 +33529,7 @@ class LightShadow {
 			0.0, 0.0, 0.0, 1.0
 		);
 
-		shadowMatrix.multiply( shadowCamera.projectionMatrix );
-		shadowMatrix.multiply( shadowCamera.matrixWorldInverse );
+		shadowMatrix.multiply( _projScreenMatrix$1 );
 
 	}
 
@@ -32941,7 +33645,7 @@ class SpotLightShadow extends LightShadow {
 
 class SpotLight extends Light {
 
-	constructor( color, intensity, distance = 0, angle = Math.PI / 3, penumbra = 0, decay = 1 ) {
+	constructor( color, intensity, distance = 0, angle = Math.PI / 3, penumbra = 0, decay = 2 ) {
 
 		super( color, intensity );
 
@@ -32957,7 +33661,7 @@ class SpotLight extends Light {
 		this.distance = distance;
 		this.angle = angle;
 		this.penumbra = penumbra;
-		this.decay = decay; // for physically correct lights, should be 2.
+		this.decay = decay;
 
 		this.map = null;
 
@@ -33095,7 +33799,7 @@ class PointLightShadow extends LightShadow {
 
 class PointLight extends Light {
 
-	constructor( color, intensity, distance = 0, decay = 1 ) {
+	constructor( color, intensity, distance = 0, decay = 2 ) {
 
 		super( color, intensity );
 
@@ -33104,7 +33808,7 @@ class PointLight extends Light {
 		this.type = 'PointLight';
 
 		this.distance = distance;
-		this.decay = decay; // for physically correct lights, should be 2.
+		this.decay = decay;
 
 		this.shadow = new PointLightShadow();
 
@@ -34461,6 +35165,13 @@ class PropertyBinding {
 					break;
 
 				case 'map':
+
+					if ( 'map' in targetObject ) {
+
+						targetObject = targetObject.map;
+						break;
+
+					}
 
 					if ( ! targetObject.material ) {
 
@@ -36519,20 +37230,20 @@ const t$2=window,e$2=t$2.ShadowRoot&&(void 0===t$2.ShadyCSS||t$2.ShadyCSS.native
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */var s$2;const e$1=window,r$1=e$1.trustedTypes,h$1=r$1?r$1.emptyScript:"",o$2=e$1.reactiveElementPolyfillSupport,n$3={toAttribute(t,i){switch(i){case Boolean:t=t?h$1:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,i){let s=t;switch(i){case Boolean:s=null!==t;break;case Number:s=null===t?null:Number(t);break;case Object:case Array:try{s=JSON.parse(t);}catch(t){s=null;}}return s}},a$1=(t,i)=>i!==t&&(i==i||t==t),l$2={attribute:!0,type:String,converter:n$3,reflect:!1,hasChanged:a$1};class d$1 extends HTMLElement{constructor(){super(),this._$Ei=new Map,this.isUpdatePending=!1,this.hasUpdated=!1,this._$El=null,this.u();}static addInitializer(t){var i;null!==(i=this.h)&&void 0!==i||(this.h=[]),this.h.push(t);}static get observedAttributes(){this.finalize();const t=[];return this.elementProperties.forEach(((i,s)=>{const e=this._$Ep(s,i);void 0!==e&&(this._$Ev.set(e,s),t.push(e));})),t}static createProperty(t,i=l$2){if(i.state&&(i.attribute=!1),this.finalize(),this.elementProperties.set(t,i),!i.noAccessor&&!this.prototype.hasOwnProperty(t)){const s="symbol"==typeof t?Symbol():"__"+t,e=this.getPropertyDescriptor(t,s,i);void 0!==e&&Object.defineProperty(this.prototype,t,e);}}static getPropertyDescriptor(t,i,s){return {get(){return this[i]},set(e){const r=this[t];this[i]=e,this.requestUpdate(t,r,s);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)||l$2}static finalize(){if(this.hasOwnProperty("finalized"))return !1;this.finalized=!0;const t=Object.getPrototypeOf(this);if(t.finalize(),this.elementProperties=new Map(t.elementProperties),this._$Ev=new Map,this.hasOwnProperty("properties")){const t=this.properties,i=[...Object.getOwnPropertyNames(t),...Object.getOwnPropertySymbols(t)];for(const s of i)this.createProperty(s,t[s]);}return this.elementStyles=this.finalizeStyles(this.styles),!0}static finalizeStyles(i){const s=[];if(Array.isArray(i)){const e=new Set(i.flat(1/0).reverse());for(const i of e)s.unshift(c$1(i));}else void 0!==i&&s.push(c$1(i));return s}static _$Ep(t,i){const s=i.attribute;return !1===s?void 0:"string"==typeof s?s:"string"==typeof t?t.toLowerCase():void 0}u(){var t;this._$E_=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$Eg(),this.requestUpdate(),null===(t=this.constructor.h)||void 0===t||t.forEach((t=>t(this)));}addController(t){var i,s;(null!==(i=this._$ES)&&void 0!==i?i:this._$ES=[]).push(t),void 0!==this.renderRoot&&this.isConnected&&(null===(s=t.hostConnected)||void 0===s||s.call(t));}removeController(t){var i;null===(i=this._$ES)||void 0===i||i.splice(this._$ES.indexOf(t)>>>0,1);}_$Eg(){this.constructor.elementProperties.forEach(((t,i)=>{this.hasOwnProperty(i)&&(this._$Ei.set(i,this[i]),delete this[i]);}));}createRenderRoot(){var t;const s=null!==(t=this.shadowRoot)&&void 0!==t?t:this.attachShadow(this.constructor.shadowRootOptions);return S$1(s,this.constructor.elementStyles),s}connectedCallback(){var t;void 0===this.renderRoot&&(this.renderRoot=this.createRenderRoot()),this.enableUpdating(!0),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostConnected)||void 0===i?void 0:i.call(t)}));}enableUpdating(t){}disconnectedCallback(){var t;null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostDisconnected)||void 0===i?void 0:i.call(t)}));}attributeChangedCallback(t,i,s){this._$AK(t,s);}_$EO(t,i,s=l$2){var e;const r=this.constructor._$Ep(t,s);if(void 0!==r&&!0===s.reflect){const h=(void 0!==(null===(e=s.converter)||void 0===e?void 0:e.toAttribute)?s.converter:n$3).toAttribute(i,s.type);this._$El=t,null==h?this.removeAttribute(r):this.setAttribute(r,h),this._$El=null;}}_$AK(t,i){var s;const e=this.constructor,r=e._$Ev.get(t);if(void 0!==r&&this._$El!==r){const t=e.getPropertyOptions(r),h="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==(null===(s=t.converter)||void 0===s?void 0:s.fromAttribute)?t.converter:n$3;this._$El=r,this[r]=h.fromAttribute(i,t.type),this._$El=null;}}requestUpdate(t,i,s){let e=!0;void 0!==t&&(((s=s||this.constructor.getPropertyOptions(t)).hasChanged||a$1)(this[t],i)?(this._$AL.has(t)||this._$AL.set(t,i),!0===s.reflect&&this._$El!==t&&(void 0===this._$EC&&(this._$EC=new Map),this._$EC.set(t,s))):e=!1),!this.isUpdatePending&&e&&(this._$E_=this._$Ej());}async _$Ej(){this.isUpdatePending=!0;try{await this._$E_;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){var t;if(!this.isUpdatePending)return;this.hasUpdated,this._$Ei&&(this._$Ei.forEach(((t,i)=>this[i]=t)),this._$Ei=void 0);let i=!1;const s=this._$AL;try{i=this.shouldUpdate(s),i?(this.willUpdate(s),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostUpdate)||void 0===i?void 0:i.call(t)})),this.update(s)):this._$Ek();}catch(t){throw i=!1,this._$Ek(),t}i&&this._$AE(s);}willUpdate(t){}_$AE(t){var i;null===(i=this._$ES)||void 0===i||i.forEach((t=>{var i;return null===(i=t.hostUpdated)||void 0===i?void 0:i.call(t)})),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}_$Ek(){this._$AL=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$E_}shouldUpdate(t){return !0}update(t){void 0!==this._$EC&&(this._$EC.forEach(((t,i)=>this._$EO(i,this[i],t))),this._$EC=void 0),this._$Ek();}updated(t){}firstUpdated(t){}}d$1.finalized=!0,d$1.elementProperties=new Map,d$1.elementStyles=[],d$1.shadowRootOptions={mode:"open"},null==o$2||o$2({ReactiveElement:d$1}),(null!==(s$2=e$1.reactiveElementVersions)&&void 0!==s$2?s$2:e$1.reactiveElementVersions=[]).push("1.4.1");
+ */var s$2;const e$1=window,r$1=e$1.trustedTypes,h$1=r$1?r$1.emptyScript:"",o$2=e$1.reactiveElementPolyfillSupport,n$3={toAttribute(t,i){switch(i){case Boolean:t=t?h$1:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,i){let s=t;switch(i){case Boolean:s=null!==t;break;case Number:s=null===t?null:Number(t);break;case Object:case Array:try{s=JSON.parse(t);}catch(t){s=null;}}return s}},a$1=(t,i)=>i!==t&&(i==i||t==t),l$2={attribute:!0,type:String,converter:n$3,reflect:!1,hasChanged:a$1};class d$1 extends HTMLElement{constructor(){super(),this._$Ei=new Map,this.isUpdatePending=!1,this.hasUpdated=!1,this._$El=null,this.u();}static addInitializer(t){var i;this.finalize(),(null!==(i=this.h)&&void 0!==i?i:this.h=[]).push(t);}static get observedAttributes(){this.finalize();const t=[];return this.elementProperties.forEach(((i,s)=>{const e=this._$Ep(s,i);void 0!==e&&(this._$Ev.set(e,s),t.push(e));})),t}static createProperty(t,i=l$2){if(i.state&&(i.attribute=!1),this.finalize(),this.elementProperties.set(t,i),!i.noAccessor&&!this.prototype.hasOwnProperty(t)){const s="symbol"==typeof t?Symbol():"__"+t,e=this.getPropertyDescriptor(t,s,i);void 0!==e&&Object.defineProperty(this.prototype,t,e);}}static getPropertyDescriptor(t,i,s){return {get(){return this[i]},set(e){const r=this[t];this[i]=e,this.requestUpdate(t,r,s);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)||l$2}static finalize(){if(this.hasOwnProperty("finalized"))return !1;this.finalized=!0;const t=Object.getPrototypeOf(this);if(t.finalize(),void 0!==t.h&&(this.h=[...t.h]),this.elementProperties=new Map(t.elementProperties),this._$Ev=new Map,this.hasOwnProperty("properties")){const t=this.properties,i=[...Object.getOwnPropertyNames(t),...Object.getOwnPropertySymbols(t)];for(const s of i)this.createProperty(s,t[s]);}return this.elementStyles=this.finalizeStyles(this.styles),!0}static finalizeStyles(i){const s=[];if(Array.isArray(i)){const e=new Set(i.flat(1/0).reverse());for(const i of e)s.unshift(c$1(i));}else void 0!==i&&s.push(c$1(i));return s}static _$Ep(t,i){const s=i.attribute;return !1===s?void 0:"string"==typeof s?s:"string"==typeof t?t.toLowerCase():void 0}u(){var t;this._$E_=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$Eg(),this.requestUpdate(),null===(t=this.constructor.h)||void 0===t||t.forEach((t=>t(this)));}addController(t){var i,s;(null!==(i=this._$ES)&&void 0!==i?i:this._$ES=[]).push(t),void 0!==this.renderRoot&&this.isConnected&&(null===(s=t.hostConnected)||void 0===s||s.call(t));}removeController(t){var i;null===(i=this._$ES)||void 0===i||i.splice(this._$ES.indexOf(t)>>>0,1);}_$Eg(){this.constructor.elementProperties.forEach(((t,i)=>{this.hasOwnProperty(i)&&(this._$Ei.set(i,this[i]),delete this[i]);}));}createRenderRoot(){var t;const s=null!==(t=this.shadowRoot)&&void 0!==t?t:this.attachShadow(this.constructor.shadowRootOptions);return S$1(s,this.constructor.elementStyles),s}connectedCallback(){var t;void 0===this.renderRoot&&(this.renderRoot=this.createRenderRoot()),this.enableUpdating(!0),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostConnected)||void 0===i?void 0:i.call(t)}));}enableUpdating(t){}disconnectedCallback(){var t;null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostDisconnected)||void 0===i?void 0:i.call(t)}));}attributeChangedCallback(t,i,s){this._$AK(t,s);}_$EO(t,i,s=l$2){var e;const r=this.constructor._$Ep(t,s);if(void 0!==r&&!0===s.reflect){const h=(void 0!==(null===(e=s.converter)||void 0===e?void 0:e.toAttribute)?s.converter:n$3).toAttribute(i,s.type);this._$El=t,null==h?this.removeAttribute(r):this.setAttribute(r,h),this._$El=null;}}_$AK(t,i){var s;const e=this.constructor,r=e._$Ev.get(t);if(void 0!==r&&this._$El!==r){const t=e.getPropertyOptions(r),h="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==(null===(s=t.converter)||void 0===s?void 0:s.fromAttribute)?t.converter:n$3;this._$El=r,this[r]=h.fromAttribute(i,t.type),this._$El=null;}}requestUpdate(t,i,s){let e=!0;void 0!==t&&(((s=s||this.constructor.getPropertyOptions(t)).hasChanged||a$1)(this[t],i)?(this._$AL.has(t)||this._$AL.set(t,i),!0===s.reflect&&this._$El!==t&&(void 0===this._$EC&&(this._$EC=new Map),this._$EC.set(t,s))):e=!1),!this.isUpdatePending&&e&&(this._$E_=this._$Ej());}async _$Ej(){this.isUpdatePending=!0;try{await this._$E_;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){var t;if(!this.isUpdatePending)return;this.hasUpdated,this._$Ei&&(this._$Ei.forEach(((t,i)=>this[i]=t)),this._$Ei=void 0);let i=!1;const s=this._$AL;try{i=this.shouldUpdate(s),i?(this.willUpdate(s),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostUpdate)||void 0===i?void 0:i.call(t)})),this.update(s)):this._$Ek();}catch(t){throw i=!1,this._$Ek(),t}i&&this._$AE(s);}willUpdate(t){}_$AE(t){var i;null===(i=this._$ES)||void 0===i||i.forEach((t=>{var i;return null===(i=t.hostUpdated)||void 0===i?void 0:i.call(t)})),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}_$Ek(){this._$AL=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$E_}shouldUpdate(t){return !0}update(t){void 0!==this._$EC&&(this._$EC.forEach(((t,i)=>this._$EO(i,this[i],t))),this._$EC=void 0),this._$Ek();}updated(t){}firstUpdated(t){}}d$1.finalized=!0,d$1.elementProperties=new Map,d$1.elementStyles=[],d$1.shadowRootOptions={mode:"open"},null==o$2||o$2({ReactiveElement:d$1}),(null!==(s$2=e$1.reactiveElementVersions)&&void 0!==s$2?s$2:e$1.reactiveElementVersions=[]).push("1.6.1");
 
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-var t$1;const i$1=window,s$1=i$1.trustedTypes,e=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$1=`lit$${(Math.random()+"").slice(9)}$`,n$2="?"+o$1,l$1=`<${n$2}>`,h=document,r=(t="")=>h.createComment(t),d=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u=Array.isArray,c=t=>u(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),v=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,a=/-->/g,f=/>/g,_=RegExp(">|[ \t\n\f\r](?:([^\\s\"'>=/]+)([ \t\n\f\r]*=[ \t\n\f\r]*(?:[^ \t\n\f\r\"'`<>=]|(\"|')|))|$)","g"),m=/'/g,p$1=/"/g,$=/^(?:script|style|textarea|title)$/i,g$1=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),y=g$1(1),x$2=Symbol.for("lit-noChange"),b=Symbol.for("lit-nothing"),T=new WeakMap,A$1=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new S(i.insertBefore(r(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l},E=h.createTreeWalker(h,129,null,!1),C$1=(t,i)=>{const s=t.length-1,n=[];let h,r=2===i?"<svg>":"",d=v;for(let i=0;i<s;i++){const s=t[i];let e,u,c=-1,g=0;for(;g<s.length&&(d.lastIndex=g,u=d.exec(s),null!==u);)g=d.lastIndex,d===v?"!--"===u[1]?d=a:void 0!==u[1]?d=f:void 0!==u[2]?($.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=_):void 0!==u[3]&&(d=_):d===_?">"===u[0]?(d=null!=h?h:v,c=-1):void 0===u[1]?c=-2:(c=d.lastIndex-u[2].length,e=u[1],d=void 0===u[3]?_:'"'===u[3]?p$1:m):d===p$1||d===m?d=_:d===a||d===f?d=v:(d=_,h=void 0);const y=d===_&&t[i+1].startsWith("/>")?" ":"";r+=d===v?s+l$1:c>=0?(n.push(e),s.slice(0,c)+"$lit$"+s.slice(c)+o$1+y):s+o$1+(-2===c?(n.push(void 0),i):y);}const u=r+(t[s]||"<?>")+(2===i?"</svg>":"");if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return [void 0!==e?e.createHTML(u):u,n]};class P{constructor({strings:t,_$litType$:i},e){let l;this.parts=[];let h=0,d=0;const u=t.length-1,c=this.parts,[v,a]=C$1(t,i);if(this.el=P.createElement(v,e),E.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=E.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(o$1)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(o$1),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:h,name:i[2],strings:t,ctor:"."===i[1]?R:"?"===i[1]?H:"@"===i[1]?I$1:M});}else c.push({type:6,index:h});}for(const i of t)l.removeAttribute(i);}if($.test(l.tagName)){const t=l.textContent.split(o$1),i=t.length-1;if(i>0){l.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)l.append(t[s],r()),E.nextNode(),c.push({type:2,index:++h});l.append(t[i],r());}}}else if(8===l.nodeType)if(l.data===n$2)c.push({type:2,index:h});else {let t=-1;for(;-1!==(t=l.data.indexOf(o$1,t+1));)c.push({type:7,index:h}),t+=o$1.length-1;}h++;}}static createElement(t,i){const s=h.createElement("template");return s.innerHTML=t,s}}function V(t,i,s=t,e){var o,n,l,h;if(i===x$2)return i;let r=void 0!==e?null===(o=s._$Cl)||void 0===o?void 0:o[e]:s._$Cu;const u=d(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Cl)&&void 0!==l?l:h._$Cl=[])[e]=r:s._$Cu=r),void 0!==r&&(i=V(t,r._$AS(t,i.values),r,e)),i}class N{constructor(t,i){this.v=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}p(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:h).importNode(s,!0);E.currentNode=o;let n=E.nextNode(),l=0,r=0,d=e[0];for(;void 0!==d;){if(l===d.index){let i;2===d.type?i=new S(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new L(n,this,t)),this.v.push(i),d=e[++r];}l!==(null==d?void 0:d.index)&&(n=E.nextNode(),l++);}return o}m(t){let i=0;for(const s of this.v)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class S{constructor(t,i,s,e){var o;this.type=2,this._$AH=b,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$C_=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$C_}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=V(this,t,i),d(t)?t===b||null==t||""===t?(this._$AH!==b&&this._$AR(),this._$AH=b):t!==this._$AH&&t!==x$2&&this.$(t):void 0!==t._$litType$?this.T(t):void 0!==t.nodeType?this.k(t):c(t)?this.O(t):this.$(t);}S(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}k(t){this._$AH!==t&&(this._$AR(),this._$AH=this.S(t));}$(t){this._$AH!==b&&d(this._$AH)?this._$AA.nextSibling.data=t:this.k(h.createTextNode(t)),this._$AH=t;}T(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=P.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.m(s);else {const t=new N(o,this),i=t.p(this.options);t.m(s),this.k(i),this._$AH=t;}}_$AC(t){let i=T.get(t.strings);return void 0===i&&T.set(t.strings,i=new P(t)),i}O(t){u(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new S(this.S(r()),this.S(r()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$C_=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class M{constructor(t,i,s,e,o){this.type=1,this._$AH=b,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=b;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=V(this,t,i,0),n=!d(t)||t!==this._$AH&&t!==x$2,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=V(this,e[s+l],i,l),h===x$2&&(h=this._$AH[l]),n||(n=!d(h)||h!==this._$AH[l]),h===b?t=b:t!==b&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.P(t);}P(t){t===b?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class R extends M{constructor(){super(...arguments),this.type=3;}P(t){this.element[this.name]=t===b?void 0:t;}}const k=s$1?s$1.emptyScript:"";class H extends M{constructor(){super(...arguments),this.type=4;}P(t){t&&t!==b?this.element.setAttribute(this.name,k):this.element.removeAttribute(this.name);}}class I$1 extends M{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=V(this,t,i,0))&&void 0!==s?s:b)===x$2)return;const e=this._$AH,o=t===b&&e!==b||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==b&&(e===b||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class L{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){V(this,t);}}const Z=i$1.litHtmlPolyfillSupport;null==Z||Z(P,S),(null!==(t$1=i$1.litHtmlVersions)&&void 0!==t$1?t$1:i$1.litHtmlVersions=[]).push("2.3.1");
+var t$1;const i$1=window,s$1=i$1.trustedTypes,e=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$1=`lit$${(Math.random()+"").slice(9)}$`,n$2="?"+o$1,l$1=`<${n$2}>`,h=document,r=(t="")=>h.createComment(t),d=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u=Array.isArray,c=t=>u(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),v=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,a=/-->/g,f=/>/g,_=RegExp(">|[ \t\n\f\r](?:([^\\s\"'>=/]+)([ \t\n\f\r]*=[ \t\n\f\r]*(?:[^ \t\n\f\r\"'`<>=]|(\"|')|))|$)","g"),m=/'/g,p$1=/"/g,$=/^(?:script|style|textarea|title)$/i,g$1=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),y=g$1(1),x$2=Symbol.for("lit-noChange"),b=Symbol.for("lit-nothing"),T=new WeakMap,A$1=h.createTreeWalker(h,129,null,!1),E=(t,i)=>{const s=t.length-1,n=[];let h,r=2===i?"<svg>":"",d=v;for(let i=0;i<s;i++){const s=t[i];let e,u,c=-1,g=0;for(;g<s.length&&(d.lastIndex=g,u=d.exec(s),null!==u);)g=d.lastIndex,d===v?"!--"===u[1]?d=a:void 0!==u[1]?d=f:void 0!==u[2]?($.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=_):void 0!==u[3]&&(d=_):d===_?">"===u[0]?(d=null!=h?h:v,c=-1):void 0===u[1]?c=-2:(c=d.lastIndex-u[2].length,e=u[1],d=void 0===u[3]?_:'"'===u[3]?p$1:m):d===p$1||d===m?d=_:d===a||d===f?d=v:(d=_,h=void 0);const y=d===_&&t[i+1].startsWith("/>")?" ":"";r+=d===v?s+l$1:c>=0?(n.push(e),s.slice(0,c)+"$lit$"+s.slice(c)+o$1+y):s+o$1+(-2===c?(n.push(void 0),i):y);}const u=r+(t[s]||"<?>")+(2===i?"</svg>":"");if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return [void 0!==e?e.createHTML(u):u,n]};class C$1{constructor({strings:t,_$litType$:i},e){let l;this.parts=[];let h=0,d=0;const u=t.length-1,c=this.parts,[v,a]=E(t,i);if(this.el=C$1.createElement(v,e),A$1.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=A$1.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(o$1)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(o$1),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:h,name:i[2],strings:t,ctor:"."===i[1]?M:"?"===i[1]?k:"@"===i[1]?H:S});}else c.push({type:6,index:h});}for(const i of t)l.removeAttribute(i);}if($.test(l.tagName)){const t=l.textContent.split(o$1),i=t.length-1;if(i>0){l.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)l.append(t[s],r()),A$1.nextNode(),c.push({type:2,index:++h});l.append(t[i],r());}}}else if(8===l.nodeType)if(l.data===n$2)c.push({type:2,index:h});else {let t=-1;for(;-1!==(t=l.data.indexOf(o$1,t+1));)c.push({type:7,index:h}),t+=o$1.length-1;}h++;}}static createElement(t,i){const s=h.createElement("template");return s.innerHTML=t,s}}function P(t,i,s=t,e){var o,n,l,h;if(i===x$2)return i;let r=void 0!==e?null===(o=s._$Co)||void 0===o?void 0:o[e]:s._$Cl;const u=d(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Co)&&void 0!==l?l:h._$Co=[])[e]=r:s._$Cl=r),void 0!==r&&(i=P(t,r._$AS(t,i.values),r,e)),i}class V{constructor(t,i){this.u=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}v(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:h).importNode(s,!0);A$1.currentNode=o;let n=A$1.nextNode(),l=0,r=0,d=e[0];for(;void 0!==d;){if(l===d.index){let i;2===d.type?i=new N(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new I$1(n,this,t)),this.u.push(i),d=e[++r];}l!==(null==d?void 0:d.index)&&(n=A$1.nextNode(),l++);}return o}p(t){let i=0;for(const s of this.u)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class N{constructor(t,i,s,e){var o;this.type=2,this._$AH=b,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cm=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$Cm}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=P(this,t,i),d(t)?t===b||null==t||""===t?(this._$AH!==b&&this._$AR(),this._$AH=b):t!==this._$AH&&t!==x$2&&this.g(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):c(t)?this.k(t):this.g(t);}O(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t));}g(t){this._$AH!==b&&d(this._$AH)?this._$AA.nextSibling.data=t:this.T(h.createTextNode(t)),this._$AH=t;}$(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=C$1.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.p(s);else {const t=new V(o,this),i=t.v(this.options);t.p(s),this.T(i),this._$AH=t;}}_$AC(t){let i=T.get(t.strings);return void 0===i&&T.set(t.strings,i=new C$1(t)),i}k(t){u(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new N(this.O(r()),this.O(r()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$Cm=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class S{constructor(t,i,s,e,o){this.type=1,this._$AH=b,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=b;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=P(this,t,i,0),n=!d(t)||t!==this._$AH&&t!==x$2,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=P(this,e[s+l],i,l),h===x$2&&(h=this._$AH[l]),n||(n=!d(h)||h!==this._$AH[l]),h===b?t=b:t!==b&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.j(t);}j(t){t===b?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class M extends S{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===b?void 0:t;}}const R=s$1?s$1.emptyScript:"";class k extends S{constructor(){super(...arguments),this.type=4;}j(t){t&&t!==b?this.element.setAttribute(this.name,R):this.element.removeAttribute(this.name);}}class H extends S{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=P(this,t,i,0))&&void 0!==s?s:b)===x$2)return;const e=this._$AH,o=t===b&&e!==b||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==b&&(e===b||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class I$1{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){P(this,t);}}const z=i$1.litHtmlPolyfillSupport;null==z||z(C$1,N),(null!==(t$1=i$1.litHtmlVersions)&&void 0!==t$1?t$1:i$1.litHtmlVersions=[]).push("2.6.1");const Z=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new N(i.insertBefore(r(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l};
 
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */var l,o;class s extends d$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){var t,e;const i=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=i.firstChild),i}update(t){const i=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=A$1(i,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!1);}render(){return x$2}}s.finalized=!0,s._$litElement$=!0,null===(l=globalThis.litElementHydrateSupport)||void 0===l||l.call(globalThis,{LitElement:s});const n$1=globalThis.litElementPolyfillSupport;null==n$1||n$1({LitElement:s});(null!==(o=globalThis.litElementVersions)&&void 0!==o?o:globalThis.litElementVersions=[]).push("3.2.2");
+ */var l,o;class s extends d$1{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0;}createRenderRoot(){var t,e;const i=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=i.firstChild),i}update(t){const i=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=Z(i,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this._$Do)||void 0===t||t.setConnected(!1);}render(){return x$2}}s.finalized=!0,s._$litElement$=!0,null===(l=globalThis.litElementHydrateSupport)||void 0===l||l.call(globalThis,{LitElement:s});const n$1=globalThis.litElementPolyfillSupport;null==n$1||n$1({LitElement:s});(null!==(o=globalThis.litElementVersions)&&void 0!==o?o:globalThis.litElementVersions=[]).push("3.2.2");
 
 /* @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -37375,7 +38086,7 @@ canvas {
   <span id="status" role="status"></span>
 </div>`;
 const makeTemplate = (shadowRoot) => {
-    A$1(templateResult, shadowRoot);
+    Z(templateResult, shadowRoot);
 };
 
 const _taskCache$1 = new WeakMap();
@@ -38015,6 +38726,12 @@ class GLTFLoader extends Loader {
 
 		} );
 
+		this.register( function ( parser ) {
+
+			return new GLTFMeshGpuInstancing( parser );
+
+		} );
+
 	}
 
 	load( url, onLoad, onProgress, onError ) {
@@ -38145,15 +38862,15 @@ class GLTFLoader extends Loader {
 
 	parse( data, path, onLoad, onError ) {
 
-		let content;
+		let json;
 		const extensions = {};
 		const plugins = {};
 
 		if ( typeof data === 'string' ) {
 
-			content = data;
+			json = JSON.parse( data );
 
-		} else {
+		} else if ( data instanceof ArrayBuffer ) {
 
 			const magic = LoaderUtils.decodeText( new Uint8Array( data, 0, 4 ) );
 
@@ -38170,17 +38887,19 @@ class GLTFLoader extends Loader {
 
 				}
 
-				content = extensions[ EXTENSIONS.KHR_BINARY_GLTF ].content;
+				json = JSON.parse( extensions[ EXTENSIONS.KHR_BINARY_GLTF ].content );
 
 			} else {
 
-				content = LoaderUtils.decodeText( new Uint8Array( data ) );
+				json = JSON.parse( LoaderUtils.decodeText( new Uint8Array( data ) ) );
 
 			}
 
-		}
+		} else {
 
-		const json = JSON.parse( content );
+			json = data;
+
+		}
 
 		if ( json.asset === undefined || json.asset.version[ 0 ] < 2 ) {
 
@@ -38226,10 +38945,6 @@ class GLTFLoader extends Loader {
 
 					case EXTENSIONS.KHR_MATERIALS_UNLIT:
 						extensions[ extensionName ] = new GLTFMaterialsUnlitExtension$1();
-						break;
-
-					case EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS:
-						extensions[ extensionName ] = new GLTFMaterialsPbrSpecularGlossinessExtension();
 						break;
 
 					case EXTENSIONS.KHR_DRACO_MESH_COMPRESSION:
@@ -38324,7 +39039,6 @@ const EXTENSIONS = {
 	KHR_LIGHTS_PUNCTUAL: 'KHR_lights_punctual',
 	KHR_MATERIALS_CLEARCOAT: 'KHR_materials_clearcoat',
 	KHR_MATERIALS_IOR: 'KHR_materials_ior',
-	KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS: 'KHR_materials_pbrSpecularGlossiness',
 	KHR_MATERIALS_SHEEN: 'KHR_materials_sheen',
 	KHR_MATERIALS_SPECULAR: 'KHR_materials_specular',
 	KHR_MATERIALS_TRANSMISSION: 'KHR_materials_transmission',
@@ -38336,7 +39050,8 @@ const EXTENSIONS = {
 	KHR_MESH_QUANTIZATION: 'KHR_mesh_quantization',
 	KHR_MATERIALS_EMISSIVE_STRENGTH: 'KHR_materials_emissive_strength',
 	EXT_TEXTURE_WEBP: 'EXT_texture_webp',
-	EXT_MESHOPT_COMPRESSION: 'EXT_meshopt_compression'
+	EXT_MESHOPT_COMPRESSION: 'EXT_meshopt_compression',
+	EXT_MESH_GPU_INSTANCING: 'EXT_mesh_gpu_instancing'
 };
 
 /**
@@ -38434,6 +39149,8 @@ class GLTFLightsExtension {
 
 		lightNode.decay = 2;
 
+		assignExtrasToUserData( lightNode, lightDef );
+
 		if ( lightDef.intensity !== undefined ) lightNode.intensity = lightDef.intensity;
 
 		lightNode.name = parser.createUniqueName( lightDef.name || ( 'light_' + lightIndex ) );
@@ -38443,6 +39160,14 @@ class GLTFLightsExtension {
 		parser.cache.add( cacheKey, dependency );
 
 		return dependency;
+
+	}
+
+	getDependency( type, index ) {	
+
+		if ( type !== 'light' ) return;
+
+		return this._loadLight( index );
 
 	}
 
@@ -38912,7 +39637,7 @@ class GLTFMaterialsVolumeExtension$1 {
 
 		}
 
-		materialParams.attenuationDistance = extension.attenuationDistance || 0;
+		materialParams.attenuationDistance = extension.attenuationDistance || Infinity;
 
 		const colorArray = extension.attenuationColor || [ 1, 1, 1 ];
 		materialParams.attenuationColor = new Color( colorArray[ 0 ], colorArray[ 1 ], colorArray[ 2 ] );
@@ -39252,6 +39977,160 @@ class GLTFMeshoptCompression {
 
 }
 
+/**
+ * GPU Instancing Extension
+ *
+ * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Vendor/EXT_mesh_gpu_instancing
+ *
+ */
+class GLTFMeshGpuInstancing {
+
+	constructor( parser ) {
+
+		this.name = EXTENSIONS.EXT_MESH_GPU_INSTANCING;
+		this.parser = parser;
+
+	}
+
+	createNodeMesh( nodeIndex ) {
+
+		const json = this.parser.json;
+		const nodeDef = json.nodes[ nodeIndex ];
+
+		if ( ! nodeDef.extensions || ! nodeDef.extensions[ this.name ] ||
+			nodeDef.mesh === undefined ) {
+
+			return null;
+
+		}
+
+		const meshDef = json.meshes[ nodeDef.mesh ];
+
+		// No Points or Lines + Instancing support yet
+
+		for ( const primitive of meshDef.primitives ) {
+
+			if ( primitive.mode !== WEBGL_CONSTANTS$1.TRIANGLES &&
+				 primitive.mode !== WEBGL_CONSTANTS$1.TRIANGLE_STRIP &&
+				 primitive.mode !== WEBGL_CONSTANTS$1.TRIANGLE_FAN &&
+				 primitive.mode !== undefined ) {
+
+				return null;
+
+			}
+
+		}
+
+		const extensionDef = nodeDef.extensions[ this.name ];
+		const attributesDef = extensionDef.attributes;
+
+		// @TODO: Can we support InstancedMesh + SkinnedMesh?
+
+		const pending = [];
+		const attributes = {};
+
+		for ( const key in attributesDef ) {
+
+			pending.push( this.parser.getDependency( 'accessor', attributesDef[ key ] ).then( accessor => {
+
+				attributes[ key ] = accessor;
+				return attributes[ key ];
+
+			} ) );
+
+		}
+
+		if ( pending.length < 1 ) {
+
+			return null;
+
+		}
+
+		pending.push( this.parser.createNodeMesh( nodeIndex ) );
+
+		return Promise.all( pending ).then( results => {
+
+			const nodeObject = results.pop();
+			const meshes = nodeObject.isGroup ? nodeObject.children : [ nodeObject ];
+			const count = results[ 0 ].count; // All attribute counts should be same
+			const instancedMeshes = [];
+
+			for ( const mesh of meshes ) {
+
+				// Temporal variables
+				const m = new Matrix4();
+				const p = new Vector3();
+				const q = new Quaternion();
+				const s = new Vector3( 1, 1, 1 );
+
+				const instancedMesh = new InstancedMesh( mesh.geometry, mesh.material, count );
+
+				for ( let i = 0; i < count; i ++ ) {
+
+					if ( attributes.TRANSLATION ) {
+
+						p.fromBufferAttribute( attributes.TRANSLATION, i );
+
+					}
+
+					if ( attributes.ROTATION ) {
+
+						q.fromBufferAttribute( attributes.ROTATION, i );
+
+					}
+
+					if ( attributes.SCALE ) {
+
+						s.fromBufferAttribute( attributes.SCALE, i );
+
+					}
+
+					instancedMesh.setMatrixAt( i, m.compose( p, q, s ) );
+
+				}
+
+				// Add instance attributes to the geometry, excluding TRS.
+				for ( const attributeName in attributes ) {
+
+					if ( attributeName !== 'TRANSLATION' &&
+						 attributeName !== 'ROTATION' &&
+						 attributeName !== 'SCALE' ) {
+
+						mesh.geometry.setAttribute( attributeName, attributes[ attributeName ] );
+
+					}
+
+				}
+
+				// Just in case
+				Object3D.prototype.copy.call( instancedMesh, mesh );
+
+				// https://github.com/mrdoob/three.js/issues/18334
+				instancedMesh.frustumCulled = false;
+				this.parser.assignFinalMaterial( instancedMesh );
+
+				instancedMeshes.push( instancedMesh );
+
+			}
+
+			if ( nodeObject.isGroup ) {
+
+				nodeObject.clear();
+
+				nodeObject.add( ... instancedMeshes );
+
+				return nodeObject;
+
+			}
+
+			return instancedMeshes[ 0 ];
+
+		} );
+
+	}
+
+}
+
 /* BINARY EXTENSION */
 const BINARY_EXTENSION_HEADER_MAGIC = 'glTF';
 const BINARY_EXTENSION_HEADER_LENGTH = 12;
@@ -39457,335 +40336,6 @@ class GLTFTextureTransformExtension {
 		texture.needsUpdate = true;
 
 		return texture;
-
-	}
-
-}
-
-/**
- * Specular-Glossiness Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Archived/KHR_materials_pbrSpecularGlossiness
- */
-
-/**
- * A sub class of StandardMaterial with some of the functionality
- * changed via the `onBeforeCompile` callback
- * @pailhead
- */
-class GLTFMeshStandardSGMaterial extends MeshStandardMaterial {
-
-	constructor( params ) {
-
-		super();
-
-		this.isGLTFSpecularGlossinessMaterial = true;
-
-		//various chunks that need replacing
-		const specularMapParsFragmentChunk = [
-			'#ifdef USE_SPECULARMAP',
-			'	uniform sampler2D specularMap;',
-			'#endif'
-		].join( '\n' );
-
-		const glossinessMapParsFragmentChunk = [
-			'#ifdef USE_GLOSSINESSMAP',
-			'	uniform sampler2D glossinessMap;',
-			'#endif'
-		].join( '\n' );
-
-		const specularMapFragmentChunk = [
-			'vec3 specularFactor = specular;',
-			'#ifdef USE_SPECULARMAP',
-			'	vec4 texelSpecular = texture2D( specularMap, vUv );',
-			'	// reads channel RGB, compatible with a glTF Specular-Glossiness (RGBA) texture',
-			'	specularFactor *= texelSpecular.rgb;',
-			'#endif'
-		].join( '\n' );
-
-		const glossinessMapFragmentChunk = [
-			'float glossinessFactor = glossiness;',
-			'#ifdef USE_GLOSSINESSMAP',
-			'	vec4 texelGlossiness = texture2D( glossinessMap, vUv );',
-			'	// reads channel A, compatible with a glTF Specular-Glossiness (RGBA) texture',
-			'	glossinessFactor *= texelGlossiness.a;',
-			'#endif'
-		].join( '\n' );
-
-		const lightPhysicalFragmentChunk = [
-			'PhysicalMaterial material;',
-			'material.diffuseColor = diffuseColor.rgb * ( 1. - max( specularFactor.r, max( specularFactor.g, specularFactor.b ) ) );',
-			'vec3 dxy = max( abs( dFdx( geometryNormal ) ), abs( dFdy( geometryNormal ) ) );',
-			'float geometryRoughness = max( max( dxy.x, dxy.y ), dxy.z );',
-			'material.roughness = max( 1.0 - glossinessFactor, 0.0525 ); // 0.0525 corresponds to the base mip of a 256 cubemap.',
-			'material.roughness += geometryRoughness;',
-			'material.roughness = min( material.roughness, 1.0 );',
-			'material.specularColor = specularFactor;',
-		].join( '\n' );
-
-		const uniforms = {
-			specular: { value: new Color().setHex( 0xffffff ) },
-			glossiness: { value: 1 },
-			specularMap: { value: null },
-			glossinessMap: { value: null }
-		};
-
-		this._extraUniforms = uniforms;
-
-		this.onBeforeCompile = function ( shader ) {
-
-			for ( const uniformName in uniforms ) {
-
-				shader.uniforms[ uniformName ] = uniforms[ uniformName ];
-
-			}
-
-			shader.fragmentShader = shader.fragmentShader
-				.replace( 'uniform float roughness;', 'uniform vec3 specular;' )
-				.replace( 'uniform float metalness;', 'uniform float glossiness;' )
-				.replace( '#include <roughnessmap_pars_fragment>', specularMapParsFragmentChunk )
-				.replace( '#include <metalnessmap_pars_fragment>', glossinessMapParsFragmentChunk )
-				.replace( '#include <roughnessmap_fragment>', specularMapFragmentChunk )
-				.replace( '#include <metalnessmap_fragment>', glossinessMapFragmentChunk )
-				.replace( '#include <lights_physical_fragment>', lightPhysicalFragmentChunk );
-
-		};
-
-		Object.defineProperties( this, {
-
-			specular: {
-				get: function () {
-
-					return uniforms.specular.value;
-
-				},
-				set: function ( v ) {
-
-					uniforms.specular.value = v;
-
-				}
-			},
-
-			specularMap: {
-				get: function () {
-
-					return uniforms.specularMap.value;
-
-				},
-				set: function ( v ) {
-
-					uniforms.specularMap.value = v;
-
-					if ( v ) {
-
-						this.defines.USE_SPECULARMAP = ''; // USE_UV is set by the renderer for specular maps
-
-					} else {
-
-						delete this.defines.USE_SPECULARMAP;
-
-					}
-
-				}
-			},
-
-			glossiness: {
-				get: function () {
-
-					return uniforms.glossiness.value;
-
-				},
-				set: function ( v ) {
-
-					uniforms.glossiness.value = v;
-
-				}
-			},
-
-			glossinessMap: {
-				get: function () {
-
-					return uniforms.glossinessMap.value;
-
-				},
-				set: function ( v ) {
-
-					uniforms.glossinessMap.value = v;
-
-					if ( v ) {
-
-						this.defines.USE_GLOSSINESSMAP = '';
-						this.defines.USE_UV = '';
-
-					} else {
-
-						delete this.defines.USE_GLOSSINESSMAP;
-						delete this.defines.USE_UV;
-
-					}
-
-				}
-			}
-
-		} );
-
-		delete this.metalness;
-		delete this.roughness;
-		delete this.metalnessMap;
-		delete this.roughnessMap;
-
-		this.setValues( params );
-
-	}
-
-	copy( source ) {
-
-		super.copy( source );
-
-		this.specularMap = source.specularMap;
-		this.specular.copy( source.specular );
-		this.glossinessMap = source.glossinessMap;
-		this.glossiness = source.glossiness;
-		delete this.metalness;
-		delete this.roughness;
-		delete this.metalnessMap;
-		delete this.roughnessMap;
-		return this;
-
-	}
-
-}
-
-
-class GLTFMaterialsPbrSpecularGlossinessExtension {
-
-	constructor() {
-
-		this.name = EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS;
-
-		this.specularGlossinessParams = [
-			'color',
-			'map',
-			'lightMap',
-			'lightMapIntensity',
-			'aoMap',
-			'aoMapIntensity',
-			'emissive',
-			'emissiveIntensity',
-			'emissiveMap',
-			'bumpMap',
-			'bumpScale',
-			'normalMap',
-			'normalMapType',
-			'displacementMap',
-			'displacementScale',
-			'displacementBias',
-			'specularMap',
-			'specular',
-			'glossinessMap',
-			'glossiness',
-			'alphaMap',
-			'envMap',
-			'envMapIntensity'
-		];
-
-	}
-
-	getMaterialType() {
-
-		return GLTFMeshStandardSGMaterial;
-
-	}
-
-	extendParams( materialParams, materialDef, parser ) {
-
-		const pbrSpecularGlossiness = materialDef.extensions[ this.name ];
-
-		materialParams.color = new Color( 1.0, 1.0, 1.0 );
-		materialParams.opacity = 1.0;
-
-		const pending = [];
-
-		if ( Array.isArray( pbrSpecularGlossiness.diffuseFactor ) ) {
-
-			const array = pbrSpecularGlossiness.diffuseFactor;
-
-			materialParams.color.fromArray( array );
-			materialParams.opacity = array[ 3 ];
-
-		}
-
-		if ( pbrSpecularGlossiness.diffuseTexture !== undefined ) {
-
-			pending.push( parser.assignTexture( materialParams, 'map', pbrSpecularGlossiness.diffuseTexture, sRGBEncoding ) );
-
-		}
-
-		materialParams.emissive = new Color( 0.0, 0.0, 0.0 );
-		materialParams.glossiness = pbrSpecularGlossiness.glossinessFactor !== undefined ? pbrSpecularGlossiness.glossinessFactor : 1.0;
-		materialParams.specular = new Color( 1.0, 1.0, 1.0 );
-
-		if ( Array.isArray( pbrSpecularGlossiness.specularFactor ) ) {
-
-			materialParams.specular.fromArray( pbrSpecularGlossiness.specularFactor );
-
-		}
-
-		if ( pbrSpecularGlossiness.specularGlossinessTexture !== undefined ) {
-
-			const specGlossMapDef = pbrSpecularGlossiness.specularGlossinessTexture;
-			pending.push( parser.assignTexture( materialParams, 'glossinessMap', specGlossMapDef ) );
-			pending.push( parser.assignTexture( materialParams, 'specularMap', specGlossMapDef, sRGBEncoding ) );
-
-		}
-
-		return Promise.all( pending );
-
-	}
-
-	createMaterial( materialParams ) {
-
-		const material = new GLTFMeshStandardSGMaterial( materialParams );
-		material.fog = true;
-
-		material.color = materialParams.color;
-
-		material.map = materialParams.map === undefined ? null : materialParams.map;
-
-		material.lightMap = null;
-		material.lightMapIntensity = 1.0;
-
-		material.aoMap = materialParams.aoMap === undefined ? null : materialParams.aoMap;
-		material.aoMapIntensity = 1.0;
-
-		material.emissive = materialParams.emissive;
-		material.emissiveIntensity = materialParams.emissiveIntensity === undefined ? 1.0 : materialParams.emissiveIntensity;
-		material.emissiveMap = materialParams.emissiveMap === undefined ? null : materialParams.emissiveMap;
-
-		material.bumpMap = materialParams.bumpMap === undefined ? null : materialParams.bumpMap;
-		material.bumpScale = 1;
-
-		material.normalMap = materialParams.normalMap === undefined ? null : materialParams.normalMap;
-		material.normalMapType = TangentSpaceNormalMap;
-
-		if ( materialParams.normalScale ) material.normalScale = materialParams.normalScale;
-
-		material.displacementMap = null;
-		material.displacementScale = 1;
-		material.displacementBias = 0;
-
-		material.specularMap = materialParams.specularMap === undefined ? null : materialParams.specularMap;
-		material.specular = materialParams.specular;
-
-		material.glossinessMap = materialParams.glossinessMap === undefined ? null : materialParams.glossinessMap;
-		material.glossiness = materialParams.glossiness;
-
-		material.alphaMap = null;
-
-		material.envMap = materialParams.envMap === undefined ? null : materialParams.envMap;
-		material.envMapIntensity = 1.0;
-
-		return material;
 
 	}
 
@@ -40258,6 +40808,8 @@ function getImageURIMimeType( uri ) {
 
 }
 
+const _identityMatrix = new Matrix4();
+
 /* GLTF PARSER */
 
 class GLTFParser {
@@ -40291,10 +40843,18 @@ class GLTFParser {
 
 		// Use an ImageBitmapLoader if imageBitmaps are supported. Moves much of the
 		// expensive work of uploading a texture to the GPU off the main thread.
+		
+		let isSafari = false;
+		let isFirefox = false;
+		let firefoxVersion = - 1;
 
-		const isSafari = /^((?!chrome|android).)*safari/i.test( navigator.userAgent ) === true;
-		const isFirefox = navigator.userAgent.indexOf( 'Firefox' ) > - 1;
-		const firefoxVersion = isFirefox ? navigator.userAgent.match( /Firefox\/([0-9]+)\./ )[ 1 ] : - 1;
+		if ( typeof navigator !== 'undefined' ) {
+
+			isSafari = /^((?!chrome|android).)*safari/i.test( navigator.userAgent ) === true;
+			isFirefox = navigator.userAgent.indexOf( 'Firefox' ) > - 1;
+			firefoxVersion = isFirefox ? navigator.userAgent.match( /Firefox\/([0-9]+)\./ )[ 1 ] : - 1;
+
+		}
 
 		if ( typeof createImageBitmap === 'undefined' || isSafari || ( isFirefox && firefoxVersion < 98 ) ) {
 
@@ -40559,7 +41119,11 @@ class GLTFParser {
 					break;
 
 				case 'node':
-					dependency = this.loadNode( index );
+					dependency = this._invokeOne( function ( ext ) {
+
+						return ext.loadNode && ext.loadNode( index );
+
+					} );
 					break;
 
 				case 'mesh':
@@ -40619,7 +41183,19 @@ class GLTFParser {
 					break;
 
 				default:
-					throw new Error( 'Unknown type: ' + type );
+					dependency = this._invokeOne( function ( ext ) {
+
+						return ext != this && ext.getDependency && ext.getDependency( type, index );
+
+					} );
+
+					if ( ! dependency ) {
+
+						throw new Error( 'Unknown type: ' + type );
+
+					}
+
+					break;
 
 			}
 
@@ -40729,10 +41305,12 @@ class GLTFParser {
 
 		if ( accessorDef.bufferView === undefined && accessorDef.sparse === undefined ) {
 
-			// Ignore empty accessors, which may be used to declare runtime
-			// information about attributes coming from another source (e.g. Draco
-			// compression extension).
-			return Promise.resolve( null );
+			const itemSize = WEBGL_TYPE_SIZES[ accessorDef.type ];
+			const TypedArray = WEBGL_COMPONENT_TYPES[ accessorDef.componentType ];
+			const normalized = accessorDef.normalized === true;
+
+			const array = new TypedArray( accessorDef.count * itemSize );
+			return Promise.resolve( new BufferAttribute( array, itemSize, normalized ) );
 
 		}
 
@@ -40850,7 +41428,7 @@ class GLTFParser {
 	/**
 	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#textures
 	 * @param {number} textureIndex
-	 * @return {Promise<THREE.Texture>}
+	 * @return {Promise<THREE.Texture|null>}
 	 */
 	loadTexture( textureIndex ) {
 
@@ -40894,7 +41472,7 @@ class GLTFParser {
 
 			texture.flipY = false;
 
-			if ( textureDef.name ) texture.name = textureDef.name;
+			texture.name = textureDef.name || sourceDef.name || '';
 
 			const samplers = json.samplers || {};
 			const sampler = samplers[ textureDef.sampler ] || {};
@@ -41020,6 +41598,8 @@ class GLTFParser {
 
 		return this.getDependency( 'texture', mapDef.index ).then( function ( texture ) {
 
+			if ( ! texture ) return null;
+
 			// Materials sample aoMap from UV set 1 and other maps from UV set 0 - this can't be configured
 			// However, we will copy UV set 0 to UV set 1 on demand for aoMap
 			if ( mapDef.texCoord !== undefined && mapDef.texCoord != 0 && ! ( mapName === 'aoMap' && mapDef.texCoord == 1 ) ) {
@@ -41118,7 +41698,6 @@ class GLTFParser {
 
 			let cacheKey = 'ClonedMaterial:' + material.uuid + ':';
 
-			if ( material.isGLTFSpecularGlossinessMaterial ) cacheKey += 'specular-glossiness:';
 			if ( useDerivativeTangents ) cacheKey += 'derivative-tangents:';
 			if ( useVertexColors ) cacheKey += 'vertex-colors:';
 			if ( useFlatShading ) cacheKey += 'flat-shading:';
@@ -41186,13 +41765,7 @@ class GLTFParser {
 
 		const pending = [];
 
-		if ( materialExtensions[ EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS ] ) {
-
-			const sgExtension = extensions[ EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS ];
-			materialType = sgExtension.getMaterialType();
-			pending.push( sgExtension.extendParams( materialParams, materialDef, parser ) );
-
-		} else if ( materialExtensions[ EXTENSIONS.KHR_MATERIALS_UNLIT ] ) {
+		if ( materialExtensions[ EXTENSIONS.KHR_MATERIALS_UNLIT ] ) {
 
 			const kmuExtension = extensions[ EXTENSIONS.KHR_MATERIALS_UNLIT ];
 			materialType = kmuExtension.getMaterialType();
@@ -41316,17 +41889,7 @@ class GLTFParser {
 
 		return Promise.all( pending ).then( function () {
 
-			let material;
-
-			if ( materialType === GLTFMeshStandardSGMaterial ) {
-
-				material = extensions[ EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS ].createMaterial( materialParams );
-
-			} else {
-
-				material = new materialType( materialParams );
-
-			}
+			const material = new materialType( materialParams );
 
 			if ( materialDef.name ) material.name = materialDef.name;
 
@@ -41615,25 +42178,65 @@ class GLTFParser {
 	/**
 	 * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#skins
 	 * @param {number} skinIndex
-	 * @return {Promise<Object>}
+	 * @return {Promise<Skeleton>}
 	 */
 	loadSkin( skinIndex ) {
 
 		const skinDef = this.json.skins[ skinIndex ];
 
-		const skinEntry = { joints: skinDef.joints };
+		const pending = [];
 
-		if ( skinDef.inverseBindMatrices === undefined ) {
+		for ( let i = 0, il = skinDef.joints.length; i < il; i ++ ) {
 
-			return Promise.resolve( skinEntry );
+			pending.push( this.getDependency( 'node', skinDef.joints[ i ] ) );
 
 		}
 
-		return this.getDependency( 'accessor', skinDef.inverseBindMatrices ).then( function ( accessor ) {
+		if ( skinDef.inverseBindMatrices !== undefined ) {
 
-			skinEntry.inverseBindMatrices = accessor;
+			pending.push( this.getDependency( 'accessor', skinDef.inverseBindMatrices ) );
 
-			return skinEntry;
+		} else {
+
+			pending.push( null );
+
+		}
+
+		return Promise.all( pending ).then( function ( results ) {
+
+			const inverseBindMatrices = results.pop();
+			const jointNodes = results;
+
+			const bones = [];
+			const boneInverses = [];
+
+			for ( let i = 0, il = jointNodes.length; i < il; i ++ ) {
+
+				const jointNode = jointNodes[ i ];
+
+				if ( jointNode ) {
+
+					bones.push( jointNode );
+
+					const mat = new Matrix4();
+
+					if ( inverseBindMatrices !== null ) {
+
+						mat.fromArray( inverseBindMatrices.array, i * 16 );
+
+					}
+
+					boneInverses.push( mat );
+
+				} else {
+
+					console.warn( 'THREE.GLTFLoader: Joint "%s" could not be found.', skinDef.joints[ i ] );
+
+				}
+
+			}
+
+			return new Skeleton( bones, boneInverses );
 
 		} );
 
@@ -41863,7 +42466,7 @@ class GLTFParser {
 
 		return ( function () {
 
-			const pending = [];
+			const objectPending = [];
 
 			const meshPromise = parser._invokeOne( function ( ext ) {
 
@@ -41873,13 +42476,13 @@ class GLTFParser {
 
 			if ( meshPromise ) {
 
-				pending.push( meshPromise );
+				objectPending.push( meshPromise );
 
 			}
 
 			if ( nodeDef.camera !== undefined ) {
 
-				pending.push( parser.getDependency( 'camera', nodeDef.camera ).then( function ( camera ) {
+				objectPending.push( parser.getDependency( 'camera', nodeDef.camera ).then( function ( camera ) {
 
 					return parser._getNodeRef( parser.cameraCache, nodeDef.camera, camera );
 
@@ -41893,13 +42496,34 @@ class GLTFParser {
 
 			} ).forEach( function ( promise ) {
 
-				pending.push( promise );
+				objectPending.push( promise );
 
 			} );
 
-			return Promise.all( pending );
+			const childPending = [];
+			const childrenDef = nodeDef.children || [];
 
-		}() ).then( function ( objects ) {
+			for ( let i = 0, il = childrenDef.length; i < il; i ++ ) {
+
+				childPending.push( parser.getDependency( 'node', childrenDef[ i ] ) );
+
+			}
+
+			const skeletonPending = nodeDef.skin === undefined
+				? Promise.resolve( null )
+				: parser.getDependency( 'skin', nodeDef.skin );
+
+			return Promise.all( [
+				Promise.all( objectPending ),
+				Promise.all( childPending ),
+				skeletonPending
+			] );
+
+		}() ).then( function ( results ) {
+
+			const objects = results[ 0 ];
+			const children = results[ 1 ];
+			const skeleton = results[ 2 ];
 
 			let node;
 
@@ -41979,6 +42603,26 @@ class GLTFParser {
 
 			parser.associations.get( node ).nodes = nodeIndex;
 
+			if ( skeleton !== null ) {
+
+				// This full traverse should be fine because
+				// child glTF nodes have not been added to this node yet.
+				node.traverse( function ( mesh ) {
+
+					if ( ! mesh.isSkinnedMesh ) return;
+
+					mesh.bind( skeleton, _identityMatrix );
+
+				} );
+
+			}
+
+			for ( let i = 0, il = children.length; i < il; i ++ ) {
+
+				node.add( children[ i ] );
+
+			}
+
 			return node;
 
 		} );
@@ -41992,7 +42636,6 @@ class GLTFParser {
 	 */
 	loadScene( sceneIndex ) {
 
-		const json = this.json;
 		const extensions = this.extensions;
 		const sceneDef = this.json.scenes[ sceneIndex ];
 		const parser = this;
@@ -42012,11 +42655,17 @@ class GLTFParser {
 
 		for ( let i = 0, il = nodeIds.length; i < il; i ++ ) {
 
-			pending.push( buildNodeHierarchy( nodeIds[ i ], scene, json, parser ) );
+			pending.push( parser.getDependency( 'node', nodeIds[ i ] ) );
 
 		}
 
-		return Promise.all( pending ).then( function () {
+		return Promise.all( pending ).then( function ( nodes ) {
+
+			for ( let i = 0, il = nodes.length; i < il; i ++ ) {
+
+				scene.add( nodes[ i ] );
+
+			}
 
 			// Removes dangling associations, associations that reference a node that
 			// didn't make it into the scene.
@@ -42057,102 +42706,6 @@ class GLTFParser {
 		} );
 
 	}
-
-}
-
-function buildNodeHierarchy( nodeId, parentObject, json, parser ) {
-
-	const nodeDef = json.nodes[ nodeId ];
-
-	return parser.getDependency( 'node', nodeId ).then( function ( node ) {
-
-		if ( nodeDef.skin === undefined ) return node;
-
-		// build skeleton here as well
-
-		let skinEntry;
-
-		return parser.getDependency( 'skin', nodeDef.skin ).then( function ( skin ) {
-
-			skinEntry = skin;
-
-			const pendingJoints = [];
-
-			for ( let i = 0, il = skinEntry.joints.length; i < il; i ++ ) {
-
-				pendingJoints.push( parser.getDependency( 'node', skinEntry.joints[ i ] ) );
-
-			}
-
-			return Promise.all( pendingJoints );
-
-		} ).then( function ( jointNodes ) {
-
-			node.traverse( function ( mesh ) {
-
-				if ( ! mesh.isMesh ) return;
-
-				const bones = [];
-				const boneInverses = [];
-
-				for ( let j = 0, jl = jointNodes.length; j < jl; j ++ ) {
-
-					const jointNode = jointNodes[ j ];
-
-					if ( jointNode ) {
-
-						bones.push( jointNode );
-
-						const mat = new Matrix4();
-
-						if ( skinEntry.inverseBindMatrices !== undefined ) {
-
-							mat.fromArray( skinEntry.inverseBindMatrices.array, j * 16 );
-
-						}
-
-						boneInverses.push( mat );
-
-					} else {
-
-						console.warn( 'THREE.GLTFLoader: Joint "%s" could not be found.', skinEntry.joints[ j ] );
-
-					}
-
-				}
-
-				mesh.bind( new Skeleton( bones, boneInverses ), mesh.matrixWorld );
-
-			} );
-
-			return node;
-
-		} );
-
-	} ).then( function ( node ) {
-
-		// build node hierachy
-
-		parentObject.add( node );
-
-		const pending = [];
-
-		if ( nodeDef.children ) {
-
-			const children = nodeDef.children;
-
-			for ( let i = 0, il = children.length; i < il; i ++ ) {
-
-				const child = children[ i ];
-				pending.push( buildNodeHierarchy( child, node, json, parser ) );
-
-			}
-
-		}
-
-		return Promise.all( pending );
-
-	} );
 
 }
 
@@ -42721,16 +43274,21 @@ class KTX2Loader extends Loader {
 
 	}
 
-	_createTextureFrom( transcodeResult ) {
+	_createTextureFrom( transcodeResult, container ) {
 
 		const { mipmaps, width, height, format, type, error, dfdTransferFn, dfdFlags } = transcodeResult;
 
 		if ( type === 'error' ) return Promise.reject( error );
 
-		const texture = new CompressedTexture( mipmaps, width, height, format, UnsignedByteType );
+		const texture = container.layerCount > 1
+			? new CompressedArrayTexture( mipmaps, width, height, container.layerCount, format, UnsignedByteType )
+			: new CompressedTexture( mipmaps, width, height, format, UnsignedByteType );
+
+
 		texture.minFilter = mipmaps.length === 1 ? LinearFilter : LinearMipmapLinearFilter;
 		texture.magFilter = LinearFilter;
 		texture.generateMipmaps = false;
+
 		texture.needsUpdate = true;
 		texture.encoding = dfdTransferFn === x$1 ? sRGBEncoding : LinearEncoding;
 		texture.premultiplyAlpha = !! ( dfdFlags & p );
@@ -42742,9 +43300,9 @@ class KTX2Loader extends Loader {
 	/**
 	 * @param {ArrayBuffer} buffer
 	 * @param {object?} config
-	 * @return {Promise<CompressedTexture|DataTexture|Data3DTexture>}
+	 * @return {Promise<CompressedTexture|CompressedArrayTexture|DataTexture|Data3DTexture>}
 	 */
-	_createTexture( buffer, config = {} ) {
+	async _createTexture( buffer, config = {} ) {
 
 		const container = Pi( new Uint8Array( buffer ) );
 
@@ -42755,13 +43313,12 @@ class KTX2Loader extends Loader {
 		}
 
 		//
-
 		const taskConfig = config;
 		const texturePending = this.init().then( () => {
 
 			return this.workerPool.postMessage( { type: 'transcode', buffer, taskConfig: taskConfig }, [ buffer ] );
 
-		} ).then( ( e ) => this._createTextureFrom( e.data ) );
+		} ).then( ( e ) => this._createTextureFrom( e.data, container ) );
 
 		// Cache the task result.
 		_taskCache.set( buffer, { promise: texturePending } );
@@ -42922,6 +43479,7 @@ KTX2Loader.BasisWorker = function () {
 		const basisFormat = ktx2File.isUASTC() ? BasisFormat.UASTC_4x4 : BasisFormat.ETC1S;
 		const width = ktx2File.getWidth();
 		const height = ktx2File.getHeight();
+		const layers = ktx2File.getLayers() || 1;
 		const levels = ktx2File.getLevels();
 		const hasAlpha = ktx2File.getHasAlpha();
 		const dfdTransferFn = ktx2File.getDFDTransferFunc();
@@ -42947,30 +43505,39 @@ KTX2Loader.BasisWorker = function () {
 
 		for ( let mip = 0; mip < levels; mip ++ ) {
 
-			const levelInfo = ktx2File.getImageLevelInfo( mip, 0, 0 );
-			const mipWidth = levelInfo.origWidth;
-			const mipHeight = levelInfo.origHeight;
-			const dst = new Uint8Array( ktx2File.getImageTranscodedSizeInBytes( mip, 0, 0, transcoderFormat ) );
+			const layerMips = [];
 
-			const status = ktx2File.transcodeImage(
-				dst,
-				mip,
-				0,
-				0,
-				transcoderFormat,
-				0,
-				- 1,
-				- 1,
-			);
+			let mipWidth, mipHeight;
 
-			if ( ! status ) {
+			for ( let layer = 0; layer < layers; layer ++ ) {
 
-				cleanup();
-				throw new Error( 'THREE.KTX2Loader: .transcodeImage failed.' );
+				const levelInfo = ktx2File.getImageLevelInfo( mip, layer, 0 );
+				mipWidth = levelInfo.origWidth;
+				mipHeight = levelInfo.origHeight;
+				const dst = new Uint8Array( ktx2File.getImageTranscodedSizeInBytes( mip, layer, 0, transcoderFormat ) );
+				const status = ktx2File.transcodeImage(
+					dst,
+					mip,
+					layer,
+					0,
+					transcoderFormat,
+					0,
+					- 1,
+					- 1,
+				);
+
+				if ( ! status ) {
+
+					cleanup();
+					throw new Error( 'THREE.KTX2Loader: .transcodeImage failed.' );
+
+				}
+
+				layerMips.push( dst );
 
 			}
 
-			mipmaps.push( { data: dst, width: mipWidth, height: mipHeight } );
+			mipmaps.push( { data: concat( layerMips ), width: mipWidth, height: mipHeight } );
 
 		}
 
@@ -43097,6 +43664,33 @@ KTX2Loader.BasisWorker = function () {
 
 	}
 
+	/** Concatenates N byte arrays. */
+	function concat( arrays ) {
+
+		let totalByteLength = 0;
+
+		for ( const array of arrays ) {
+
+			totalByteLength += array.byteLength;
+
+		}
+
+		const result = new Uint8Array( totalByteLength );
+
+		let byteOffset = 0;
+
+		for ( const array of arrays ) {
+
+			result.set( array, byteOffset );
+
+			byteOffset += array.byteLength;
+
+		}
+
+		return result;
+
+	}
+
 };
 
 //
@@ -43158,8 +43752,6 @@ async function createDataTexture( container ) {
 
 	}
 
-	//
-
 	const level = container.levels[ 0 ];
 
 	let levelData;
@@ -43216,7 +43808,6 @@ async function createDataTexture( container ) {
 		view = levelData;
 
 	}
-
 	//
 
 	const texture = pixelDepth === 0
@@ -43432,7 +44023,8 @@ class GLTFMaterialsVariantsExtension {
                     return;
                 }
                 const association = parser.associations.get(mesh);
-                if (association == null || association.meshes == null || association.primitives == null) {
+                if (association == null || association.meshes == null ||
+                    association.primitives == null) {
                     return;
                 }
                 const meshDef = json.meshes[association.meshes];
@@ -43442,7 +44034,8 @@ class GLTFMaterialsVariantsExtension {
                 if (!extensionsDef || !extensionsDef[this.name]) {
                     return;
                 }
-                mesh.userData.variantMaterials = mappingsArrayToTable(extensionsDef[this.name]);
+                mesh.userData.variantMaterials =
+                    mappingsArrayToTable(extensionsDef[this.name]);
             });
         }
         gltf.userData.variants = variants;
@@ -43465,6 +44058,7 @@ class GLTFMaterialsVariantsExtension {
  * limitations under the License.
  */
 var _a$9, _b$8;
+Texture$1.DEFAULT_ANISOTROPY = 4;
 /**
  * A helper to Promise-ify a Three.js GLTFLoader
  */
@@ -43828,730 +44422,2680 @@ class CSS2DRenderer {
 
 }
 
-/* @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-const numberNode = (value, unit) => ({ type: 'number', number: value, unit });
-/**
- * Given a string representing a comma-separated set of CSS-like expressions,
- * parses and returns an array of ASTs that correspond to those expressions.
- *
- * Currently supported syntax includes:
- *
- *  - functions (top-level and nested)
- *  - calc() arithmetic operators
- *  - numbers with units
- *  - hexadecimal-encoded colors in 3, 6 or 8 digit form
- *  - idents
- *
- * All syntax is intended to match the parsing rules and semantics of the actual
- * CSS spec as closely as possible.
- *
- * @see https://www.w3.org/TR/CSS2/
- * @see https://www.w3.org/TR/css-values-3/
- */
-const parseExpressions = (() => {
-    const cache = {};
-    const MAX_PARSE_ITERATIONS = 1000; // Arbitrarily large
-    return (inputString) => {
-        const cacheKey = inputString;
-        if (cacheKey in cache) {
-            return cache[cacheKey];
-        }
-        const expressions = [];
-        let parseIterations = 0;
-        while (inputString) {
-            if (++parseIterations > MAX_PARSE_ITERATIONS) {
-                // Avoid a potentially infinite loop due to typos:
-                inputString = '';
-                break;
-            }
-            const expressionParseResult = parseExpression(inputString);
-            const expression = expressionParseResult.nodes[0];
-            if (expression == null || expression.terms.length === 0) {
-                break;
-            }
-            expressions.push(expression);
-            inputString = expressionParseResult.remainingInput;
-        }
-        return cache[cacheKey] = expressions;
-    };
-})();
-/**
- * Parse a single expression. For the purposes of our supported syntax, an
- * expression is the set of semantically meaningful terms that appear before the
- * next comma, or between the parens of a function invocation.
- */
-const parseExpression = (() => {
-    const IS_IDENT_RE = /^(\-\-|[a-z\u0240-\uffff])/i;
-    const IS_OPERATOR_RE = /^([\*\+\/]|[\-]\s)/i;
-    const IS_EXPRESSION_END_RE = /^[\),]/;
-    const FUNCTION_ARGUMENTS_FIRST_TOKEN = '(';
-    const HEX_FIRST_TOKEN = '#';
-    return (inputString) => {
-        const terms = [];
-        while (inputString.length) {
-            inputString = inputString.trim();
-            if (IS_EXPRESSION_END_RE.test(inputString)) {
-                break;
-            }
-            else if (inputString[0] === FUNCTION_ARGUMENTS_FIRST_TOKEN) {
-                const { nodes, remainingInput } = parseFunctionArguments(inputString);
-                inputString = remainingInput;
-                terms.push({
-                    type: 'function',
-                    name: { type: 'ident', value: 'calc' },
-                    arguments: nodes
-                });
-            }
-            else if (IS_IDENT_RE.test(inputString)) {
-                const identParseResult = parseIdent(inputString);
-                const identNode = identParseResult.nodes[0];
-                inputString = identParseResult.remainingInput;
-                if (inputString[0] === FUNCTION_ARGUMENTS_FIRST_TOKEN) {
-                    const { nodes, remainingInput } = parseFunctionArguments(inputString);
-                    terms.push({ type: 'function', name: identNode, arguments: nodes });
-                    inputString = remainingInput;
-                }
-                else {
-                    terms.push(identNode);
-                }
-            }
-            else if (IS_OPERATOR_RE.test(inputString)) {
-                // Operators are always a single character, so just pluck them out:
-                terms.push({ type: 'operator', value: inputString[0] });
-                inputString = inputString.slice(1);
-            }
-            else {
-                const { nodes, remainingInput } = inputString[0] === HEX_FIRST_TOKEN ?
-                    parseHex(inputString) :
-                    parseNumber(inputString);
-                // The remaining string may not have had any meaningful content. Exit
-                // early if this is the case:
-                if (nodes.length === 0) {
-                    break;
-                }
-                terms.push(nodes[0]);
-                inputString = remainingInput;
-            }
-        }
-        return { nodes: [{ type: 'expression', terms }], remainingInput: inputString };
-    };
-})();
-/**
- * An ident is something like a function name or the keyword "auto".
- */
-const parseIdent = (() => {
-    const NOT_IDENT_RE = /[^a-z0-9_\-\u0240-\uffff]/i;
-    return (inputString) => {
-        const match = inputString.match(NOT_IDENT_RE);
-        const ident = match == null ? inputString : inputString.substr(0, match.index);
-        const remainingInput = match == null ? '' : inputString.substr(match.index);
-        return { nodes: [{ type: 'ident', value: ident }], remainingInput };
-    };
-})();
-/**
- * Parses a number. A number value can be expressed with an integer or
- * non-integer syntax, and usually includes a unit (but does not strictly
- * require one for our purposes).
- */
-const parseNumber = (() => {
-    // @see https://www.w3.org/TR/css-syntax/#number-token-diagram
-    const VALUE_RE = /[\+\-]?(\d+[\.]\d+|\d+|[\.]\d+)([eE][\+\-]?\d+)?/;
-    const UNIT_RE = /^[a-z%]+/i;
-    const ALLOWED_UNITS = /^(m|mm|cm|rad|deg|[%])$/;
-    return (inputString) => {
-        const valueMatch = inputString.match(VALUE_RE);
-        const value = valueMatch == null ? '0' : valueMatch[0];
-        inputString = value == null ? inputString : inputString.slice(value.length);
-        const unitMatch = inputString.match(UNIT_RE);
-        let unit = unitMatch != null && unitMatch[0] !== '' ? unitMatch[0] : null;
-        const remainingInput = unitMatch == null ? inputString : inputString.slice(unit.length);
-        if (unit != null && !ALLOWED_UNITS.test(unit)) {
-            unit = null;
-        }
-        return {
-            nodes: [{
-                    type: 'number',
-                    number: parseFloat(value) || 0,
-                    unit: unit
-                }],
-            remainingInput
-        };
-    };
-})();
-/**
- * Parses a hexadecimal-encoded color in 3, 6 or 8 digit form.
- */
-const parseHex = (() => {
-    // TODO(cdata): right now we don't actually enforce the number of digits
-    const HEX_RE = /^[a-f0-9]*/i;
-    return (inputString) => {
-        inputString = inputString.slice(1).trim();
-        const hexMatch = inputString.match(HEX_RE);
-        const nodes = hexMatch == null ? [] : [{ type: 'hex', value: hexMatch[0] }];
-        return {
-            nodes,
-            remainingInput: hexMatch == null ? inputString :
-                inputString.slice(hexMatch[0].length)
-        };
-    };
-})();
-/**
- * Parses arguments passed to a function invocation (e.g., the expressions
- * within a matched set of parens).
- */
-const parseFunctionArguments = (inputString) => {
-    const expressionNodes = [];
-    // Consume the opening paren
-    inputString = inputString.slice(1).trim();
-    while (inputString.length) {
-        const expressionParseResult = parseExpression(inputString);
-        expressionNodes.push(expressionParseResult.nodes[0]);
-        inputString = expressionParseResult.remainingInput.trim();
-        if (inputString[0] === ',') {
-            inputString = inputString.slice(1).trim();
-        }
-        else if (inputString[0] === ')') {
-            // Consume the closing paren and stop parsing
-            inputString = inputString.slice(1);
-            break;
-        }
-    }
-    return { nodes: expressionNodes, remainingInput: inputString };
-};
-const $visitedTypes = Symbol('visitedTypes');
-/**
- * An ASTWalker walks an array of ASTs such as the type produced by
- * parseExpressions and invokes a callback for a configured set of nodes that
- * the user wishes to "visit" during the walk.
- */
-class ASTWalker {
-    constructor(visitedTypes) {
-        this[$visitedTypes] = visitedTypes;
-    }
-    /**
-     * Walk the given set of ASTs, and invoke the provided callback for nodes that
-     * match the filtered set that the ASTWalker was constructed with.
-     */
-    walk(ast, callback) {
-        const remaining = ast.slice();
-        while (remaining.length) {
-            const next = remaining.shift();
-            if (this[$visitedTypes].indexOf(next.type) > -1) {
-                callback(next);
-            }
-            switch (next.type) {
-                case 'expression':
-                    remaining.unshift(...next.terms);
-                    break;
-                case 'function':
-                    remaining.unshift(next.name, ...next.arguments);
-                    break;
-            }
-        }
-    }
-}
-const ZERO = Object.freeze({ type: 'number', number: 0, unit: null });
+class GLTFExporter {
 
-/* @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-/**
- * Ensures that a given number is expressed in radians. If the number is already
- * in radians, does nothing. If the value is in degrees, converts it to radians.
- * If the value has no specified unit, the unit is assumed to be radians. If the
- * value is not in radians or degrees, the value is resolved as 0 radians.
- *
- * Also accepts a second argument that is a default value to use if the input
- * numberNode number is NaN or Infinity.
- */
-const degreesToRadians = (numberNode, fallbackRadianValue = 0) => {
-    let { number, unit } = numberNode;
-    if (!isFinite(number)) {
-        number = fallbackRadianValue;
-        unit = 'rad';
-    }
-    else if (numberNode.unit === 'rad' || numberNode.unit == null) {
-        return numberNode;
-    }
-    const valueIsDegrees = unit === 'deg' && number != null;
-    const value = valueIsDegrees ? number : 0;
-    const radians = value * Math.PI / 180;
-    return { type: 'number', number: radians, unit: 'rad' };
-};
-/**
- * Converts a given length to meters. Currently supported input units are
- * meters, centimeters and millimeters.
- *
- * Also accepts a second argument that is a default value to use if the input
- * numberNode number is NaN or Infinity.
- */
-const lengthToBaseMeters = (numberNode, fallbackMeterValue = 0) => {
-    let { number, unit } = numberNode;
-    if (!isFinite(number)) {
-        number = fallbackMeterValue;
-        unit = 'm';
-    }
-    else if (numberNode.unit === 'm') {
-        return numberNode;
-    }
-    let scale;
-    switch (unit) {
-        default:
-            scale = 1;
-            break;
-        case 'cm':
-            scale = 1 / 100;
-            break;
-        case 'mm':
-            scale = 1 / 1000;
-            break;
-    }
-    const value = scale * number;
-    return { type: 'number', number: value, unit: 'm' };
-};
-/**
- * Normalizes the unit of a given input number so that it is expressed in a
- * preferred unit. For length nodes, the return value will be expressed in
- * meters. For angle nodes, the return value will be expressed in radians.
- *
- * Also takes a fallback number that is used when the number value is not a
- * valid number or when the unit of the given number cannot be normalized.
- */
-const normalizeUnit = (() => {
-    const identity = (node) => node;
-    const unitNormalizers = {
-        'rad': identity,
-        'deg': degreesToRadians,
-        'm': identity,
-        'mm': lengthToBaseMeters,
-        'cm': lengthToBaseMeters
-    };
-    return (node, fallback = ZERO) => {
-        if (!isFinite(node.number)) {
-            node.number = fallback.number;
-            node.unit = fallback.unit;
-        }
-        const { unit } = node;
-        if (unit == null) {
-            return node;
-        }
-        const normalize = unitNormalizers[unit];
-        if (normalize == null) {
-            return fallback;
-        }
-        return normalize(node);
-    };
-})();
+	constructor() {
 
-/* @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-const SETTLING_TIME = 10000; // plenty long enough
-const MIN_DECAY_MILLISECONDS = 0.001;
-const DECAY_MILLISECONDS = 50;
-/**
- * The Damper class is a generic second-order critically damped system that does
- * one linear step of the desired length of time. The only parameter is
- * DECAY_MILLISECONDS. This common parameter makes all states converge at the
- * same rate regardless of scale. xNormalization is a number to provide the
- * rough scale of x, such that NIL_SPEED clamping also happens at roughly the
- * same convergence for all states.
- */
-class Damper {
-    constructor(decayMilliseconds = DECAY_MILLISECONDS) {
-        this.velocity = 0;
-        this.naturalFrequency = 0;
-        this.setDecayTime(decayMilliseconds);
-    }
-    setDecayTime(decayMilliseconds) {
-        this.naturalFrequency =
-            1 / Math.max(MIN_DECAY_MILLISECONDS, decayMilliseconds);
-    }
-    update(x, xGoal, timeStepMilliseconds, xNormalization) {
-        const nilSpeed = 0.0002 * this.naturalFrequency;
-        if (x == null || xNormalization === 0) {
-            return xGoal;
-        }
-        if (x === xGoal && this.velocity === 0) {
-            return xGoal;
-        }
-        if (timeStepMilliseconds < 0) {
-            return x;
-        }
-        // Exact solution to a critically damped second-order system, where:
-        // acceleration = this.naturalFrequency * this.naturalFrequency * (xGoal
-        // - x) - 2 * this.naturalFrequency * this.velocity;
-        const deltaX = (x - xGoal);
-        const intermediateVelocity = this.velocity + this.naturalFrequency * deltaX;
-        const intermediateX = deltaX + timeStepMilliseconds * intermediateVelocity;
-        const decay = Math.exp(-this.naturalFrequency * timeStepMilliseconds);
-        const newVelocity = (intermediateVelocity - this.naturalFrequency * intermediateX) * decay;
-        const acceleration = -this.naturalFrequency * (newVelocity + intermediateVelocity * decay);
-        if (Math.abs(newVelocity) < nilSpeed * Math.abs(xNormalization) &&
-            acceleration * deltaX >= 0) {
-            // This ensures the controls settle and stop calling this function instead
-            // of asymptotically approaching their goal.
-            this.velocity = 0;
-            return xGoal;
-        }
-        else {
-            this.velocity = newVelocity;
-            return xGoal + intermediateX * decay;
-        }
-    }
+		this.pluginCallbacks = [];
+
+		this.register( function ( writer ) {
+
+			return new GLTFLightExtension( writer );
+
+		} );
+
+		this.register( function ( writer ) {
+
+			return new GLTFMaterialsUnlitExtension( writer );
+
+		} );
+
+		this.register( function ( writer ) {
+
+			return new GLTFMaterialsTransmissionExtension( writer );
+
+		} );
+
+		this.register( function ( writer ) {
+
+			return new GLTFMaterialsVolumeExtension( writer );
+
+		} );
+
+		this.register( function ( writer ) {
+
+			return new GLTFMaterialsClearcoatExtension( writer );
+
+		} );
+
+		this.register( function ( writer ) {
+
+			return new GLTFMaterialsIridescenceExtension( writer );
+
+		} );
+
+	}
+
+	register( callback ) {
+
+		if ( this.pluginCallbacks.indexOf( callback ) === - 1 ) {
+
+			this.pluginCallbacks.push( callback );
+
+		}
+
+		return this;
+
+	}
+
+	unregister( callback ) {
+
+		if ( this.pluginCallbacks.indexOf( callback ) !== - 1 ) {
+
+			this.pluginCallbacks.splice( this.pluginCallbacks.indexOf( callback ), 1 );
+
+		}
+
+		return this;
+
+	}
+
+	/**
+	 * Parse scenes and generate GLTF output
+	 * @param  {Scene or [THREE.Scenes]} input   Scene or Array of THREE.Scenes
+	 * @param  {Function} onDone  Callback on completed
+	 * @param  {Function} onError  Callback on errors
+	 * @param  {Object} options options
+	 */
+	parse( input, onDone, onError, options ) {
+
+		const writer = new GLTFWriter();
+		const plugins = [];
+
+		for ( let i = 0, il = this.pluginCallbacks.length; i < il; i ++ ) {
+
+			plugins.push( this.pluginCallbacks[ i ]( writer ) );
+
+		}
+
+		writer.setPlugins( plugins );
+		writer.write( input, onDone, options ).catch( onError );
+
+	}
+
+	parseAsync( input, options ) {
+
+		const scope = this;
+
+		return new Promise( function ( resolve, reject ) {
+
+			scope.parse( input, resolve, reject, options );
+
+		} );
+
+	}
+
 }
 
-/* @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-/**
- * The Hotspot object is a reference-counted slot. If decrement() returns true,
- * it should be removed from the tree so it can be garbage-collected.
- */
-class Hotspot extends CSS2DObject {
-    constructor(config) {
-        super(document.createElement('div'));
-        this.normal = new Vector3(0, 1, 0);
-        this.initialized = false;
-        this.referenceCount = 1;
-        this.pivot = document.createElement('div');
-        this.slot = document.createElement('slot');
-        this.element.classList.add('annotation-wrapper');
-        this.slot.name = config.name;
-        this.element.appendChild(this.pivot);
-        this.pivot.appendChild(this.slot);
-        this.updatePosition(config.position);
-        this.updateNormal(config.normal);
-    }
-    get facingCamera() {
-        return !this.element.classList.contains('hide');
-    }
-    /**
-     * Sets the hotspot to be in the highly visible foreground state.
-     */
-    show() {
-        if (!this.facingCamera || !this.initialized) {
-            this.updateVisibility(true);
-        }
-    }
-    /**
-     * Sets the hotspot to be in the diminished background state.
-     */
-    hide() {
-        if (this.facingCamera || !this.initialized) {
-            this.updateVisibility(false);
-        }
-    }
-    /**
-     * Call this when adding elements to the same slot to keep track.
-     */
-    increment() {
-        this.referenceCount++;
-    }
-    /**
-     * Call this when removing elements from the slot; returns true when the slot
-     * is unused.
-     */
-    decrement() {
-        if (this.referenceCount > 0) {
-            --this.referenceCount;
-        }
-        return this.referenceCount === 0;
-    }
-    /**
-     * Change the position of the hotspot to the input string, in the same format
-     * as the data-position attribute.
-     */
-    updatePosition(position) {
-        if (position == null)
-            return;
-        const positionNodes = parseExpressions(position)[0].terms;
-        for (let i = 0; i < 3; ++i) {
-            this.position.setComponent(i, normalizeUnit(positionNodes[i]).number);
-        }
-        this.updateMatrixWorld();
-    }
-    /**
-     * Change the hotspot's normal to the input string, in the same format as the
-     * data-normal attribute.
-     */
-    updateNormal(normal) {
-        if (normal == null)
-            return;
-        const normalNodes = parseExpressions(normal)[0].terms;
-        for (let i = 0; i < 3; ++i) {
-            this.normal.setComponent(i, normalizeUnit(normalNodes[i]).number);
-        }
-    }
-    orient(radians) {
-        this.pivot.style.transform = `rotate(${radians}rad)`;
-    }
-    updateVisibility(show) {
-        // NOTE: IE11 doesn't support a second arg for classList.toggle
-        if (show) {
-            this.element.classList.remove('hide');
-        }
-        else {
-            this.element.classList.add('hide');
-        }
-        // NOTE: ShadyDOM doesn't support slot.assignedElements, otherwise we could
-        // use that here.
-        this.slot.assignedNodes().forEach((node) => {
-            if (node.nodeType !== Node.ELEMENT_NODE) {
-                return;
-            }
-            const element = node;
-            // Visibility attribute can be configured per-node in the hotspot:
-            const visibilityAttribute = element.dataset.visibilityAttribute;
-            if (visibilityAttribute != null) {
-                const attributeName = `data-${visibilityAttribute}`;
-                // NOTE: IE11 doesn't support toggleAttribute
-                if (show) {
-                    element.setAttribute(attributeName, '');
-                }
-                else {
-                    element.removeAttribute(attributeName);
-                }
-            }
-            element.dispatchEvent(new CustomEvent('hotspot-visibility', {
-                detail: {
-                    visible: show,
-                },
-            }));
-        });
-        this.initialized = true;
-    }
-}
+//------------------------------------------------------------------------------
+// Constants
+//------------------------------------------------------------------------------
 
-/* @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-/**
- * Performs a reduction across all the vertices of the input model and all its
- * children. The supplied function takes the reduced value and a vertex and
- * returns the newly reduced value. The value is initialized as zero.
- *
- * Adapted from Three.js, @see https://github.com/mrdoob/three.js/blob/7e0a78beb9317e580d7fa4da9b5b12be051c6feb/src/math/Box3.js#L241
- */
-const reduceVertices = (model, func, initialValue) => {
-    let value = initialValue;
-    const vertex = new Vector3();
-    model.traverseVisible((object) => {
-        let i, l;
-        object.updateWorldMatrix(false, false);
-        const geometry = object.geometry;
-        if (geometry !== undefined) {
-            if (geometry.isGeometry) {
-                const vertices = geometry.vertices;
-                for (i = 0, l = vertices.length; i < l; i++) {
-                    vertex.copy(vertices[i]);
-                    if (object.isSkinnedMesh) {
-                        object.boneTransform(i, vertex);
-                    }
-                    else {
-                        vertex.applyMatrix4(object.matrixWorld);
-                    }
-                    value = func(value, vertex);
-                }
-            }
-            else if (geometry.isBufferGeometry) {
-                const { position } = geometry.attributes;
-                if (position !== undefined) {
-                    for (i = 0, l = position.count; i < l; i++) {
-                        vertex.fromBufferAttribute(position, i);
-                        if (object.isSkinnedMesh) {
-                            object.boneTransform(i, vertex);
-                        }
-                        else {
-                            vertex.applyMatrix4(object.matrixWorld);
-                        }
-                        value = func(value, vertex);
-                    }
-                }
-            }
-        }
-    });
-    return value;
+const WEBGL_CONSTANTS = {
+	POINTS: 0x0000,
+	LINES: 0x0001,
+	LINE_LOOP: 0x0002,
+	LINE_STRIP: 0x0003,
+	TRIANGLES: 0x0004,
+	TRIANGLE_STRIP: 0x0005,
+	TRIANGLE_FAN: 0x0006,
+
+	UNSIGNED_BYTE: 0x1401,
+	UNSIGNED_SHORT: 0x1403,
+	FLOAT: 0x1406,
+	UNSIGNED_INT: 0x1405,
+	ARRAY_BUFFER: 0x8892,
+	ELEMENT_ARRAY_BUFFER: 0x8893,
+
+	NEAREST: 0x2600,
+	LINEAR: 0x2601,
+	NEAREST_MIPMAP_NEAREST: 0x2700,
+	LINEAR_MIPMAP_NEAREST: 0x2701,
+	NEAREST_MIPMAP_LINEAR: 0x2702,
+	LINEAR_MIPMAP_LINEAR: 0x2703,
+
+	CLAMP_TO_EDGE: 33071,
+	MIRRORED_REPEAT: 33648,
+	REPEAT: 10497
 };
 
+const THREE_TO_WEBGL = {};
+
+THREE_TO_WEBGL[ NearestFilter ] = WEBGL_CONSTANTS.NEAREST;
+THREE_TO_WEBGL[ NearestMipmapNearestFilter ] = WEBGL_CONSTANTS.NEAREST_MIPMAP_NEAREST;
+THREE_TO_WEBGL[ NearestMipmapLinearFilter ] = WEBGL_CONSTANTS.NEAREST_MIPMAP_LINEAR;
+THREE_TO_WEBGL[ LinearFilter ] = WEBGL_CONSTANTS.LINEAR;
+THREE_TO_WEBGL[ LinearMipmapNearestFilter ] = WEBGL_CONSTANTS.LINEAR_MIPMAP_NEAREST;
+THREE_TO_WEBGL[ LinearMipmapLinearFilter ] = WEBGL_CONSTANTS.LINEAR_MIPMAP_LINEAR;
+
+THREE_TO_WEBGL[ ClampToEdgeWrapping ] = WEBGL_CONSTANTS.CLAMP_TO_EDGE;
+THREE_TO_WEBGL[ RepeatWrapping ] = WEBGL_CONSTANTS.REPEAT;
+THREE_TO_WEBGL[ MirroredRepeatWrapping ] = WEBGL_CONSTANTS.MIRRORED_REPEAT;
+
+const PATH_PROPERTIES = {
+	scale: 'scale',
+	position: 'translation',
+	quaternion: 'rotation',
+	morphTargetInfluences: 'weights'
+};
+
+// GLB constants
+// https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#glb-file-format-specification
+
+const GLB_HEADER_BYTES = 12;
+const GLB_HEADER_MAGIC = 0x46546C67;
+const GLB_VERSION = 2;
+
+const GLB_CHUNK_PREFIX_BYTES = 8;
+const GLB_CHUNK_TYPE_JSON = 0x4E4F534A;
+const GLB_CHUNK_TYPE_BIN = 0x004E4942;
+
+//------------------------------------------------------------------------------
+// Utility functions
+//------------------------------------------------------------------------------
+
 /**
- * Two pass Gaussian blur filter (horizontal and vertical blur shaders)
- * - see http://www.cake23.de/traveling-wavefronts-lit-up.html
- *
- * - 9 samples per pass
- * - standard deviation 2.7
- * - "h" and "v" parameters should be set to "1 / width" and "1 / height"
+ * Compare two arrays
+ * @param  {Array} array1 Array 1 to compare
+ * @param  {Array} array2 Array 2 to compare
+ * @return {Boolean}        Returns true if both arrays are equal
  */
+function equalArray( array1, array2 ) {
 
-const HorizontalBlurShader = {
+	return ( array1.length === array2.length ) && array1.every( function ( element, index ) {
 
-	uniforms: {
+		return element === array2[ index ];
 
-		'tDiffuse': { value: null },
-		'h': { value: 1.0 / 512.0 }
+	} );
+
+}
+
+/**
+ * Converts a string to an ArrayBuffer.
+ * @param  {string} text
+ * @return {ArrayBuffer}
+ */
+function stringToArrayBuffer( text ) {
+
+	return new TextEncoder().encode( text ).buffer;
+
+}
+
+/**
+ * Is identity matrix
+ *
+ * @param {Matrix4} matrix
+ * @returns {Boolean} Returns true, if parameter is identity matrix
+ */
+function isIdentityMatrix( matrix ) {
+
+	return equalArray( matrix.elements, [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ] );
+
+}
+
+/**
+ * Get the min and max vectors from the given attribute
+ * @param  {BufferAttribute} attribute Attribute to find the min/max in range from start to start + count
+ * @param  {Integer} start
+ * @param  {Integer} count
+ * @return {Object} Object containing the `min` and `max` values (As an array of attribute.itemSize components)
+ */
+function getMinMax( attribute, start, count ) {
+
+	const output = {
+
+		min: new Array( attribute.itemSize ).fill( Number.POSITIVE_INFINITY ),
+		max: new Array( attribute.itemSize ).fill( Number.NEGATIVE_INFINITY )
+
+	};
+
+	for ( let i = start; i < start + count; i ++ ) {
+
+		for ( let a = 0; a < attribute.itemSize; a ++ ) {
+
+			let value;
+
+			if ( attribute.itemSize > 4 ) {
+
+				 // no support for interleaved data for itemSize > 4
+
+				value = attribute.array[ i * attribute.itemSize + a ];
+
+			} else {
+
+				if ( a === 0 ) value = attribute.getX( i );
+				else if ( a === 1 ) value = attribute.getY( i );
+				else if ( a === 2 ) value = attribute.getZ( i );
+				else if ( a === 3 ) value = attribute.getW( i );
+
+				if ( attribute.normalized === true ) {
+
+					value = MathUtils.normalize( value, attribute.array );
+
+				}
+
+			}
+
+			output.min[ a ] = Math.min( output.min[ a ], value );
+			output.max[ a ] = Math.max( output.max[ a ], value );
+
+		}
+
+	}
+
+	return output;
+
+}
+
+/**
+ * Get the required size + padding for a buffer, rounded to the next 4-byte boundary.
+ * https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#data-alignment
+ *
+ * @param {Integer} bufferSize The size the original buffer.
+ * @returns {Integer} new buffer size with required padding.
+ *
+ */
+function getPaddedBufferSize( bufferSize ) {
+
+	return Math.ceil( bufferSize / 4 ) * 4;
+
+}
+
+/**
+ * Returns a buffer aligned to 4-byte boundary.
+ *
+ * @param {ArrayBuffer} arrayBuffer Buffer to pad
+ * @param {Integer} paddingByte (Optional)
+ * @returns {ArrayBuffer} The same buffer if it's already aligned to 4-byte boundary or a new buffer
+ */
+function getPaddedArrayBuffer( arrayBuffer, paddingByte = 0 ) {
+
+	const paddedLength = getPaddedBufferSize( arrayBuffer.byteLength );
+
+	if ( paddedLength !== arrayBuffer.byteLength ) {
+
+		const array = new Uint8Array( paddedLength );
+		array.set( new Uint8Array( arrayBuffer ) );
+
+		if ( paddingByte !== 0 ) {
+
+			for ( let i = arrayBuffer.byteLength; i < paddedLength; i ++ ) {
+
+				array[ i ] = paddingByte;
+
+			}
+
+		}
+
+		return array.buffer;
+
+	}
+
+	return arrayBuffer;
+
+}
+
+function getCanvas() {
+
+	if ( typeof document === 'undefined' && typeof OffscreenCanvas !== 'undefined' ) {
+
+		return new OffscreenCanvas( 1, 1 );
+
+	}
+
+	return document.createElement( 'canvas' );
+
+}
+
+function getToBlobPromise( canvas, mimeType ) {
+
+	if ( canvas.toBlob !== undefined ) {
+
+		return new Promise( ( resolve ) => canvas.toBlob( resolve, mimeType ) );
+
+	}
+
+	let quality;
+
+	// Blink's implementation of convertToBlob seems to default to a quality level of 100%
+	// Use the Blink default quality levels of toBlob instead so that file sizes are comparable.
+	if ( mimeType === 'image/jpeg' ) {
+
+		quality = 0.92;
+
+	} else if ( mimeType === 'image/webp' ) {
+
+		quality = 0.8;
+
+	}
+
+	return canvas.convertToBlob( {
+
+		type: mimeType,
+		quality: quality
+
+	} );
+
+}
+
+/**
+ * Writer
+ */
+class GLTFWriter {
+
+	constructor() {
+
+		this.plugins = [];
+
+		this.options = {};
+		this.pending = [];
+		this.buffers = [];
+
+		this.byteOffset = 0;
+		this.buffers = [];
+		this.nodeMap = new Map();
+		this.skins = [];
+		this.extensionsUsed = {};
+
+		this.uids = new Map();
+		this.uid = 0;
+
+		this.json = {
+			asset: {
+				version: '2.0',
+				generator: 'THREE.GLTFExporter'
+			}
+		};
+
+		this.cache = {
+			meshes: new Map(),
+			attributes: new Map(),
+			attributesNormalized: new Map(),
+			materials: new Map(),
+			textures: new Map(),
+			images: new Map()
+		};
+
+	}
+
+	setPlugins( plugins ) {
+
+		this.plugins = plugins;
+
+	}
+
+	/**
+	 * Parse scenes and generate GLTF output
+	 * @param  {Scene or [THREE.Scenes]} input   Scene or Array of THREE.Scenes
+	 * @param  {Function} onDone  Callback on completed
+	 * @param  {Object} options options
+	 */
+	async write( input, onDone, options = {} ) {
+
+		this.options = Object.assign( {
+			// default options
+			binary: false,
+			trs: false,
+			onlyVisible: true,
+			maxTextureSize: Infinity,
+			animations: [],
+			includeCustomExtensions: false
+		}, options );
+
+		if ( this.options.animations.length > 0 ) {
+
+			// Only TRS properties, and not matrices, may be targeted by animation.
+			this.options.trs = true;
+
+		}
+
+		this.processInput( input );
+
+		await Promise.all( this.pending );
+
+		const writer = this;
+		const buffers = writer.buffers;
+		const json = writer.json;
+		options = writer.options;
+		const extensionsUsed = writer.extensionsUsed;
+
+		// Merge buffers.
+		const blob = new Blob( buffers, { type: 'application/octet-stream' } );
+
+		// Declare extensions.
+		const extensionsUsedList = Object.keys( extensionsUsed );
+
+		if ( extensionsUsedList.length > 0 ) json.extensionsUsed = extensionsUsedList;
+
+		// Update bytelength of the single buffer.
+		if ( json.buffers && json.buffers.length > 0 ) json.buffers[ 0 ].byteLength = blob.size;
+
+		if ( options.binary === true ) {
+
+			// https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#glb-file-format-specification
+
+			const reader = new FileReader();
+			reader.readAsArrayBuffer( blob );
+			reader.onloadend = function () {
+
+				// Binary chunk.
+				const binaryChunk = getPaddedArrayBuffer( reader.result );
+				const binaryChunkPrefix = new DataView( new ArrayBuffer( GLB_CHUNK_PREFIX_BYTES ) );
+				binaryChunkPrefix.setUint32( 0, binaryChunk.byteLength, true );
+				binaryChunkPrefix.setUint32( 4, GLB_CHUNK_TYPE_BIN, true );
+
+				// JSON chunk.
+				const jsonChunk = getPaddedArrayBuffer( stringToArrayBuffer( JSON.stringify( json ) ), 0x20 );
+				const jsonChunkPrefix = new DataView( new ArrayBuffer( GLB_CHUNK_PREFIX_BYTES ) );
+				jsonChunkPrefix.setUint32( 0, jsonChunk.byteLength, true );
+				jsonChunkPrefix.setUint32( 4, GLB_CHUNK_TYPE_JSON, true );
+
+				// GLB header.
+				const header = new ArrayBuffer( GLB_HEADER_BYTES );
+				const headerView = new DataView( header );
+				headerView.setUint32( 0, GLB_HEADER_MAGIC, true );
+				headerView.setUint32( 4, GLB_VERSION, true );
+				const totalByteLength = GLB_HEADER_BYTES
+					+ jsonChunkPrefix.byteLength + jsonChunk.byteLength
+					+ binaryChunkPrefix.byteLength + binaryChunk.byteLength;
+				headerView.setUint32( 8, totalByteLength, true );
+
+				const glbBlob = new Blob( [
+					header,
+					jsonChunkPrefix,
+					jsonChunk,
+					binaryChunkPrefix,
+					binaryChunk
+				], { type: 'application/octet-stream' } );
+
+				const glbReader = new FileReader();
+				glbReader.readAsArrayBuffer( glbBlob );
+				glbReader.onloadend = function () {
+
+					onDone( glbReader.result );
+
+				};
+
+			};
+
+		} else {
+
+			if ( json.buffers && json.buffers.length > 0 ) {
+
+				const reader = new FileReader();
+				reader.readAsDataURL( blob );
+				reader.onloadend = function () {
+
+					const base64data = reader.result;
+					json.buffers[ 0 ].uri = base64data;
+					onDone( json );
+
+				};
+
+			} else {
+
+				onDone( json );
+
+			}
+
+		}
+
+
+	}
+
+	/**
+	 * Serializes a userData.
+	 *
+	 * @param {THREE.Object3D|THREE.Material} object
+	 * @param {Object} objectDef
+	 */
+	serializeUserData( object, objectDef ) {
+
+		if ( Object.keys( object.userData ).length === 0 ) return;
+
+		const options = this.options;
+		const extensionsUsed = this.extensionsUsed;
+
+		try {
+
+			const json = JSON.parse( JSON.stringify( object.userData ) );
+
+			if ( options.includeCustomExtensions && json.gltfExtensions ) {
+
+				if ( objectDef.extensions === undefined ) objectDef.extensions = {};
+
+				for ( const extensionName in json.gltfExtensions ) {
+
+					objectDef.extensions[ extensionName ] = json.gltfExtensions[ extensionName ];
+					extensionsUsed[ extensionName ] = true;
+
+				}
+
+				delete json.gltfExtensions;
+
+			}
+
+			if ( Object.keys( json ).length > 0 ) objectDef.extras = json;
+
+		} catch ( error ) {
+
+			console.warn( 'THREE.GLTFExporter: userData of \'' + object.name + '\' ' +
+				'won\'t be serialized because of JSON.stringify error - ' + error.message );
+
+		}
+
+	}
+
+	/**
+	 * Returns ids for buffer attributes.
+	 * @param  {Object} object
+	 * @return {Integer}
+	 */
+	getUID( attribute, isRelativeCopy = false ) {
+
+		if ( this.uids.has( attribute ) === false ) {
+
+			const uids = new Map();
+
+			uids.set( true, this.uid ++ );
+			uids.set( false, this.uid ++ );
+
+			this.uids.set( attribute, uids );
+
+		}
+
+		const uids = this.uids.get( attribute );
+
+		return uids.get( isRelativeCopy );
+
+	}
+
+	/**
+	 * Checks if normal attribute values are normalized.
+	 *
+	 * @param {BufferAttribute} normal
+	 * @returns {Boolean}
+	 */
+	isNormalizedNormalAttribute( normal ) {
+
+		const cache = this.cache;
+
+		if ( cache.attributesNormalized.has( normal ) ) return false;
+
+		const v = new Vector3();
+
+		for ( let i = 0, il = normal.count; i < il; i ++ ) {
+
+			// 0.0005 is from glTF-validator
+			if ( Math.abs( v.fromBufferAttribute( normal, i ).length() - 1.0 ) > 0.0005 ) return false;
+
+		}
+
+		return true;
+
+	}
+
+	/**
+	 * Creates normalized normal buffer attribute.
+	 *
+	 * @param {BufferAttribute} normal
+	 * @returns {BufferAttribute}
+	 *
+	 */
+	createNormalizedNormalAttribute( normal ) {
+
+		const cache = this.cache;
+
+		if ( cache.attributesNormalized.has( normal ) )	return cache.attributesNormalized.get( normal );
+
+		const attribute = normal.clone();
+		const v = new Vector3();
+
+		for ( let i = 0, il = attribute.count; i < il; i ++ ) {
+
+			v.fromBufferAttribute( attribute, i );
+
+			if ( v.x === 0 && v.y === 0 && v.z === 0 ) {
+
+				// if values can't be normalized set (1, 0, 0)
+				v.setX( 1.0 );
+
+			} else {
+
+				v.normalize();
+
+			}
+
+			attribute.setXYZ( i, v.x, v.y, v.z );
+
+		}
+
+		cache.attributesNormalized.set( normal, attribute );
+
+		return attribute;
+
+	}
+
+	/**
+	 * Applies a texture transform, if present, to the map definition. Requires
+	 * the KHR_texture_transform extension.
+	 *
+	 * @param {Object} mapDef
+	 * @param {THREE.Texture} texture
+	 */
+	applyTextureTransform( mapDef, texture ) {
+
+		let didTransform = false;
+		const transformDef = {};
+
+		if ( texture.offset.x !== 0 || texture.offset.y !== 0 ) {
+
+			transformDef.offset = texture.offset.toArray();
+			didTransform = true;
+
+		}
+
+		if ( texture.rotation !== 0 ) {
+
+			transformDef.rotation = texture.rotation;
+			didTransform = true;
+
+		}
+
+		if ( texture.repeat.x !== 1 || texture.repeat.y !== 1 ) {
+
+			transformDef.scale = texture.repeat.toArray();
+			didTransform = true;
+
+		}
+
+		if ( didTransform ) {
+
+			mapDef.extensions = mapDef.extensions || {};
+			mapDef.extensions[ 'KHR_texture_transform' ] = transformDef;
+			this.extensionsUsed[ 'KHR_texture_transform' ] = true;
+
+		}
+
+	}
+
+	buildMetalRoughTexture( metalnessMap, roughnessMap ) {
+
+		if ( metalnessMap === roughnessMap ) return metalnessMap;
+
+		function getEncodingConversion( map ) {
+
+			if ( map.encoding === sRGBEncoding ) {
+
+				return function SRGBToLinear( c ) {
+
+					return ( c < 0.04045 ) ? c * 0.0773993808 : Math.pow( c * 0.9478672986 + 0.0521327014, 2.4 );
+
+				};
+
+			}
+
+			return function LinearToLinear( c ) {
+
+				return c;
+
+			};
+
+		}
+
+		console.warn( 'THREE.GLTFExporter: Merged metalnessMap and roughnessMap textures.' );
+
+		const metalness = metalnessMap?.image;
+		const roughness = roughnessMap?.image;
+
+		const width = Math.max( metalness?.width || 0, roughness?.width || 0 );
+		const height = Math.max( metalness?.height || 0, roughness?.height || 0 );
+
+		const canvas = getCanvas();
+		canvas.width = width;
+		canvas.height = height;
+
+		const context = canvas.getContext( '2d' );
+		context.fillStyle = '#00ffff';
+		context.fillRect( 0, 0, width, height );
+
+		const composite = context.getImageData( 0, 0, width, height );
+
+		if ( metalness ) {
+
+			context.drawImage( metalness, 0, 0, width, height );
+
+			const convert = getEncodingConversion( metalnessMap );
+			const data = context.getImageData( 0, 0, width, height ).data;
+
+			for ( let i = 2; i < data.length; i += 4 ) {
+
+				composite.data[ i ] = convert( data[ i ] / 256 ) * 256;
+
+			}
+
+		}
+
+		if ( roughness ) {
+
+			context.drawImage( roughness, 0, 0, width, height );
+
+			const convert = getEncodingConversion( roughnessMap );
+			const data = context.getImageData( 0, 0, width, height ).data;
+
+			for ( let i = 1; i < data.length; i += 4 ) {
+
+				composite.data[ i ] = convert( data[ i ] / 256 ) * 256;
+
+			}
+
+		}
+
+		context.putImageData( composite, 0, 0 );
+
+		//
+
+		const reference = metalnessMap || roughnessMap;
+
+		const texture = reference.clone();
+
+		texture.source = new Source( canvas );
+		texture.encoding = LinearEncoding;
+
+		return texture;
+
+	}
+
+	/**
+	 * Process a buffer to append to the default one.
+	 * @param  {ArrayBuffer} buffer
+	 * @return {Integer}
+	 */
+	processBuffer( buffer ) {
+
+		const json = this.json;
+		const buffers = this.buffers;
+
+		if ( ! json.buffers ) json.buffers = [ { byteLength: 0 } ];
+
+		// All buffers are merged before export.
+		buffers.push( buffer );
+
+		return 0;
+
+	}
+
+	/**
+	 * Process and generate a BufferView
+	 * @param  {BufferAttribute} attribute
+	 * @param  {number} componentType
+	 * @param  {number} start
+	 * @param  {number} count
+	 * @param  {number} target (Optional) Target usage of the BufferView
+	 * @return {Object}
+	 */
+	processBufferView( attribute, componentType, start, count, target ) {
+
+		const json = this.json;
+
+		if ( ! json.bufferViews ) json.bufferViews = [];
+
+		// Create a new dataview and dump the attribute's array into it
+
+		let componentSize;
+
+		if ( componentType === WEBGL_CONSTANTS.UNSIGNED_BYTE ) {
+
+			componentSize = 1;
+
+		} else if ( componentType === WEBGL_CONSTANTS.UNSIGNED_SHORT ) {
+
+			componentSize = 2;
+
+		} else {
+
+			componentSize = 4;
+
+		}
+
+		const byteLength = getPaddedBufferSize( count * attribute.itemSize * componentSize );
+		const dataView = new DataView( new ArrayBuffer( byteLength ) );
+		let offset = 0;
+
+		for ( let i = start; i < start + count; i ++ ) {
+
+			for ( let a = 0; a < attribute.itemSize; a ++ ) {
+
+				let value;
+
+				if ( attribute.itemSize > 4 ) {
+
+					 // no support for interleaved data for itemSize > 4
+
+					value = attribute.array[ i * attribute.itemSize + a ];
+
+				} else {
+
+					if ( a === 0 ) value = attribute.getX( i );
+					else if ( a === 1 ) value = attribute.getY( i );
+					else if ( a === 2 ) value = attribute.getZ( i );
+					else if ( a === 3 ) value = attribute.getW( i );
+
+					if ( attribute.normalized === true ) {
+
+						value = MathUtils.normalize( value, attribute.array );
+
+					}
+
+				}
+
+				if ( componentType === WEBGL_CONSTANTS.FLOAT ) {
+
+					dataView.setFloat32( offset, value, true );
+
+				} else if ( componentType === WEBGL_CONSTANTS.UNSIGNED_INT ) {
+
+					dataView.setUint32( offset, value, true );
+
+				} else if ( componentType === WEBGL_CONSTANTS.UNSIGNED_SHORT ) {
+
+					dataView.setUint16( offset, value, true );
+
+				} else if ( componentType === WEBGL_CONSTANTS.UNSIGNED_BYTE ) {
+
+					dataView.setUint8( offset, value );
+
+				}
+
+				offset += componentSize;
+
+			}
+
+		}
+
+		const bufferViewDef = {
+
+			buffer: this.processBuffer( dataView.buffer ),
+			byteOffset: this.byteOffset,
+			byteLength: byteLength
+
+		};
+
+		if ( target !== undefined ) bufferViewDef.target = target;
+
+		if ( target === WEBGL_CONSTANTS.ARRAY_BUFFER ) {
+
+			// Only define byteStride for vertex attributes.
+			bufferViewDef.byteStride = attribute.itemSize * componentSize;
+
+		}
+
+		this.byteOffset += byteLength;
+
+		json.bufferViews.push( bufferViewDef );
+
+		// @TODO Merge bufferViews where possible.
+		const output = {
+
+			id: json.bufferViews.length - 1,
+			byteLength: 0
+
+		};
+
+		return output;
+
+	}
+
+	/**
+	 * Process and generate a BufferView from an image Blob.
+	 * @param {Blob} blob
+	 * @return {Promise<Integer>}
+	 */
+	processBufferViewImage( blob ) {
+
+		const writer = this;
+		const json = writer.json;
+
+		if ( ! json.bufferViews ) json.bufferViews = [];
+
+		return new Promise( function ( resolve ) {
+
+			const reader = new FileReader();
+			reader.readAsArrayBuffer( blob );
+			reader.onloadend = function () {
+
+				const buffer = getPaddedArrayBuffer( reader.result );
+
+				const bufferViewDef = {
+					buffer: writer.processBuffer( buffer ),
+					byteOffset: writer.byteOffset,
+					byteLength: buffer.byteLength
+				};
+
+				writer.byteOffset += buffer.byteLength;
+				resolve( json.bufferViews.push( bufferViewDef ) - 1 );
+
+			};
+
+		} );
+
+	}
+
+	/**
+	 * Process attribute to generate an accessor
+	 * @param  {BufferAttribute} attribute Attribute to process
+	 * @param  {THREE.BufferGeometry} geometry (Optional) Geometry used for truncated draw range
+	 * @param  {Integer} start (Optional)
+	 * @param  {Integer} count (Optional)
+	 * @return {Integer|null} Index of the processed accessor on the "accessors" array
+	 */
+	processAccessor( attribute, geometry, start, count ) {
+
+		const json = this.json;
+
+		const types = {
+
+			1: 'SCALAR',
+			2: 'VEC2',
+			3: 'VEC3',
+			4: 'VEC4',
+			16: 'MAT4'
+
+		};
+
+		let componentType;
+
+		// Detect the component type of the attribute array (float, uint or ushort)
+		if ( attribute.array.constructor === Float32Array ) {
+
+			componentType = WEBGL_CONSTANTS.FLOAT;
+
+		} else if ( attribute.array.constructor === Uint32Array ) {
+
+			componentType = WEBGL_CONSTANTS.UNSIGNED_INT;
+
+		} else if ( attribute.array.constructor === Uint16Array ) {
+
+			componentType = WEBGL_CONSTANTS.UNSIGNED_SHORT;
+
+		} else if ( attribute.array.constructor === Uint8Array ) {
+
+			componentType = WEBGL_CONSTANTS.UNSIGNED_BYTE;
+
+		} else {
+
+			throw new Error( 'THREE.GLTFExporter: Unsupported bufferAttribute component type.' );
+
+		}
+
+		if ( start === undefined ) start = 0;
+		if ( count === undefined ) count = attribute.count;
+
+		// Skip creating an accessor if the attribute doesn't have data to export
+		if ( count === 0 ) return null;
+
+		const minMax = getMinMax( attribute, start, count );
+		let bufferViewTarget;
+
+		// If geometry isn't provided, don't infer the target usage of the bufferView. For
+		// animation samplers, target must not be set.
+		if ( geometry !== undefined ) {
+
+			bufferViewTarget = attribute === geometry.index ? WEBGL_CONSTANTS.ELEMENT_ARRAY_BUFFER : WEBGL_CONSTANTS.ARRAY_BUFFER;
+
+		}
+
+		const bufferView = this.processBufferView( attribute, componentType, start, count, bufferViewTarget );
+
+		const accessorDef = {
+
+			bufferView: bufferView.id,
+			byteOffset: bufferView.byteOffset,
+			componentType: componentType,
+			count: count,
+			max: minMax.max,
+			min: minMax.min,
+			type: types[ attribute.itemSize ]
+
+		};
+
+		if ( attribute.normalized === true ) accessorDef.normalized = true;
+		if ( ! json.accessors ) json.accessors = [];
+
+		return json.accessors.push( accessorDef ) - 1;
+
+	}
+
+	/**
+	 * Process image
+	 * @param  {Image} image to process
+	 * @param  {Integer} format of the image (RGBAFormat)
+	 * @param  {Boolean} flipY before writing out the image
+	 * @param  {String} mimeType export format
+	 * @return {Integer}     Index of the processed texture in the "images" array
+	 */
+	processImage( image, format, flipY, mimeType = 'image/png' ) {
+
+		if ( image !== null ) {
+
+			const writer = this;
+			const cache = writer.cache;
+			const json = writer.json;
+			const options = writer.options;
+			const pending = writer.pending;
+
+			if ( ! cache.images.has( image ) ) cache.images.set( image, {} );
+
+			const cachedImages = cache.images.get( image );
+
+			const key = mimeType + ':flipY/' + flipY.toString();
+
+			if ( cachedImages[ key ] !== undefined ) return cachedImages[ key ];
+
+			if ( ! json.images ) json.images = [];
+
+			const imageDef = { mimeType: mimeType };
+
+			const canvas = getCanvas();
+
+			canvas.width = Math.min( image.width, options.maxTextureSize );
+			canvas.height = Math.min( image.height, options.maxTextureSize );
+
+			const ctx = canvas.getContext( '2d' );
+
+			if ( flipY === true ) {
+
+				ctx.translate( 0, canvas.height );
+				ctx.scale( 1, - 1 );
+
+			}
+
+			if ( image.data !== undefined ) { // THREE.DataTexture
+
+				if ( format !== RGBAFormat ) {
+
+					console.error( 'GLTFExporter: Only RGBAFormat is supported.' );
+
+				}
+
+				if ( image.width > options.maxTextureSize || image.height > options.maxTextureSize ) {
+
+					console.warn( 'GLTFExporter: Image size is bigger than maxTextureSize', image );
+
+				}
+
+				const data = new Uint8ClampedArray( image.height * image.width * 4 );
+
+				for ( let i = 0; i < data.length; i += 4 ) {
+
+					data[ i + 0 ] = image.data[ i + 0 ];
+					data[ i + 1 ] = image.data[ i + 1 ];
+					data[ i + 2 ] = image.data[ i + 2 ];
+					data[ i + 3 ] = image.data[ i + 3 ];
+
+				}
+
+				ctx.putImageData( new ImageData( data, image.width, image.height ), 0, 0 );
+
+			} else {
+
+				ctx.drawImage( image, 0, 0, canvas.width, canvas.height );
+
+			}
+
+			if ( options.binary === true ) {
+
+				pending.push(
+
+					getToBlobPromise( canvas, mimeType )
+						.then( blob => writer.processBufferViewImage( blob ) )
+						.then( bufferViewIndex => {
+
+							imageDef.bufferView = bufferViewIndex;
+
+						} )
+
+				);
+
+			} else {
+
+				if ( canvas.toDataURL !== undefined ) {
+
+					imageDef.uri = canvas.toDataURL( mimeType );
+
+				} else {
+
+					pending.push(
+
+						getToBlobPromise( canvas, mimeType )
+							.then( blob => new FileReader().readAsDataURL( blob ) )
+							.then( dataURL => {
+
+								imageDef.uri = dataURL;
+
+							} )
+
+					);
+
+				}
+
+			}
+
+			const index = json.images.push( imageDef ) - 1;
+			cachedImages[ key ] = index;
+			return index;
+
+		} else {
+
+			throw new Error( 'THREE.GLTFExporter: No valid image data found. Unable to process texture.' );
+
+		}
+
+	}
+
+	/**
+	 * Process sampler
+	 * @param  {Texture} map Texture to process
+	 * @return {Integer}     Index of the processed texture in the "samplers" array
+	 */
+	processSampler( map ) {
+
+		const json = this.json;
+
+		if ( ! json.samplers ) json.samplers = [];
+
+		const samplerDef = {
+			magFilter: THREE_TO_WEBGL[ map.magFilter ],
+			minFilter: THREE_TO_WEBGL[ map.minFilter ],
+			wrapS: THREE_TO_WEBGL[ map.wrapS ],
+			wrapT: THREE_TO_WEBGL[ map.wrapT ]
+		};
+
+		return json.samplers.push( samplerDef ) - 1;
+
+	}
+
+	/**
+	 * Process texture
+	 * @param  {Texture} map Map to process
+	 * @return {Integer} Index of the processed texture in the "textures" array
+	 */
+	processTexture( map ) {
+
+		const cache = this.cache;
+		const json = this.json;
+
+		if ( cache.textures.has( map ) ) return cache.textures.get( map );
+
+		if ( ! json.textures ) json.textures = [];
+
+		let mimeType = map.userData.mimeType;
+
+		if ( mimeType === 'image/webp' ) mimeType = 'image/png';
+
+		const textureDef = {
+			sampler: this.processSampler( map ),
+			source: this.processImage( map.image, map.format, map.flipY, mimeType )
+		};
+
+		if ( map.name ) textureDef.name = map.name;
+
+		this._invokeAll( function ( ext ) {
+
+			ext.writeTexture && ext.writeTexture( map, textureDef );
+
+		} );
+
+		const index = json.textures.push( textureDef ) - 1;
+		cache.textures.set( map, index );
+		return index;
+
+	}
+
+	/**
+	 * Process material
+	 * @param  {THREE.Material} material Material to process
+	 * @return {Integer|null} Index of the processed material in the "materials" array
+	 */
+	processMaterial( material ) {
+
+		const cache = this.cache;
+		const json = this.json;
+
+		if ( cache.materials.has( material ) ) return cache.materials.get( material );
+
+		if ( material.isShaderMaterial ) {
+
+			console.warn( 'GLTFExporter: THREE.ShaderMaterial not supported.' );
+			return null;
+
+		}
+
+		if ( ! json.materials ) json.materials = [];
+
+		// @QUESTION Should we avoid including any attribute that has the default value?
+		const materialDef = {	pbrMetallicRoughness: {} };
+
+		if ( material.isMeshStandardMaterial !== true && material.isMeshBasicMaterial !== true ) {
+
+			console.warn( 'GLTFExporter: Use MeshStandardMaterial or MeshBasicMaterial for best results.' );
+
+		}
+
+		// pbrMetallicRoughness.baseColorFactor
+		const color = material.color.toArray().concat( [ material.opacity ] );
+
+		if ( ! equalArray( color, [ 1, 1, 1, 1 ] ) ) {
+
+			materialDef.pbrMetallicRoughness.baseColorFactor = color;
+
+		}
+
+		if ( material.isMeshStandardMaterial ) {
+
+			materialDef.pbrMetallicRoughness.metallicFactor = material.metalness;
+			materialDef.pbrMetallicRoughness.roughnessFactor = material.roughness;
+
+		} else {
+
+			materialDef.pbrMetallicRoughness.metallicFactor = 0.5;
+			materialDef.pbrMetallicRoughness.roughnessFactor = 0.5;
+
+		}
+
+		// pbrMetallicRoughness.metallicRoughnessTexture
+		if ( material.metalnessMap || material.roughnessMap ) {
+
+			const metalRoughTexture = this.buildMetalRoughTexture( material.metalnessMap, material.roughnessMap );
+
+			const metalRoughMapDef = { index: this.processTexture( metalRoughTexture ) };
+			this.applyTextureTransform( metalRoughMapDef, metalRoughTexture );
+			materialDef.pbrMetallicRoughness.metallicRoughnessTexture = metalRoughMapDef;
+
+		}
+
+		// pbrMetallicRoughness.baseColorTexture or pbrSpecularGlossiness diffuseTexture
+		if ( material.map ) {
+
+			const baseColorMapDef = { index: this.processTexture( material.map ) };
+			this.applyTextureTransform( baseColorMapDef, material.map );
+			materialDef.pbrMetallicRoughness.baseColorTexture = baseColorMapDef;
+
+		}
+
+		if ( material.emissive ) {
+
+			// note: emissive components are limited to stay within the 0 - 1 range to accommodate glTF spec. see #21849 and #22000.
+			const emissive = material.emissive.clone().multiplyScalar( material.emissiveIntensity );
+			const maxEmissiveComponent = Math.max( emissive.r, emissive.g, emissive.b );
+
+			if ( maxEmissiveComponent > 1 ) {
+
+				emissive.multiplyScalar( 1 / maxEmissiveComponent );
+
+				console.warn( 'THREE.GLTFExporter: Some emissive components exceed 1; emissive has been limited' );
+
+			}
+
+			if ( maxEmissiveComponent > 0 ) {
+
+				materialDef.emissiveFactor = emissive.toArray();
+
+			}
+
+			// emissiveTexture
+			if ( material.emissiveMap ) {
+
+				const emissiveMapDef = { index: this.processTexture( material.emissiveMap ) };
+				this.applyTextureTransform( emissiveMapDef, material.emissiveMap );
+				materialDef.emissiveTexture = emissiveMapDef;
+
+			}
+
+		}
+
+		// normalTexture
+		if ( material.normalMap ) {
+
+			const normalMapDef = { index: this.processTexture( material.normalMap ) };
+
+			if ( material.normalScale && material.normalScale.x !== 1 ) {
+
+				// glTF normal scale is univariate. Ignore `y`, which may be flipped.
+				// Context: https://github.com/mrdoob/three.js/issues/11438#issuecomment-507003995
+				normalMapDef.scale = material.normalScale.x;
+
+			}
+
+			this.applyTextureTransform( normalMapDef, material.normalMap );
+			materialDef.normalTexture = normalMapDef;
+
+		}
+
+		// occlusionTexture
+		if ( material.aoMap ) {
+
+			const occlusionMapDef = {
+				index: this.processTexture( material.aoMap ),
+				texCoord: 1
+			};
+
+			if ( material.aoMapIntensity !== 1.0 ) {
+
+				occlusionMapDef.strength = material.aoMapIntensity;
+
+			}
+
+			this.applyTextureTransform( occlusionMapDef, material.aoMap );
+			materialDef.occlusionTexture = occlusionMapDef;
+
+		}
+
+		// alphaMode
+		if ( material.transparent ) {
+
+			materialDef.alphaMode = 'BLEND';
+
+		} else {
+
+			if ( material.alphaTest > 0.0 ) {
+
+				materialDef.alphaMode = 'MASK';
+				materialDef.alphaCutoff = material.alphaTest;
+
+			}
+
+		}
+
+		// doubleSided
+		if ( material.side === DoubleSide ) materialDef.doubleSided = true;
+		if ( material.name !== '' ) materialDef.name = material.name;
+
+		this.serializeUserData( material, materialDef );
+
+		this._invokeAll( function ( ext ) {
+
+			ext.writeMaterial && ext.writeMaterial( material, materialDef );
+
+		} );
+
+		const index = json.materials.push( materialDef ) - 1;
+		cache.materials.set( material, index );
+		return index;
+
+	}
+
+	/**
+	 * Process mesh
+	 * @param  {THREE.Mesh} mesh Mesh to process
+	 * @return {Integer|null} Index of the processed mesh in the "meshes" array
+	 */
+	processMesh( mesh ) {
+
+		const cache = this.cache;
+		const json = this.json;
+
+		const meshCacheKeyParts = [ mesh.geometry.uuid ];
+
+		if ( Array.isArray( mesh.material ) ) {
+
+			for ( let i = 0, l = mesh.material.length; i < l; i ++ ) {
+
+				meshCacheKeyParts.push( mesh.material[ i ].uuid	);
+
+			}
+
+		} else {
+
+			meshCacheKeyParts.push( mesh.material.uuid );
+
+		}
+
+		const meshCacheKey = meshCacheKeyParts.join( ':' );
+
+		if ( cache.meshes.has( meshCacheKey ) ) return cache.meshes.get( meshCacheKey );
+
+		const geometry = mesh.geometry;
+
+		let mode;
+
+		// Use the correct mode
+		if ( mesh.isLineSegments ) {
+
+			mode = WEBGL_CONSTANTS.LINES;
+
+		} else if ( mesh.isLineLoop ) {
+
+			mode = WEBGL_CONSTANTS.LINE_LOOP;
+
+		} else if ( mesh.isLine ) {
+
+			mode = WEBGL_CONSTANTS.LINE_STRIP;
+
+		} else if ( mesh.isPoints ) {
+
+			mode = WEBGL_CONSTANTS.POINTS;
+
+		} else {
+
+			mode = mesh.material.wireframe ? WEBGL_CONSTANTS.LINES : WEBGL_CONSTANTS.TRIANGLES;
+
+		}
+
+		const meshDef = {};
+		const attributes = {};
+		const primitives = [];
+		const targets = [];
+
+		// Conversion between attributes names in threejs and gltf spec
+		const nameConversion = {
+			uv: 'TEXCOORD_0',
+			uv2: 'TEXCOORD_1',
+			color: 'COLOR_0',
+			skinWeight: 'WEIGHTS_0',
+			skinIndex: 'JOINTS_0'
+		};
+
+		const originalNormal = geometry.getAttribute( 'normal' );
+
+		if ( originalNormal !== undefined && ! this.isNormalizedNormalAttribute( originalNormal ) ) {
+
+			console.warn( 'THREE.GLTFExporter: Creating normalized normal attribute from the non-normalized one.' );
+
+			geometry.setAttribute( 'normal', this.createNormalizedNormalAttribute( originalNormal ) );
+
+		}
+
+		// @QUESTION Detect if .vertexColors = true?
+		// For every attribute create an accessor
+		let modifiedAttribute = null;
+
+		for ( let attributeName in geometry.attributes ) {
+
+			// Ignore morph target attributes, which are exported later.
+			if ( attributeName.slice( 0, 5 ) === 'morph' ) continue;
+
+			const attribute = geometry.attributes[ attributeName ];
+			attributeName = nameConversion[ attributeName ] || attributeName.toUpperCase();
+
+			// Prefix all geometry attributes except the ones specifically
+			// listed in the spec; non-spec attributes are considered custom.
+			const validVertexAttributes =
+					/^(POSITION|NORMAL|TANGENT|TEXCOORD_\d+|COLOR_\d+|JOINTS_\d+|WEIGHTS_\d+)$/;
+
+			if ( ! validVertexAttributes.test( attributeName ) ) attributeName = '_' + attributeName;
+
+			if ( cache.attributes.has( this.getUID( attribute ) ) ) {
+
+				attributes[ attributeName ] = cache.attributes.get( this.getUID( attribute ) );
+				continue;
+
+			}
+
+			// JOINTS_0 must be UNSIGNED_BYTE or UNSIGNED_SHORT.
+			modifiedAttribute = null;
+			const array = attribute.array;
+
+			if ( attributeName === 'JOINTS_0' &&
+				! ( array instanceof Uint16Array ) &&
+				! ( array instanceof Uint8Array ) ) {
+
+				console.warn( 'GLTFExporter: Attribute "skinIndex" converted to type UNSIGNED_SHORT.' );
+				modifiedAttribute = new BufferAttribute( new Uint16Array( array ), attribute.itemSize, attribute.normalized );
+
+			}
+
+			const accessor = this.processAccessor( modifiedAttribute || attribute, geometry );
+
+			if ( accessor !== null ) {
+
+				attributes[ attributeName ] = accessor;
+				cache.attributes.set( this.getUID( attribute ), accessor );
+
+			}
+
+		}
+
+		if ( originalNormal !== undefined ) geometry.setAttribute( 'normal', originalNormal );
+
+		// Skip if no exportable attributes found
+		if ( Object.keys( attributes ).length === 0 ) return null;
+
+		// Morph targets
+		if ( mesh.morphTargetInfluences !== undefined && mesh.morphTargetInfluences.length > 0 ) {
+
+			const weights = [];
+			const targetNames = [];
+			const reverseDictionary = {};
+
+			if ( mesh.morphTargetDictionary !== undefined ) {
+
+				for ( const key in mesh.morphTargetDictionary ) {
+
+					reverseDictionary[ mesh.morphTargetDictionary[ key ] ] = key;
+
+				}
+
+			}
+
+			for ( let i = 0; i < mesh.morphTargetInfluences.length; ++ i ) {
+
+				const target = {};
+				let warned = false;
+
+				for ( const attributeName in geometry.morphAttributes ) {
+
+					// glTF 2.0 morph supports only POSITION/NORMAL/TANGENT.
+					// Three.js doesn't support TANGENT yet.
+
+					if ( attributeName !== 'position' && attributeName !== 'normal' ) {
+
+						if ( ! warned ) {
+
+							console.warn( 'GLTFExporter: Only POSITION and NORMAL morph are supported.' );
+							warned = true;
+
+						}
+
+						continue;
+
+					}
+
+					const attribute = geometry.morphAttributes[ attributeName ][ i ];
+					const gltfAttributeName = attributeName.toUpperCase();
+
+					// Three.js morph attribute has absolute values while the one of glTF has relative values.
+					//
+					// glTF 2.0 Specification:
+					// https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#morph-targets
+
+					const baseAttribute = geometry.attributes[ attributeName ];
+
+					if ( cache.attributes.has( this.getUID( attribute, true ) ) ) {
+
+						target[ gltfAttributeName ] = cache.attributes.get( this.getUID( attribute, true ) );
+						continue;
+
+					}
+
+					// Clones attribute not to override
+					const relativeAttribute = attribute.clone();
+
+					if ( ! geometry.morphTargetsRelative ) {
+
+						for ( let j = 0, jl = attribute.count; j < jl; j ++ ) {
+
+							for ( let a = 0; a < attribute.itemSize; a ++ ) {
+
+								if ( a === 0 ) relativeAttribute.setX( j, attribute.getX( j ) - baseAttribute.getX( j ) );
+								if ( a === 1 ) relativeAttribute.setY( j, attribute.getY( j ) - baseAttribute.getY( j ) );
+								if ( a === 2 ) relativeAttribute.setZ( j, attribute.getZ( j ) - baseAttribute.getZ( j ) );
+								if ( a === 3 ) relativeAttribute.setW( j, attribute.getW( j ) - baseAttribute.getW( j ) );
+
+							}
+
+						}
+
+					}
+
+					target[ gltfAttributeName ] = this.processAccessor( relativeAttribute, geometry );
+					cache.attributes.set( this.getUID( baseAttribute, true ), target[ gltfAttributeName ] );
+
+				}
+
+				targets.push( target );
+
+				weights.push( mesh.morphTargetInfluences[ i ] );
+
+				if ( mesh.morphTargetDictionary !== undefined ) targetNames.push( reverseDictionary[ i ] );
+
+			}
+
+			meshDef.weights = weights;
+
+			if ( targetNames.length > 0 ) {
+
+				meshDef.extras = {};
+				meshDef.extras.targetNames = targetNames;
+
+			}
+
+		}
+
+		const isMultiMaterial = Array.isArray( mesh.material );
+
+		if ( isMultiMaterial && geometry.groups.length === 0 ) return null;
+
+		const materials = isMultiMaterial ? mesh.material : [ mesh.material ];
+		const groups = isMultiMaterial ? geometry.groups : [ { materialIndex: 0, start: undefined, count: undefined } ];
+
+		for ( let i = 0, il = groups.length; i < il; i ++ ) {
+
+			const primitive = {
+				mode: mode,
+				attributes: attributes,
+			};
+
+			this.serializeUserData( geometry, primitive );
+
+			if ( targets.length > 0 ) primitive.targets = targets;
+
+			if ( geometry.index !== null ) {
+
+				let cacheKey = this.getUID( geometry.index );
+
+				if ( groups[ i ].start !== undefined || groups[ i ].count !== undefined ) {
+
+					cacheKey += ':' + groups[ i ].start + ':' + groups[ i ].count;
+
+				}
+
+				if ( cache.attributes.has( cacheKey ) ) {
+
+					primitive.indices = cache.attributes.get( cacheKey );
+
+				} else {
+
+					primitive.indices = this.processAccessor( geometry.index, geometry, groups[ i ].start, groups[ i ].count );
+					cache.attributes.set( cacheKey, primitive.indices );
+
+				}
+
+				if ( primitive.indices === null ) delete primitive.indices;
+
+			}
+
+			const material = this.processMaterial( materials[ groups[ i ].materialIndex ] );
+
+			if ( material !== null ) primitive.material = material;
+
+			primitives.push( primitive );
+
+		}
+
+		meshDef.primitives = primitives;
+
+		if ( ! json.meshes ) json.meshes = [];
+
+		this._invokeAll( function ( ext ) {
+
+			ext.writeMesh && ext.writeMesh( mesh, meshDef );
+
+		} );
+
+		const index = json.meshes.push( meshDef ) - 1;
+		cache.meshes.set( meshCacheKey, index );
+		return index;
+
+	}
+
+	/**
+	 * Process camera
+	 * @param  {THREE.Camera} camera Camera to process
+	 * @return {Integer}      Index of the processed mesh in the "camera" array
+	 */
+	processCamera( camera ) {
+
+		const json = this.json;
+
+		if ( ! json.cameras ) json.cameras = [];
+
+		const isOrtho = camera.isOrthographicCamera;
+
+		const cameraDef = {
+			type: isOrtho ? 'orthographic' : 'perspective'
+		};
+
+		if ( isOrtho ) {
+
+			cameraDef.orthographic = {
+				xmag: camera.right * 2,
+				ymag: camera.top * 2,
+				zfar: camera.far <= 0 ? 0.001 : camera.far,
+				znear: camera.near < 0 ? 0 : camera.near
+			};
+
+		} else {
+
+			cameraDef.perspective = {
+				aspectRatio: camera.aspect,
+				yfov: MathUtils.degToRad( camera.fov ),
+				zfar: camera.far <= 0 ? 0.001 : camera.far,
+				znear: camera.near < 0 ? 0 : camera.near
+			};
+
+		}
+
+		// Question: Is saving "type" as name intentional?
+		if ( camera.name !== '' ) cameraDef.name = camera.type;
+
+		return json.cameras.push( cameraDef ) - 1;
+
+	}
+
+	/**
+	 * Creates glTF animation entry from AnimationClip object.
+	 *
+	 * Status:
+	 * - Only properties listed in PATH_PROPERTIES may be animated.
+	 *
+	 * @param {THREE.AnimationClip} clip
+	 * @param {THREE.Object3D} root
+	 * @return {number|null}
+	 */
+	processAnimation( clip, root ) {
+
+		const json = this.json;
+		const nodeMap = this.nodeMap;
+
+		if ( ! json.animations ) json.animations = [];
+
+		clip = GLTFExporter.Utils.mergeMorphTargetTracks( clip.clone(), root );
+
+		const tracks = clip.tracks;
+		const channels = [];
+		const samplers = [];
+
+		for ( let i = 0; i < tracks.length; ++ i ) {
+
+			const track = tracks[ i ];
+			const trackBinding = PropertyBinding.parseTrackName( track.name );
+			let trackNode = PropertyBinding.findNode( root, trackBinding.nodeName );
+			const trackProperty = PATH_PROPERTIES[ trackBinding.propertyName ];
+
+			if ( trackBinding.objectName === 'bones' ) {
+
+				if ( trackNode.isSkinnedMesh === true ) {
+
+					trackNode = trackNode.skeleton.getBoneByName( trackBinding.objectIndex );
+
+				} else {
+
+					trackNode = undefined;
+
+				}
+
+			}
+
+			if ( ! trackNode || ! trackProperty ) {
+
+				console.warn( 'THREE.GLTFExporter: Could not export animation track "%s".', track.name );
+				return null;
+
+			}
+
+			const inputItemSize = 1;
+			let outputItemSize = track.values.length / track.times.length;
+
+			if ( trackProperty === PATH_PROPERTIES.morphTargetInfluences ) {
+
+				outputItemSize /= trackNode.morphTargetInfluences.length;
+
+			}
+
+			let interpolation;
+
+			// @TODO export CubicInterpolant(InterpolateSmooth) as CUBICSPLINE
+
+			// Detecting glTF cubic spline interpolant by checking factory method's special property
+			// GLTFCubicSplineInterpolant is a custom interpolant and track doesn't return
+			// valid value from .getInterpolation().
+			if ( track.createInterpolant.isInterpolantFactoryMethodGLTFCubicSpline === true ) {
+
+				interpolation = 'CUBICSPLINE';
+
+				// itemSize of CUBICSPLINE keyframe is 9
+				// (VEC3 * 3: inTangent, splineVertex, and outTangent)
+				// but needs to be stored as VEC3 so dividing by 3 here.
+				outputItemSize /= 3;
+
+			} else if ( track.getInterpolation() === InterpolateDiscrete ) {
+
+				interpolation = 'STEP';
+
+			} else {
+
+				interpolation = 'LINEAR';
+
+			}
+
+			samplers.push( {
+				input: this.processAccessor( new BufferAttribute( track.times, inputItemSize ) ),
+				output: this.processAccessor( new BufferAttribute( track.values, outputItemSize ) ),
+				interpolation: interpolation
+			} );
+
+			channels.push( {
+				sampler: samplers.length - 1,
+				target: {
+					node: nodeMap.get( trackNode ),
+					path: trackProperty
+				}
+			} );
+
+		}
+
+		json.animations.push( {
+			name: clip.name || 'clip_' + json.animations.length,
+			samplers: samplers,
+			channels: channels
+		} );
+
+		return json.animations.length - 1;
+
+	}
+
+	/**
+	 * @param {THREE.Object3D} object
+	 * @return {number|null}
+	 */
+	 processSkin( object ) {
+
+		const json = this.json;
+		const nodeMap = this.nodeMap;
+
+		const node = json.nodes[ nodeMap.get( object ) ];
+
+		const skeleton = object.skeleton;
+
+		if ( skeleton === undefined ) return null;
+
+		const rootJoint = object.skeleton.bones[ 0 ];
+
+		if ( rootJoint === undefined ) return null;
+
+		const joints = [];
+		const inverseBindMatrices = new Float32Array( skeleton.bones.length * 16 );
+		const temporaryBoneInverse = new Matrix4();
+
+		for ( let i = 0; i < skeleton.bones.length; ++ i ) {
+
+			joints.push( nodeMap.get( skeleton.bones[ i ] ) );
+			temporaryBoneInverse.copy( skeleton.boneInverses[ i ] );
+			temporaryBoneInverse.multiply( object.bindMatrix ).toArray( inverseBindMatrices, i * 16 );
+
+		}
+
+		if ( json.skins === undefined ) json.skins = [];
+
+		json.skins.push( {
+			inverseBindMatrices: this.processAccessor( new BufferAttribute( inverseBindMatrices, 16 ) ),
+			joints: joints,
+			skeleton: nodeMap.get( rootJoint )
+		} );
+
+		const skinIndex = node.skin = json.skins.length - 1;
+
+		return skinIndex;
+
+	}
+
+	/**
+	 * Process Object3D node
+	 * @param  {THREE.Object3D} node Object3D to processNode
+	 * @return {Integer} Index of the node in the nodes list
+	 */
+	processNode( object ) {
+
+		const json = this.json;
+		const options = this.options;
+		const nodeMap = this.nodeMap;
+
+		if ( ! json.nodes ) json.nodes = [];
+
+		const nodeDef = {};
+
+		if ( options.trs ) {
+
+			const rotation = object.quaternion.toArray();
+			const position = object.position.toArray();
+			const scale = object.scale.toArray();
+
+			if ( ! equalArray( rotation, [ 0, 0, 0, 1 ] ) ) {
+
+				nodeDef.rotation = rotation;
+
+			}
+
+			if ( ! equalArray( position, [ 0, 0, 0 ] ) ) {
+
+				nodeDef.translation = position;
+
+			}
+
+			if ( ! equalArray( scale, [ 1, 1, 1 ] ) ) {
+
+				nodeDef.scale = scale;
+
+			}
+
+		} else {
+
+			if ( object.matrixAutoUpdate ) {
+
+				object.updateMatrix();
+
+			}
+
+			if ( isIdentityMatrix( object.matrix ) === false ) {
+
+				nodeDef.matrix = object.matrix.elements;
+
+			}
+
+		}
+
+		// We don't export empty strings name because it represents no-name in Three.js.
+		if ( object.name !== '' ) nodeDef.name = String( object.name );
+
+		this.serializeUserData( object, nodeDef );
+
+		if ( object.isMesh || object.isLine || object.isPoints ) {
+
+			const meshIndex = this.processMesh( object );
+
+			if ( meshIndex !== null ) nodeDef.mesh = meshIndex;
+
+		} else if ( object.isCamera ) {
+
+			nodeDef.camera = this.processCamera( object );
+
+		}
+
+		if ( object.isSkinnedMesh ) this.skins.push( object );
+
+		if ( object.children.length > 0 ) {
+
+			const children = [];
+
+			for ( let i = 0, l = object.children.length; i < l; i ++ ) {
+
+				const child = object.children[ i ];
+
+				if ( child.visible || options.onlyVisible === false ) {
+
+					const nodeIndex = this.processNode( child );
+
+					if ( nodeIndex !== null ) children.push( nodeIndex );
+
+				}
+
+			}
+
+			if ( children.length > 0 ) nodeDef.children = children;
+
+		}
+
+		this._invokeAll( function ( ext ) {
+
+			ext.writeNode && ext.writeNode( object, nodeDef );
+
+		} );
+
+		const nodeIndex = json.nodes.push( nodeDef ) - 1;
+		nodeMap.set( object, nodeIndex );
+		return nodeIndex;
+
+	}
+
+	/**
+	 * Process Scene
+	 * @param  {Scene} node Scene to process
+	 */
+	processScene( scene ) {
+
+		const json = this.json;
+		const options = this.options;
+
+		if ( ! json.scenes ) {
+
+			json.scenes = [];
+			json.scene = 0;
+
+		}
+
+		const sceneDef = {};
+
+		if ( scene.name !== '' ) sceneDef.name = scene.name;
+
+		json.scenes.push( sceneDef );
+
+		const nodes = [];
+
+		for ( let i = 0, l = scene.children.length; i < l; i ++ ) {
+
+			const child = scene.children[ i ];
+
+			if ( child.visible || options.onlyVisible === false ) {
+
+				const nodeIndex = this.processNode( child );
+
+				if ( nodeIndex !== null ) nodes.push( nodeIndex );
+
+			}
+
+		}
+
+		if ( nodes.length > 0 ) sceneDef.nodes = nodes;
+
+		this.serializeUserData( scene, sceneDef );
+
+	}
+
+	/**
+	 * Creates a Scene to hold a list of objects and parse it
+	 * @param  {Array} objects List of objects to process
+	 */
+	processObjects( objects ) {
+
+		const scene = new Scene();
+		scene.name = 'AuxScene';
+
+		for ( let i = 0; i < objects.length; i ++ ) {
+
+			// We push directly to children instead of calling `add` to prevent
+			// modify the .parent and break its original scene and hierarchy
+			scene.children.push( objects[ i ] );
+
+		}
+
+		this.processScene( scene );
+
+	}
+
+	/**
+	 * @param {THREE.Object3D|Array<THREE.Object3D>} input
+	 */
+	processInput( input ) {
+
+		const options = this.options;
+
+		input = input instanceof Array ? input : [ input ];
+
+		this._invokeAll( function ( ext ) {
+
+			ext.beforeParse && ext.beforeParse( input );
+
+		} );
+
+		const objectsWithoutScene = [];
+
+		for ( let i = 0; i < input.length; i ++ ) {
+
+			if ( input[ i ] instanceof Scene ) {
+
+				this.processScene( input[ i ] );
+
+			} else {
+
+				objectsWithoutScene.push( input[ i ] );
+
+			}
+
+		}
+
+		if ( objectsWithoutScene.length > 0 ) this.processObjects( objectsWithoutScene );
+
+		for ( let i = 0; i < this.skins.length; ++ i ) {
+
+			this.processSkin( this.skins[ i ] );
+
+		}
+
+		for ( let i = 0; i < options.animations.length; ++ i ) {
+
+			this.processAnimation( options.animations[ i ], input[ 0 ] );
+
+		}
+
+		this._invokeAll( function ( ext ) {
+
+			ext.afterParse && ext.afterParse( input );
+
+		} );
+
+	}
+
+	_invokeAll( func ) {
+
+		for ( let i = 0, il = this.plugins.length; i < il; i ++ ) {
+
+			func( this.plugins[ i ] );
+
+		}
+
+	}
+
+}
+
+/**
+ * Punctual Lights Extension
+ *
+ * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_lights_punctual
+ */
+class GLTFLightExtension {
+
+	constructor( writer ) {
+
+		this.writer = writer;
+		this.name = 'KHR_lights_punctual';
+
+	}
+
+	writeNode( light, nodeDef ) {
+
+		if ( ! light.isLight ) return;
+
+		if ( ! light.isDirectionalLight && ! light.isPointLight && ! light.isSpotLight ) {
+
+			console.warn( 'THREE.GLTFExporter: Only directional, point, and spot lights are supported.', light );
+			return;
+
+		}
+
+		const writer = this.writer;
+		const json = writer.json;
+		const extensionsUsed = writer.extensionsUsed;
+
+		const lightDef = {};
+
+		if ( light.name ) lightDef.name = light.name;
+
+		lightDef.color = light.color.toArray();
+
+		lightDef.intensity = light.intensity;
+
+		if ( light.isDirectionalLight ) {
+
+			lightDef.type = 'directional';
+
+		} else if ( light.isPointLight ) {
+
+			lightDef.type = 'point';
+
+			if ( light.distance > 0 ) lightDef.range = light.distance;
+
+		} else if ( light.isSpotLight ) {
+
+			lightDef.type = 'spot';
+
+			if ( light.distance > 0 ) lightDef.range = light.distance;
+
+			lightDef.spot = {};
+			lightDef.spot.innerConeAngle = ( light.penumbra - 1.0 ) * light.angle * - 1.0;
+			lightDef.spot.outerConeAngle = light.angle;
+
+		}
+
+		if ( light.decay !== undefined && light.decay !== 2 ) {
+
+			console.warn( 'THREE.GLTFExporter: Light decay may be lost. glTF is physically-based, '
+				+ 'and expects light.decay=2.' );
+
+		}
+
+		if ( light.target
+				&& ( light.target.parent !== light
+				|| light.target.position.x !== 0
+				|| light.target.position.y !== 0
+				|| light.target.position.z !== - 1 ) ) {
+
+			console.warn( 'THREE.GLTFExporter: Light direction may be lost. For best results, '
+				+ 'make light.target a child of the light with position 0,0,-1.' );
+
+		}
+
+		if ( ! extensionsUsed[ this.name ] ) {
+
+			json.extensions = json.extensions || {};
+			json.extensions[ this.name ] = { lights: [] };
+			extensionsUsed[ this.name ] = true;
+
+		}
+
+		const lights = json.extensions[ this.name ].lights;
+		lights.push( lightDef );
+
+		nodeDef.extensions = nodeDef.extensions || {};
+		nodeDef.extensions[ this.name ] = { light: lights.length - 1 };
+
+	}
+
+}
+
+/**
+ * Unlit Materials Extension
+ *
+ * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_unlit
+ */
+class GLTFMaterialsUnlitExtension {
+
+	constructor( writer ) {
+
+		this.writer = writer;
+		this.name = 'KHR_materials_unlit';
+
+	}
+
+	writeMaterial( material, materialDef ) {
+
+		if ( ! material.isMeshBasicMaterial ) return;
+
+		const writer = this.writer;
+		const extensionsUsed = writer.extensionsUsed;
+
+		materialDef.extensions = materialDef.extensions || {};
+		materialDef.extensions[ this.name ] = {};
+
+		extensionsUsed[ this.name ] = true;
+
+		materialDef.pbrMetallicRoughness.metallicFactor = 0.0;
+		materialDef.pbrMetallicRoughness.roughnessFactor = 0.9;
+
+	}
+
+}
+
+/**
+ * Clearcoat Materials Extension
+ *
+ * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_clearcoat
+ */
+class GLTFMaterialsClearcoatExtension {
+
+	constructor( writer ) {
+
+		this.writer = writer;
+		this.name = 'KHR_materials_clearcoat';
+
+	}
+
+	writeMaterial( material, materialDef ) {
+
+		if ( ! material.isMeshPhysicalMaterial ) return;
+
+		const writer = this.writer;
+		const extensionsUsed = writer.extensionsUsed;
+
+		const extensionDef = {};
+
+		extensionDef.clearcoatFactor = material.clearcoat;
+
+		if ( material.clearcoatMap ) {
+
+			const clearcoatMapDef = { index: writer.processTexture( material.clearcoatMap ) };
+			writer.applyTextureTransform( clearcoatMapDef, material.clearcoatMap );
+			extensionDef.clearcoatTexture = clearcoatMapDef;
+
+		}
+
+		extensionDef.clearcoatRoughnessFactor = material.clearcoatRoughness;
+
+		if ( material.clearcoatRoughnessMap ) {
+
+			const clearcoatRoughnessMapDef = { index: writer.processTexture( material.clearcoatRoughnessMap ) };
+			writer.applyTextureTransform( clearcoatRoughnessMapDef, material.clearcoatRoughnessMap );
+			extensionDef.clearcoatRoughnessTexture = clearcoatRoughnessMapDef;
+
+		}
+
+		if ( material.clearcoatNormalMap ) {
+
+			const clearcoatNormalMapDef = { index: writer.processTexture( material.clearcoatNormalMap ) };
+			writer.applyTextureTransform( clearcoatNormalMapDef, material.clearcoatNormalMap );
+			extensionDef.clearcoatNormalTexture = clearcoatNormalMapDef;
+
+		}
+
+		materialDef.extensions = materialDef.extensions || {};
+		materialDef.extensions[ this.name ] = extensionDef;
+
+		extensionsUsed[ this.name ] = true;
+
+
+	}
+
+}
+
+/**
+ * Iridescence Materials Extension
+ *
+ * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_iridescence
+ */
+class GLTFMaterialsIridescenceExtension {
+
+	constructor( writer ) {
+
+		this.writer = writer;
+		this.name = 'KHR_materials_iridescence';
+
+	}
+
+	writeMaterial( material, materialDef ) {
+
+		if ( ! material.isMeshPhysicalMaterial ) return;
+
+		const writer = this.writer;
+		const extensionsUsed = writer.extensionsUsed;
+
+		const extensionDef = {};
+
+		extensionDef.iridescenceFactor = material.iridescence;
+
+		if ( material.iridescenceMap ) {
+
+			const iridescenceMapDef = { index: writer.processTexture( material.iridescenceMap ) };
+			writer.applyTextureTransform( iridescenceMapDef, material.iridescenceMap );
+			extensionDef.iridescenceTexture = iridescenceMapDef;
+
+		}
+
+		extensionDef.iridescenceIor = material.iridescenceIOR;
+		extensionDef.iridescenceThicknessMinimum = material.iridescenceThicknessRange[ 0 ];
+		extensionDef.iridescenceThicknessMaximum = material.iridescenceThicknessRange[ 1 ];
+
+		if ( material.iridescenceThicknessMap ) {
+
+			const iridescenceThicknessMapDef = { index: writer.processTexture( material.iridescenceThicknessMap ) };
+			writer.applyTextureTransform( iridescenceThicknessMapDef, material.iridescenceThicknessMap );
+			extensionDef.iridescenceThicknessTexture = iridescenceThicknessMapDef;
+
+		}
+
+		materialDef.extensions = materialDef.extensions || {};
+		materialDef.extensions[ this.name ] = extensionDef;
+
+		extensionsUsed[ this.name ] = true;
+
+	}
+
+}
+
+/**
+ * Transmission Materials Extension
+ *
+ * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_transmission
+ */
+class GLTFMaterialsTransmissionExtension {
+
+	constructor( writer ) {
+
+		this.writer = writer;
+		this.name = 'KHR_materials_transmission';
+
+	}
+
+	writeMaterial( material, materialDef ) {
+
+		if ( ! material.isMeshPhysicalMaterial || material.transmission === 0 ) return;
+
+		const writer = this.writer;
+		const extensionsUsed = writer.extensionsUsed;
+
+		const extensionDef = {};
+
+		extensionDef.transmissionFactor = material.transmission;
+
+		if ( material.transmissionMap ) {
+
+			const transmissionMapDef = { index: writer.processTexture( material.transmissionMap ) };
+			writer.applyTextureTransform( transmissionMapDef, material.transmissionMap );
+			extensionDef.transmissionTexture = transmissionMapDef;
+
+		}
+
+		materialDef.extensions = materialDef.extensions || {};
+		materialDef.extensions[ this.name ] = extensionDef;
+
+		extensionsUsed[ this.name ] = true;
+
+	}
+
+}
+
+/**
+ * Materials Volume Extension
+ *
+ * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_volume
+ */
+class GLTFMaterialsVolumeExtension {
+
+	constructor( writer ) {
+
+		this.writer = writer;
+		this.name = 'KHR_materials_volume';
+
+	}
+
+	writeMaterial( material, materialDef ) {
+
+		if ( ! material.isMeshPhysicalMaterial || material.transmission === 0 ) return;
+
+		const writer = this.writer;
+		const extensionsUsed = writer.extensionsUsed;
+
+		const extensionDef = {};
+
+		extensionDef.thicknessFactor = material.thickness;
+
+		if ( material.thicknessMap ) {
+
+			const thicknessMapDef = { index: writer.processTexture( material.thicknessMap ) };
+			writer.applyTextureTransform( thicknessMapDef, material.thicknessMap );
+			extensionDef.thicknessTexture = thicknessMapDef;
+
+		}
+
+		extensionDef.attenuationDistance = material.attenuationDistance;
+		extensionDef.attenuationColor = material.attenuationColor.toArray();
+
+		materialDef.extensions = materialDef.extensions || {};
+		materialDef.extensions[ this.name ] = extensionDef;
+
+		extensionsUsed[ this.name ] = true;
+
+	}
+
+}
+
+/**
+ * Static utility functions
+ */
+GLTFExporter.Utils = {
+
+	insertKeyframe: function ( track, time ) {
+
+		const tolerance = 0.001; // 1ms
+		const valueSize = track.getValueSize();
+
+		const times = new track.TimeBufferType( track.times.length + 1 );
+		const values = new track.ValueBufferType( track.values.length + valueSize );
+		const interpolant = track.createInterpolant( new track.ValueBufferType( valueSize ) );
+
+		let index;
+
+		if ( track.times.length === 0 ) {
+
+			times[ 0 ] = time;
+
+			for ( let i = 0; i < valueSize; i ++ ) {
+
+				values[ i ] = 0;
+
+			}
+
+			index = 0;
+
+		} else if ( time < track.times[ 0 ] ) {
+
+			if ( Math.abs( track.times[ 0 ] - time ) < tolerance ) return 0;
+
+			times[ 0 ] = time;
+			times.set( track.times, 1 );
+
+			values.set( interpolant.evaluate( time ), 0 );
+			values.set( track.values, valueSize );
+
+			index = 0;
+
+		} else if ( time > track.times[ track.times.length - 1 ] ) {
+
+			if ( Math.abs( track.times[ track.times.length - 1 ] - time ) < tolerance ) {
+
+				return track.times.length - 1;
+
+			}
+
+			times[ times.length - 1 ] = time;
+			times.set( track.times, 0 );
+
+			values.set( track.values, 0 );
+			values.set( interpolant.evaluate( time ), track.values.length );
+
+			index = times.length - 1;
+
+		} else {
+
+			for ( let i = 0; i < track.times.length; i ++ ) {
+
+				if ( Math.abs( track.times[ i ] - time ) < tolerance ) return i;
+
+				if ( track.times[ i ] < time && track.times[ i + 1 ] > time ) {
+
+					times.set( track.times.slice( 0, i + 1 ), 0 );
+					times[ i + 1 ] = time;
+					times.set( track.times.slice( i + 1 ), i + 2 );
+
+					values.set( track.values.slice( 0, ( i + 1 ) * valueSize ), 0 );
+					values.set( interpolant.evaluate( time ), ( i + 1 ) * valueSize );
+					values.set( track.values.slice( ( i + 1 ) * valueSize ), ( i + 2 ) * valueSize );
+
+					index = i + 1;
+
+					break;
+
+				}
+
+			}
+
+		}
+
+		track.times = times;
+		track.values = values;
+
+		return index;
 
 	},
 
-	vertexShader: /* glsl */`
+	mergeMorphTargetTracks: function ( clip, root ) {
 
-		varying vec2 vUv;
+		const tracks = [];
+		const mergedTracks = {};
+		const sourceTracks = clip.tracks;
 
-		void main() {
+		for ( let i = 0; i < sourceTracks.length; ++ i ) {
 
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+			let sourceTrack = sourceTracks[ i ];
+			const sourceTrackBinding = PropertyBinding.parseTrackName( sourceTrack.name );
+			const sourceTrackNode = PropertyBinding.findNode( root, sourceTrackBinding.nodeName );
 
-		}`,
+			if ( sourceTrackBinding.propertyName !== 'morphTargetInfluences' || sourceTrackBinding.propertyIndex === undefined ) {
 
-	fragmentShader: /* glsl */`
+				// Tracks that don't affect morph targets, or that affect all morph targets together, can be left as-is.
+				tracks.push( sourceTrack );
+				continue;
 
-		uniform sampler2D tDiffuse;
-		uniform float h;
+			}
 
-		varying vec2 vUv;
+			if ( sourceTrack.createInterpolant !== sourceTrack.InterpolantFactoryMethodDiscrete
+				&& sourceTrack.createInterpolant !== sourceTrack.InterpolantFactoryMethodLinear ) {
 
-		void main() {
+				if ( sourceTrack.createInterpolant.isInterpolantFactoryMethodGLTFCubicSpline ) {
 
-			vec4 sum = vec4( 0.0 );
+					// This should never happen, because glTF morph target animations
+					// affect all targets already.
+					throw new Error( 'THREE.GLTFExporter: Cannot merge tracks with glTF CUBICSPLINE interpolation.' );
 
-			sum += texture2D( tDiffuse, vec2( vUv.x - 4.0 * h, vUv.y ) ) * 0.051;
-			sum += texture2D( tDiffuse, vec2( vUv.x - 3.0 * h, vUv.y ) ) * 0.0918;
-			sum += texture2D( tDiffuse, vec2( vUv.x - 2.0 * h, vUv.y ) ) * 0.12245;
-			sum += texture2D( tDiffuse, vec2( vUv.x - 1.0 * h, vUv.y ) ) * 0.1531;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y ) ) * 0.1633;
-			sum += texture2D( tDiffuse, vec2( vUv.x + 1.0 * h, vUv.y ) ) * 0.1531;
-			sum += texture2D( tDiffuse, vec2( vUv.x + 2.0 * h, vUv.y ) ) * 0.12245;
-			sum += texture2D( tDiffuse, vec2( vUv.x + 3.0 * h, vUv.y ) ) * 0.0918;
-			sum += texture2D( tDiffuse, vec2( vUv.x + 4.0 * h, vUv.y ) ) * 0.051;
+				}
 
-			gl_FragColor = sum;
+				console.warn( 'THREE.GLTFExporter: Morph target interpolation mode not yet supported. Using LINEAR instead.' );
 
-		}`
+				sourceTrack = sourceTrack.clone();
+				sourceTrack.setInterpolation( InterpolateLinear );
+
+			}
+
+			const targetCount = sourceTrackNode.morphTargetInfluences.length;
+			const targetIndex = sourceTrackNode.morphTargetDictionary[ sourceTrackBinding.propertyIndex ];
+
+			if ( targetIndex === undefined ) {
+
+				throw new Error( 'THREE.GLTFExporter: Morph target name not found: ' + sourceTrackBinding.propertyIndex );
+
+			}
+
+			let mergedTrack;
+
+			// If this is the first time we've seen this object, create a new
+			// track to store merged keyframe data for each morph target.
+			if ( mergedTracks[ sourceTrackNode.uuid ] === undefined ) {
+
+				mergedTrack = sourceTrack.clone();
+
+				const values = new mergedTrack.ValueBufferType( targetCount * mergedTrack.times.length );
+
+				for ( let j = 0; j < mergedTrack.times.length; j ++ ) {
+
+					values[ j * targetCount + targetIndex ] = mergedTrack.values[ j ];
+
+				}
+
+				// We need to take into consideration the intended target node
+				// of our original un-merged morphTarget animation.
+				mergedTrack.name = ( sourceTrackBinding.nodeName || '' ) + '.morphTargetInfluences';
+				mergedTrack.values = values;
+
+				mergedTracks[ sourceTrackNode.uuid ] = mergedTrack;
+				tracks.push( mergedTrack );
+
+				continue;
+
+			}
+
+			const sourceInterpolant = sourceTrack.createInterpolant( new sourceTrack.ValueBufferType( 1 ) );
+
+			mergedTrack = mergedTracks[ sourceTrackNode.uuid ];
+
+			// For every existing keyframe of the merged track, write a (possibly
+			// interpolated) value from the source track.
+			for ( let j = 0; j < mergedTrack.times.length; j ++ ) {
+
+				mergedTrack.values[ j * targetCount + targetIndex ] = sourceInterpolant.evaluate( mergedTrack.times[ j ] );
+
+			}
+
+			// For every existing keyframe of the source track, write a (possibly
+			// new) keyframe to the merged track. Values from the previous loop may
+			// be written again, but keyframes are de-duplicated.
+			for ( let j = 0; j < sourceTrack.times.length; j ++ ) {
+
+				const keyframeIndex = this.insertKeyframe( mergedTrack, sourceTrack.times[ j ] );
+				mergedTrack.values[ keyframeIndex * targetCount + targetIndex ] = sourceTrack.values[ j ];
+
+			}
+
+		}
+
+		clip.tracks = tracks;
+
+		return clip;
+
+	}
 
 };
-
-/**
- * Two pass Gaussian blur filter (horizontal and vertical blur shaders)
- * - see http://www.cake23.de/traveling-wavefronts-lit-up.html
- *
- * - 9 samples per pass
- * - standard deviation 2.7
- * - "h" and "v" parameters should be set to "1 / width" and "1 / height"
- */
-
-const VerticalBlurShader = {
-
-	uniforms: {
-
-		'tDiffuse': { value: null },
-		'v': { value: 1.0 / 512.0 }
-
-	},
-
-	vertexShader: /* glsl */`
-
-		varying vec2 vUv;
-
-		void main() {
-
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-
-		}`,
-
-	fragmentShader: /* glsl */`
-
-		uniform sampler2D tDiffuse;
-		uniform float v;
-
-		varying vec2 vUv;
-
-		void main() {
-
-			vec4 sum = vec4( 0.0 );
-
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 4.0 * v ) ) * 0.051;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 3.0 * v ) ) * 0.0918;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 2.0 * v ) ) * 0.12245;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 1.0 * v ) ) * 0.1531;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y ) ) * 0.1633;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 1.0 * v ) ) * 0.1531;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 2.0 * v ) ) * 0.12245;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 3.0 * v ) ) * 0.0918;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 4.0 * v ) ) * 0.051;
-
-			gl_FragColor = sum;
-
-		}`
-
-};
-
-// https://en.wikipedia.org/wiki/Linear_interpolation
-function lerp( x, y, t ) {
-
-	return ( 1 - t ) * x + t * y;
-
-}
 
 /* @license
- * Copyright 2022 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -44564,1006 +47108,115 @@ function lerp( x, y, t ) {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// The softness [0, 1] of the shadow is mapped to a resolution between
-// 2^LOG_MAX_RESOLUTION and 2^LOG_MIN_RESOLUTION.
-const LOG_MAX_RESOLUTION = 9;
-const LOG_MIN_RESOLUTION = 6;
-// Animated models are not in general contained in their bounding box, as this
-// is calculated only for their resting pose. We create a cubic shadow volume
-// for animated models sized to their largest bounding box dimension multiplied
-// by this scale factor.
-const ANIMATION_SCALING = 2;
-// Since hard shadows are not lightened by blurring and depth, set a lower
-// default intensity to make them more perceptually similar to the intensity of
-// the soft shadows.
-const DEFAULT_HARD_INTENSITY = 0.3;
 /**
- * The Shadow class creates a shadow that fits a given scene and follows a
- * target. This shadow will follow the scene without any updates needed so long
- * as the shadow and scene are both parented to the same object (call it the
- * scene) and this scene is passed as the target parameter to the shadow's
- * constructor. We also must constrain the scene to motion within the horizontal
- * plane and call the setRotation() method whenever the scene's Y-axis rotation
- * changes. For motion outside of the horizontal plane, this.needsUpdate must be
- * set to true.
- *
- * The softness of the shadow is controlled by changing its resolution, making
- * softer shadows faster, but less precise.
+ * @param object {THREE.Object3D}
+ * @return {boolean}
  */
-class Shadow extends Object3D {
-    constructor(scene, softness, side) {
-        super();
-        this.camera = new OrthographicCamera();
-        // private cameraHelper = new CameraHelper(this.camera);
-        this.renderTarget = null;
-        this.renderTargetBlur = null;
-        this.depthMaterial = new MeshDepthMaterial();
-        this.horizontalBlurMaterial = new ShaderMaterial(HorizontalBlurShader);
-        this.verticalBlurMaterial = new ShaderMaterial(VerticalBlurShader);
-        this.intensity = 0;
-        this.softness = 1;
-        this.boundingBox = new Box3;
-        this.size = new Vector3;
-        this.maxDimension = 0;
-        this.isAnimated = false;
-        this.needsUpdate = false;
-        const { camera } = this;
-        camera.rotation.x = Math.PI / 2;
-        camera.left = -0.5;
-        camera.right = 0.5;
-        camera.bottom = -0.5;
-        camera.top = 0.5;
-        this.add(camera);
-        // this.add(this.cameraHelper);
-        // this.cameraHelper.updateMatrixWorld = function() {
-        //   this.matrixWorld = this.camera.matrixWorld;
-        // };
-        const plane = new PlaneGeometry();
-        const shadowMaterial = new MeshBasicMaterial({
-            // color: new Color(1, 0, 0),
-            opacity: 1,
-            transparent: true,
-            side: BackSide,
-        });
-        this.floor = new Mesh(plane, shadowMaterial);
-        this.floor.userData.shadow = true;
-        camera.add(this.floor);
-        // the plane onto which to blur the texture
-        this.blurPlane = new Mesh(plane);
-        this.blurPlane.visible = false;
-        camera.add(this.blurPlane);
-        scene.target.add(this);
-        // like MeshDepthMaterial, but goes from black to transparent
-        this.depthMaterial.onBeforeCompile = function (shader) {
-            shader.fragmentShader = shader.fragmentShader.replace('gl_FragColor = vec4( vec3( 1.0 - fragCoordZ ), opacity );', 'gl_FragColor = vec4( vec3( 0.0 ), ( 1.0 - fragCoordZ ) * opacity );');
-        };
-        this.horizontalBlurMaterial.depthTest = false;
-        this.verticalBlurMaterial.depthTest = false;
-        this.setScene(scene, softness, side);
-    }
-    /**
-     * Update the shadow's size and position for a new scene. Softness is also
-     * needed, as this controls the shadow's resolution.
-     */
-    setScene(scene, softness, side) {
-        const { boundingBox, size, rotation, position } = this;
-        this.isAnimated = scene.animationNames.length > 0;
-        this.boundingBox.copy(scene.boundingBox);
-        this.size.copy(scene.size);
-        this.maxDimension = Math.max(size.x, size.y, size.z) *
-            (this.isAnimated ? ANIMATION_SCALING : 1);
-        this.boundingBox.getCenter(position);
-        if (side === 'back') {
-            const { min, max } = boundingBox;
-            [min.y, min.z] = [min.z, min.y];
-            [max.y, max.z] = [max.z, max.y];
-            [size.y, size.z] = [size.z, size.y];
-            rotation.x = Math.PI / 2;
-            rotation.y = Math.PI;
-        }
-        else {
-            rotation.x = 0;
-            rotation.y = 0;
-        }
-        if (this.isAnimated) {
-            const minY = boundingBox.min.y;
-            const maxY = boundingBox.max.y;
-            size.y = this.maxDimension;
-            boundingBox.expandByVector(size.subScalar(this.maxDimension).multiplyScalar(-0.5));
-            boundingBox.min.y = minY;
-            boundingBox.max.y = maxY;
-            size.set(this.maxDimension, maxY - minY, this.maxDimension);
-        }
-        if (side === 'bottom') {
-            position.y = boundingBox.min.y;
-        }
-        else {
-            position.z = boundingBox.min.y;
-        }
-        this.setSoftness(softness);
-    }
-    /**
-     * Update the shadow's resolution based on softness (between 0 and 1). Should
-     * not be called frequently, as this results in reallocation.
-     */
-    setSoftness(softness) {
-        this.softness = softness;
-        const { size, camera } = this;
-        const scaleY = (this.isAnimated ? ANIMATION_SCALING : 1);
-        const resolution = scaleY *
-            Math.pow(2, LOG_MAX_RESOLUTION -
-                softness * (LOG_MAX_RESOLUTION - LOG_MIN_RESOLUTION));
-        this.setMapSize(resolution);
-        const softFar = size.y / 2;
-        const hardFar = size.y * scaleY;
-        camera.near = 0;
-        camera.far = lerp(hardFar, softFar, softness);
-        // we have co-opted opacity to scale the depth to clip
-        this.depthMaterial.opacity = 1.0 / softness;
-        camera.updateProjectionMatrix();
-        // this.cameraHelper.update();
-        this.setIntensity(this.intensity);
-        this.setOffset(0);
-    }
-    /**
-     * Lower-level version of the above function.
-     */
-    setMapSize(maxMapSize) {
-        const { size } = this;
-        if (this.isAnimated) {
-            maxMapSize *= ANIMATION_SCALING;
-        }
-        const baseWidth = Math.floor(size.x > size.z ? maxMapSize : maxMapSize * size.x / size.z);
-        const baseHeight = Math.floor(size.x > size.z ? maxMapSize * size.z / size.x : maxMapSize);
-        // width of blur filter in pixels (not adjustable)
-        const TAP_WIDTH = 10;
-        const width = TAP_WIDTH + baseWidth;
-        const height = TAP_WIDTH + baseHeight;
-        if (this.renderTarget != null &&
-            (this.renderTarget.width !== width ||
-                this.renderTarget.height !== height)) {
-            this.renderTarget.dispose();
-            this.renderTarget = null;
-            this.renderTargetBlur.dispose();
-            this.renderTargetBlur = null;
-        }
-        if (this.renderTarget == null) {
-            const params = { format: RGBAFormat };
-            this.renderTarget = new WebGLRenderTarget(width, height, params);
-            this.renderTargetBlur = new WebGLRenderTarget(width, height, params);
-            this.floor.material.map =
-                this.renderTarget.texture;
-        }
-        // These pads account for the softening radius around the shadow.
-        this.camera.scale.set(size.x * (1 + TAP_WIDTH / baseWidth), size.z * (1 + TAP_WIDTH / baseHeight), 1);
-        this.needsUpdate = true;
-    }
-    /**
-     * Set the shadow's intensity (0 to 1), which is just its opacity. Turns off
-     * shadow rendering if zero.
-     */
-    setIntensity(intensity) {
-        this.intensity = intensity;
-        if (intensity > 0) {
-            this.visible = true;
-            this.floor.visible = true;
-            this.floor.material.opacity = intensity *
-                lerp(DEFAULT_HARD_INTENSITY, 1, this.softness * this.softness);
-        }
-        else {
-            this.visible = false;
-            this.floor.visible = false;
-        }
-    }
-    getIntensity() {
-        return this.intensity;
-    }
-    /**
-     * An offset can be specified to move the
-     * shadow vertically relative to the bottom of the scene. Positive is up, so
-     * values are generally negative. A small offset keeps our shadow from
-     * z-fighting with any baked-in shadow plane.
-     */
-    setOffset(offset) {
-        this.floor.position.z = -offset + 0.001 * this.maxDimension;
-    }
-    render(renderer, scene) {
-        // this.cameraHelper.visible = false;
-        // force the depthMaterial to everything
-        scene.overrideMaterial = this.depthMaterial;
-        // set renderer clear alpha
-        const initialClearAlpha = renderer.getClearAlpha();
-        renderer.setClearAlpha(0);
-        this.floor.visible = false;
-        // disable XR for offscreen rendering
-        const xrEnabled = renderer.xr.enabled;
-        renderer.xr.enabled = false;
-        // render to the render target to get the depths
-        const oldRenderTarget = renderer.getRenderTarget();
-        renderer.setRenderTarget(this.renderTarget);
-        renderer.render(scene, this.camera);
-        // and reset the override material
-        scene.overrideMaterial = null;
-        this.floor.visible = true;
-        this.blurShadow(renderer);
-        // reset and render the normal scene
-        renderer.xr.enabled = xrEnabled;
-        renderer.setRenderTarget(oldRenderTarget);
-        renderer.setClearAlpha(initialClearAlpha);
-        // this.cameraHelper.visible = true;
-    }
-    blurShadow(renderer) {
-        const { camera, horizontalBlurMaterial, verticalBlurMaterial, renderTarget, renderTargetBlur, blurPlane } = this;
-        blurPlane.visible = true;
-        // blur horizontally and draw in the renderTargetBlur
-        blurPlane.material = horizontalBlurMaterial;
-        horizontalBlurMaterial.uniforms.h.value = 1 / this.renderTarget.width;
-        horizontalBlurMaterial.uniforms.tDiffuse.value = this.renderTarget.texture;
-        renderer.setRenderTarget(renderTargetBlur);
-        renderer.render(blurPlane, camera);
-        // blur vertically and draw in the main renderTarget
-        blurPlane.material = verticalBlurMaterial;
-        verticalBlurMaterial.uniforms.v.value = 1 / this.renderTarget.height;
-        verticalBlurMaterial.uniforms.tDiffuse.value =
-            this.renderTargetBlur.texture;
-        renderer.setRenderTarget(renderTarget);
-        renderer.render(blurPlane, camera);
-        blurPlane.visible = false;
-    }
-}
-
-/* @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-const MIN_SHADOW_RATIO = 100;
-const view = new Vector3();
-const target = new Vector3();
-const normalWorld = new Vector3();
-const raycaster = new Raycaster();
-const vector3$2 = new Vector3();
-const ndc = new Vector2();
+const compatibleObject = (object) => {
+    // @TODO: Need properer variantMaterials format validation?
+    return object.material !==
+        undefined && // easier than (!object.isMesh && !object.isLine &&
+        // !object.isPoints)
+        object.userData && // just in case
+        object.userData.variantMaterials &&
+        // Is this line costly?
+        !!Array
+            .from(object.userData.variantMaterials
+            .values())
+            .filter(m => compatibleMaterial(m.material));
+};
 /**
- * A THREE.Scene object that takes a Model and CanvasHTMLElement and
- * constructs a framed scene based off of the canvas dimensions.
- * Provides lights and cameras to be used in a renderer.
+ * @param material {THREE.Material}
+ * @return {boolean}
  */
-class ModelScene extends Scene {
-    constructor({ canvas, element, width, height }) {
-        super();
-        this.context = null;
-        this.annotationRenderer = new CSS2DRenderer();
-        this.schemaElement = document.createElement('script');
-        this.width = 1;
-        this.height = 1;
-        this.aspect = 1;
-        this.scaleStep = 0;
-        this.renderCount = 0;
-        this.externalRenderer = null;
-        // These default camera values are never used, as they are reset once the
-        // model is loaded and framing is computed.
-        this.camera = new PerspectiveCamera(45, 1, 0.1, 100);
-        this.xrCamera = null;
-        this.url = null;
-        this.target = new Object3D();
-        this.animationNames = [];
-        this.boundingBox = new Box3();
-        this.boundingSphere = new Sphere();
-        this.size = new Vector3();
-        this.idealAspect = 0;
-        this.framedFoVDeg = 0;
-        this.shadow = null;
-        this.shadowIntensity = 0;
-        this.shadowSoftness = 1;
-        this.bakedShadows = new Set();
-        this.exposure = 1;
-        this.canScale = true;
-        this.isDirty = false;
-        this.goalTarget = new Vector3();
-        this.targetDamperX = new Damper();
-        this.targetDamperY = new Damper();
-        this.targetDamperZ = new Damper();
-        this._currentGLTF = null;
-        this._model = null;
-        this.cancelPendingSourceChange = null;
-        this.animationsByName = new Map();
-        this.currentAnimationAction = null;
-        this.name = 'ModelScene';
-        this.element = element;
-        this.canvas = canvas;
-        // These default camera values are never used, as they are reset once the
-        // model is loaded and framing is computed.
-        this.camera = new PerspectiveCamera(45, 1, 0.1, 100);
-        this.camera.name = 'MainCamera';
-        this.add(this.target);
-        this.setSize(width, height);
-        this.target.name = 'Target';
-        this.mixer = new AnimationMixer(this.target);
-        const { domElement } = this.annotationRenderer;
-        const { style } = domElement;
-        style.display = 'none';
-        style.pointerEvents = 'none';
-        style.position = 'absolute';
-        style.top = '0';
-        this.element.shadowRoot.querySelector('.default').appendChild(domElement);
-        this.schemaElement.setAttribute('type', 'application/ld+json');
+const compatibleMaterial = (material) => {
+    // @TODO: support multi materials?
+    return material && material.isMaterial && !Array.isArray(material);
+};
+class GLTFExporterMaterialsVariantsExtension {
+    constructor(writer) {
+        this.writer = writer;
+        this.name = 'KHR_materials_variants';
+        this.variantNames = [];
     }
-    /**
-     * Function to create the context lazily, as when there is only one
-     * <model-viewer> element, the renderer's 3D context can be displayed
-     * directly. This extra context is necessary to copy the renderings into when
-     * there are more than one.
-     */
-    createContext() {
-        this.context = this.canvas.getContext('2d');
-    }
-    getCamera() {
-        return this.xrCamera != null ? this.xrCamera : this.camera;
-    }
-    queueRender() {
-        this.isDirty = true;
-    }
-    shouldRender() {
-        return this.isDirty;
-    }
-    hasRendered() {
-        this.isDirty = false;
-    }
-    forceRescale() {
-        this.scaleStep = -1;
-        this.queueRender();
-    }
-    /**
-     * Pass in a THREE.Object3D to be controlled
-     * by this model.
-     */
-    async setObject(model) {
-        this.reset();
-        this._model = model;
-        this.target.add(model);
-        await this.setupScene();
-    }
-    /**
-     * Sets the model via URL.
-     */
-    async setSource(url, progressCallback = () => { }) {
-        if (!url || url === this.url) {
-            progressCallback(1);
-            return;
-        }
-        this.reset();
-        this.url = url;
-        if (this.externalRenderer != null) {
-            const framingInfo = await this.externalRenderer.load(progressCallback);
-            this.boundingSphere.radius = framingInfo.framedRadius;
-            this.idealAspect = framingInfo.fieldOfViewAspect;
-            return;
-        }
-        // If we have pending work due to a previous source change in progress,
-        // cancel it so that we do not incur a race condition:
-        if (this.cancelPendingSourceChange != null) {
-            this.cancelPendingSourceChange();
-            this.cancelPendingSourceChange = null;
-        }
-        let gltf;
-        try {
-            gltf = await new Promise(async (resolve, reject) => {
-                this.cancelPendingSourceChange = () => reject();
-                try {
-                    const result = await this.element[$renderer].loader.load(url, this.element, progressCallback);
-                    resolve(result);
+    beforeParse(objects) {
+        // Find all variant names and store them to the table
+        const variantNameSet = new Set();
+        for (const object of objects) {
+            object.traverse(o => {
+                if (!compatibleObject(o)) {
+                    return;
                 }
-                catch (error) {
-                    reject(error);
+                const variantMaterials = o.userData.variantMaterials;
+                const variantDataMap = o.userData.variantData;
+                for (const [variantName, variantData] of variantDataMap) {
+                    const variantMaterial = variantMaterials.get(variantData.index);
+                    // Ignore unloaded variant materials
+                    if (variantMaterial && compatibleMaterial(variantMaterial.material)) {
+                        variantNameSet.add(variantName);
+                    }
                 }
             });
         }
-        catch (error) {
-            if (error == null) {
-                // Loading was cancelled, so silently return
-                return;
-            }
-            throw error;
-        }
-        this.reset();
-        this.url = url;
-        this._currentGLTF = gltf;
-        if (gltf != null) {
-            this._model = gltf.scene;
-            this.target.add(gltf.scene);
-        }
-        const { animations } = gltf;
-        const animationsByName = new Map();
-        const animationNames = [];
-        for (const animation of animations) {
-            animationsByName.set(animation.name, animation);
-            animationNames.push(animation.name);
-        }
-        this.animations = animations;
-        this.animationsByName = animationsByName;
-        this.animationNames = animationNames;
-        await this.setupScene();
+        // We may want to sort?
+        variantNameSet.forEach(name => this.variantNames.push(name));
     }
-    async setupScene() {
-        this.applyTransform();
-        this.updateBoundingBox();
-        await this.updateFraming();
-        this.updateShadow();
-        this.setShadowIntensity(this.shadowIntensity);
-    }
-    reset() {
-        this.url = null;
-        this.queueRender();
-        if (this.shadow != null) {
-            this.shadow.setIntensity(0);
-        }
-        this.bakedShadows.clear();
-        const { _model } = this;
-        if (_model != null) {
-            _model.removeFromParent();
-            this._model = null;
-        }
-        const gltf = this._currentGLTF;
-        if (gltf != null) {
-            gltf.dispose();
-            this._currentGLTF = null;
-        }
-        if (this.currentAnimationAction != null) {
-            this.currentAnimationAction.stop();
-            this.currentAnimationAction = null;
-        }
-        this.mixer.stopAllAction();
-        this.mixer.uncacheRoot(this);
-    }
-    get currentGLTF() {
-        return this._currentGLTF;
-    }
-    /**
-     * Updates the ModelScene for a new container size in CSS pixels.
-     */
-    setSize(width, height) {
-        if (this.width === width && this.height === height) {
+    writeMesh(mesh, meshDef) {
+        if (!compatibleObject(mesh)) {
             return;
         }
-        this.width = Math.max(width, 1);
-        this.height = Math.max(height, 1);
-        this.annotationRenderer.setSize(width, height);
-        this.aspect = this.width / this.height;
-        if (this.externalRenderer != null) {
-            const dpr = resolveDpr();
-            this.externalRenderer.resize(width * dpr, height * dpr);
-        }
-        this.queueRender();
-    }
-    markBakedShadow(mesh) {
-        mesh.userData.shadow = true;
-        this.bakedShadows.add(mesh);
-    }
-    unmarkBakedShadow(mesh) {
-        mesh.userData.shadow = false;
-        mesh.visible = true;
-        this.bakedShadows.delete(mesh);
-        this.boundingBox.expandByObject(mesh);
-    }
-    findBakedShadows(group) {
-        const boundingBox = new Box3();
-        group.traverse((object) => {
-            const mesh = object;
-            if (!mesh.isMesh) {
-                return;
-            }
-            const material = mesh.material;
-            if (!material.transparent) {
-                return;
-            }
-            boundingBox.setFromObject(mesh);
-            const size = boundingBox.getSize(vector3$2);
-            const minDim = Math.min(size.x, size.y, size.z);
-            const maxDim = Math.max(size.x, size.y, size.z);
-            if (maxDim < MIN_SHADOW_RATIO * minDim) {
-                return;
-            }
-            this.markBakedShadow(mesh);
+        const userData = mesh.userData;
+        const variantMaterials = userData.variantMaterials;
+        const variantDataMap = userData.variantData;
+        const mappingTable = new Map();
+        // Removes gaps in the variant indices list (caused by deleting variants).
+        const reIndexedVariants = new Map();
+        const variants = Array.from(variantDataMap.values()).sort((a, b) => {
+            return a.index - b.index;
         });
-    }
-    checkBakedShadows() {
-        const { min, max } = this.boundingBox;
-        const shadowBox = new Box3();
-        this.boundingBox.getSize(this.size);
-        for (const mesh of this.bakedShadows) {
-            shadowBox.setFromObject(mesh);
-            if (shadowBox.min.y < min.y + this.size.y / MIN_SHADOW_RATIO &&
-                shadowBox.min.x <= min.x && shadowBox.max.x >= max.x &&
-                shadowBox.min.z <= min.z && shadowBox.max.z >= max.z) {
-                // floor shadow
+        for (const [i, variantData] of variants.entries()) {
+            reIndexedVariants.set(variantData.index, i);
+        }
+        for (const variantData of variantDataMap.values()) {
+            const variantInstance = variantMaterials.get(variantData.index);
+            if (!variantInstance || !compatibleMaterial(variantInstance.material)) {
                 continue;
             }
-            if (shadowBox.min.z < min.z + this.size.z / MIN_SHADOW_RATIO &&
-                shadowBox.min.x <= min.x && shadowBox.max.x >= max.x &&
-                shadowBox.min.y <= min.y && shadowBox.max.y >= max.y) {
-                // wall shadow
-                continue;
+            const materialIndex = this.writer.processMaterial(variantInstance.material);
+            if (!mappingTable.has(materialIndex)) {
+                mappingTable.set(materialIndex, { material: materialIndex, variants: [] });
             }
-            this.unmarkBakedShadow(mesh);
+            mappingTable.get(materialIndex).variants.push(reIndexedVariants.get(variantData.index));
         }
-    }
-    applyTransform() {
-        const { model } = this;
-        if (model == null) {
+        const mappingsDef = Array.from(mappingTable.values())
+            .map((m => { return m.variants.sort((a, b) => a - b) && m; }))
+            .sort((a, b) => a.material - b.material);
+        if (mappingsDef.length === 0) {
             return;
         }
-        const orientation = parseExpressions(this.element.orientation)[0]
-            .terms;
-        const roll = normalizeUnit(orientation[0]).number;
-        const pitch = normalizeUnit(orientation[1]).number;
-        const yaw = normalizeUnit(orientation[2]).number;
-        model.quaternion.setFromEuler(new Euler(pitch, yaw, roll, 'YXZ'));
-        const scale = parseExpressions(this.element.scale)[0]
-            .terms;
-        model.scale.set(scale[0].number, scale[1].number, scale[2].number);
+        const originalMaterialIndex = compatibleMaterial(userData.originalMaterial) ?
+            this.writer.processMaterial(userData.originalMaterial) :
+            -1;
+        for (const primitiveDef of meshDef.primitives) {
+            // Override primitiveDef.material with original material.
+            if (originalMaterialIndex >= 0) {
+                primitiveDef.material = originalMaterialIndex;
+            }
+            primitiveDef.extensions = primitiveDef.extensions || {};
+            primitiveDef.extensions[this.name] = { mappings: mappingsDef };
+        }
     }
-    updateBoundingBox() {
-        const { model } = this;
-        if (model == null) {
+    afterParse() {
+        if (this.variantNames.length === 0) {
             return;
         }
-        this.target.remove(model);
-        this.findBakedShadows(model);
-        const bound = (box, vertex) => {
-            return box.expandByPoint(vertex);
-        };
-        this.setBakedShadowVisibility(false);
-        this.boundingBox = reduceVertices(model, bound, new Box3());
-        // If there's nothing but the baked shadow, then it's not a baked shadow.
-        if (this.boundingBox.isEmpty()) {
-            this.setBakedShadowVisibility(true);
-            this.bakedShadows.forEach((mesh) => this.unmarkBakedShadow(mesh));
-            this.boundingBox = reduceVertices(model, bound, new Box3());
-        }
-        this.checkBakedShadows();
-        this.setBakedShadowVisibility();
-        this.boundingBox.getSize(this.size);
-        this.target.add(model);
-    }
-    /**
-     * Calculates the boundingSphere and idealAspect that allows the 3D
-     * object to be framed tightly in a 2D window of any aspect ratio without
-     * clipping at any camera orbit. The camera's center target point can be
-     * optionally specified. If no center is specified, it defaults to the center
-     * of the bounding box, which means asymmetric models will tend to be tight on
-     * one side instead of both. Proper choice of center can correct this.
-     */
-    async updateFraming() {
-        const { model } = this;
-        if (model == null) {
-            return;
-        }
-        this.target.remove(model);
-        this.setBakedShadowVisibility(false);
-        const { center } = this.boundingSphere;
-        this.element.requestUpdate('cameraTarget');
-        await this.element.updateComplete;
-        center.copy(this.getTarget());
-        const radiusSquared = (value, vertex) => {
-            return Math.max(value, center.distanceToSquared(vertex));
-        };
-        this.boundingSphere.radius =
-            Math.sqrt(reduceVertices(model, radiusSquared, 0));
-        const horizontalTanFov = (value, vertex) => {
-            vertex.sub(center);
-            const radiusXZ = Math.sqrt(vertex.x * vertex.x + vertex.z * vertex.z);
-            return Math.max(value, radiusXZ / (this.idealCameraDistance() - Math.abs(vertex.y)));
-        };
-        this.idealAspect = reduceVertices(model, horizontalTanFov, 0) /
-            Math.tan((this.framedFoVDeg / 2) * Math.PI / 180);
-        this.setBakedShadowVisibility();
-        this.target.add(model);
-    }
-    setBakedShadowVisibility(visible = this.shadowIntensity <= 0) {
-        for (const shadow of this.bakedShadows) {
-            shadow.visible = visible;
-        }
-    }
-    idealCameraDistance() {
-        const halfFovRad = (this.framedFoVDeg / 2) * Math.PI / 180;
-        return this.boundingSphere.radius / Math.sin(halfFovRad);
-    }
-    /**
-     * Set's the framedFieldOfView based on the aspect ratio of the window in
-     * order to keep the model fully visible at any camera orientation.
-     */
-    adjustedFoV(fovDeg) {
-        const vertical = Math.tan((fovDeg / 2) * Math.PI / 180) *
-            Math.max(1, this.idealAspect / this.aspect);
-        return 2 * Math.atan(vertical) * 180 / Math.PI;
-    }
-    getNDC(clientX, clientY) {
-        if (this.xrCamera != null) {
-            ndc.set(clientX / window.screen.width, clientY / window.screen.height);
-        }
-        else {
-            const rect = this.element.getBoundingClientRect();
-            ndc.set((clientX - rect.x) / this.width, (clientY - rect.y) / this.height);
-        }
-        ndc.multiplyScalar(2).subScalar(1);
-        ndc.y *= -1;
-        return ndc;
-    }
-    /**
-     * Returns the size of the corresponding canvas element.
-     */
-    getSize() {
-        return { width: this.width, height: this.height };
-    }
-    setEnvironmentAndSkybox(environment, skybox) {
-        if (this.element[$renderer].arRenderer.presentedScene === this) {
-            return;
-        }
-        this.environment = environment;
-        this.background = skybox;
-        this.queueRender();
-    }
-    /**
-     * Sets the point in model coordinates the model should orbit/pivot around.
-     */
-    setTarget(modelX, modelY, modelZ) {
-        this.goalTarget.set(-modelX, -modelY, -modelZ);
-    }
-    /**
-     * Set the decay time of, affects the speed of target transitions.
-     */
-    setTargetDamperDecayTime(decayMilliseconds) {
-        this.targetDamperX.setDecayTime(decayMilliseconds);
-        this.targetDamperY.setDecayTime(decayMilliseconds);
-        this.targetDamperZ.setDecayTime(decayMilliseconds);
-    }
-    /**
-     * Gets the point in model coordinates the model should orbit/pivot around.
-     */
-    getTarget() {
-        return this.goalTarget.clone().multiplyScalar(-1);
-    }
-    /**
-     * Shifts the model to the target point immediately instead of easing in.
-     */
-    jumpToGoal() {
-        this.updateTarget(SETTLING_TIME);
-    }
-    /**
-     * This should be called every frame with the frame delta to cause the target
-     * to transition to its set point.
-     */
-    updateTarget(delta) {
-        const goal = this.goalTarget;
-        const target = this.target.position;
-        if (!goal.equals(target)) {
-            const normalization = this.boundingSphere.radius / 10;
-            let { x, y, z } = target;
-            x = this.targetDamperX.update(x, goal.x, delta, normalization);
-            y = this.targetDamperY.update(y, goal.y, delta, normalization);
-            z = this.targetDamperZ.update(z, goal.z, delta, normalization);
-            this.target.position.set(x, y, z);
-            this.target.updateMatrixWorld();
-            this.queueRender();
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-    /**
-     * Yaw the +z (front) of the model toward the indicated world coordinates.
-     */
-    pointTowards(worldX, worldZ) {
-        const { x, z } = this.position;
-        this.yaw = Math.atan2(worldX - x, worldZ - z);
-    }
-    get model() {
-        return this._model;
-    }
-    /**
-     * Yaw is the scene's orientation about the y-axis, around the rotation
-     * center.
-     */
-    set yaw(radiansY) {
-        this.rotation.y = radiansY;
-        this.queueRender();
-    }
-    get yaw() {
-        return this.rotation.y;
-    }
-    set animationTime(value) {
-        this.mixer.setTime(value);
-        this.queueShadowRender();
-    }
-    get animationTime() {
-        if (this.currentAnimationAction != null) {
-            const loopCount = Math.max(this.currentAnimationAction._loopCount, 0);
-            if (this.currentAnimationAction.loop === LoopPingPong &&
-                (loopCount & 1) === 1) {
-                return this.duration - this.currentAnimationAction.time;
-            }
-            else {
-                return this.currentAnimationAction.time;
-            }
-        }
-        return 0;
-    }
-    set animationTimeScale(value) {
-        this.mixer.timeScale = value;
-    }
-    get animationTimeScale() {
-        return this.mixer.timeScale;
-    }
-    get duration() {
-        if (this.currentAnimationAction != null &&
-            this.currentAnimationAction.getClip()) {
-            return this.currentAnimationAction.getClip().duration;
-        }
-        return 0;
-    }
-    get hasActiveAnimation() {
-        return this.currentAnimationAction != null;
-    }
-    /**
-     * Plays an animation if there are any associated with the current model.
-     * Accepts an optional string name of an animation to play. If no name is
-     * provided, or if no animation is found by the given name, always falls back
-     * to playing the first animation.
-     */
-    playAnimation(name = null, crossfadeTime = 0, loopMode = LoopRepeat, repetitionCount = Infinity) {
-        if (this._currentGLTF == null) {
-            return;
-        }
-        const { animations } = this;
-        if (animations == null || animations.length === 0) {
-            console.warn(`Cannot play animation (model does not have any animations)`);
-            return;
-        }
-        let animationClip = null;
-        if (name != null) {
-            animationClip = this.animationsByName.get(name);
-            if (animationClip == null) {
-                const parsedAnimationIndex = parseInt(name);
-                if (!isNaN(parsedAnimationIndex) && parsedAnimationIndex >= 0 &&
-                    parsedAnimationIndex < animations.length) {
-                    animationClip = animations[parsedAnimationIndex];
-                }
-            }
-        }
-        if (animationClip == null) {
-            animationClip = animations[0];
-        }
-        try {
-            const { currentAnimationAction: lastAnimationAction } = this;
-            const action = this.mixer.clipAction(animationClip, this);
-            this.currentAnimationAction = action;
-            if (this.element.paused) {
-                this.mixer.stopAllAction();
-            }
-            else {
-                action.paused = false;
-                if (lastAnimationAction != null && action !== lastAnimationAction) {
-                    action.crossFadeFrom(lastAnimationAction, crossfadeTime, false);
-                }
-                else if (this.animationTimeScale > 0 &&
-                    this.animationTime == this.duration) {
-                    // This is a workaround for what I believe is a three.js bug.
-                    this.animationTime = 0;
-                }
-            }
-            action.setLoop(loopMode, repetitionCount);
-            action.enabled = true;
-            action.clampWhenFinished = true;
-            action.play();
-        }
-        catch (error) {
-            console.error(error);
-        }
-    }
-    stopAnimation() {
-        this.currentAnimationAction = null;
-        this.mixer.stopAllAction();
-    }
-    updateAnimation(step) {
-        this.mixer.update(step);
-        this.queueShadowRender();
-    }
-    subscribeMixerEvent(event, callback) {
-        this.mixer.addEventListener(event, callback);
-    }
-    /**
-     * Call if the object has been changed in such a way that the shadow's shape
-     * has changed (not a rotation about the Y axis).
-     */
-    updateShadow() {
-        const shadow = this.shadow;
-        if (shadow != null) {
-            const side = this.element.arPlacement === 'wall' ? 'back' : 'bottom';
-            shadow.setScene(this, this.shadowSoftness, side);
-            shadow.needsUpdate = true;
-        }
-    }
-    renderShadow(renderer) {
-        const shadow = this.shadow;
-        if (shadow != null && shadow.needsUpdate == true) {
-            shadow.render(renderer, this);
-            shadow.needsUpdate = false;
-        }
-    }
-    queueShadowRender() {
-        if (this.shadow != null) {
-            this.shadow.needsUpdate = true;
-        }
-    }
-    /**
-     * Sets the shadow's intensity, lazily creating the shadow as necessary.
-     */
-    setShadowIntensity(shadowIntensity) {
-        this.shadowIntensity = shadowIntensity;
-        if (this._currentGLTF == null) {
-            return;
-        }
-        this.setBakedShadowVisibility();
-        if (shadowIntensity <= 0 && this.shadow == null) {
-            return;
-        }
-        if (this.shadow == null) {
-            const side = this.element.arPlacement === 'wall' ? 'back' : 'bottom';
-            this.shadow = new Shadow(this, this.shadowSoftness, side);
-        }
-        this.shadow.setIntensity(shadowIntensity);
-    }
-    /**
-     * Sets the shadow's softness by mapping a [0, 1] softness parameter to the
-     * shadow's resolution. This involves reallocation, so it should not be
-     * changed frequently. Softer shadows are cheaper to render.
-     */
-    setShadowSoftness(softness) {
-        this.shadowSoftness = softness;
-        const shadow = this.shadow;
-        if (shadow != null) {
-            shadow.setSoftness(softness);
-        }
-    }
-    /**
-     * Shift the floor vertically from the bottom of the model's bounding box by
-     * offset (should generally be negative).
-     */
-    setShadowOffset(offset) {
-        const shadow = this.shadow;
-        if (shadow != null) {
-            shadow.setOffset(offset);
-        }
-    }
-    get raycaster() {
-        return raycaster;
-    }
-    /**
-     * This method returns the world position, model-space normal and texture
-     * coordinate of the point on the mesh corresponding to the input pixel
-     * coordinates given relative to the model-viewer element. If the mesh
-     * is not hit, the result is null.
-     */
-    positionAndNormalFromPoint(ndcPosition, object = this) {
-        this.raycaster.setFromCamera(ndcPosition, this.getCamera());
-        const hits = this.raycaster.intersectObject(object, true);
-        const hit = hits.find((hit) => hit.object.visible && !hit.object.userData.shadow);
-        if (hit == null || hit.face == null) {
-            return null;
-        }
-        if (hit.uv == null) {
-            return { position: hit.point, normal: hit.face.normal, uv: null };
-        }
-        hit.face.normal.applyNormalMatrix(new Matrix3().getNormalMatrix(hit.object.matrixWorld));
-        return { position: hit.point, normal: hit.face.normal, uv: hit.uv };
-    }
-    /**
-     * The following methods are for operating on the set of Hotspot objects
-     * attached to the scene. These come from DOM elements, provided to slots by
-     * the Annotation Mixin.
-     */
-    addHotspot(hotspot) {
-        this.target.add(hotspot);
-        // This happens automatically in render(), but we do it early so that
-        // the slots appear in the shadow DOM and the elements get attached,
-        // allowing us to dispatch events on them.
-        this.annotationRenderer.domElement.appendChild(hotspot.element);
-    }
-    removeHotspot(hotspot) {
-        this.target.remove(hotspot);
-    }
-    /**
-     * Helper method to apply a function to all hotspots.
-     */
-    forHotspots(func) {
-        const { children } = this.target;
-        for (let i = 0, l = children.length; i < l; i++) {
-            const hotspot = children[i];
-            if (hotspot instanceof Hotspot) {
-                func(hotspot);
-            }
-        }
-    }
-    /**
-     * Update the CSS visibility of the hotspots based on whether their normals
-     * point toward the camera.
-     */
-    updateHotspots(viewerPosition) {
-        this.forHotspots((hotspot) => {
-            view.copy(viewerPosition);
-            target.setFromMatrixPosition(hotspot.matrixWorld);
-            view.sub(target);
-            normalWorld.copy(hotspot.normal)
-                .transformDirection(this.target.matrixWorld);
-            if (view.dot(normalWorld) < 0) {
-                hotspot.hide();
-            }
-            else {
-                hotspot.show();
-            }
+        const root = this.writer.json;
+        root.extensions = root.extensions || {};
+        const variantsDef = this.variantNames.map(n => {
+            return { name: n };
         });
-    }
-    /**
-     * Rotate all hotspots to an absolute orientation given by the input number of
-     * radians. Zero returns them to upright.
-     */
-    orientHotspots(radians) {
-        this.forHotspots((hotspot) => {
-            hotspot.orient(radians);
-        });
-    }
-    /**
-     * Set the rendering visibility of all hotspots. This is used to hide them
-     * during transitions and such.
-     */
-    setHotspotsVisibility(visible) {
-        this.forHotspots((hotspot) => {
-            hotspot.visible = visible;
-        });
-    }
-    updateSchema(src) {
-        var _a;
-        const { schemaElement, element } = this;
-        const { alt, poster, iosSrc } = element;
-        if (src != null) {
-            const encoding = [{
-                    '@type': 'MediaObject',
-                    contentUrl: src,
-                    encodingFormat: ((_a = src.split('.').pop()) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === 'gltf' ?
-                        'model/gltf+json' :
-                        'model/gltf-binary'
-                }];
-            if (iosSrc) {
-                encoding.push({
-                    '@type': 'MediaObject',
-                    contentUrl: iosSrc,
-                    encodingFormat: 'model/vnd.usdz+zip'
-                });
-            }
-            const structuredData = {
-                '@context': 'http://schema.org/',
-                '@type': '3DModel',
-                image: poster !== null && poster !== void 0 ? poster : undefined,
-                name: alt !== null && alt !== void 0 ? alt : undefined,
-                encoding
-            };
-            schemaElement.textContent = JSON.stringify(structuredData);
-            document.head.appendChild(schemaElement);
-        }
-        else if (schemaElement.parentElement != null) {
-            schemaElement.parentElement.removeChild(schemaElement);
-        }
+        root.extensions[this.name] = { variants: variantsDef };
+        this.writer.extensionsUsed[this.name] = true;
     }
 }
 
@@ -45798,6 +47451,75 @@ class XREstimatedLight extends Group {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const SETTLING_TIME = 10000; // plenty long enough
+const MIN_DECAY_MILLISECONDS = 0.001;
+const DECAY_MILLISECONDS = 50;
+/**
+ * The Damper class is a generic second-order critically damped system that does
+ * one linear step of the desired length of time. The only parameter is
+ * DECAY_MILLISECONDS. This common parameter makes all states converge at the
+ * same rate regardless of scale. xNormalization is a number to provide the
+ * rough scale of x, such that NIL_SPEED clamping also happens at roughly the
+ * same convergence for all states.
+ */
+class Damper {
+    constructor(decayMilliseconds = DECAY_MILLISECONDS) {
+        this.velocity = 0;
+        this.naturalFrequency = 0;
+        this.setDecayTime(decayMilliseconds);
+    }
+    setDecayTime(decayMilliseconds) {
+        this.naturalFrequency =
+            1 / Math.max(MIN_DECAY_MILLISECONDS, decayMilliseconds);
+    }
+    update(x, xGoal, timeStepMilliseconds, xNormalization) {
+        const nilSpeed = 0.0002 * this.naturalFrequency;
+        if (x == null || xNormalization === 0) {
+            return xGoal;
+        }
+        if (x === xGoal && this.velocity === 0) {
+            return xGoal;
+        }
+        if (timeStepMilliseconds < 0) {
+            return x;
+        }
+        // Exact solution to a critically damped second-order system, where:
+        // acceleration = this.naturalFrequency * this.naturalFrequency * (xGoal
+        // - x) - 2 * this.naturalFrequency * this.velocity;
+        const deltaX = (x - xGoal);
+        const intermediateVelocity = this.velocity + this.naturalFrequency * deltaX;
+        const intermediateX = deltaX + timeStepMilliseconds * intermediateVelocity;
+        const decay = Math.exp(-this.naturalFrequency * timeStepMilliseconds);
+        const newVelocity = (intermediateVelocity - this.naturalFrequency * intermediateX) * decay;
+        const acceleration = -this.naturalFrequency * (newVelocity + intermediateVelocity * decay);
+        if (Math.abs(newVelocity) < nilSpeed * Math.abs(xNormalization) &&
+            acceleration * deltaX >= 0) {
+            // This ensures the controls settle and stop calling this function instead
+            // of asymptotically approaching their goal.
+            this.velocity = 0;
+            return xGoal;
+        }
+        else {
+            this.velocity = newVelocity;
+            return xGoal + intermediateX * decay;
+        }
+    }
+}
+
+/* @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 const RADIUS = 0.2;
 const LINE_WIDTH = 0.03;
 const MAX_OPACITY = 0.75;
@@ -45986,7 +47708,7 @@ const ARTracking = {
     TRACKING: 'tracking',
     NOT_TRACKING: 'not-tracking'
 };
-const vector3$1 = new Vector3();
+const vector3$2 = new Vector3();
 const matrix4 = new Matrix4();
 const hitPosition = new Vector3();
 const camera = new PerspectiveCamera(45, 1, 0.1, 100);
@@ -46305,9 +48027,13 @@ class ARRenderer extends EventDispatcher {
             const scale = view.recommendedViewportScale;
             view.requestViewportScale(Math.max(scale, MIN_VIEWPORT_SCALE));
         }
-        const layer = this.currentSession.renderState.baseLayer;
-        const viewport = layer.getViewport(view);
-        this.threeRenderer.setViewport(viewport.x, viewport.y, viewport.width, viewport.height);
+        const layer = xr.getBaseLayer();
+        if (layer != null) {
+            const viewport = layer instanceof XRWebGLLayer ?
+                layer.getViewport(view) :
+                xr.getBinding().getViewSubImage(layer, view).viewport;
+            this.threeRenderer.setViewport(viewport.x, viewport.y, viewport.width, viewport.height);
+        }
     }
     placeInitially() {
         const scene = this.presentedScene;
@@ -46319,7 +48045,7 @@ class ARRenderer extends EventDispatcher {
         const { theta, radius } = element
             .getCameraOrbit();
         // Orient model to match the 3D camera view
-        const cameraDirection = xrCamera.getWorldDirection(vector3$1);
+        const cameraDirection = xrCamera.getWorldDirection(vector3$2);
         scene.yaw = Math.atan2(-cameraDirection.x, -cameraDirection.z) - theta;
         this.goalYaw = scene.yaw;
         position.copy(xrCamera.position)
@@ -46341,8 +48067,8 @@ class ARRenderer extends EventDispatcher {
         const { axes } = this.inputSource.gamepad;
         let location = this.placementBox.getExpandedHit(this.presentedScene, axes[0], axes[1]);
         if (location != null) {
-            vector3$1.copy(location).sub(this.presentedScene.getCamera().position);
-            if (vector3$1.length() > MAX_DISTANCE)
+            vector3$2.copy(location).sub(this.presentedScene.getCamera().position);
+            if (vector3$2.length() > MAX_DISTANCE)
                 return null;
         }
         return location;
@@ -46483,7 +48209,7 @@ class ARRenderer extends EventDispatcher {
                         this.placementBox.offsetHeight = offset / scale;
                         this.presentedScene.setShadowOffset(offset);
                         // Interpolate hit ray up to drag plane
-                        const cameraPosition = vector3$1.copy(scene.getCamera().position);
+                        const cameraPosition = vector3$2.copy(scene.getCamera().position);
                         const alpha = -offset / (cameraPosition.y - hit.y);
                         cameraPosition.multiplyScalar(alpha);
                         hit.multiplyScalar(1 - alpha).add(cameraPosition);
@@ -46790,7 +48516,7 @@ class GLTFInstance {
                         const texture = material[propertyName];
                         if (texture instanceof Texture$1) {
                             const image = texture.source.data;
-                            if (image instanceof ImageBitmap) {
+                            if (image.close != null) {
                                 image.close();
                             }
                             texture.dispose();
@@ -47822,23 +49548,57 @@ const GENERATED_SIGMA = 0.04;
 // samples and exit early, but not recompile the shader.
 const MAX_SAMPLES = 20;
 const HDR_FILE_RE = /\.hdr(\.js)?$/;
-const ldrLoader = new TextureLoader();
-const hdrLoader = new RGBELoader();
-hdrLoader.setDataType(HalfFloatType);
 class TextureUtils extends EventDispatcher {
     constructor(threeRenderer) {
         super();
         this.threeRenderer = threeRenderer;
+        this.lottieLoaderUrl = '';
+        this._ldrLoader = null;
+        this._hdrLoader = null;
+        this._lottieLoader = null;
         this.generatedEnvironmentMap = null;
         this.generatedEnvironmentMapAlt = null;
         this.skyboxCache = new Map();
         this.blurMaterial = null;
         this.blurScene = null;
     }
-    async load(url, progressCallback = () => { }) {
+    get ldrLoader() {
+        if (this._ldrLoader == null) {
+            this._ldrLoader = new TextureLoader();
+        }
+        return this._ldrLoader;
+    }
+    get hdrLoader() {
+        if (this._hdrLoader == null) {
+            this._hdrLoader = new RGBELoader();
+            this._hdrLoader.setDataType(HalfFloatType);
+        }
+        return this._hdrLoader;
+    }
+    async getLottieLoader() {
+        if (this._lottieLoader == null) {
+            const { LottieLoader } = await import(this.lottieLoaderUrl);
+            this._lottieLoader = new LottieLoader();
+        }
+        return this._lottieLoader;
+    }
+    async loadImage(url) {
+        const texture = await new Promise((resolve, reject) => this.ldrLoader.load(url, resolve, () => { }, reject));
+        texture.name = url;
+        texture.flipY = false;
+        return texture;
+    }
+    async loadLottie(url, quality) {
+        const loader = await this.getLottieLoader();
+        loader.setQuality(quality);
+        const texture = await new Promise((resolve, reject) => loader.load(url, resolve, () => { }, reject));
+        texture.name = url;
+        return texture;
+    }
+    async loadEquirect(url, progressCallback = () => { }) {
         try {
             const isHDR = HDR_FILE_RE.test(url);
-            const loader = isHDR ? hdrLoader : ldrLoader;
+            const loader = isHDR ? this.hdrLoader : this.ldrLoader;
             const texture = await new Promise((resolve, reject) => loader.load(url, resolve, (event) => {
                 progressCallback(event.loaded / event.total * 0.9);
             }, reject));
@@ -47900,7 +49660,7 @@ class TextureUtils extends EventDispatcher {
      */
     async loadEquirectFromUrl(url, progressCallback) {
         if (!this.skyboxCache.has(url)) {
-            const skyboxMapLoads = this.load(url, progressCallback);
+            const skyboxMapLoads = this.loadEquirect(url, progressCallback);
             this.skyboxCache.set(url, skyboxMapLoads);
         }
         return this.skyboxCache.get(url);
@@ -48240,6 +50000,10 @@ class Renderer extends EventDispatcher {
     registerScene(scene) {
         this.scenes.add(scene);
         scene.forceRescale();
+        const size = new Vector2();
+        this.threeRenderer.getSize(size);
+        scene.canvas.width = size.x;
+        scene.canvas.height = size.y;
         if (this.canRender && this.scenes.size > 0) {
             this.threeRenderer.setAnimationLoop((time, frame) => this.render(time, frame));
         }
@@ -48404,10 +50168,11 @@ class Renderer extends EventDispatcher {
         return { width, height };
     }
     copyPixels(scene, width, height) {
-        if (scene.context == null) {
-            scene.createContext();
-        }
         const context2D = scene.context;
+        if (context2D == null) {
+            console.log('could not acquire 2d context');
+            return;
+        }
         context2D.clearRect(0, 0, width, height);
         context2D.drawImage(this.canvas3D, 0, 0, width, height, 0, 0, width, height);
         scene.canvas.classList.add('show');
@@ -48503,8 +50268,10 @@ class Renderer extends EventDispatcher {
                 this.copyPixels(scene, width, height);
             }
             else {
-                scene.canvas.parentElement.appendChild(canvas3D);
-                scene.canvas.classList.remove('show');
+                if (canvas3D.parentElement !== scene.canvas.parentElement) {
+                    scene.canvas.parentElement.appendChild(canvas3D);
+                    scene.canvas.classList.remove('show');
+                }
             }
             scene.hasRendered();
             ++scene.renderCount;
@@ -48535,6 +50302,3198 @@ Renderer._singleton = new Renderer({
         DEFAULT_POWER_PREFERENCE,
     debug: isDebugMode()
 });
+
+/* @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+const $correlatedObjects = Symbol('correlatedObjects');
+const $sourceObject = Symbol('sourceObject');
+const $onUpdate$1 = Symbol('onUpdate');
+/**
+ * A SerializableThreeDOMElement is the common primitive of all scene graph
+ * elements that have been facaded in the host execution context. It adds
+ * a common interface to these elements in support of convenient
+ * serializability.
+ */
+class ThreeDOMElement {
+    constructor(onUpdate, element, correlatedObjects = null) {
+        this[$onUpdate$1] = onUpdate;
+        this[$sourceObject] = element;
+        this[$correlatedObjects] = correlatedObjects;
+    }
+}
+
+/* @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+const quadMaterial = new MeshBasicMaterial();
+const quad = new PlaneGeometry(2, 2);
+let adhocNum = 0;
+const $threeTexture = Symbol('threeTexture');
+/**
+ * Image facade implementation for Three.js textures
+ */
+class Image$1 extends ThreeDOMElement {
+    get [$threeTexture]() {
+        var _a;
+        console.assert(this[$correlatedObjects] != null && this[$correlatedObjects].size > 0, 'Image correlated object is undefined');
+        return (_a = this[$correlatedObjects]) === null || _a === void 0 ? void 0 : _a.values().next().value;
+    }
+    constructor(onUpdate, texture, gltfImage) {
+        gltfImage = gltfImage !== null && gltfImage !== void 0 ? gltfImage : {
+            name: (texture && texture.image && texture.image.src) ?
+                texture.image.src.split('/').pop() :
+                'adhoc_image',
+            uri: (texture && texture.image && texture.image.src) ?
+                texture.image.src :
+                'adhoc_image' + adhocNum++
+        };
+        super(onUpdate, gltfImage, new Set(texture ? [texture] : []));
+    }
+    get name() {
+        return this[$sourceObject].name || '';
+    }
+    get uri() {
+        return this[$sourceObject].uri;
+    }
+    get bufferView() {
+        return this[$sourceObject].bufferView;
+    }
+    get element() {
+        const texture = this[$threeTexture];
+        if (texture && (texture.isCanvasTexture || texture.isVideoTexture)) {
+            return texture.image;
+        }
+        return;
+    }
+    get animation() {
+        const texture = this[$threeTexture];
+        if (texture && texture.isCanvasTexture && texture.animation) {
+            return texture.animation;
+        }
+        return;
+    }
+    get type() {
+        return this.uri != null ? 'external' : 'embedded';
+    }
+    set name(name) {
+        this[$sourceObject].name = name;
+    }
+    update() {
+        const texture = this[$threeTexture];
+        // Applies to non-Lottie canvas textures only
+        if (texture && texture.isCanvasTexture && !texture.animation) {
+            this[$threeTexture].needsUpdate = true;
+            this[$onUpdate$1]();
+        }
+    }
+    async createThumbnail(width, height) {
+        const scene = new Scene();
+        quadMaterial.map = this[$threeTexture];
+        const mesh = new Mesh(quad, quadMaterial);
+        scene.add(mesh);
+        const camera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        const { threeRenderer } = Renderer.singleton;
+        const renderTarget = new WebGLRenderTarget(width, height);
+        threeRenderer.setRenderTarget(renderTarget);
+        threeRenderer.render(scene, camera);
+        threeRenderer.setRenderTarget(null);
+        const buffer = new Uint8Array(width * height * 4);
+        threeRenderer.readRenderTargetPixels(renderTarget, 0, 0, width, height, buffer);
+        blobCanvas.width = width;
+        blobCanvas.height = height;
+        const blobContext = blobCanvas.getContext('2d');
+        const imageData = blobContext.createImageData(width, height);
+        imageData.data.set(buffer);
+        blobContext.putImageData(imageData, 0, 0);
+        return new Promise(async (resolve, reject) => {
+            blobCanvas.toBlob(blob => {
+                if (!blob) {
+                    return reject('Failed to capture thumbnail.');
+                }
+                resolve(URL.createObjectURL(blob));
+            }, 'image/png');
+        });
+    }
+}
+
+var Filter;
+(function (Filter) {
+    Filter[Filter["Nearest"] = 9728] = "Nearest";
+    Filter[Filter["Linear"] = 9729] = "Linear";
+    Filter[Filter["NearestMipmapNearest"] = 9984] = "NearestMipmapNearest";
+    Filter[Filter["LinearMipmapNearest"] = 9985] = "LinearMipmapNearest";
+    Filter[Filter["NearestMipmapLinear"] = 9986] = "NearestMipmapLinear";
+    Filter[Filter["LinearMipmapLinear"] = 9987] = "LinearMipmapLinear";
+})(Filter || (Filter = {}));
+var Wrap;
+(function (Wrap) {
+    Wrap[Wrap["ClampToEdge"] = 33071] = "ClampToEdge";
+    Wrap[Wrap["MirroredRepeat"] = 33648] = "MirroredRepeat";
+    Wrap[Wrap["Repeat"] = 10497] = "Repeat";
+})(Wrap || (Wrap = {}));
+
+/* @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+const isMinFilter = (() => {
+    const minFilterValues = [
+        Filter.Nearest,
+        Filter.Linear,
+        Filter.NearestMipmapNearest,
+        Filter.LinearMipmapLinear,
+        Filter.NearestMipmapLinear,
+        Filter.LinearMipmapLinear
+    ];
+    return (value) => minFilterValues.indexOf(value) > -1;
+})();
+const isMagFilter = (() => {
+    const magFilterValues = [Filter.Nearest, Filter.Linear];
+    return (value) => magFilterValues.indexOf(value) > -1;
+})();
+const isWrapMode = (() => {
+    const wrapModes = [Wrap.ClampToEdge, Wrap.MirroredRepeat, Wrap.Repeat];
+    return (value) => wrapModes.indexOf(value) > -1;
+})();
+const isValidSamplerValue = (property, value) => {
+    switch (property) {
+        case 'minFilter':
+            return isMinFilter(value);
+        case 'magFilter':
+            return isMagFilter(value);
+        case 'wrapS':
+        case 'wrapT':
+            return isWrapMode(value);
+        default:
+            throw new Error(`Cannot configure property "${property}" on Sampler`);
+    }
+};
+const $threeTextures = Symbol('threeTextures');
+const $setProperty = Symbol('setProperty');
+const $sourceSampler = Symbol('sourceSampler');
+/**
+ * Sampler facade implementation for Three.js textures
+ */
+class Sampler extends ThreeDOMElement {
+    get [$threeTextures]() {
+        console.assert(this[$correlatedObjects] != null && this[$correlatedObjects].size > 0, 'Sampler correlated object is undefined');
+        return this[$correlatedObjects];
+    }
+    get [$sourceSampler]() {
+        console.assert(this[$sourceObject] != null, 'Sampler source is undefined');
+        return this[$sourceObject];
+    }
+    constructor(onUpdate, texture, gltfSampler) {
+        gltfSampler = gltfSampler !== null && gltfSampler !== void 0 ? gltfSampler : {};
+        // These defaults represent a convergence of glTF defaults for wrap mode and
+        // Three.js defaults for filters. Per glTF 2.0 spec, a renderer may choose
+        // its own defaults for filters.
+        // @see https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#reference-sampler
+        // @see https://threejs.org/docs/#api/en/textures/Texture
+        if (gltfSampler.minFilter == null) {
+            gltfSampler.minFilter =
+                texture ? texture.minFilter : Filter.LinearMipmapLinear;
+        }
+        if (gltfSampler.magFilter == null) {
+            gltfSampler.magFilter =
+                texture ? texture.magFilter : Filter.Linear;
+        }
+        if (gltfSampler.wrapS == null) {
+            gltfSampler.wrapS = texture ? texture.wrapS : Wrap.Repeat;
+        }
+        if (gltfSampler.wrapT == null) {
+            gltfSampler.wrapT = texture ? texture.wrapT : Wrap.Repeat;
+        }
+        super(onUpdate, gltfSampler, new Set(texture ? [texture] : []));
+    }
+    get name() {
+        return this[$sourceObject].name || '';
+    }
+    get minFilter() {
+        return this[$sourceSampler].minFilter;
+    }
+    get magFilter() {
+        return this[$sourceSampler].magFilter;
+    }
+    get wrapS() {
+        return this[$sourceSampler].wrapS;
+    }
+    get wrapT() {
+        return this[$sourceSampler].wrapT;
+    }
+    setMinFilter(filter) {
+        this[$setProperty]('minFilter', filter);
+    }
+    setMagFilter(filter) {
+        this[$setProperty]('magFilter', filter);
+    }
+    setWrapS(mode) {
+        this[$setProperty]('wrapS', mode);
+    }
+    setWrapT(mode) {
+        this[$setProperty]('wrapT', mode);
+    }
+    [$setProperty](property, value) {
+        const sampler = this[$sourceSampler];
+        if (sampler != null) {
+            if (isValidSamplerValue(property, value)) {
+                sampler[property] = value;
+                for (const texture of this[$threeTextures]) {
+                    texture[property] = value;
+                    texture.needsUpdate = true;
+                }
+            }
+            this[$onUpdate$1]();
+        }
+    }
+}
+
+/* @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+const $image = Symbol('image');
+const $sampler = Symbol('sampler');
+/**
+ * Material facade implementation for Three.js materials
+ */
+class Texture extends ThreeDOMElement {
+    constructor(onUpdate, threeTexture, gltfTexture = null, gltfSampler = null, gltfImage = null) {
+        super(onUpdate, gltfTexture ? gltfTexture : {}, new Set(threeTexture ? [threeTexture] : []));
+        this[$sampler] = new Sampler(onUpdate, threeTexture, gltfSampler);
+        this[$image] = new Image$1(onUpdate, threeTexture, gltfImage);
+    }
+    get name() {
+        return this[$sourceObject].name || '';
+    }
+    set name(name) {
+        this[$sourceObject].name = name;
+    }
+    get sampler() {
+        return this[$sampler];
+    }
+    get source() {
+        return this[$image];
+    }
+}
+
+/* @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var _a$7, _b$6, _c$5;
+const $texture = Symbol('texture');
+const $transform = Symbol('transform');
+const $materials$2 = Symbol('materials');
+const $usage = Symbol('usage');
+const $onUpdate = Symbol('onUpdate');
+const $activeVideo = Symbol('activeVideo');
+// Defines what a texture will be used for.
+var TextureUsage;
+(function (TextureUsage) {
+    TextureUsage[TextureUsage["Base"] = 0] = "Base";
+    TextureUsage[TextureUsage["MetallicRoughness"] = 1] = "MetallicRoughness";
+    TextureUsage[TextureUsage["Normal"] = 2] = "Normal";
+    TextureUsage[TextureUsage["Occlusion"] = 3] = "Occlusion";
+    TextureUsage[TextureUsage["Emissive"] = 4] = "Emissive";
+})(TextureUsage || (TextureUsage = {}));
+/**
+ * TextureInfo facade implementation for Three.js materials
+ */
+class TextureInfo {
+    constructor(onUpdate, usage, threeTexture, material, gltf, gltfTextureInfo) {
+        this[_a$7] = null;
+        this[_b$6] = {
+            rotation: 0,
+            scale: new Vector2(1, 1),
+            offset: new Vector2(0, 0)
+        };
+        this[_c$5] = false;
+        // Creates image, sampler, and texture if valid texture info is provided.
+        if (gltfTextureInfo && threeTexture) {
+            const gltfTexture = gltf.textures ? gltf.textures[gltfTextureInfo.index] : null;
+            const sampler = gltfTexture ?
+                (gltf.samplers ? gltf.samplers[gltfTexture.sampler] : null) :
+                null;
+            const image = gltfTexture ?
+                (gltf.images ? gltf.images[gltfTexture.source] : null) :
+                null;
+            this[$transform].rotation = threeTexture.rotation;
+            this[$transform].scale.copy(threeTexture.repeat);
+            this[$transform].offset.copy(threeTexture.offset);
+            this[$texture] =
+                new Texture(onUpdate, threeTexture, gltfTexture, sampler, image);
+        }
+        this[$onUpdate] = onUpdate;
+        this[$materials$2] = material;
+        this[$usage] = usage;
+    }
+    get texture() {
+        return this[$texture];
+    }
+    setTexture(texture) {
+        const threeTexture = texture != null ? texture.source[$threeTexture] : null;
+        const oldTexture = this[$texture];
+        if (oldTexture != null && oldTexture.isVideoTexture) {
+            const element = oldTexture.image;
+            this[$activeVideo] = false;
+            if (element.requestVideoFrameCallback == null) {
+                element.removeEventListener('timeupdate', this[$onUpdate]);
+            }
+        }
+        this[$texture] = texture;
+        if (threeTexture != null && threeTexture.isVideoTexture) {
+            const element = threeTexture.image;
+            this[$activeVideo] = true;
+            if (element.requestVideoFrameCallback != null) {
+                const update = () => {
+                    if (!this[$activeVideo]) {
+                        return;
+                    }
+                    this[$onUpdate]();
+                    element.requestVideoFrameCallback(update);
+                };
+                element.requestVideoFrameCallback(update);
+            }
+            else {
+                element.addEventListener('timeupdate', this[$onUpdate]);
+            }
+        }
+        let encoding = sRGBEncoding;
+        if (this[$materials$2]) {
+            for (const material of this[$materials$2]) {
+                switch (this[$usage]) {
+                    case TextureUsage.Base:
+                        material.map = threeTexture;
+                        break;
+                    case TextureUsage.MetallicRoughness:
+                        encoding = LinearEncoding;
+                        material.metalnessMap = threeTexture;
+                        material.roughnessMap = threeTexture;
+                        break;
+                    case TextureUsage.Normal:
+                        encoding = LinearEncoding;
+                        material.normalMap = threeTexture;
+                        break;
+                    case TextureUsage.Occlusion:
+                        encoding = LinearEncoding;
+                        material.aoMap = threeTexture;
+                        break;
+                    case TextureUsage.Emissive:
+                        material.emissiveMap = threeTexture;
+                        break;
+                }
+                material.needsUpdate = true;
+            }
+        }
+        if (threeTexture) {
+            // Updates the encoding for the texture, affects all references.
+            threeTexture.encoding = encoding;
+            threeTexture.rotation = this[$transform].rotation;
+            threeTexture.repeat = this[$transform].scale;
+            threeTexture.offset = this[$transform].offset;
+        }
+        this[$onUpdate]();
+    }
+}
+_a$7 = $texture, _b$6 = $transform, _c$5 = $activeVideo;
+
+/* @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+const $threeMaterials = Symbol('threeMaterials');
+const $baseColorTexture = Symbol('baseColorTexture');
+const $metallicRoughnessTexture = Symbol('metallicRoughnessTexture');
+/**
+ * PBR material properties facade implementation for Three.js materials
+ */
+class PBRMetallicRoughness extends ThreeDOMElement {
+    constructor(onUpdate, gltf, pbrMetallicRoughness, correlatedMaterials) {
+        super(onUpdate, pbrMetallicRoughness, correlatedMaterials);
+        // Assign glTF default values
+        if (pbrMetallicRoughness.baseColorFactor == null) {
+            pbrMetallicRoughness.baseColorFactor = [1, 1, 1, 1];
+        }
+        if (pbrMetallicRoughness.roughnessFactor == null) {
+            pbrMetallicRoughness.roughnessFactor = 1;
+        }
+        if (pbrMetallicRoughness.metallicFactor == null) {
+            pbrMetallicRoughness.metallicFactor = 1;
+        }
+        const { baseColorTexture: gltfBaseColorTexture, metallicRoughnessTexture: gltfMetallicRoughnessTexture } = pbrMetallicRoughness;
+        const { map, metalnessMap } = correlatedMaterials.values().next().value;
+        this[$baseColorTexture] = new TextureInfo(onUpdate, TextureUsage.Base, map, correlatedMaterials, gltf, gltfBaseColorTexture ? gltfBaseColorTexture : null);
+        this[$metallicRoughnessTexture] = new TextureInfo(onUpdate, TextureUsage.MetallicRoughness, metalnessMap, correlatedMaterials, gltf, gltfMetallicRoughnessTexture ? gltfMetallicRoughnessTexture : null);
+    }
+    get [$threeMaterials]() {
+        return this[$correlatedObjects];
+    }
+    get baseColorFactor() {
+        return this[$sourceObject]
+            .baseColorFactor;
+    }
+    get metallicFactor() {
+        return this[$sourceObject]
+            .metallicFactor;
+    }
+    get roughnessFactor() {
+        return this[$sourceObject]
+            .roughnessFactor;
+    }
+    get baseColorTexture() {
+        return this[$baseColorTexture];
+    }
+    get metallicRoughnessTexture() {
+        return this[$metallicRoughnessTexture];
+    }
+    setBaseColorFactor(rgba) {
+        const color = new Color();
+        if (rgba instanceof Array) {
+            color.fromArray(rgba);
+        }
+        else {
+            color.set(rgba).convertSRGBToLinear();
+        }
+        for (const material of this[$threeMaterials]) {
+            material.color.set(color);
+            if (rgba instanceof Array) {
+                material.opacity = (rgba)[3];
+            }
+            else {
+                rgba = [0, 0, 0, material.opacity];
+                color.toArray(rgba);
+            }
+        }
+        const pbrMetallicRoughness = this[$sourceObject];
+        pbrMetallicRoughness.baseColorFactor = rgba;
+        this[$onUpdate$1]();
+    }
+    setMetallicFactor(value) {
+        for (const material of this[$threeMaterials]) {
+            material.metalness = value;
+        }
+        const pbrMetallicRoughness = this[$sourceObject];
+        pbrMetallicRoughness.metallicFactor = value;
+        this[$onUpdate$1]();
+    }
+    setRoughnessFactor(value) {
+        for (const material of this[$threeMaterials]) {
+            material.roughness = value;
+        }
+        const pbrMetallicRoughness = this[$sourceObject];
+        pbrMetallicRoughness.roughnessFactor = value;
+        this[$onUpdate$1]();
+    }
+}
+
+/* @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var _a$6;
+const $pbrMetallicRoughness = Symbol('pbrMetallicRoughness');
+const $normalTexture = Symbol('normalTexture');
+const $occlusionTexture = Symbol('occlusionTexture');
+const $emissiveTexture = Symbol('emissiveTexture');
+const $backingThreeMaterial = Symbol('backingThreeMaterial');
+const $applyAlphaCutoff = Symbol('applyAlphaCutoff');
+const $lazyLoadGLTFInfo = Symbol('lazyLoadGLTFInfo');
+const $initialize = Symbol('initialize');
+const $getLoadedMaterial = Symbol('getLoadedMaterial');
+const $ensureMaterialIsLoaded = Symbol('ensureMaterialIsLoaded');
+const $gltfIndex = Symbol('gltfIndex');
+const $setActive = Symbol('setActive');
+const $variantIndices = Symbol('variantIndices');
+const $isActive = Symbol('isActive');
+const $variantSet = Symbol('variantSet');
+const $modelVariants$1 = Symbol('modelVariants');
+/**
+ * Material facade implementation for Three.js materials
+ */
+class Material extends ThreeDOMElement {
+    constructor(onUpdate, gltf, gltfMaterial, gltfIndex, isActive, modelVariants, correlatedMaterials, lazyLoadInfo = undefined) {
+        super(onUpdate, gltfMaterial, correlatedMaterials);
+        this[_a$6] = new Set();
+        this[$gltfIndex] = gltfIndex;
+        this[$isActive] = isActive;
+        this[$modelVariants$1] = modelVariants;
+        if (lazyLoadInfo == null) {
+            this[$initialize](gltf);
+        }
+        else {
+            this[$lazyLoadGLTFInfo] = lazyLoadInfo;
+        }
+    }
+    get [(_a$6 = $variantSet, $backingThreeMaterial)]() {
+        return this[$correlatedObjects]
+            .values()
+            .next()
+            .value;
+    }
+    [$initialize](gltf) {
+        const onUpdate = this[$onUpdate$1];
+        const gltfMaterial = this[$sourceObject];
+        const correlatedMaterials = this[$correlatedObjects];
+        if (gltfMaterial.extensions &&
+            gltfMaterial.extensions['KHR_materials_pbrSpecularGlossiness']) {
+            console.warn(`Material ${gltfMaterial.name} uses a deprecated extension
+          "KHR_materials_pbrSpecularGlossiness", please use
+          "pbrMetallicRoughness" instead. Specular Glossiness materials are
+          no longer supported; to convert to metal-rough, see 
+          https://www.donmccurdy.com/2022/11/28/converting-gltf-pbr-materials-from-specgloss-to-metalrough/.`);
+        }
+        if (gltfMaterial.pbrMetallicRoughness == null) {
+            gltfMaterial.pbrMetallicRoughness = {};
+        }
+        this[$pbrMetallicRoughness] = new PBRMetallicRoughness(onUpdate, gltf, gltfMaterial.pbrMetallicRoughness, correlatedMaterials);
+        if (gltfMaterial.emissiveFactor == null) {
+            gltfMaterial.emissiveFactor = [0, 0, 0];
+        }
+        if (gltfMaterial.doubleSided == null) {
+            gltfMaterial.doubleSided = false;
+        }
+        if (gltfMaterial.alphaMode == null) {
+            gltfMaterial.alphaMode = 'OPAQUE';
+        }
+        if (gltfMaterial.alphaCutoff == null) {
+            gltfMaterial.alphaCutoff = 0.5;
+        }
+        const { normalTexture: gltfNormalTexture, occlusionTexture: gltfOcclusionTexture, emissiveTexture: gltfEmissiveTexture } = gltfMaterial;
+        const { normalMap, aoMap, emissiveMap } = correlatedMaterials.values().next().value;
+        this[$normalTexture] = new TextureInfo(onUpdate, TextureUsage.Normal, normalMap, correlatedMaterials, gltf, gltfNormalTexture ? gltfNormalTexture : null);
+        this[$occlusionTexture] = new TextureInfo(onUpdate, TextureUsage.Occlusion, aoMap, correlatedMaterials, gltf, gltfOcclusionTexture ? gltfOcclusionTexture : null);
+        this[$emissiveTexture] = new TextureInfo(onUpdate, TextureUsage.Emissive, emissiveMap, correlatedMaterials, gltf, gltfEmissiveTexture ? gltfEmissiveTexture : null);
+    }
+    async [$getLoadedMaterial]() {
+        if (this[$lazyLoadGLTFInfo] != null) {
+            const { set, material } = await this[$lazyLoadGLTFInfo].doLazyLoad();
+            // Fills in the missing data.
+            this[$correlatedObjects] = set;
+            this[$initialize](this[$lazyLoadGLTFInfo].gltf);
+            // Releases lazy load info.
+            this[$lazyLoadGLTFInfo] = undefined;
+            // Redefines the method as a noop method.
+            this.ensureLoaded = async () => { };
+            return material;
+        }
+        return this[$correlatedObjects].values().next().value;
+    }
+    [$ensureMaterialIsLoaded]() {
+        if (this[$lazyLoadGLTFInfo] == null) {
+            return;
+        }
+        throw new Error(`Material "${this.name}" has not been loaded, call 'await
+    myMaterial.ensureLoaded()' before using an unloaded material.`);
+    }
+    async ensureLoaded() {
+        await this[$getLoadedMaterial]();
+    }
+    get isLoaded() {
+        return this[$lazyLoadGLTFInfo] == null;
+    }
+    get isActive() {
+        return this[$isActive];
+    }
+    [$setActive](isActive) {
+        this[$isActive] = isActive;
+    }
+    get name() {
+        return this[$sourceObject].name;
+    }
+    set name(name) {
+        const sourceMaterial = this[$sourceObject];
+        if (sourceMaterial != null) {
+            sourceMaterial.name = name;
+        }
+        if (this[$correlatedObjects] != null) {
+            for (const threeMaterial of this[$correlatedObjects]) {
+                threeMaterial.name = name;
+            }
+        }
+    }
+    get pbrMetallicRoughness() {
+        this[$ensureMaterialIsLoaded]();
+        return this[$pbrMetallicRoughness];
+    }
+    get normalTexture() {
+        this[$ensureMaterialIsLoaded]();
+        return this[$normalTexture];
+    }
+    get occlusionTexture() {
+        this[$ensureMaterialIsLoaded]();
+        return this[$occlusionTexture];
+    }
+    get emissiveTexture() {
+        this[$ensureMaterialIsLoaded]();
+        return this[$emissiveTexture];
+    }
+    get emissiveFactor() {
+        this[$ensureMaterialIsLoaded]();
+        return this[$sourceObject].emissiveFactor;
+    }
+    get index() {
+        return this[$gltfIndex];
+    }
+    [$variantIndices]() {
+        return this[$variantSet];
+    }
+    hasVariant(name) {
+        const variantData = this[$modelVariants$1].get(name);
+        return variantData != null && this[$variantSet].has(variantData.index);
+    }
+    setEmissiveFactor(rgb) {
+        this[$ensureMaterialIsLoaded]();
+        const color = new Color();
+        if (rgb instanceof Array) {
+            color.fromArray(rgb);
+        }
+        else {
+            color.set(rgb).convertSRGBToLinear();
+        }
+        for (const material of this[$correlatedObjects]) {
+            material.emissive.set(color);
+        }
+        this[$sourceObject].emissiveFactor =
+            color.toArray();
+        this[$onUpdate$1]();
+    }
+    [$applyAlphaCutoff]() {
+        this[$ensureMaterialIsLoaded]();
+        const gltfMaterial = this[$sourceObject];
+        for (const material of this[$correlatedObjects]) {
+            if (this[$sourceObject].alphaMode === 'MASK') {
+                material.alphaTest = gltfMaterial.alphaCutoff;
+            }
+            else {
+                material.alphaTest = undefined;
+            }
+            material.needsUpdate = true;
+        }
+    }
+    setAlphaCutoff(cutoff) {
+        this[$ensureMaterialIsLoaded]();
+        this[$sourceObject].alphaCutoff = cutoff;
+        this[$applyAlphaCutoff]();
+        this[$onUpdate$1]();
+    }
+    getAlphaCutoff() {
+        this[$ensureMaterialIsLoaded]();
+        return this[$sourceObject].alphaCutoff;
+    }
+    setDoubleSided(doubleSided) {
+        this[$ensureMaterialIsLoaded]();
+        for (const material of this[$correlatedObjects]) {
+            // When double-sided is disabled gltf spec dictates that Back-Face culling
+            // must be disabled, in three.js parlance that would mean FrontSide
+            // rendering only.
+            // https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#double-sided
+            material.side = doubleSided ? DoubleSide : FrontSide;
+            material.needsUpdate = true;
+        }
+        this[$sourceObject].doubleSided = doubleSided;
+        this[$onUpdate$1]();
+    }
+    getDoubleSided() {
+        this[$ensureMaterialIsLoaded]();
+        return this[$sourceObject].doubleSided;
+    }
+    setAlphaMode(alphaMode) {
+        this[$ensureMaterialIsLoaded]();
+        const enableTransparency = (material, enabled) => {
+            material.transparent = enabled;
+            material.depthWrite = !enabled;
+        };
+        this[$sourceObject].alphaMode = alphaMode;
+        for (const material of this[$correlatedObjects]) {
+            enableTransparency(material, alphaMode === 'BLEND');
+            this[$applyAlphaCutoff]();
+            material.needsUpdate = true;
+        }
+        this[$onUpdate$1]();
+    }
+    getAlphaMode() {
+        this[$ensureMaterialIsLoaded]();
+        return this[$sourceObject].alphaMode;
+    }
+}
+
+var _a$5, _b$5, _c$4, _d$3, _e$2;
+const $materials$1 = Symbol('materials');
+const $variantToMaterialMap = Symbol('variantToMaterialMap');
+const $modelVariants = Symbol('modelVariants');
+const $mesh = Symbol('mesh');
+const $children = Symbol('children');
+const $initialMaterialIdx = Symbol('initialMaterialIdx');
+const $activeMaterialIdx = Symbol('activeMaterialIdx');
+// Defines the base level node methods and data.
+class Node$1 {
+    constructor(name) {
+        this.name = '';
+        this[_a$5] = new Array();
+        this.name = name;
+    }
+}
+_a$5 = $children;
+// Represents a primitive in a glTF mesh.
+class PrimitiveNode extends Node$1 {
+    constructor(mesh, mvMaterials, modelVariants, correlatedSceneGraph) {
+        super(mesh.name);
+        // Maps glTF material index number to a material that this primitive supports.
+        this[_b$5] = new Map();
+        // Maps variant index to material.
+        this[_c$4] = new Map();
+        this[_d$3] = 0;
+        this[_e$2] = 0;
+        this[$mesh] = mesh;
+        const { gltf, threeGLTF, threeObjectMap } = correlatedSceneGraph;
+        this[$modelVariants] = modelVariants;
+        this.mesh.userData.variantData = modelVariants;
+        // Captures the primitive's initial material.
+        const materialMappings = threeObjectMap.get(mesh.material);
+        if (materialMappings.materials != null) {
+            this[$initialMaterialIdx] = this[$activeMaterialIdx] =
+                materialMappings.materials;
+        }
+        else {
+            console.error(`Primitive (${mesh.name}) missing initial material reference.`);
+        }
+        // Gets the mesh index from the node.
+        const associations = mesh.userData.associations ||
+            {};
+        if (associations.meshes == null) {
+            console.error('Mesh is missing primitive index association');
+            return;
+        }
+        // The gltf mesh array to sample from.
+        const meshElementArray = gltf['meshes'] || [];
+        // List of primitives under the mesh.
+        const gltfPrimitives = (meshElementArray[associations.meshes].primitives || []);
+        const gltfPrimitive = gltfPrimitives[associations.primitives];
+        if (gltfPrimitive == null) {
+            console.error('Mesh primitive definition is missing.');
+            return;
+        }
+        // Maps the gltfPrimitive default to a material.
+        if (gltfPrimitive.material != null) {
+            this[$materials$1].set(gltfPrimitive.material, mvMaterials[gltfPrimitive.material]);
+        }
+        else {
+            const defaultIdx = mvMaterials.findIndex((mat) => {
+                return mat.name === 'Default';
+            });
+            if (defaultIdx >= 0) {
+                this[$materials$1].set(defaultIdx, mvMaterials[defaultIdx]);
+            }
+            else {
+                console.warn('gltfPrimitive has no material!');
+            }
+        }
+        if (gltfPrimitive.extensions &&
+            gltfPrimitive.extensions['KHR_materials_variants']) {
+            const variantsExtension = gltfPrimitive.extensions['KHR_materials_variants'];
+            const extensions = threeGLTF.parser.json.extensions;
+            const variantNames = extensions['KHR_materials_variants'].variants;
+            // Provides definition now that we know there are variants to
+            // support.
+            for (const mapping of variantsExtension.mappings) {
+                const mvMaterial = mvMaterials[mapping.material];
+                // Maps variant indices to Materials.
+                this[$materials$1].set(mapping.material, mvMaterial);
+                for (const variant of mapping.variants) {
+                    const { name } = variantNames[variant];
+                    this[$variantToMaterialMap].set(variant, mvMaterial);
+                    // Provides variant info for material self lookup.
+                    mvMaterial[$variantIndices]().add(variant);
+                    // Updates the models variant data.
+                    if (!modelVariants.has(name)) {
+                        modelVariants.set(name, { name, index: variant });
+                    }
+                }
+            }
+        }
+    }
+    get mesh() {
+        return this[$mesh];
+    }
+    async setActiveMaterial(material) {
+        const mvMaterial = this[$materials$1].get(material);
+        if (mvMaterial != null) {
+            this.mesh.material = await mvMaterial[$getLoadedMaterial]();
+            this[$activeMaterialIdx] = material;
+        }
+        return this.mesh.material;
+    }
+    getActiveMaterial() {
+        return this[$materials$1].get(this[$activeMaterialIdx]);
+    }
+    getMaterial(index) {
+        return this[$materials$1].get(index);
+    }
+    async enableVariant(name) {
+        if (name == null) {
+            return this.setActiveMaterial(this[$initialMaterialIdx]);
+        }
+        if (this[$variantToMaterialMap] != null && this[$modelVariants].has(name)) {
+            const modelVariants = this[$modelVariants].get(name);
+            return this.enableVariantHelper(modelVariants.index);
+        }
+        return null;
+    }
+    async enableVariantHelper(index) {
+        if (this[$variantToMaterialMap] != null && index != null) {
+            const material = this[$variantToMaterialMap].get(index);
+            if (material != null) {
+                return this.setActiveMaterial(material.index);
+            }
+        }
+        return null;
+    }
+    async instantiateVariants() {
+        if (this[$variantToMaterialMap] == null) {
+            return;
+        }
+        for (const index of this[$variantToMaterialMap].keys()) {
+            const variantMaterial = this.mesh.userData.variantMaterials.get(index);
+            if (variantMaterial.material != null) {
+                continue;
+            }
+            const threeMaterial = await this.enableVariantHelper(index);
+            if (threeMaterial != null) {
+                variantMaterial.material = threeMaterial;
+            }
+        }
+    }
+    get variantInfo() {
+        return this[$variantToMaterialMap];
+    }
+    addVariant(materialVariant, variantName) {
+        if (!this.ensureVariantIsUnused(variantName)) {
+            return false;
+        }
+        // Adds the variant to the model variants if needed.
+        if (!this[$modelVariants].has(variantName)) {
+            this[$modelVariants].set(variantName, { name: variantName, index: this[$modelVariants].size });
+        }
+        const modelVariantData = this[$modelVariants].get(variantName);
+        const variantIndex = modelVariantData.index;
+        // Updates materials mapped to the variant.
+        materialVariant[$variantIndices]().add(variantIndex);
+        // Updates internal mappings.
+        this[$variantToMaterialMap].set(variantIndex, materialVariant);
+        this[$materials$1].set(materialVariant.index, materialVariant);
+        this.updateVariantUserData(variantIndex, materialVariant);
+        return true;
+    }
+    deleteVariant(variantIndex) {
+        if (this.variantInfo.has(variantIndex)) {
+            this.variantInfo.delete(variantIndex);
+            const userDataMap = this.mesh.userData.variantMaterials;
+            if (userDataMap != null) {
+                userDataMap.delete(variantIndex);
+            }
+        }
+    }
+    updateVariantUserData(variantIndex, materialVariant) {
+        // Adds variants name to material variants set.
+        materialVariant[$variantIndices]().add(variantIndex);
+        this.mesh.userData.variantData = this[$modelVariants];
+        // Updates import data (see VariantMaterialLoaderPlugin.ts).
+        this.mesh.userData.variantMaterials = this.mesh.userData.variantMaterials ||
+            new Map();
+        const map = this.mesh.userData.variantMaterials;
+        map.set(variantIndex, {
+            material: materialVariant[$correlatedObjects].values().next().value,
+            gltfMaterialIndex: materialVariant.index,
+        });
+    }
+    ensureVariantIsUnused(variantName) {
+        const modelVariants = this[$modelVariants].get(variantName);
+        if (modelVariants != null && this.variantInfo.has(modelVariants.index)) {
+            console.warn(`Primitive cannot add variant '${variantName}' for this material, it already exists.`);
+            return false;
+        }
+        return true;
+    }
+}
+_b$5 = $materials$1, _c$4 = $variantToMaterialMap, _d$3 = $initialMaterialIdx, _e$2 = $activeMaterialIdx;
+
+/* @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var _a$4, _b$4, _c$3, _d$2, _e$1, _f$1;
+const $materials = Symbol('materials');
+const $hierarchy = Symbol('hierarchy');
+const $roots = Symbol('roots');
+const $primitivesList = Symbol('primitives');
+const $correlatedSceneGraph = Symbol('correlatedSceneGraph');
+const $prepareVariantsForExport = Symbol('prepareVariantsForExport');
+const $switchVariant = Symbol('switchVariant');
+const $threeScene = Symbol('threeScene');
+const $materialsFromPoint = Symbol('materialsFromPoint');
+const $materialFromPoint = Symbol('materialFromPoint');
+const $variantData = Symbol('variantData');
+const $availableVariants = Symbol('availableVariants');
+const $modelOnUpdate = Symbol('modelOnUpdate');
+const $cloneMaterial = Symbol('cloneMaterial');
+// Holds onto temporary scene context information needed to perform lazy loading
+// of a resource.
+class LazyLoader {
+    constructor(gltf, gltfElementMap, mapKey, doLazyLoad) {
+        this.gltf = gltf;
+        this.gltfElementMap = gltfElementMap;
+        this.mapKey = mapKey;
+        this.doLazyLoad = doLazyLoad;
+    }
+}
+/**
+ * A Model facades the top-level GLTF object returned by Three.js' GLTFLoader.
+ * Currently, the model only bothers itself with the materials in the Three.js
+ * scene graph.
+ */
+class Model {
+    constructor(correlatedSceneGraph, onUpdate = () => { }) {
+        this[_a$4] = new Array();
+        this[_b$4] = new Array();
+        this[_c$3] = new Array();
+        this[_d$2] = new Array();
+        this[_e$1] = () => { };
+        this[_f$1] = new Map();
+        this[$modelOnUpdate] = onUpdate;
+        this[$correlatedSceneGraph] = correlatedSceneGraph;
+        const { gltf, threeGLTF, gltfElementMap } = correlatedSceneGraph;
+        this[$threeScene] = threeGLTF.scene;
+        for (const [i, material] of gltf.materials.entries()) {
+            const correlatedMaterial = gltfElementMap.get(material);
+            if (correlatedMaterial != null) {
+                this[$materials].push(new Material(onUpdate, gltf, material, i, true, this[$variantData], correlatedMaterial));
+            }
+            else {
+                const elementArray = gltf['materials'] || [];
+                const gltfMaterialDef = elementArray[i];
+                // Loads the three.js material.
+                const capturedMatIndex = i;
+                const materialLoadCallback = async () => {
+                    const threeMaterial = await threeGLTF.parser.getDependency('material', capturedMatIndex);
+                    // Adds correlation, maps the variant gltf-def to the
+                    // three material set containing the variant material.
+                    const threeMaterialSet = new Set();
+                    gltfElementMap.set(gltfMaterialDef, threeMaterialSet);
+                    threeMaterialSet.add(threeMaterial);
+                    return { set: threeMaterialSet, material: threeMaterial };
+                };
+                // Configures the material for lazy loading.
+                this[$materials].push(new Material(onUpdate, gltf, gltfMaterialDef, i, false, this[$variantData], correlatedMaterial, new LazyLoader(gltf, gltfElementMap, gltfMaterialDef, materialLoadCallback)));
+            }
+        }
+        // Creates a hierarchy of Nodes. Allows not just for switching which
+        // material is applied to a mesh but also exposes a way to provide API
+        // for switching materials and general assignment/modification.
+        // Prepares for scene iteration.
+        const parentMap = new Map();
+        const nodeStack = new Array();
+        for (const object of threeGLTF.scene.children) {
+            nodeStack.push(object);
+        }
+        // Walks the hierarchy and creates a node tree.
+        while (nodeStack.length > 0) {
+            const object = nodeStack.pop();
+            let node = null;
+            if (object instanceof Mesh) {
+                node = new PrimitiveNode(object, this.materials, this[$variantData], correlatedSceneGraph);
+                this[$primitivesList].push(node);
+            }
+            else {
+                node = new Node$1(object.name);
+            }
+            const parent = parentMap.get(object);
+            if (parent != null) {
+                parent[$children].push(node);
+            }
+            else {
+                this[$roots].push(node);
+            }
+            this[$hierarchy].push(node);
+            for (const child of object.children) {
+                nodeStack.push(child);
+                parentMap.set(object, node);
+            }
+        }
+    }
+    /**
+     * Materials are listed in the order of the GLTF materials array, plus a
+     * default material at the end if one is used.
+     *
+     * TODO(#1003): How do we handle non-active scenes?
+     */
+    get materials() {
+        return this[$materials];
+    }
+    [(_a$4 = $materials, _b$4 = $hierarchy, _c$3 = $roots, _d$2 = $primitivesList, _e$1 = $modelOnUpdate, _f$1 = $variantData, $availableVariants)]() {
+        const variants = Array.from(this[$variantData].values());
+        variants.sort((a, b) => {
+            return a.index - b.index;
+        });
+        return variants.map((data) => {
+            return data.name;
+        });
+    }
+    getMaterialByName(name) {
+        const matches = this[$materials].filter(material => {
+            return material.name === name;
+        });
+        if (matches.length > 0) {
+            return matches[0];
+        }
+        return null;
+    }
+    /**
+     * Intersects a ray with the Model and returns a list of materials whose
+     * objects were intersected.
+     */
+    [$materialsFromPoint](raycaster) {
+        const hits = raycaster.intersectObject(this[$threeScene], true);
+        // Map the object hits to primitives and then to the active material of
+        // the primitive.
+        return hits.map((hit) => {
+            const found = this[$hierarchy].find((node) => {
+                if (node instanceof PrimitiveNode) {
+                    const primitive = node;
+                    if (primitive.mesh === hit.object) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+            if (found != null) {
+                return found.getActiveMaterial();
+            }
+            return null;
+        });
+    }
+    /**
+     * Intersects a ray with the Model and returns the first material whose
+     * object was intersected.
+     */
+    [$materialFromPoint](raycaster) {
+        const materials = this[$materialsFromPoint](raycaster);
+        if (materials.length > 0) {
+            return materials[0];
+        }
+        return null;
+    }
+    /**
+     * Switches model variant to the variant name provided, or switches to
+     * default/initial materials if 'null' is provided.
+     */
+    async [$switchVariant](variantName) {
+        for (const primitive of this[$primitivesList]) {
+            await primitive.enableVariant(variantName);
+        }
+        for (const material of this.materials) {
+            material[$setActive](false);
+        }
+        // Marks the materials that are now in use after the variant switch.
+        for (const primitive of this[$primitivesList]) {
+            this.materials[primitive.getActiveMaterial().index][$setActive](true);
+        }
+    }
+    async [$prepareVariantsForExport]() {
+        const promises = new Array();
+        for (const primitive of this[$primitivesList]) {
+            promises.push(primitive.instantiateVariants());
+        }
+        await Promise.all(promises);
+    }
+    [$cloneMaterial](index, newMaterialName) {
+        const material = this.materials[index];
+        if (!material.isLoaded) {
+            console.error(`Cloning an unloaded material,
+           call 'material.ensureLoaded() before cloning the material.`);
+        }
+        const threeMaterialSet = material[$correlatedObjects];
+        // clones the gltf material data and updates the material name.
+        const gltfSourceMaterial = JSON.parse(JSON.stringify(material[$sourceObject]));
+        gltfSourceMaterial.name = newMaterialName;
+        // Adds the source material clone to the gltf def.
+        const gltf = this[$correlatedSceneGraph].gltf;
+        gltf.materials.push(gltfSourceMaterial);
+        const clonedSet = new Set();
+        for (const [i, threeMaterial] of threeMaterialSet.entries()) {
+            const clone = threeMaterial.clone();
+            clone.name =
+                newMaterialName + (threeMaterialSet.size > 1 ? '_inst' + i : '');
+            clonedSet.add(clone);
+        }
+        const clonedMaterial = new Material(this[$modelOnUpdate], this[$correlatedSceneGraph].gltf, gltfSourceMaterial, this[$materials].length, false, // Cloned as inactive.
+        this[$variantData], clonedSet);
+        this[$materials].push(clonedMaterial);
+        return clonedMaterial;
+    }
+    createMaterialInstanceForVariant(originalMaterialIndex, newMaterialName, variantName, activateVariant = true) {
+        let variantMaterialInstance = null;
+        for (const primitive of this[$primitivesList]) {
+            const variantData = this[$variantData].get(variantName);
+            // Skips the primitive if the variant already exists.
+            if (variantData != null && primitive.variantInfo.has(variantData.index)) {
+                continue;
+            }
+            // Skips the primitive if the source/original material does not exist.
+            if (primitive.getMaterial(originalMaterialIndex) == null) {
+                continue;
+            }
+            if (!this.hasVariant(variantName)) {
+                this.createVariant(variantName);
+            }
+            if (variantMaterialInstance == null) {
+                variantMaterialInstance =
+                    this[$cloneMaterial](originalMaterialIndex, newMaterialName);
+            }
+            primitive.addVariant(variantMaterialInstance, variantName);
+        }
+        if (activateVariant && variantMaterialInstance != null) {
+            variantMaterialInstance[$setActive](true);
+            this.materials[originalMaterialIndex][$setActive](false);
+            for (const primitive of this[$primitivesList]) {
+                primitive.enableVariant(variantName);
+            }
+        }
+        return variantMaterialInstance;
+    }
+    createVariant(variantName) {
+        if (!this[$variantData].has(variantName)) {
+            // Adds the name if it's not already in the list.
+            this[$variantData].set(variantName, { name: variantName, index: this[$variantData].size });
+        }
+        else {
+            console.warn(`Variant '${variantName}'' already exists`);
+        }
+    }
+    hasVariant(variantName) {
+        return this[$variantData].has(variantName);
+    }
+    setMaterialToVariant(materialIndex, targetVariantName) {
+        if (this[$availableVariants]().find(name => name === targetVariantName) ==
+            null) {
+            console.warn(`Can't add material to '${targetVariantName}', the variant does not exist.'`);
+            return;
+        }
+        if (materialIndex < 0 || materialIndex >= this.materials.length) {
+            console.error(`setMaterialToVariant(): materialIndex is out of bounds.`);
+            return;
+        }
+        for (const primitive of this[$primitivesList]) {
+            const material = primitive.getMaterial(materialIndex);
+            // Ensures the material exists on the primitive before setting it to a
+            // variant.
+            if (material != null) {
+                primitive.addVariant(material, targetVariantName);
+            }
+        }
+    }
+    updateVariantName(currentName, newName) {
+        const variantData = this[$variantData].get(currentName);
+        if (variantData == null) {
+            return;
+        }
+        variantData.name = newName;
+        this[$variantData].set(newName, variantData);
+        this[$variantData].delete(currentName);
+    }
+    deleteVariant(variantName) {
+        const variant = this[$variantData].get(variantName);
+        if (variant == null) {
+            return;
+        }
+        for (const material of this.materials) {
+            if (material.hasVariant(variantName)) {
+                material[$variantSet].delete(variant.index);
+            }
+        }
+        for (const primitive of this[$primitivesList]) {
+            primitive.deleteVariant(variant.index);
+        }
+        this[$variantData].delete(variantName);
+    }
+}
+
+/* @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var __decorate$6 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof undefined === "function") r = undefined(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+const $currentGLTF = Symbol('currentGLTF');
+const $originalGltfJson = Symbol('originalGltfJson');
+const $model = Symbol('model');
+const $getOnUpdateMethod = Symbol('getOnUpdateMethod');
+const $buildTexture = Symbol('buildTexture');
+/**
+ * SceneGraphMixin manages exposes a model API in order to support operations on
+ * the <model-viewer> scene graph.
+ */
+const SceneGraphMixin = (ModelViewerElement) => {
+    var _a, _b, _c;
+    class SceneGraphModelViewerElement extends ModelViewerElement {
+        constructor() {
+            super(...arguments);
+            this[_a] = undefined;
+            this[_b] = null;
+            this[_c] = null;
+            this.variantName = null;
+            this.orientation = '0 0 0';
+            this.scale = '1 1 1';
+        }
+        // Scene-graph API:
+        /** @export */
+        get model() {
+            return this[$model];
+        }
+        get availableVariants() {
+            return this.model ? this.model[$availableVariants]() : [];
+        }
+        /**
+         * Returns a deep copy of the gltf JSON as loaded. It will not reflect
+         * changes to the scene-graph, nor will editing it have any effect.
+         */
+        get originalGltfJson() {
+            return this[$originalGltfJson];
+        }
+        [(_a = $model, _b = $currentGLTF, _c = $originalGltfJson, $getOnUpdateMethod)]() {
+            return () => {
+                this[$needsRender]();
+            };
+        }
+        [$buildTexture](texture) {
+            // Applies glTF default settings.
+            texture.encoding = sRGBEncoding;
+            texture.wrapS = RepeatWrapping;
+            texture.wrapT = RepeatWrapping;
+            return new Texture(this[$getOnUpdateMethod](), texture);
+        }
+        async createTexture(uri, type = 'image/png') {
+            const { textureUtils } = this[$renderer];
+            const texture = await textureUtils.loadImage(uri);
+            texture.userData.mimeType = type;
+            return this[$buildTexture](texture);
+        }
+        async createLottieTexture(uri, quality = 1) {
+            const { textureUtils } = this[$renderer];
+            const texture = await textureUtils.loadLottie(uri, quality);
+            return this[$buildTexture](texture);
+        }
+        createVideoTexture(uri) {
+            const video = document.createElement('video');
+            video.src = uri;
+            video.muted = true;
+            video.play();
+            video.loop = true;
+            const texture = new VideoTexture(video);
+            return this[$buildTexture](texture);
+        }
+        createCanvasTexture() {
+            const canvas = document.createElement('canvas');
+            const texture = new CanvasTexture(canvas);
+            return this[$buildTexture](texture);
+        }
+        async updated(changedProperties) {
+            super.updated(changedProperties);
+            if (changedProperties.has('variantName')) {
+                const updateVariantProgress = this[$progressTracker].beginActivity();
+                updateVariantProgress(0.1);
+                const model = this[$model];
+                const { variantName } = this;
+                if (model != null) {
+                    await model[$switchVariant](variantName);
+                    this[$needsRender]();
+                    this.dispatchEvent(new CustomEvent('variant-applied'));
+                }
+                updateVariantProgress(1.0);
+            }
+            if (changedProperties.has('orientation') ||
+                changedProperties.has('scale')) {
+                if (!this.loaded) {
+                    return;
+                }
+                const scene = this[$scene];
+                scene.applyTransform();
+                scene.updateBoundingBox();
+                scene.updateShadow();
+                this[$renderer].arRenderer.onUpdateScene();
+                this[$needsRender]();
+            }
+        }
+        [$onModelLoad]() {
+            super[$onModelLoad]();
+            const { currentGLTF } = this[$scene];
+            if (currentGLTF != null) {
+                const { correlatedSceneGraph } = currentGLTF;
+                if (correlatedSceneGraph != null &&
+                    currentGLTF !== this[$currentGLTF]) {
+                    this[$model] =
+                        new Model(correlatedSceneGraph, this[$getOnUpdateMethod]());
+                    this[$originalGltfJson] =
+                        JSON.parse(JSON.stringify(correlatedSceneGraph.gltf));
+                }
+                // KHR_materials_variants extension spec:
+                // https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_variants
+                if ('variants' in currentGLTF.userData) {
+                    this.requestUpdate('variantName');
+                }
+            }
+            this[$currentGLTF] = currentGLTF;
+        }
+        /** @export */
+        async exportScene(options) {
+            const scene = this[$scene];
+            return new Promise(async (resolve, reject) => {
+                // Defaults
+                const opts = {
+                    binary: true,
+                    onlyVisible: true,
+                    maxTextureSize: Infinity,
+                    includeCustomExtensions: false,
+                    forceIndices: false
+                };
+                Object.assign(opts, options);
+                // Not configurable
+                opts.animations = scene.animations;
+                opts.truncateDrawRange = true;
+                const shadow = scene.shadow;
+                let visible = false;
+                // Remove shadow from export
+                if (shadow != null) {
+                    visible = shadow.visible;
+                    shadow.visible = false;
+                }
+                await this[$model][$prepareVariantsForExport]();
+                const exporter = new GLTFExporter()
+                    .register((writer) => new GLTFExporterMaterialsVariantsExtension(writer));
+                exporter.parse(scene.model, (gltf) => {
+                    return resolve(new Blob([opts.binary ? gltf : JSON.stringify(gltf)], {
+                        type: opts.binary ? 'application/octet-stream' :
+                            'application/json'
+                    }));
+                }, () => {
+                    return reject('glTF export failed');
+                }, opts);
+                if (shadow != null) {
+                    shadow.visible = visible;
+                }
+            });
+        }
+        materialFromPoint(pixelX, pixelY) {
+            const scene = this[$scene];
+            const ndcCoords = scene.getNDC(pixelX, pixelY);
+            scene.raycaster.setFromCamera(ndcCoords, scene.getCamera());
+            return this[$model][$materialFromPoint](scene.raycaster);
+        }
+    }
+    __decorate$6([
+        e$3({ type: String, attribute: 'variant-name' })
+    ], SceneGraphModelViewerElement.prototype, "variantName", void 0);
+    __decorate$6([
+        e$3({ type: String, attribute: 'orientation' })
+    ], SceneGraphModelViewerElement.prototype, "orientation", void 0);
+    __decorate$6([
+        e$3({ type: String, attribute: 'scale' })
+    ], SceneGraphModelViewerElement.prototype, "scale", void 0);
+    return SceneGraphModelViewerElement;
+};
+
+/* @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+const numberNode = (value, unit) => ({ type: 'number', number: value, unit });
+/**
+ * Given a string representing a comma-separated set of CSS-like expressions,
+ * parses and returns an array of ASTs that correspond to those expressions.
+ *
+ * Currently supported syntax includes:
+ *
+ *  - functions (top-level and nested)
+ *  - calc() arithmetic operators
+ *  - numbers with units
+ *  - hexadecimal-encoded colors in 3, 6 or 8 digit form
+ *  - idents
+ *
+ * All syntax is intended to match the parsing rules and semantics of the actual
+ * CSS spec as closely as possible.
+ *
+ * @see https://www.w3.org/TR/CSS2/
+ * @see https://www.w3.org/TR/css-values-3/
+ */
+const parseExpressions = (() => {
+    const cache = {};
+    const MAX_PARSE_ITERATIONS = 1000; // Arbitrarily large
+    return (inputString) => {
+        const cacheKey = inputString;
+        if (cacheKey in cache) {
+            return cache[cacheKey];
+        }
+        const expressions = [];
+        let parseIterations = 0;
+        while (inputString) {
+            if (++parseIterations > MAX_PARSE_ITERATIONS) {
+                // Avoid a potentially infinite loop due to typos:
+                inputString = '';
+                break;
+            }
+            const expressionParseResult = parseExpression(inputString);
+            const expression = expressionParseResult.nodes[0];
+            if (expression == null || expression.terms.length === 0) {
+                break;
+            }
+            expressions.push(expression);
+            inputString = expressionParseResult.remainingInput;
+        }
+        return cache[cacheKey] = expressions;
+    };
+})();
+/**
+ * Parse a single expression. For the purposes of our supported syntax, an
+ * expression is the set of semantically meaningful terms that appear before the
+ * next comma, or between the parens of a function invocation.
+ */
+const parseExpression = (() => {
+    const IS_IDENT_RE = /^(\-\-|[a-z\u0240-\uffff])/i;
+    const IS_OPERATOR_RE = /^([\*\+\/]|[\-]\s)/i;
+    const IS_EXPRESSION_END_RE = /^[\),]/;
+    const FUNCTION_ARGUMENTS_FIRST_TOKEN = '(';
+    const HEX_FIRST_TOKEN = '#';
+    return (inputString) => {
+        const terms = [];
+        while (inputString.length) {
+            inputString = inputString.trim();
+            if (IS_EXPRESSION_END_RE.test(inputString)) {
+                break;
+            }
+            else if (inputString[0] === FUNCTION_ARGUMENTS_FIRST_TOKEN) {
+                const { nodes, remainingInput } = parseFunctionArguments(inputString);
+                inputString = remainingInput;
+                terms.push({
+                    type: 'function',
+                    name: { type: 'ident', value: 'calc' },
+                    arguments: nodes
+                });
+            }
+            else if (IS_IDENT_RE.test(inputString)) {
+                const identParseResult = parseIdent(inputString);
+                const identNode = identParseResult.nodes[0];
+                inputString = identParseResult.remainingInput;
+                if (inputString[0] === FUNCTION_ARGUMENTS_FIRST_TOKEN) {
+                    const { nodes, remainingInput } = parseFunctionArguments(inputString);
+                    terms.push({ type: 'function', name: identNode, arguments: nodes });
+                    inputString = remainingInput;
+                }
+                else {
+                    terms.push(identNode);
+                }
+            }
+            else if (IS_OPERATOR_RE.test(inputString)) {
+                // Operators are always a single character, so just pluck them out:
+                terms.push({ type: 'operator', value: inputString[0] });
+                inputString = inputString.slice(1);
+            }
+            else {
+                const { nodes, remainingInput } = inputString[0] === HEX_FIRST_TOKEN ?
+                    parseHex(inputString) :
+                    parseNumber(inputString);
+                // The remaining string may not have had any meaningful content. Exit
+                // early if this is the case:
+                if (nodes.length === 0) {
+                    break;
+                }
+                terms.push(nodes[0]);
+                inputString = remainingInput;
+            }
+        }
+        return { nodes: [{ type: 'expression', terms }], remainingInput: inputString };
+    };
+})();
+/**
+ * An ident is something like a function name or the keyword "auto".
+ */
+const parseIdent = (() => {
+    const NOT_IDENT_RE = /[^a-z0-9_\-\u0240-\uffff]/i;
+    return (inputString) => {
+        const match = inputString.match(NOT_IDENT_RE);
+        const ident = match == null ? inputString : inputString.substr(0, match.index);
+        const remainingInput = match == null ? '' : inputString.substr(match.index);
+        return { nodes: [{ type: 'ident', value: ident }], remainingInput };
+    };
+})();
+/**
+ * Parses a number. A number value can be expressed with an integer or
+ * non-integer syntax, and usually includes a unit (but does not strictly
+ * require one for our purposes).
+ */
+const parseNumber = (() => {
+    // @see https://www.w3.org/TR/css-syntax/#number-token-diagram
+    const VALUE_RE = /[\+\-]?(\d+[\.]\d+|\d+|[\.]\d+)([eE][\+\-]?\d+)?/;
+    const UNIT_RE = /^[a-z%]+/i;
+    const ALLOWED_UNITS = /^(m|mm|cm|rad|deg|[%])$/;
+    return (inputString) => {
+        const valueMatch = inputString.match(VALUE_RE);
+        const value = valueMatch == null ? '0' : valueMatch[0];
+        inputString = value == null ? inputString : inputString.slice(value.length);
+        const unitMatch = inputString.match(UNIT_RE);
+        let unit = unitMatch != null && unitMatch[0] !== '' ? unitMatch[0] : null;
+        const remainingInput = unitMatch == null ? inputString : inputString.slice(unit.length);
+        if (unit != null && !ALLOWED_UNITS.test(unit)) {
+            unit = null;
+        }
+        return {
+            nodes: [{
+                    type: 'number',
+                    number: parseFloat(value) || 0,
+                    unit: unit
+                }],
+            remainingInput
+        };
+    };
+})();
+/**
+ * Parses a hexadecimal-encoded color in 3, 6 or 8 digit form.
+ */
+const parseHex = (() => {
+    // TODO(cdata): right now we don't actually enforce the number of digits
+    const HEX_RE = /^[a-f0-9]*/i;
+    return (inputString) => {
+        inputString = inputString.slice(1).trim();
+        const hexMatch = inputString.match(HEX_RE);
+        const nodes = hexMatch == null ? [] : [{ type: 'hex', value: hexMatch[0] }];
+        return {
+            nodes,
+            remainingInput: hexMatch == null ? inputString :
+                inputString.slice(hexMatch[0].length)
+        };
+    };
+})();
+/**
+ * Parses arguments passed to a function invocation (e.g., the expressions
+ * within a matched set of parens).
+ */
+const parseFunctionArguments = (inputString) => {
+    const expressionNodes = [];
+    // Consume the opening paren
+    inputString = inputString.slice(1).trim();
+    while (inputString.length) {
+        const expressionParseResult = parseExpression(inputString);
+        expressionNodes.push(expressionParseResult.nodes[0]);
+        inputString = expressionParseResult.remainingInput.trim();
+        if (inputString[0] === ',') {
+            inputString = inputString.slice(1).trim();
+        }
+        else if (inputString[0] === ')') {
+            // Consume the closing paren and stop parsing
+            inputString = inputString.slice(1);
+            break;
+        }
+    }
+    return { nodes: expressionNodes, remainingInput: inputString };
+};
+const $visitedTypes = Symbol('visitedTypes');
+/**
+ * An ASTWalker walks an array of ASTs such as the type produced by
+ * parseExpressions and invokes a callback for a configured set of nodes that
+ * the user wishes to "visit" during the walk.
+ */
+class ASTWalker {
+    constructor(visitedTypes) {
+        this[$visitedTypes] = visitedTypes;
+    }
+    /**
+     * Walk the given set of ASTs, and invoke the provided callback for nodes that
+     * match the filtered set that the ASTWalker was constructed with.
+     */
+    walk(ast, callback) {
+        const remaining = ast.slice();
+        while (remaining.length) {
+            const next = remaining.shift();
+            if (this[$visitedTypes].indexOf(next.type) > -1) {
+                callback(next);
+            }
+            switch (next.type) {
+                case 'expression':
+                    remaining.unshift(...next.terms);
+                    break;
+                case 'function':
+                    remaining.unshift(next.name, ...next.arguments);
+                    break;
+            }
+        }
+    }
+}
+const ZERO = Object.freeze({ type: 'number', number: 0, unit: null });
+
+/* @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
+ * Ensures that a given number is expressed in radians. If the number is already
+ * in radians, does nothing. If the value is in degrees, converts it to radians.
+ * If the value has no specified unit, the unit is assumed to be radians. If the
+ * value is not in radians or degrees, the value is resolved as 0 radians.
+ *
+ * Also accepts a second argument that is a default value to use if the input
+ * numberNode number is NaN or Infinity.
+ */
+const degreesToRadians = (numberNode, fallbackRadianValue = 0) => {
+    let { number, unit } = numberNode;
+    if (!isFinite(number)) {
+        number = fallbackRadianValue;
+        unit = 'rad';
+    }
+    else if (numberNode.unit === 'rad' || numberNode.unit == null) {
+        return numberNode;
+    }
+    const valueIsDegrees = unit === 'deg' && number != null;
+    const value = valueIsDegrees ? number : 0;
+    const radians = value * Math.PI / 180;
+    return { type: 'number', number: radians, unit: 'rad' };
+};
+/**
+ * Converts a given length to meters. Currently supported input units are
+ * meters, centimeters and millimeters.
+ *
+ * Also accepts a second argument that is a default value to use if the input
+ * numberNode number is NaN or Infinity.
+ */
+const lengthToBaseMeters = (numberNode, fallbackMeterValue = 0) => {
+    let { number, unit } = numberNode;
+    if (!isFinite(number)) {
+        number = fallbackMeterValue;
+        unit = 'm';
+    }
+    else if (numberNode.unit === 'm') {
+        return numberNode;
+    }
+    let scale;
+    switch (unit) {
+        default:
+            scale = 1;
+            break;
+        case 'cm':
+            scale = 1 / 100;
+            break;
+        case 'mm':
+            scale = 1 / 1000;
+            break;
+    }
+    const value = scale * number;
+    return { type: 'number', number: value, unit: 'm' };
+};
+/**
+ * Normalizes the unit of a given input number so that it is expressed in a
+ * preferred unit. For length nodes, the return value will be expressed in
+ * meters. For angle nodes, the return value will be expressed in radians.
+ *
+ * Also takes a fallback number that is used when the number value is not a
+ * valid number or when the unit of the given number cannot be normalized.
+ */
+const normalizeUnit = (() => {
+    const identity = (node) => node;
+    const unitNormalizers = {
+        'rad': identity,
+        'deg': degreesToRadians,
+        'm': identity,
+        'mm': lengthToBaseMeters,
+        'cm': lengthToBaseMeters
+    };
+    return (node, fallback = ZERO) => {
+        if (!isFinite(node.number)) {
+            node.number = fallback.number;
+            node.unit = fallback.unit;
+        }
+        const { unit } = node;
+        if (unit == null) {
+            return node;
+        }
+        const normalize = unitNormalizers[unit];
+        if (normalize == null) {
+            return fallback;
+        }
+        return normalize(node);
+    };
+})();
+
+/* @license
+ * Copyright 2020 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
+ * The Hotspot object is a reference-counted slot. If decrement() returns true,
+ * it should be removed from the tree so it can be garbage-collected.
+ */
+class Hotspot extends CSS2DObject {
+    constructor(config) {
+        super(document.createElement('div'));
+        this.normal = new Vector3(0, 1, 0);
+        this.initialized = false;
+        this.referenceCount = 1;
+        this.pivot = document.createElement('div');
+        this.slot = document.createElement('slot');
+        this.element.classList.add('annotation-wrapper');
+        this.slot.name = config.name;
+        this.element.appendChild(this.pivot);
+        this.pivot.appendChild(this.slot);
+        this.updatePosition(config.position);
+        this.updateNormal(config.normal);
+    }
+    get facingCamera() {
+        return !this.element.classList.contains('hide');
+    }
+    /**
+     * Sets the hotspot to be in the highly visible foreground state.
+     */
+    show() {
+        if (!this.facingCamera || !this.initialized) {
+            this.updateVisibility(true);
+        }
+    }
+    /**
+     * Sets the hotspot to be in the diminished background state.
+     */
+    hide() {
+        if (this.facingCamera || !this.initialized) {
+            this.updateVisibility(false);
+        }
+    }
+    /**
+     * Call this when adding elements to the same slot to keep track.
+     */
+    increment() {
+        this.referenceCount++;
+    }
+    /**
+     * Call this when removing elements from the slot; returns true when the slot
+     * is unused.
+     */
+    decrement() {
+        if (this.referenceCount > 0) {
+            --this.referenceCount;
+        }
+        return this.referenceCount === 0;
+    }
+    /**
+     * Change the position of the hotspot to the input string, in the same format
+     * as the data-position attribute.
+     */
+    updatePosition(position) {
+        if (position == null)
+            return;
+        const positionNodes = parseExpressions(position)[0].terms;
+        for (let i = 0; i < 3; ++i) {
+            this.position.setComponent(i, normalizeUnit(positionNodes[i]).number);
+        }
+        this.updateMatrixWorld();
+    }
+    /**
+     * Change the hotspot's normal to the input string, in the same format as the
+     * data-normal attribute.
+     */
+    updateNormal(normal) {
+        if (normal == null)
+            return;
+        const normalNodes = parseExpressions(normal)[0].terms;
+        for (let i = 0; i < 3; ++i) {
+            this.normal.setComponent(i, normalizeUnit(normalNodes[i]).number);
+        }
+    }
+    orient(radians) {
+        this.pivot.style.transform = `rotate(${radians}rad)`;
+    }
+    updateVisibility(show) {
+        // NOTE: IE11 doesn't support a second arg for classList.toggle
+        if (show) {
+            this.element.classList.remove('hide');
+        }
+        else {
+            this.element.classList.add('hide');
+        }
+        // NOTE: ShadyDOM doesn't support slot.assignedElements, otherwise we could
+        // use that here.
+        this.slot.assignedNodes().forEach((node) => {
+            if (node.nodeType !== Node.ELEMENT_NODE) {
+                return;
+            }
+            const element = node;
+            // Visibility attribute can be configured per-node in the hotspot:
+            const visibilityAttribute = element.dataset.visibilityAttribute;
+            if (visibilityAttribute != null) {
+                const attributeName = `data-${visibilityAttribute}`;
+                // NOTE: IE11 doesn't support toggleAttribute
+                if (show) {
+                    element.setAttribute(attributeName, '');
+                }
+                else {
+                    element.removeAttribute(attributeName);
+                }
+            }
+            element.dispatchEvent(new CustomEvent('hotspot-visibility', {
+                detail: {
+                    visible: show,
+                },
+            }));
+        });
+        this.initialized = true;
+    }
+}
+
+/* @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
+ * Performs a reduction across all the vertices of the input model and all its
+ * children. The supplied function takes the reduced value and a vertex and
+ * returns the newly reduced value. The value is initialized as zero.
+ *
+ * Adapted from Three.js, @see https://github.com/mrdoob/three.js/blob/7e0a78beb9317e580d7fa4da9b5b12be051c6feb/src/math/Box3.js#L241
+ */
+const reduceVertices = (model, func, initialValue) => {
+    let value = initialValue;
+    const vertex = new Vector3();
+    model.traverseVisible((object) => {
+        let i, l;
+        object.updateWorldMatrix(false, false);
+        const geometry = object.geometry;
+        if (geometry !== undefined) {
+            if (geometry.isGeometry) {
+                const vertices = geometry.vertices;
+                for (i = 0, l = vertices.length; i < l; i++) {
+                    vertex.copy(vertices[i]);
+                    if (object.isSkinnedMesh) {
+                        object.boneTransform(i, vertex);
+                    }
+                    else {
+                        vertex.applyMatrix4(object.matrixWorld);
+                    }
+                    value = func(value, vertex);
+                }
+            }
+            else if (geometry.isBufferGeometry) {
+                const { position } = geometry.attributes;
+                if (position !== undefined) {
+                    for (i = 0, l = position.count; i < l; i++) {
+                        vertex.fromBufferAttribute(position, i);
+                        if (object.isSkinnedMesh) {
+                            object.boneTransform(i, vertex);
+                        }
+                        else {
+                            vertex.applyMatrix4(object.matrixWorld);
+                        }
+                        value = func(value, vertex);
+                    }
+                }
+            }
+        }
+    });
+    return value;
+};
+
+/**
+ * Two pass Gaussian blur filter (horizontal and vertical blur shaders)
+ * - see http://www.cake23.de/traveling-wavefronts-lit-up.html
+ *
+ * - 9 samples per pass
+ * - standard deviation 2.7
+ * - "h" and "v" parameters should be set to "1 / width" and "1 / height"
+ */
+
+const HorizontalBlurShader = {
+
+	uniforms: {
+
+		'tDiffuse': { value: null },
+		'h': { value: 1.0 / 512.0 }
+
+	},
+
+	vertexShader: /* glsl */`
+
+		varying vec2 vUv;
+
+		void main() {
+
+			vUv = uv;
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+		}`,
+
+	fragmentShader: /* glsl */`
+
+		uniform sampler2D tDiffuse;
+		uniform float h;
+
+		varying vec2 vUv;
+
+		void main() {
+
+			vec4 sum = vec4( 0.0 );
+
+			sum += texture2D( tDiffuse, vec2( vUv.x - 4.0 * h, vUv.y ) ) * 0.051;
+			sum += texture2D( tDiffuse, vec2( vUv.x - 3.0 * h, vUv.y ) ) * 0.0918;
+			sum += texture2D( tDiffuse, vec2( vUv.x - 2.0 * h, vUv.y ) ) * 0.12245;
+			sum += texture2D( tDiffuse, vec2( vUv.x - 1.0 * h, vUv.y ) ) * 0.1531;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y ) ) * 0.1633;
+			sum += texture2D( tDiffuse, vec2( vUv.x + 1.0 * h, vUv.y ) ) * 0.1531;
+			sum += texture2D( tDiffuse, vec2( vUv.x + 2.0 * h, vUv.y ) ) * 0.12245;
+			sum += texture2D( tDiffuse, vec2( vUv.x + 3.0 * h, vUv.y ) ) * 0.0918;
+			sum += texture2D( tDiffuse, vec2( vUv.x + 4.0 * h, vUv.y ) ) * 0.051;
+
+			gl_FragColor = sum;
+
+		}`
+
+};
+
+/**
+ * Two pass Gaussian blur filter (horizontal and vertical blur shaders)
+ * - see http://www.cake23.de/traveling-wavefronts-lit-up.html
+ *
+ * - 9 samples per pass
+ * - standard deviation 2.7
+ * - "h" and "v" parameters should be set to "1 / width" and "1 / height"
+ */
+
+const VerticalBlurShader = {
+
+	uniforms: {
+
+		'tDiffuse': { value: null },
+		'v': { value: 1.0 / 512.0 }
+
+	},
+
+	vertexShader: /* glsl */`
+
+		varying vec2 vUv;
+
+		void main() {
+
+			vUv = uv;
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+		}`,
+
+	fragmentShader: /* glsl */`
+
+		uniform sampler2D tDiffuse;
+		uniform float v;
+
+		varying vec2 vUv;
+
+		void main() {
+
+			vec4 sum = vec4( 0.0 );
+
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 4.0 * v ) ) * 0.051;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 3.0 * v ) ) * 0.0918;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 2.0 * v ) ) * 0.12245;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 1.0 * v ) ) * 0.1531;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y ) ) * 0.1633;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 1.0 * v ) ) * 0.1531;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 2.0 * v ) ) * 0.12245;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 3.0 * v ) ) * 0.0918;
+			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 4.0 * v ) ) * 0.051;
+
+			gl_FragColor = sum;
+
+		}`
+
+};
+
+// https://en.wikipedia.org/wiki/Linear_interpolation
+function lerp( x, y, t ) {
+
+	return ( 1 - t ) * x + t * y;
+
+}
+
+/* @license
+ * Copyright 2022 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+// The softness [0, 1] of the shadow is mapped to a resolution between
+// 2^LOG_MAX_RESOLUTION and 2^LOG_MIN_RESOLUTION.
+const LOG_MAX_RESOLUTION = 9;
+const LOG_MIN_RESOLUTION = 6;
+// Animated models are not in general contained in their bounding box, as this
+// is calculated only for their resting pose. We create a cubic shadow volume
+// for animated models sized to their largest bounding box dimension multiplied
+// by this scale factor.
+const ANIMATION_SCALING = 2;
+// Since hard shadows are not lightened by blurring and depth, set a lower
+// default intensity to make them more perceptually similar to the intensity of
+// the soft shadows.
+const DEFAULT_HARD_INTENSITY = 0.3;
+/**
+ * The Shadow class creates a shadow that fits a given scene and follows a
+ * target. This shadow will follow the scene without any updates needed so long
+ * as the shadow and scene are both parented to the same object (call it the
+ * scene) and this scene is passed as the target parameter to the shadow's
+ * constructor. We also must constrain the scene to motion within the horizontal
+ * plane and call the setRotation() method whenever the scene's Y-axis rotation
+ * changes. For motion outside of the horizontal plane, this.needsUpdate must be
+ * set to true.
+ *
+ * The softness of the shadow is controlled by changing its resolution, making
+ * softer shadows faster, but less precise.
+ */
+class Shadow extends Object3D {
+    constructor(scene, softness, side) {
+        super();
+        this.camera = new OrthographicCamera();
+        // private cameraHelper = new CameraHelper(this.camera);
+        this.renderTarget = null;
+        this.renderTargetBlur = null;
+        this.depthMaterial = new MeshDepthMaterial();
+        this.horizontalBlurMaterial = new ShaderMaterial(HorizontalBlurShader);
+        this.verticalBlurMaterial = new ShaderMaterial(VerticalBlurShader);
+        this.intensity = 0;
+        this.softness = 1;
+        this.boundingBox = new Box3;
+        this.size = new Vector3;
+        this.maxDimension = 0;
+        this.isAnimated = false;
+        this.needsUpdate = false;
+        const { camera } = this;
+        camera.rotation.x = Math.PI / 2;
+        camera.left = -0.5;
+        camera.right = 0.5;
+        camera.bottom = -0.5;
+        camera.top = 0.5;
+        this.add(camera);
+        // this.add(this.cameraHelper);
+        // this.cameraHelper.updateMatrixWorld = function() {
+        //   this.matrixWorld = this.camera.matrixWorld;
+        // };
+        const plane = new PlaneGeometry();
+        const shadowMaterial = new MeshBasicMaterial({
+            // color: new Color(1, 0, 0),
+            opacity: 1,
+            transparent: true,
+            side: BackSide,
+        });
+        this.floor = new Mesh(plane, shadowMaterial);
+        this.floor.userData.shadow = true;
+        camera.add(this.floor);
+        // the plane onto which to blur the texture
+        this.blurPlane = new Mesh(plane);
+        this.blurPlane.visible = false;
+        camera.add(this.blurPlane);
+        scene.target.add(this);
+        // like MeshDepthMaterial, but goes from black to transparent
+        this.depthMaterial.onBeforeCompile = function (shader) {
+            shader.fragmentShader = shader.fragmentShader.replace('gl_FragColor = vec4( vec3( 1.0 - fragCoordZ ), opacity );', 'gl_FragColor = vec4( vec3( 0.0 ), ( 1.0 - fragCoordZ ) * opacity );');
+        };
+        this.horizontalBlurMaterial.depthTest = false;
+        this.verticalBlurMaterial.depthTest = false;
+        this.setScene(scene, softness, side);
+    }
+    /**
+     * Update the shadow's size and position for a new scene. Softness is also
+     * needed, as this controls the shadow's resolution.
+     */
+    setScene(scene, softness, side) {
+        const { boundingBox, size, rotation, position } = this;
+        this.isAnimated = scene.animationNames.length > 0;
+        this.boundingBox.copy(scene.boundingBox);
+        this.size.copy(scene.size);
+        this.maxDimension = Math.max(size.x, size.y, size.z) *
+            (this.isAnimated ? ANIMATION_SCALING : 1);
+        this.boundingBox.getCenter(position);
+        if (side === 'back') {
+            const { min, max } = boundingBox;
+            [min.y, min.z] = [min.z, min.y];
+            [max.y, max.z] = [max.z, max.y];
+            [size.y, size.z] = [size.z, size.y];
+            rotation.x = Math.PI / 2;
+            rotation.y = Math.PI;
+        }
+        else {
+            rotation.x = 0;
+            rotation.y = 0;
+        }
+        if (this.isAnimated) {
+            const minY = boundingBox.min.y;
+            const maxY = boundingBox.max.y;
+            size.y = this.maxDimension;
+            boundingBox.expandByVector(size.subScalar(this.maxDimension).multiplyScalar(-0.5));
+            boundingBox.min.y = minY;
+            boundingBox.max.y = maxY;
+            size.set(this.maxDimension, maxY - minY, this.maxDimension);
+        }
+        if (side === 'bottom') {
+            position.y = boundingBox.min.y;
+        }
+        else {
+            position.z = boundingBox.min.y;
+        }
+        this.setSoftness(softness);
+    }
+    /**
+     * Update the shadow's resolution based on softness (between 0 and 1). Should
+     * not be called frequently, as this results in reallocation.
+     */
+    setSoftness(softness) {
+        this.softness = softness;
+        const { size, camera } = this;
+        const scaleY = (this.isAnimated ? ANIMATION_SCALING : 1);
+        const resolution = scaleY *
+            Math.pow(2, LOG_MAX_RESOLUTION -
+                softness * (LOG_MAX_RESOLUTION - LOG_MIN_RESOLUTION));
+        this.setMapSize(resolution);
+        const softFar = size.y / 2;
+        const hardFar = size.y * scaleY;
+        camera.near = 0;
+        camera.far = lerp(hardFar, softFar, softness);
+        // we have co-opted opacity to scale the depth to clip
+        this.depthMaterial.opacity = 1.0 / softness;
+        camera.updateProjectionMatrix();
+        // this.cameraHelper.update();
+        this.setIntensity(this.intensity);
+        this.setOffset(0);
+    }
+    /**
+     * Lower-level version of the above function.
+     */
+    setMapSize(maxMapSize) {
+        const { size } = this;
+        if (this.isAnimated) {
+            maxMapSize *= ANIMATION_SCALING;
+        }
+        const baseWidth = Math.floor(size.x > size.z ? maxMapSize : maxMapSize * size.x / size.z);
+        const baseHeight = Math.floor(size.x > size.z ? maxMapSize * size.z / size.x : maxMapSize);
+        // width of blur filter in pixels (not adjustable)
+        const TAP_WIDTH = 10;
+        const width = TAP_WIDTH + baseWidth;
+        const height = TAP_WIDTH + baseHeight;
+        if (this.renderTarget != null &&
+            (this.renderTarget.width !== width ||
+                this.renderTarget.height !== height)) {
+            this.renderTarget.dispose();
+            this.renderTarget = null;
+            this.renderTargetBlur.dispose();
+            this.renderTargetBlur = null;
+        }
+        if (this.renderTarget == null) {
+            const params = { format: RGBAFormat };
+            this.renderTarget = new WebGLRenderTarget(width, height, params);
+            this.renderTargetBlur = new WebGLRenderTarget(width, height, params);
+            this.floor.material.map =
+                this.renderTarget.texture;
+        }
+        // These pads account for the softening radius around the shadow.
+        this.camera.scale.set(size.x * (1 + TAP_WIDTH / baseWidth), size.z * (1 + TAP_WIDTH / baseHeight), 1);
+        this.needsUpdate = true;
+    }
+    /**
+     * Set the shadow's intensity (0 to 1), which is just its opacity. Turns off
+     * shadow rendering if zero.
+     */
+    setIntensity(intensity) {
+        this.intensity = intensity;
+        if (intensity > 0) {
+            this.visible = true;
+            this.floor.visible = true;
+            this.floor.material.opacity = intensity *
+                lerp(DEFAULT_HARD_INTENSITY, 1, this.softness * this.softness);
+        }
+        else {
+            this.visible = false;
+            this.floor.visible = false;
+        }
+    }
+    getIntensity() {
+        return this.intensity;
+    }
+    /**
+     * An offset can be specified to move the
+     * shadow vertically relative to the bottom of the scene. Positive is up, so
+     * values are generally negative. A small offset keeps our shadow from
+     * z-fighting with any baked-in shadow plane.
+     */
+    setOffset(offset) {
+        this.floor.position.z = -offset + 0.001 * this.maxDimension;
+    }
+    render(renderer, scene) {
+        // this.cameraHelper.visible = false;
+        // force the depthMaterial to everything
+        scene.overrideMaterial = this.depthMaterial;
+        // set renderer clear alpha
+        const initialClearAlpha = renderer.getClearAlpha();
+        renderer.setClearAlpha(0);
+        this.floor.visible = false;
+        // disable XR for offscreen rendering
+        const xrEnabled = renderer.xr.enabled;
+        renderer.xr.enabled = false;
+        // render to the render target to get the depths
+        const oldRenderTarget = renderer.getRenderTarget();
+        renderer.setRenderTarget(this.renderTarget);
+        renderer.render(scene, this.camera);
+        // and reset the override material
+        scene.overrideMaterial = null;
+        this.floor.visible = true;
+        this.blurShadow(renderer);
+        // reset and render the normal scene
+        renderer.xr.enabled = xrEnabled;
+        renderer.setRenderTarget(oldRenderTarget);
+        renderer.setClearAlpha(initialClearAlpha);
+        // this.cameraHelper.visible = true;
+    }
+    blurShadow(renderer) {
+        const { camera, horizontalBlurMaterial, verticalBlurMaterial, renderTarget, renderTargetBlur, blurPlane } = this;
+        blurPlane.visible = true;
+        // blur horizontally and draw in the renderTargetBlur
+        blurPlane.material = horizontalBlurMaterial;
+        horizontalBlurMaterial.uniforms.h.value = 1 / this.renderTarget.width;
+        horizontalBlurMaterial.uniforms.tDiffuse.value = this.renderTarget.texture;
+        renderer.setRenderTarget(renderTargetBlur);
+        renderer.render(blurPlane, camera);
+        // blur vertically and draw in the main renderTarget
+        blurPlane.material = verticalBlurMaterial;
+        verticalBlurMaterial.uniforms.v.value = 1 / this.renderTarget.height;
+        verticalBlurMaterial.uniforms.tDiffuse.value =
+            this.renderTargetBlur.texture;
+        renderer.setRenderTarget(renderTarget);
+        renderer.render(blurPlane, camera);
+        blurPlane.visible = false;
+    }
+    dispose() {
+        if (this.renderTarget != null) {
+            this.renderTarget.dispose();
+        }
+        if (this.renderTargetBlur != null) {
+            this.renderTargetBlur.dispose();
+        }
+        this.depthMaterial.dispose();
+        this.horizontalBlurMaterial.dispose();
+        this.verticalBlurMaterial.dispose();
+        this.floor.material.dispose();
+        this.floor.geometry.dispose();
+        this.blurPlane.geometry.dispose();
+        this.removeFromParent();
+    }
+}
+
+/* @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the 'License');
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+const MIN_SHADOW_RATIO = 100;
+const view = new Vector3();
+const target = new Vector3();
+const normalWorld = new Vector3();
+const raycaster = new Raycaster();
+const vector3$1 = new Vector3();
+const ndc = new Vector2();
+/**
+ * A THREE.Scene object that takes a Model and CanvasHTMLElement and
+ * constructs a framed scene based off of the canvas dimensions.
+ * Provides lights and cameras to be used in a renderer.
+ */
+class ModelScene extends Scene {
+    constructor({ canvas, element, width, height }) {
+        super();
+        this.annotationRenderer = new CSS2DRenderer();
+        this.schemaElement = document.createElement('script');
+        this.width = 1;
+        this.height = 1;
+        this.aspect = 1;
+        this.scaleStep = 0;
+        this.renderCount = 0;
+        this.externalRenderer = null;
+        // These default camera values are never used, as they are reset once the
+        // model is loaded and framing is computed.
+        this.camera = new PerspectiveCamera(45, 1, 0.1, 100);
+        this.xrCamera = null;
+        this.url = null;
+        this.target = new Object3D();
+        this.animationNames = [];
+        this.boundingBox = new Box3();
+        this.boundingSphere = new Sphere();
+        this.size = new Vector3();
+        this.idealAspect = 0;
+        this.framedFoVDeg = 0;
+        this.shadow = null;
+        this.shadowIntensity = 0;
+        this.shadowSoftness = 1;
+        this.bakedShadows = new Set();
+        this.exposure = 1;
+        this.canScale = true;
+        this.isDirty = false;
+        this.goalTarget = new Vector3();
+        this.targetDamperX = new Damper();
+        this.targetDamperY = new Damper();
+        this.targetDamperZ = new Damper();
+        this._currentGLTF = null;
+        this._model = null;
+        this.cancelPendingSourceChange = null;
+        this.animationsByName = new Map();
+        this.currentAnimationAction = null;
+        this.name = 'ModelScene';
+        this.element = element;
+        this.canvas = canvas;
+        // These default camera values are never used, as they are reset once the
+        // model is loaded and framing is computed.
+        this.camera = new PerspectiveCamera(45, 1, 0.1, 100);
+        this.camera.name = 'MainCamera';
+        this.add(this.target);
+        this.setSize(width, height);
+        this.target.name = 'Target';
+        this.mixer = new AnimationMixer(this.target);
+        const { domElement } = this.annotationRenderer;
+        const { style } = domElement;
+        style.display = 'none';
+        style.pointerEvents = 'none';
+        style.position = 'absolute';
+        style.top = '0';
+        this.element.shadowRoot.querySelector('.default').appendChild(domElement);
+        this.schemaElement.setAttribute('type', 'application/ld+json');
+    }
+    /**
+     * Function to create the context lazily, as when there is only one
+     * <model-viewer> element, the renderer's 3D context can be displayed
+     * directly. This extra context is necessary to copy the renderings into when
+     * there are more than one.
+     */
+    get context() {
+        return this.canvas.getContext('2d');
+    }
+    getCamera() {
+        return this.xrCamera != null ? this.xrCamera : this.camera;
+    }
+    queueRender() {
+        this.isDirty = true;
+    }
+    shouldRender() {
+        return this.isDirty;
+    }
+    hasRendered() {
+        this.isDirty = false;
+    }
+    forceRescale() {
+        this.scaleStep = -1;
+        this.queueRender();
+    }
+    /**
+     * Pass in a THREE.Object3D to be controlled
+     * by this model.
+     */
+    async setObject(model) {
+        this.reset();
+        this._model = model;
+        this.target.add(model);
+        await this.setupScene();
+    }
+    /**
+     * Sets the model via URL.
+     */
+    async setSource(url, progressCallback = () => { }) {
+        if (!url || url === this.url) {
+            progressCallback(1);
+            return;
+        }
+        this.reset();
+        this.url = url;
+        if (this.externalRenderer != null) {
+            const framingInfo = await this.externalRenderer.load(progressCallback);
+            this.boundingSphere.radius = framingInfo.framedRadius;
+            this.idealAspect = framingInfo.fieldOfViewAspect;
+            return;
+        }
+        // If we have pending work due to a previous source change in progress,
+        // cancel it so that we do not incur a race condition:
+        if (this.cancelPendingSourceChange != null) {
+            this.cancelPendingSourceChange();
+            this.cancelPendingSourceChange = null;
+        }
+        let gltf;
+        try {
+            gltf = await new Promise(async (resolve, reject) => {
+                this.cancelPendingSourceChange = () => reject();
+                try {
+                    const result = await this.element[$renderer].loader.load(url, this.element, progressCallback);
+                    resolve(result);
+                }
+                catch (error) {
+                    reject(error);
+                }
+            });
+        }
+        catch (error) {
+            if (error == null) {
+                // Loading was cancelled, so silently return
+                return;
+            }
+            throw error;
+        }
+        this.cancelPendingSourceChange = null;
+        this.reset();
+        this.url = url;
+        this._currentGLTF = gltf;
+        if (gltf != null) {
+            this._model = gltf.scene;
+            this.target.add(gltf.scene);
+        }
+        const { animations } = gltf;
+        const animationsByName = new Map();
+        const animationNames = [];
+        for (const animation of animations) {
+            animationsByName.set(animation.name, animation);
+            animationNames.push(animation.name);
+        }
+        this.animations = animations;
+        this.animationsByName = animationsByName;
+        this.animationNames = animationNames;
+        await this.setupScene();
+    }
+    async setupScene() {
+        this.applyTransform();
+        this.updateBoundingBox();
+        await this.updateFraming();
+        this.updateShadow();
+        this.setShadowIntensity(this.shadowIntensity);
+    }
+    reset() {
+        this.url = null;
+        this.renderCount = 0;
+        this.queueRender();
+        if (this.shadow != null) {
+            this.shadow.setIntensity(0);
+        }
+        this.bakedShadows.clear();
+        const { _model } = this;
+        if (_model != null) {
+            _model.removeFromParent();
+            this._model = null;
+        }
+        const gltf = this._currentGLTF;
+        if (gltf != null) {
+            gltf.dispose();
+            this._currentGLTF = null;
+        }
+        if (this.currentAnimationAction != null) {
+            this.currentAnimationAction.stop();
+            this.currentAnimationAction = null;
+        }
+        this.mixer.stopAllAction();
+        this.mixer.uncacheRoot(this);
+    }
+    dispose() {
+        this.reset();
+        if (this.shadow != null) {
+            this.shadow.dispose();
+            this.shadow = null;
+        }
+        this.element[$currentGLTF] = null;
+        this.element[$originalGltfJson] = null;
+        this.element[$model] = null;
+    }
+    get currentGLTF() {
+        return this._currentGLTF;
+    }
+    /**
+     * Updates the ModelScene for a new container size in CSS pixels.
+     */
+    setSize(width, height) {
+        if (this.width === width && this.height === height) {
+            return;
+        }
+        this.width = Math.max(width, 1);
+        this.height = Math.max(height, 1);
+        this.annotationRenderer.setSize(width, height);
+        this.aspect = this.width / this.height;
+        if (this.externalRenderer != null) {
+            const dpr = resolveDpr();
+            this.externalRenderer.resize(width * dpr, height * dpr);
+        }
+        this.queueRender();
+    }
+    markBakedShadow(mesh) {
+        mesh.userData.shadow = true;
+        this.bakedShadows.add(mesh);
+    }
+    unmarkBakedShadow(mesh) {
+        mesh.userData.shadow = false;
+        mesh.visible = true;
+        this.bakedShadows.delete(mesh);
+        this.boundingBox.expandByObject(mesh);
+    }
+    findBakedShadows(group) {
+        const boundingBox = new Box3();
+        group.traverse((object) => {
+            const mesh = object;
+            if (!mesh.isMesh) {
+                return;
+            }
+            const material = mesh.material;
+            if (!material.transparent) {
+                return;
+            }
+            boundingBox.setFromObject(mesh);
+            const size = boundingBox.getSize(vector3$1);
+            const minDim = Math.min(size.x, size.y, size.z);
+            const maxDim = Math.max(size.x, size.y, size.z);
+            if (maxDim < MIN_SHADOW_RATIO * minDim) {
+                return;
+            }
+            this.markBakedShadow(mesh);
+        });
+    }
+    checkBakedShadows() {
+        const { min, max } = this.boundingBox;
+        const shadowBox = new Box3();
+        this.boundingBox.getSize(this.size);
+        for (const mesh of this.bakedShadows) {
+            shadowBox.setFromObject(mesh);
+            if (shadowBox.min.y < min.y + this.size.y / MIN_SHADOW_RATIO &&
+                shadowBox.min.x <= min.x && shadowBox.max.x >= max.x &&
+                shadowBox.min.z <= min.z && shadowBox.max.z >= max.z) {
+                // floor shadow
+                continue;
+            }
+            if (shadowBox.min.z < min.z + this.size.z / MIN_SHADOW_RATIO &&
+                shadowBox.min.x <= min.x && shadowBox.max.x >= max.x &&
+                shadowBox.min.y <= min.y && shadowBox.max.y >= max.y) {
+                // wall shadow
+                continue;
+            }
+            this.unmarkBakedShadow(mesh);
+        }
+    }
+    applyTransform() {
+        const { model } = this;
+        if (model == null) {
+            return;
+        }
+        const orientation = parseExpressions(this.element.orientation)[0]
+            .terms;
+        const roll = normalizeUnit(orientation[0]).number;
+        const pitch = normalizeUnit(orientation[1]).number;
+        const yaw = normalizeUnit(orientation[2]).number;
+        model.quaternion.setFromEuler(new Euler(pitch, yaw, roll, 'YXZ'));
+        const scale = parseExpressions(this.element.scale)[0]
+            .terms;
+        model.scale.set(scale[0].number, scale[1].number, scale[2].number);
+    }
+    updateBoundingBox() {
+        const { model } = this;
+        if (model == null) {
+            return;
+        }
+        this.target.remove(model);
+        this.findBakedShadows(model);
+        const bound = (box, vertex) => {
+            return box.expandByPoint(vertex);
+        };
+        this.setBakedShadowVisibility(false);
+        this.boundingBox = reduceVertices(model, bound, new Box3());
+        // If there's nothing but the baked shadow, then it's not a baked shadow.
+        if (this.boundingBox.isEmpty()) {
+            this.setBakedShadowVisibility(true);
+            this.bakedShadows.forEach((mesh) => this.unmarkBakedShadow(mesh));
+            this.boundingBox = reduceVertices(model, bound, new Box3());
+        }
+        this.checkBakedShadows();
+        this.setBakedShadowVisibility();
+        this.boundingBox.getSize(this.size);
+        this.target.add(model);
+    }
+    /**
+     * Calculates the boundingSphere and idealAspect that allows the 3D
+     * object to be framed tightly in a 2D window of any aspect ratio without
+     * clipping at any camera orbit. The camera's center target point can be
+     * optionally specified. If no center is specified, it defaults to the center
+     * of the bounding box, which means asymmetric models will tend to be tight on
+     * one side instead of both. Proper choice of center can correct this.
+     */
+    async updateFraming() {
+        const { model } = this;
+        if (model == null) {
+            return;
+        }
+        this.target.remove(model);
+        this.setBakedShadowVisibility(false);
+        const { center } = this.boundingSphere;
+        this.element.requestUpdate('cameraTarget');
+        await this.element.updateComplete;
+        center.copy(this.getTarget());
+        const radiusSquared = (value, vertex) => {
+            return Math.max(value, center.distanceToSquared(vertex));
+        };
+        this.boundingSphere.radius =
+            Math.sqrt(reduceVertices(model, radiusSquared, 0));
+        const horizontalTanFov = (value, vertex) => {
+            vertex.sub(center);
+            const radiusXZ = Math.sqrt(vertex.x * vertex.x + vertex.z * vertex.z);
+            return Math.max(value, radiusXZ / (this.idealCameraDistance() - Math.abs(vertex.y)));
+        };
+        this.idealAspect = reduceVertices(model, horizontalTanFov, 0) /
+            Math.tan((this.framedFoVDeg / 2) * Math.PI / 180);
+        this.setBakedShadowVisibility();
+        this.target.add(model);
+    }
+    setBakedShadowVisibility(visible = this.shadowIntensity <= 0) {
+        for (const shadow of this.bakedShadows) {
+            shadow.visible = visible;
+        }
+    }
+    idealCameraDistance() {
+        const halfFovRad = (this.framedFoVDeg / 2) * Math.PI / 180;
+        return this.boundingSphere.radius / Math.sin(halfFovRad);
+    }
+    /**
+     * Set's the framedFieldOfView based on the aspect ratio of the window in
+     * order to keep the model fully visible at any camera orientation.
+     */
+    adjustedFoV(fovDeg) {
+        const vertical = Math.tan((fovDeg / 2) * Math.PI / 180) *
+            Math.max(1, this.idealAspect / this.aspect);
+        return 2 * Math.atan(vertical) * 180 / Math.PI;
+    }
+    getNDC(clientX, clientY) {
+        if (this.xrCamera != null) {
+            ndc.set(clientX / window.screen.width, clientY / window.screen.height);
+        }
+        else {
+            const rect = this.element.getBoundingClientRect();
+            ndc.set((clientX - rect.x) / this.width, (clientY - rect.y) / this.height);
+        }
+        ndc.multiplyScalar(2).subScalar(1);
+        ndc.y *= -1;
+        return ndc;
+    }
+    /**
+     * Returns the size of the corresponding canvas element.
+     */
+    getSize() {
+        return { width: this.width, height: this.height };
+    }
+    setEnvironmentAndSkybox(environment, skybox) {
+        if (this.element[$renderer].arRenderer.presentedScene === this) {
+            return;
+        }
+        this.environment = environment;
+        this.background = skybox;
+        this.queueRender();
+    }
+    /**
+     * Sets the point in model coordinates the model should orbit/pivot around.
+     */
+    setTarget(modelX, modelY, modelZ) {
+        this.goalTarget.set(-modelX, -modelY, -modelZ);
+    }
+    /**
+     * Set the decay time of, affects the speed of target transitions.
+     */
+    setTargetDamperDecayTime(decayMilliseconds) {
+        this.targetDamperX.setDecayTime(decayMilliseconds);
+        this.targetDamperY.setDecayTime(decayMilliseconds);
+        this.targetDamperZ.setDecayTime(decayMilliseconds);
+    }
+    /**
+     * Gets the point in model coordinates the model should orbit/pivot around.
+     */
+    getTarget() {
+        return this.goalTarget.clone().multiplyScalar(-1);
+    }
+    /**
+     * Shifts the model to the target point immediately instead of easing in.
+     */
+    jumpToGoal() {
+        this.updateTarget(SETTLING_TIME);
+    }
+    /**
+     * This should be called every frame with the frame delta to cause the target
+     * to transition to its set point.
+     */
+    updateTarget(delta) {
+        const goal = this.goalTarget;
+        const target = this.target.position;
+        if (!goal.equals(target)) {
+            const normalization = this.boundingSphere.radius / 10;
+            let { x, y, z } = target;
+            x = this.targetDamperX.update(x, goal.x, delta, normalization);
+            y = this.targetDamperY.update(y, goal.y, delta, normalization);
+            z = this.targetDamperZ.update(z, goal.z, delta, normalization);
+            this.target.position.set(x, y, z);
+            this.target.updateMatrixWorld();
+            this.queueRender();
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    /**
+     * Yaw the +z (front) of the model toward the indicated world coordinates.
+     */
+    pointTowards(worldX, worldZ) {
+        const { x, z } = this.position;
+        this.yaw = Math.atan2(worldX - x, worldZ - z);
+    }
+    get model() {
+        return this._model;
+    }
+    /**
+     * Yaw is the scene's orientation about the y-axis, around the rotation
+     * center.
+     */
+    set yaw(radiansY) {
+        this.rotation.y = radiansY;
+        this.queueRender();
+    }
+    get yaw() {
+        return this.rotation.y;
+    }
+    set animationTime(value) {
+        this.mixer.setTime(value);
+        this.queueShadowRender();
+    }
+    get animationTime() {
+        if (this.currentAnimationAction != null) {
+            const loopCount = Math.max(this.currentAnimationAction._loopCount, 0);
+            if (this.currentAnimationAction.loop === LoopPingPong &&
+                (loopCount & 1) === 1) {
+                return this.duration - this.currentAnimationAction.time;
+            }
+            else {
+                return this.currentAnimationAction.time;
+            }
+        }
+        return 0;
+    }
+    set animationTimeScale(value) {
+        this.mixer.timeScale = value;
+    }
+    get animationTimeScale() {
+        return this.mixer.timeScale;
+    }
+    get duration() {
+        if (this.currentAnimationAction != null &&
+            this.currentAnimationAction.getClip()) {
+            return this.currentAnimationAction.getClip().duration;
+        }
+        return 0;
+    }
+    get hasActiveAnimation() {
+        return this.currentAnimationAction != null;
+    }
+    /**
+     * Plays an animation if there are any associated with the current model.
+     * Accepts an optional string name of an animation to play. If no name is
+     * provided, or if no animation is found by the given name, always falls back
+     * to playing the first animation.
+     */
+    playAnimation(name = null, crossfadeTime = 0, loopMode = LoopRepeat, repetitionCount = Infinity) {
+        if (this._currentGLTF == null) {
+            return;
+        }
+        const { animations } = this;
+        if (animations == null || animations.length === 0) {
+            console.warn(`Cannot play animation (model does not have any animations)`);
+            return;
+        }
+        let animationClip = null;
+        if (name != null) {
+            animationClip = this.animationsByName.get(name);
+            if (animationClip == null) {
+                const parsedAnimationIndex = parseInt(name);
+                if (!isNaN(parsedAnimationIndex) && parsedAnimationIndex >= 0 &&
+                    parsedAnimationIndex < animations.length) {
+                    animationClip = animations[parsedAnimationIndex];
+                }
+            }
+        }
+        if (animationClip == null) {
+            animationClip = animations[0];
+        }
+        try {
+            const { currentAnimationAction: lastAnimationAction } = this;
+            const action = this.mixer.clipAction(animationClip, this);
+            this.currentAnimationAction = action;
+            if (this.element.paused) {
+                this.mixer.stopAllAction();
+            }
+            else {
+                action.paused = false;
+                if (lastAnimationAction != null && action !== lastAnimationAction) {
+                    action.crossFadeFrom(lastAnimationAction, crossfadeTime, false);
+                }
+                else if (this.animationTimeScale > 0 &&
+                    this.animationTime == this.duration) {
+                    // This is a workaround for what I believe is a three.js bug.
+                    this.animationTime = 0;
+                }
+            }
+            action.setLoop(loopMode, repetitionCount);
+            action.enabled = true;
+            action.clampWhenFinished = true;
+            action.play();
+        }
+        catch (error) {
+            console.error(error);
+        }
+    }
+    stopAnimation() {
+        this.currentAnimationAction = null;
+        this.mixer.stopAllAction();
+    }
+    updateAnimation(step) {
+        this.mixer.update(step);
+        this.queueShadowRender();
+    }
+    subscribeMixerEvent(event, callback) {
+        this.mixer.addEventListener(event, callback);
+    }
+    /**
+     * Call if the object has been changed in such a way that the shadow's shape
+     * has changed (not a rotation about the Y axis).
+     */
+    updateShadow() {
+        const shadow = this.shadow;
+        if (shadow != null) {
+            const side = this.element.arPlacement === 'wall' ? 'back' : 'bottom';
+            shadow.setScene(this, this.shadowSoftness, side);
+            shadow.needsUpdate = true;
+        }
+    }
+    renderShadow(renderer) {
+        const shadow = this.shadow;
+        if (shadow != null && shadow.needsUpdate == true) {
+            shadow.render(renderer, this);
+            shadow.needsUpdate = false;
+        }
+    }
+    queueShadowRender() {
+        if (this.shadow != null) {
+            this.shadow.needsUpdate = true;
+        }
+    }
+    /**
+     * Sets the shadow's intensity, lazily creating the shadow as necessary.
+     */
+    setShadowIntensity(shadowIntensity) {
+        this.shadowIntensity = shadowIntensity;
+        if (this._currentGLTF == null) {
+            return;
+        }
+        this.setBakedShadowVisibility();
+        if (shadowIntensity <= 0 && this.shadow == null) {
+            return;
+        }
+        if (this.shadow == null) {
+            const side = this.element.arPlacement === 'wall' ? 'back' : 'bottom';
+            this.shadow = new Shadow(this, this.shadowSoftness, side);
+        }
+        this.shadow.setIntensity(shadowIntensity);
+    }
+    /**
+     * Sets the shadow's softness by mapping a [0, 1] softness parameter to the
+     * shadow's resolution. This involves reallocation, so it should not be
+     * changed frequently. Softer shadows are cheaper to render.
+     */
+    setShadowSoftness(softness) {
+        this.shadowSoftness = softness;
+        const shadow = this.shadow;
+        if (shadow != null) {
+            shadow.setSoftness(softness);
+        }
+    }
+    /**
+     * Shift the floor vertically from the bottom of the model's bounding box by
+     * offset (should generally be negative).
+     */
+    setShadowOffset(offset) {
+        const shadow = this.shadow;
+        if (shadow != null) {
+            shadow.setOffset(offset);
+        }
+    }
+    get raycaster() {
+        return raycaster;
+    }
+    /**
+     * This method returns the world position, model-space normal and texture
+     * coordinate of the point on the mesh corresponding to the input pixel
+     * coordinates given relative to the model-viewer element. If the mesh
+     * is not hit, the result is null.
+     */
+    positionAndNormalFromPoint(ndcPosition, object = this) {
+        this.raycaster.setFromCamera(ndcPosition, this.getCamera());
+        const hits = this.raycaster.intersectObject(object, true);
+        const hit = hits.find((hit) => hit.object.visible && !hit.object.userData.shadow);
+        if (hit == null || hit.face == null) {
+            return null;
+        }
+        if (hit.uv == null) {
+            return { position: hit.point, normal: hit.face.normal, uv: null };
+        }
+        hit.face.normal.applyNormalMatrix(new Matrix3().getNormalMatrix(hit.object.matrixWorld));
+        return { position: hit.point, normal: hit.face.normal, uv: hit.uv };
+    }
+    /**
+     * The following methods are for operating on the set of Hotspot objects
+     * attached to the scene. These come from DOM elements, provided to slots by
+     * the Annotation Mixin.
+     */
+    addHotspot(hotspot) {
+        this.target.add(hotspot);
+        // This happens automatically in render(), but we do it early so that
+        // the slots appear in the shadow DOM and the elements get attached,
+        // allowing us to dispatch events on them.
+        this.annotationRenderer.domElement.appendChild(hotspot.element);
+    }
+    removeHotspot(hotspot) {
+        this.target.remove(hotspot);
+    }
+    /**
+     * Helper method to apply a function to all hotspots.
+     */
+    forHotspots(func) {
+        const { children } = this.target;
+        for (let i = 0, l = children.length; i < l; i++) {
+            const hotspot = children[i];
+            if (hotspot instanceof Hotspot) {
+                func(hotspot);
+            }
+        }
+    }
+    /**
+     * Update the CSS visibility of the hotspots based on whether their normals
+     * point toward the camera.
+     */
+    updateHotspots(viewerPosition) {
+        this.forHotspots((hotspot) => {
+            view.copy(viewerPosition);
+            target.setFromMatrixPosition(hotspot.matrixWorld);
+            view.sub(target);
+            normalWorld.copy(hotspot.normal)
+                .transformDirection(this.target.matrixWorld);
+            if (view.dot(normalWorld) < 0) {
+                hotspot.hide();
+            }
+            else {
+                hotspot.show();
+            }
+        });
+    }
+    /**
+     * Rotate all hotspots to an absolute orientation given by the input number of
+     * radians. Zero returns them to upright.
+     */
+    orientHotspots(radians) {
+        this.forHotspots((hotspot) => {
+            hotspot.orient(radians);
+        });
+    }
+    /**
+     * Set the rendering visibility of all hotspots. This is used to hide them
+     * during transitions and such.
+     */
+    setHotspotsVisibility(visible) {
+        this.forHotspots((hotspot) => {
+            hotspot.visible = visible;
+        });
+    }
+    updateSchema(src) {
+        var _a;
+        const { schemaElement, element } = this;
+        const { alt, poster, iosSrc } = element;
+        if (src != null) {
+            const encoding = [{
+                    '@type': 'MediaObject',
+                    contentUrl: src,
+                    encodingFormat: ((_a = src.split('.').pop()) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === 'gltf' ?
+                        'model/gltf+json' :
+                        'model/gltf-binary'
+                }];
+            if (iosSrc) {
+                encoding.push({
+                    '@type': 'MediaObject',
+                    contentUrl: iosSrc,
+                    encodingFormat: 'model/vnd.usdz+zip'
+                });
+            }
+            const structuredData = {
+                '@context': 'http://schema.org/',
+                '@type': '3DModel',
+                image: poster !== null && poster !== void 0 ? poster : undefined,
+                name: alt !== null && alt !== void 0 ? alt : undefined,
+                encoding
+            };
+            schemaElement.textContent = JSON.stringify(structuredData);
+            document.head.appendChild(schemaElement);
+        }
+        else if (schemaElement.parentElement != null) {
+            schemaElement.parentElement.removeChild(schemaElement);
+        }
+    }
+}
 
 /* @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -48699,14 +53658,14 @@ class ProgressTracker extends EventTarget {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var __decorate$6 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+var __decorate$5 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof undefined === "function") r = undefined(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var _a$7, _b$6, _c$4, _d$2, _e$1, _f$1, _g, _h, _j, _k, _l, _m, _o;
-const CLEAR_MODEL_TIMEOUT_MS = 1000;
+var _a$3, _b$3, _c$2, _d$1, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+const CLEAR_MODEL_TIMEOUT_MS = 10;
 const FALLBACK_SIZE_UPDATE_THRESHOLD_MS = 50;
 const ANNOUNCE_MODEL_VISIBILITY_DEBOUNCE_THRESHOLD = 0;
 const UNSIZED_MEDIA_WIDTH = 300;
@@ -48782,12 +53741,12 @@ class ModelViewerElementBase extends d$1 {
          * engines to crawl.
          */
         this.generateSchema = false;
-        this[_a$7] = false;
-        this[_b$6] = false;
-        this[_c$4] = 0;
-        this[_d$2] = '';
-        this[_e$1] = null;
-        this[_f$1] = debounce(() => {
+        this[_a$3] = false;
+        this[_b$3] = false;
+        this[_c$2] = 0;
+        this[_d$1] = '';
+        this[_e] = null;
+        this[_f] = debounce(() => {
             const boundingRect = this.getBoundingClientRect();
             this[$updateSize](boundingRect);
         }, FALLBACK_SIZE_UPDATE_THRESHOLD_MS);
@@ -48879,7 +53838,10 @@ class ModelViewerElementBase extends d$1 {
                 // model above the fold, but only when the animated model was completely
                 // below. Setting this margin to zero fixed it.
                 rootMargin: '0px',
-                threshold: 0,
+                // With zero threshold, an element adjacent to but not intersecting the
+                // viewport will be reported as intersecting, which will cause
+                // unnecessary rendering. Any slight positive threshold alleviates this.
+                threshold: 0.00001,
             });
         }
         else {
@@ -48917,7 +53879,7 @@ class ModelViewerElementBase extends d$1 {
     get loaded() {
         return this[$getLoaded]();
     }
-    get [(_a$7 = $isElementInViewport, _b$6 = $loaded, _c$4 = $loadedTime, _d$2 = $status, _e$1 = $clearModelTimeout, _f$1 = $fallbackResizeHandler, _g = $announceModelVisibility, _h = $resizeObserver, _j = $intersectionObserver, _k = $progressTracker, $renderer)]() {
+    get [(_a$3 = $isElementInViewport, _b$3 = $loaded, _c$2 = $loadedTime, _d$1 = $status, _e = $clearModelTimeout, _f = $fallbackResizeHandler, _g = $announceModelVisibility, _h = $resizeObserver, _j = $intersectionObserver, _k = $progressTracker, $renderer)]() {
         return Renderer.singleton;
     }
     /** @export */
@@ -48965,7 +53927,8 @@ class ModelViewerElementBase extends d$1 {
         renderer.removeEventListener('contextlost', this[$onContextLost]);
         renderer.unregisterScene(this[$scene]);
         this[$clearModelTimeout] = self.setTimeout(() => {
-            this[$scene].reset();
+            this[$scene].dispose();
+            this[$clearModelTimeout] = null;
         }, CLEAR_MODEL_TIMEOUT_MS);
     }
     updated(changedProperties) {
@@ -49089,9 +54052,12 @@ class ModelViewerElementBase extends d$1 {
      * Called on initialization and when the resize observer fires.
      */
     [$updateSize]({ width, height }) {
+        if (width === 0 || height === 0) {
+            return;
+        }
         this[$container].style.width = `${width}px`;
         this[$container].style.height = `${height}px`;
-        this[$onResize]({ width: parseFloat(width), height: parseFloat(height) });
+        this[$onResize]({ width, height });
     }
     [$tick](_time, _delta) {
     }
@@ -49164,16 +54130,16 @@ class ModelViewerElementBase extends d$1 {
         }
     }
 }
-__decorate$6([
+__decorate$5([
     e$3({ type: String })
 ], ModelViewerElementBase.prototype, "alt", void 0);
-__decorate$6([
+__decorate$5([
     e$3({ type: String })
 ], ModelViewerElementBase.prototype, "src", void 0);
-__decorate$6([
+__decorate$5([
     e$3({ type: Boolean, attribute: 'with-credentials' })
 ], ModelViewerElementBase.prototype, "withCredentials", void 0);
-__decorate$6([
+__decorate$5([
     e$3({ type: Boolean, attribute: 'generate-schema' })
 ], ModelViewerElementBase.prototype, "generateSchema", void 0);
 
@@ -49191,7 +54157,7 @@ __decorate$6([
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var __decorate$5 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+var __decorate$4 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof undefined === "function") r = undefined(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
@@ -49304,13 +54270,13 @@ const AnimationMixin = (ModelViewerElement) => {
             }
         }
     }
-    __decorate$5([
+    __decorate$4([
         e$3({ type: Boolean })
     ], AnimationModelViewerElement.prototype, "autoplay", void 0);
-    __decorate$5([
+    __decorate$4([
         e$3({ type: String, attribute: 'animation-name' })
     ], AnimationModelViewerElement.prototype, "animationName", void 0);
-    __decorate$5([
+    __decorate$4([
         e$3({ type: Number, attribute: 'animation-crossfade-duration' })
     ], AnimationModelViewerElement.prototype, "animationCrossfadeDuration", void 0);
     return AnimationModelViewerElement;
@@ -49419,6 +54385,34 @@ const AnnotationMixin = (ModelViewerElement) => {
             this[$needsRender]();
         }
         /**
+         * This method returns in-scene data about a requested hotspot including
+         * its position in screen (canvas) space and its current visibility.
+         */
+        queryHotspot(name) {
+            const hotspot = this[$hotspotMap].get(name);
+            if (hotspot == null) {
+                return null;
+            }
+            const position = toVector3D(hotspot.position);
+            const normal = toVector3D(hotspot.normal);
+            const facingCamera = hotspot.facingCamera;
+            const scene = this[$scene];
+            const camera = scene.getCamera();
+            const vector = new Vector3();
+            vector.setFromMatrixPosition(hotspot.matrixWorld);
+            vector.project(camera);
+            const widthHalf = scene.width / 2;
+            const heightHalf = scene.height / 2;
+            vector.x = (vector.x * widthHalf) + widthHalf;
+            vector.y = -(vector.y * heightHalf) + heightHalf;
+            const canvasPosition = toVector3D(new Vector3(vector.x, vector.y, vector.z));
+            if (!Number.isFinite(canvasPosition.x) ||
+                !Number.isFinite(canvasPosition.y)) {
+                return null;
+            }
+            return { position, normal, canvasPosition, facingCamera };
+        }
+        /**
          * This method returns the model position, normal and texture coordinate
          * of the point on the mesh corresponding to the input pixel coordinates
          * given relative to the model-viewer element. The position and normal
@@ -49520,10 +54514,10 @@ var freb = function (eb, start) {
     }
     return [b, r];
 };
-var _a$6 = freb(fleb, 2), fl = _a$6[0], revfl = _a$6[1];
+var _a$2 = freb(fleb, 2), fl = _a$2[0], revfl = _a$2[1];
 // we can ignore the fact that the other numbers are wrong; they never happen anyway
 fl[28] = 258, revfl[258] = 28;
-var _b$5 = freb(fdeb, 0), revfd = _b$5[1];
+var _b$2 = freb(fdeb, 0), revfd = _b$2[1];
 // map of value to reverse (assuming 16 bits)
 var rev = new u16(32768);
 for (var i = 0; i < 32768; ++i) {
@@ -50190,7 +55184,14 @@ function zipSync(data, opts) {
 
 class USDZExporter {
 
-	async parse( scene ) {
+	async parse( scene, options = {} ) {
+
+		options = Object.assign( {
+			ar: {
+				anchoring: { type: 'plane' },
+				planeAnchoring: { alignment: 'horizontal' }
+			}
+		}, options );
 
 		const files = {};
 		const modelFileName = 'model.usda';
@@ -50199,6 +55200,8 @@ class USDZExporter {
 		files[ modelFileName ] = null;
 
 		let output = buildHeader();
+
+		output += buildSceneStart( options );
 
 		const materials = {};
 		const textures = {};
@@ -50235,9 +55238,16 @@ class USDZExporter {
 
 				}
 
+			} else if ( object.isCamera ) {
+
+				output += buildCamera( object );
+
 			}
 
 		} );
+
+
+		output += buildSceneEnd();
 
 		output += buildMaterials( materials, textures );
 
@@ -50331,6 +55341,10 @@ function imageToCanvas( image, color ) {
 
 		return canvas;
 
+	} else {
+
+		throw new Error( 'THREE.USDZExporter: No valid image data found. Unable to process texture.' );
+
 	}
 
 }
@@ -50349,6 +55363,40 @@ function buildHeader() {
     metersPerUnit = 1
     upAxis = "Y"
 )
+
+`;
+
+}
+
+function buildSceneStart( options ) {
+
+	return `def Xform "Root"
+{
+    def Scope "Scenes" (
+        kind = "sceneLibrary"
+    )
+    {
+        def Xform "Scene" (
+            customData = {
+                bool preliminary_collidesWithEnvironment = 0
+                string sceneName = "Scene"
+            }
+            sceneName = "Scene"
+        )
+        {
+        token preliminary:anchoring:type = "${options.ar.anchoring.type}"
+        token preliminary:planeAnchoring:alignment = "${options.ar.planeAnchoring.alignment}"
+
+`;
+
+}
+
+function buildSceneEnd() {
+
+	return `
+        }
+    }
+}
 
 `;
 
@@ -50739,6 +55787,55 @@ function buildVector2( vector ) {
 
 }
 
+
+function buildCamera( camera ) {
+
+	const name = camera.name ? camera.name : 'Camera_' + camera.id;
+
+	const transform = buildMatrix( camera.matrixWorld );
+
+	if ( camera.matrixWorld.determinant() < 0 ) {
+
+		console.warn( 'THREE.USDZExporter: USDZ does not support negative scales', camera );
+
+	}
+
+	if ( camera.isOrthographicCamera ) {
+
+		return `def Camera "${name}"
+		{
+			matrix4d xformOp:transform = ${ transform }
+			uniform token[] xformOpOrder = ["xformOp:transform"]
+	
+			float2 clippingRange = (${ camera.near.toPrecision( PRECISION ) }, ${ camera.far.toPrecision( PRECISION ) })
+			float horizontalAperture = ${ ( ( Math.abs( camera.left ) + Math.abs( camera.right ) ) * 10 ).toPrecision( PRECISION ) }
+			float verticalAperture = ${ ( ( Math.abs( camera.top ) + Math.abs( camera.bottom ) ) * 10 ).toPrecision( PRECISION ) }
+			token projection = "orthographic"
+		}
+	
+	`;
+
+	} else {
+
+		return `def Camera "${name}"
+		{
+			matrix4d xformOp:transform = ${ transform }
+			uniform token[] xformOpOrder = ["xformOp:transform"]
+	
+			float2 clippingRange = (${ camera.near.toPrecision( PRECISION ) }, ${ camera.far.toPrecision( PRECISION ) })
+			float focalLength = ${ camera.getFocalLength().toPrecision( PRECISION ) }
+			float focusDistance = ${ camera.focus.toPrecision( PRECISION ) }
+			float horizontalAperture = ${ camera.getFilmWidth().toPrecision( PRECISION ) }
+			token projection = "perspective"
+			float verticalAperture = ${ camera.getFilmHeight().toPrecision( PRECISION ) }
+		}
+	
+	`;
+
+	}
+
+}
+
 /* @license
  * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the 'License');
@@ -50807,7 +55904,7 @@ const enumerationDeserializer = (allowedNames) => (valueString) => {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var __decorate$4 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+var __decorate$3 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof undefined === "function") r = undefined(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
@@ -51024,6 +56121,8 @@ configuration or device capabilities');
             const location = self.location.toString();
             const locationUrl = new URL(location);
             const modelUrl = new URL(this.src, location);
+            if (modelUrl.hash)
+                modelUrl.hash = '';
             const params = new URLSearchParams(modelUrl.search);
             locationUrl.hash = noArViewerSigil;
             // modelUrl can contain title/link/sound etc.
@@ -51100,6 +56199,10 @@ configuration or device capabilities');
             if (generateUsdz) {
                 anchor.setAttribute('download', 'model.usdz');
             }
+            // attach anchor to shadow DOM to ensure iOS16 ARQL banner click message event propagation 
+            anchor.style.display = 'none';
+            if (!anchor.isConnected)
+                this.shadowRoot.appendChild(anchor);
             console.log('Attempting to present in AR with Quick Look...');
             anchor.click();
             anchor.removeChild(img);
@@ -51135,22 +56238,22 @@ configuration or device capabilities');
             return url;
         }
     }
-    __decorate$4([
+    __decorate$3([
         e$3({ type: Boolean, attribute: 'ar' })
     ], ARModelViewerElement.prototype, "ar", void 0);
-    __decorate$4([
+    __decorate$3([
         e$3({ type: String, attribute: 'ar-scale' })
     ], ARModelViewerElement.prototype, "arScale", void 0);
-    __decorate$4([
+    __decorate$3([
         e$3({ type: String, attribute: 'ar-placement' })
     ], ARModelViewerElement.prototype, "arPlacement", void 0);
-    __decorate$4([
+    __decorate$3([
         e$3({ type: String, attribute: 'ar-modes' })
     ], ARModelViewerElement.prototype, "arModes", void 0);
-    __decorate$4([
+    __decorate$3([
         e$3({ type: String, attribute: 'ios-src' })
     ], ARModelViewerElement.prototype, "iosSrc", void 0);
-    __decorate$4([
+    __decorate$3([
         e$3({ type: Boolean, attribute: 'xr-environment' })
     ], ARModelViewerElement.prototype, "xrEnvironment", void 0);
     return ARModelViewerElement;
@@ -51170,7 +56273,7 @@ configuration or device capabilities');
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var _a$5, _b$4, _c$3;
+var _a$1, _b$1, _c$1;
 const $evaluate = Symbol('evaluate');
 const $lastValue = Symbol('lastValue');
 /**
@@ -51185,7 +56288,7 @@ const $lastValue = Symbol('lastValue');
  */
 class Evaluator {
     constructor() {
-        this[_a$5] = null;
+        this[_a$1] = null;
     }
     /**
      * An Evaluatable is a NumberNode or an Evaluator that evaluates a NumberNode
@@ -51318,7 +56421,7 @@ class Evaluator {
         return this[$lastValue];
     }
 }
-_a$5 = $lastValue;
+_a$1 = $lastValue;
 const $percentage = Symbol('percentage');
 const $basis = Symbol('basis');
 /**
@@ -51360,7 +56463,7 @@ const $identNode = Symbol('identNode');
 class EnvEvaluator extends Evaluator {
     constructor(envFunction) {
         super();
-        this[_b$4] = null;
+        this[_b$1] = null;
         const identNode = envFunction.arguments.length ? envFunction.arguments[0].terms[0] : null;
         if (identNode != null && identNode.type === 'ident') {
             this[$identNode] = identNode;
@@ -51370,7 +56473,7 @@ class EnvEvaluator extends Evaluator {
         return false;
     }
     ;
-    [(_b$4 = $identNode, $evaluate)]() {
+    [(_b$1 = $identNode, $evaluate)]() {
         if (this[$identNode] != null) {
             switch (this[$identNode].value) {
                 case 'window-scroll-y':
@@ -51402,7 +56505,7 @@ const $evaluator = Symbol('evaluator');
 class CalcEvaluator extends Evaluator {
     constructor(calcFunction, basis = ZERO) {
         super();
-        this[_c$3] = null;
+        this[_c$1] = null;
         if (calcFunction.arguments.length !== 1) {
             return;
         }
@@ -51441,7 +56544,7 @@ class CalcEvaluator extends Evaluator {
     get isConstant() {
         return this[$evaluator] == null || Evaluator.isConstant(this[$evaluator]);
     }
-    [(_c$3 = $evaluator, $evaluate)]() {
+    [(_c$1 = $evaluator, $evaluate)]() {
         return this[$evaluator] != null ? Evaluator.evaluate(this[$evaluator]) :
             ZERO;
     }
@@ -51565,7 +56668,7 @@ class StyleEvaluator extends Evaluator {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var _a$4, _b$3, _c$2, _d$1;
+var _a, _b, _c, _d;
 const $instances = Symbol('instances');
 const $activateListener = Symbol('activateListener');
 const $deactivateListener = Symbol('deactivateListener');
@@ -51589,7 +56692,7 @@ class ScrollObserver {
             instance[$notify]();
         }
     }
-    static [(_a$4 = $instances, $activateListener)]() {
+    static [(_a = $instances, $activateListener)]() {
         window.addEventListener('scroll', this[$notifyInstances], { passive: true });
     }
     static [$deactivateListener]() {
@@ -51619,7 +56722,7 @@ class ScrollObserver {
     }
     ;
 }
-ScrollObserver[_a$4] = new Set();
+ScrollObserver[_a] = new Set();
 const $computeStyleCallback = Symbol('computeStyleCallback');
 const $astWalker = Symbol('astWalker');
 const $dependencies = Symbol('dependencies');
@@ -51645,9 +56748,9 @@ const $onScroll = Symbol('onScroll');
  */
 class StyleEffector {
     constructor(callback) {
-        this[_b$3] = {};
-        this[_c$2] = new ASTWalker(['function']);
-        this[_d$1] = () => {
+        this[_b] = {};
+        this[_c] = new ASTWalker(['function']);
+        this[_d] = () => {
             this[$computeStyleCallback]({ relatedState: 'window-scroll' });
         };
         this[$computeStyleCallback] = callback;
@@ -51697,7 +56800,7 @@ class StyleEffector {
         }
     }
 }
-_b$3 = $dependencies, _c$2 = $astWalker, _d$1 = $onScroll;
+_b = $dependencies, _c = $astWalker, _d = $onScroll;
 
 /* @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -51987,6 +57090,9 @@ class SmoothControls extends EventDispatcher {
                 this.changeSource = ChangeSource.USER_INTERACTION;
                 this.onMouseDown(event);
             }
+            if (this.changeSource === ChangeSource.USER_INTERACTION) {
+                this.dispatchEvent({ type: 'user-interaction' });
+            }
         };
         this.onPointerMove = (event) => {
             const pointer = this.pointers.find((pointer) => pointer.id === event.pointerId);
@@ -52054,6 +57160,7 @@ class SmoothControls extends EventDispatcher {
                 (event.deltaMode == 1 ? 18 : 1) * ZOOM_SENSITIVITY / 30;
             this.userAdjustOrbit(0, 0, deltaZoom);
             event.preventDefault();
+            this.dispatchEvent({ type: 'user-interaction' });
         };
         this.onKeyDown = (event) => {
             // We track if the key is actually one we respond to, so as not to
@@ -52066,6 +57173,7 @@ class SmoothControls extends EventDispatcher {
                 this.orbitZoomKeyCodeHandler(event);
             if (relevantKey) {
                 event.preventDefault();
+                this.dispatchEvent({ type: 'user-interaction' });
             }
             else {
                 this.changeSource = changeSource;
@@ -52163,8 +57271,8 @@ class SmoothControls extends EventDispatcher {
      * Sets the near and far planes of the camera.
      */
     updateNearFar(nearPlane, farPlane) {
-        this.camera.near = Math.max(nearPlane, farPlane / 1000);
-        this.camera.far = farPlane;
+        this.camera.far = farPlane === 0 ? 2 : farPlane;
+        this.camera.near = Math.max(nearPlane, this.camera.far / 1000);
         this.camera.updateProjectionMatrix();
     }
     /**
@@ -52194,6 +57302,9 @@ class SmoothControls extends EventDispatcher {
         const nextPhi = clamp(goalPhi, minimumPolarAngle, maximumPolarAngle);
         const nextRadius = clamp(goalRadius, minimumRadius, maximumRadius);
         if (nextTheta === theta && nextPhi === phi && nextRadius === radius) {
+            return false;
+        }
+        if (!isFinite(nextTheta) || !isFinite(nextPhi) || !isFinite(nextRadius)) {
             return false;
         }
         this.goalSpherical.theta = nextTheta;
@@ -52265,13 +57376,13 @@ class SmoothControls extends EventDispatcher {
     /**
      * Update controls. In most cases, this will result in the camera
      * interpolating its position and rotation until it lines up with the
-     * designated goal orbital position.
+     * designated goal orbital position. Returns false if the camera did not move.
      *
      * Time and delta are measured in milliseconds.
      */
     update(_time, delta) {
         if (this.isStationary()) {
-            return;
+            return false;
         }
         const { maximumPolarAngle, maximumRadius } = this._options;
         const dTheta = this.spherical.theta - this.goalSpherical.theta;
@@ -52285,6 +57396,7 @@ class SmoothControls extends EventDispatcher {
         this.spherical.radius = this.radiusDamper.update(this.spherical.radius, this.goalSpherical.radius, delta, maximumRadius);
         this.logFov = this.fovDamper.update(this.logFov, this.goalLogFov, delta, 1);
         this.moveCamera();
+        return true;
     }
     updateTouchActionStyle() {
         const { style } = this.element;
@@ -52307,9 +57419,6 @@ class SmoothControls extends EventDispatcher {
             this.goalSpherical.radius === this.spherical.radius &&
             this.goalLogFov === this.logFov;
     }
-    dispatchChange() {
-        this.dispatchEvent({ type: 'change', source: this.changeSource });
-    }
     moveCamera() {
         // Derive the new camera position from the updated spherical:
         this.spherical.makeSafe();
@@ -52319,15 +57428,9 @@ class SmoothControls extends EventDispatcher {
             this.camera.fov = Math.exp(this.logFov);
             this.camera.updateProjectionMatrix();
         }
-        this.dispatchChange();
     }
     userAdjustOrbit(deltaTheta, deltaPhi, deltaZoom) {
         this.adjustOrbit(deltaTheta * this.orbitSensitivity * this.inputSensitivity, deltaPhi * this.orbitSensitivity * this.inputSensitivity, deltaZoom * this.inputSensitivity);
-        // Always make sure that an initial event is triggered in case there is
-        // contention between user interaction and imperative changes. This initial
-        // event will give external observers that chance to observe that
-        // interaction occurred at all:
-        this.dispatchChange();
     }
     // Wraps to between -pi and pi
     wrapAngle(radians) {
@@ -52336,7 +57439,7 @@ class SmoothControls extends EventDispatcher {
         return wrapped * 2 * Math.PI - Math.PI;
     }
     pixelLengthToSphericalAngle(pixelLength) {
-        return 2 * Math.PI * pixelLength / this.element.clientHeight;
+        return 2 * Math.PI * pixelLength / this.scene.height;
     }
     twoTouchDistance(touchOne, touchTwo) {
         const { clientX: xOne, clientY: yOne } = touchOne;
@@ -52369,7 +57472,6 @@ class SmoothControls extends EventDispatcher {
         target.add(dxy.applyMatrix3(this.panProjection));
         scene.boundingSphere.clampPoint(target, target);
         scene.setTarget(target.x, target.y, target.z);
-        this.dispatchChange();
     }
     recenter(pointer) {
         if (performance.now() > this.startTime + TAP_MS ||
@@ -52589,7 +57691,7 @@ const timeline = (path) => {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var __decorate$3 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+var __decorate$2 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof undefined === "function") r = undefined(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
@@ -52635,6 +57737,10 @@ const INTERACTION_PROMPT = '. Use mouse, touch or arrow keys to move.';
 const InteractionPromptStrategy = {
     AUTO: 'auto',
     NONE: 'none'
+};
+const InteractionPromptStyle = {
+    BASIC: 'basic',
+    WIGGLE: 'wiggle'
 };
 const TouchAction = {
     PAN_Y: 'pan-y',
@@ -52713,12 +57819,14 @@ const $fingerAnimatedContainers = Symbol('fingerAnimatedContainers');
 const $deferInteractionPrompt = Symbol('deferInteractionPrompt');
 const $updateAria = Symbol('updateAria');
 const $updateCameraForRadius = Symbol('updateCameraForRadius');
+const $cancelPrompts = Symbol('cancelPrompts');
 const $onChange = Symbol('onChange');
 const $onPointerChange = Symbol('onPointerChange');
 const $waitingToPromptUser = Symbol('waitingToPromptUser');
 const $userHasInteracted = Symbol('userHasInteracted');
 const $promptElementVisibleTime = Symbol('promptElementVisibleTime');
 const $lastPromptOffset = Symbol('lastPromptOffset');
+const $cancellationSource = Symbol('cancellationSource');
 const $lastSpherical = Symbol('lastSpherical');
 const $jumpCamera = Symbol('jumpCamera');
 const $initialized = Symbol('initialized');
@@ -52731,7 +57839,7 @@ const $syncMaxCameraOrbit = Symbol('syncMaxCameraOrbit');
 const $syncMinFieldOfView = Symbol('syncMinFieldOfView');
 const $syncMaxFieldOfView = Symbol('syncMaxFieldOfView');
 const ControlsMixin = (ModelViewerElement) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
     class ControlsModelViewerElement extends ModelViewerElement {
         constructor() {
             super(...arguments);
@@ -52745,6 +57853,7 @@ const ControlsMixin = (ModelViewerElement) => {
             this.maxFieldOfView = 'auto';
             this.interactionPromptThreshold = DEFAULT_INTERACTION_PROMPT_THRESHOLD;
             this.interactionPrompt = InteractionPromptStrategy.AUTO;
+            this.interactionPromptStyle = InteractionPromptStyle.WIGGLE;
             this.orbitSensitivity = 1;
             this.touchAction = TouchAction.NONE;
             this.disableZoom = false;
@@ -52762,21 +57871,27 @@ const ControlsMixin = (ModelViewerElement) => {
             this[_f] = Infinity;
             this[_g] = false;
             this[_h] = false;
-            this[_j] = new SmoothControls(this[$scene].camera, this[$userInputElement], this[$scene]);
-            this[_k] = new Spherical();
-            this[_l] = false;
+            this[_j] = ChangeSource.AUTOMATIC;
+            this[_k] = new SmoothControls(this[$scene].camera, this[$userInputElement], this[$scene]);
+            this[_l] = new Spherical();
             this[_m] = false;
             this[_o] = false;
-            this[_p] = ({ source }) => {
-                this[$updateAria]();
-                this[$needsRender]();
+            this[_p] = false;
+            this[_q] = () => {
+                const source = this[$controls].changeSource;
+                this[$cancellationSource] = source;
                 if (source === ChangeSource.USER_INTERACTION) {
                     this[$userHasInteracted] = true;
                     this[$deferInteractionPrompt]();
                 }
+            };
+            this[_r] = () => {
+                this[$updateAria]();
+                this[$needsRender]();
+                const source = this[$controls].changeSource;
                 this.dispatchEvent(new CustomEvent('camera-change', { detail: { source } }));
             };
-            this[_q] = (event) => {
+            this[_s] = (event) => {
                 if (event.type === 'pointer-change-start') {
                     this[$container].classList.add('pointer-tumbling');
                 }
@@ -52837,13 +57952,13 @@ const ControlsMixin = (ModelViewerElement) => {
         }
         connectedCallback() {
             super.connectedCallback();
-            this[$controls].addEventListener('change', this[$onChange]);
+            this[$controls].addEventListener('user-interaction', this[$cancelPrompts]);
             this[$controls].addEventListener('pointer-change-start', this[$onPointerChange]);
             this[$controls].addEventListener('pointer-change-end', this[$onPointerChange]);
         }
         disconnectedCallback() {
             super.disconnectedCallback();
-            this[$controls].removeEventListener('change', this[$onChange]);
+            this[$controls].removeEventListener('user-interaction', this[$cancelPrompts]);
             this[$controls].removeEventListener('pointer-change-start', this[$onPointerChange]);
             this[$controls].removeEventListener('pointer-change-end', this[$onPointerChange]);
         }
@@ -52884,6 +57999,11 @@ const ControlsMixin = (ModelViewerElement) => {
                     this[$deferInteractionPrompt]();
                 }
             }
+            if (changedProperties.has('interactionPromptStyle')) {
+                this[$promptAnimatedContainer].style.opacity =
+                    this.interactionPromptStyle == InteractionPromptStyle.BASIC ? '1' :
+                        '0';
+            }
             if (changedProperties.has('touchAction')) {
                 const touchAction = this.touchAction;
                 controls.applyOptions({ touchAction });
@@ -52900,6 +58020,7 @@ const ControlsMixin = (ModelViewerElement) => {
                 Promise.resolve().then(() => {
                     controls.jumpToGoal();
                     scene.jumpToGoal();
+                    this[$onChange]();
                     this[$jumpCamera] = false;
                 });
             }
@@ -52957,14 +58078,17 @@ const ControlsMixin = (ModelViewerElement) => {
                 }
             };
             const moveTouches = () => {
-                // cancel interaction if something else moves the camera
-                const { changeSource } = this[$controls];
-                if (changeSource !== ChangeSource.AUTOMATIC) {
+                // Cancel interaction if something else moves the camera or input is
+                // removed from the DOM.
+                const changeSource = this[$cancellationSource];
+                if (changeSource !== ChangeSource.AUTOMATIC ||
+                    !inputElement.isConnected) {
                     for (const fingerElement of this[$fingerAnimatedContainers]) {
                         fingerElement.style.opacity = '0';
                     }
                     dispatchTouches('pointercancel');
                     this.dispatchEvent(new CustomEvent('interact-stopped', { detail: { source: changeSource } }));
+                    document.removeEventListener('visibilitychange', onVisibilityChange);
                     return;
                 }
                 const time = Math.min(1, (performance.now() - startTime) / duration);
@@ -52978,7 +58102,7 @@ const ControlsMixin = (ModelViewerElement) => {
                 }
                 else {
                     dispatchTouches('pointerup');
-                    this.dispatchEvent(new CustomEvent('interact-stopped', { detail: { source: changeSource } }));
+                    this.dispatchEvent(new CustomEvent('interact-stopped', { detail: { source: ChangeSource.AUTOMATIC } }));
                     document.removeEventListener('visibilitychange', onVisibilityChange);
                 }
             };
@@ -52993,12 +58117,16 @@ const ControlsMixin = (ModelViewerElement) => {
             };
             document.addEventListener('visibilitychange', onVisibilityChange);
             dispatchTouches('pointerdown');
+            this[$cancellationSource] = ChangeSource.AUTOMATIC;
             requestAnimationFrame(moveTouches);
         }
-        [(_a = $promptElement, _b = $promptAnimatedContainer, _c = $fingerAnimatedContainers, _d = $panElement, _e = $lastPromptOffset, _f = $promptElementVisibleTime, _g = $userHasInteracted, _h = $waitingToPromptUser, _j = $controls, _k = $lastSpherical, _l = $jumpCamera, _m = $initialized, _o = $maintainThetaPhi, $syncFieldOfView)](style) {
+        [(_a = $promptElement, _b = $promptAnimatedContainer, _c = $fingerAnimatedContainers, _d = $panElement, _e = $lastPromptOffset, _f = $promptElementVisibleTime, _g = $userHasInteracted, _h = $waitingToPromptUser, _j = $cancellationSource, _k = $controls, _l = $lastSpherical, _m = $jumpCamera, _o = $initialized, _p = $maintainThetaPhi, $syncFieldOfView)](style) {
+            const controls = this[$controls];
             const scene = this[$scene];
             scene.framedFoVDeg = style[0] * 180 / Math.PI;
-            this[$controls].setFieldOfView(scene.adjustedFoV(scene.framedFoVDeg));
+            controls.changeSource = ChangeSource.NONE;
+            controls.setFieldOfView(scene.adjustedFoV(scene.framedFoVDeg));
+            this[$cancelPrompts]();
         }
         [$syncCameraOrbit](style) {
             const controls = this[$controls];
@@ -53010,6 +58138,7 @@ const ControlsMixin = (ModelViewerElement) => {
             }
             controls.changeSource = ChangeSource.NONE;
             controls.setOrbit(style[0], style[1], style[2]);
+            this[$cancelPrompts]();
         }
         [$syncMinCameraOrbit](style) {
             this[$controls].applyOptions({
@@ -53044,6 +58173,7 @@ const ControlsMixin = (ModelViewerElement) => {
             }
             this[$controls].changeSource = ChangeSource.NONE;
             this[$renderer].arRenderer.updateTarget();
+            this[$cancelPrompts]();
         }
         [$tick](time, delta) {
             super[$tick](time, delta);
@@ -53061,7 +58191,8 @@ const ControlsMixin = (ModelViewerElement) => {
                     this[$promptElement].classList.add('visible');
                 }
             }
-            if (isFinite(this[$promptElementVisibleTime])) {
+            if (isFinite(this[$promptElementVisibleTime]) &&
+                this.interactionPromptStyle === InteractionPromptStyle.WIGGLE) {
                 const animationTime = ((now - this[$promptElementVisibleTime]) / PROMPT_ANIMATION_TIME) %
                     1;
                 const offset = wiggle(animationTime);
@@ -53077,9 +58208,10 @@ const ControlsMixin = (ModelViewerElement) => {
                     this[$lastPromptOffset] = offset;
                 }
             }
-            controls.update(time, delta);
-            if (scene.updateTarget(delta)) {
-                this[$onChange]({ type: 'change', source: controls.changeSource });
+            const cameraMoved = controls.update(time, delta);
+            const targetMoved = scene.updateTarget(delta);
+            if (cameraMoved || targetMoved) {
+                this[$onChange]();
             }
         }
         [$deferInteractionPrompt]() {
@@ -53142,11 +58274,11 @@ const ControlsMixin = (ModelViewerElement) => {
             this.jumpCameraToGoal();
         }
     }
-    _p = $onChange, _q = $onPointerChange;
-    __decorate$3([
+    _q = $cancelPrompts, _r = $onChange, _s = $onPointerChange;
+    __decorate$2([
         e$3({ type: Boolean, attribute: 'camera-controls' })
     ], ControlsModelViewerElement.prototype, "cameraControls", void 0);
-    __decorate$3([
+    __decorate$2([
         style({
             intrinsics: cameraOrbitIntrinsics,
             observeEffects: true,
@@ -53154,7 +58286,7 @@ const ControlsMixin = (ModelViewerElement) => {
         }),
         e$3({ type: String, attribute: 'camera-orbit', hasChanged: () => true })
     ], ControlsModelViewerElement.prototype, "cameraOrbit", void 0);
-    __decorate$3([
+    __decorate$2([
         style({
             intrinsics: cameraTargetIntrinsics,
             observeEffects: true,
@@ -53162,7 +58294,7 @@ const ControlsMixin = (ModelViewerElement) => {
         }),
         e$3({ type: String, attribute: 'camera-target', hasChanged: () => true })
     ], ControlsModelViewerElement.prototype, "cameraTarget", void 0);
-    __decorate$3([
+    __decorate$2([
         style({
             intrinsics: fieldOfViewIntrinsics,
             observeEffects: true,
@@ -53170,53 +58302,56 @@ const ControlsMixin = (ModelViewerElement) => {
         }),
         e$3({ type: String, attribute: 'field-of-view', hasChanged: () => true })
     ], ControlsModelViewerElement.prototype, "fieldOfView", void 0);
-    __decorate$3([
+    __decorate$2([
         style({
             intrinsics: minCameraOrbitIntrinsics,
             updateHandler: $syncMinCameraOrbit
         }),
         e$3({ type: String, attribute: 'min-camera-orbit', hasChanged: () => true })
     ], ControlsModelViewerElement.prototype, "minCameraOrbit", void 0);
-    __decorate$3([
+    __decorate$2([
         style({
             intrinsics: maxCameraOrbitIntrinsics,
             updateHandler: $syncMaxCameraOrbit
         }),
         e$3({ type: String, attribute: 'max-camera-orbit', hasChanged: () => true })
     ], ControlsModelViewerElement.prototype, "maxCameraOrbit", void 0);
-    __decorate$3([
+    __decorate$2([
         style({
             intrinsics: minFieldOfViewIntrinsics,
             updateHandler: $syncMinFieldOfView
         }),
         e$3({ type: String, attribute: 'min-field-of-view', hasChanged: () => true })
     ], ControlsModelViewerElement.prototype, "minFieldOfView", void 0);
-    __decorate$3([
+    __decorate$2([
         style({ intrinsics: fieldOfViewIntrinsics, updateHandler: $syncMaxFieldOfView }),
         e$3({ type: String, attribute: 'max-field-of-view', hasChanged: () => true })
     ], ControlsModelViewerElement.prototype, "maxFieldOfView", void 0);
-    __decorate$3([
+    __decorate$2([
         e$3({ type: Number, attribute: 'interaction-prompt-threshold' })
     ], ControlsModelViewerElement.prototype, "interactionPromptThreshold", void 0);
-    __decorate$3([
+    __decorate$2([
         e$3({ type: String, attribute: 'interaction-prompt' })
     ], ControlsModelViewerElement.prototype, "interactionPrompt", void 0);
-    __decorate$3([
+    __decorate$2([
+        e$3({ type: String, attribute: 'interaction-prompt-style' })
+    ], ControlsModelViewerElement.prototype, "interactionPromptStyle", void 0);
+    __decorate$2([
         e$3({ type: Number, attribute: 'orbit-sensitivity' })
     ], ControlsModelViewerElement.prototype, "orbitSensitivity", void 0);
-    __decorate$3([
+    __decorate$2([
         e$3({ type: String, attribute: 'touch-action' })
     ], ControlsModelViewerElement.prototype, "touchAction", void 0);
-    __decorate$3([
+    __decorate$2([
         e$3({ type: Boolean, attribute: 'disable-zoom' })
     ], ControlsModelViewerElement.prototype, "disableZoom", void 0);
-    __decorate$3([
+    __decorate$2([
         e$3({ type: Boolean, attribute: 'disable-pan' })
     ], ControlsModelViewerElement.prototype, "disablePan", void 0);
-    __decorate$3([
+    __decorate$2([
         e$3({ type: Boolean, attribute: 'disable-tap' })
     ], ControlsModelViewerElement.prototype, "disableTap", void 0);
-    __decorate$3([
+    __decorate$2([
         e$3({ type: Number, attribute: 'interpolation-decay' })
     ], ControlsModelViewerElement.prototype, "interpolationDecay", void 0);
     return ControlsModelViewerElement;
@@ -53236,7 +58371,7 @@ const ControlsMixin = (ModelViewerElement) => {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var __decorate$2 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+var __decorate$1 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof undefined === "function") r = undefined(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
@@ -53245,6 +58380,7 @@ var __decorate$2 = (undefined && undefined.__decorate) || function (decorators, 
 const PROGRESS_BAR_UPDATE_THRESHOLD = 100;
 const DEFAULT_DRACO_DECODER_LOCATION = 'https://www.gstatic.com/draco/versioned/decoders/1.4.1/';
 const DEFAULT_KTX2_TRANSCODER_LOCATION = 'https://www.gstatic.com/basis-universal/versioned/2021-04-15-ba1c3e4/';
+const DEFAULT_LOTTIE_LOADER_LOCATION = 'https://cdn.jsdelivr.net/npm/three@0.148.0/examples/jsm/loaders/LottieLoader.js';
 const RevealStrategy = {
     AUTO: 'auto',
     MANUAL: 'manual'
@@ -53396,6 +58532,9 @@ const LoadingMixin = (ModelViewerElement) => {
             if (ModelViewerElement.meshoptDecoderLocation) {
                 CachingGLTFLoader.setMeshoptDecoderLocation(ModelViewerElement.meshoptDecoderLocation);
             }
+            const lottieLoaderLocation = ModelViewerElement.lottieLoaderLocation ||
+                DEFAULT_LOTTIE_LOADER_LOCATION;
+            Renderer.singleton.textureUtils.lottieLoaderUrl = lottieLoaderLocation;
         }
         static set dracoDecoderLocation(value) {
             CachingGLTFLoader.setDRACODecoderLocation(value);
@@ -53414,6 +58553,12 @@ const LoadingMixin = (ModelViewerElement) => {
         }
         static get meshoptDecoderLocation() {
             return CachingGLTFLoader.getMeshoptDecoderLocation();
+        }
+        static set lottieLoaderLocation(value) {
+            Renderer.singleton.textureUtils.lottieLoaderUrl = value;
+        }
+        static get lottieLoaderLocation() {
+            return Renderer.singleton.textureUtils.lottieLoaderUrl;
         }
         /**
          * If provided, the callback will be passed each resource URL before a
@@ -53469,7 +58614,9 @@ const LoadingMixin = (ModelViewerElement) => {
         }
         connectedCallback() {
             super.connectedCallback();
-            this.showPoster();
+            if (!this.loaded) {
+                this.showPoster();
+            }
             this[$progressTracker].addEventListener('progress', this[$onProgress]);
         }
         disconnectedCallback() {
@@ -53523,4273 +58670,16 @@ const LoadingMixin = (ModelViewerElement) => {
             return super[$getModelIsVisible]() && this[$modelIsRevealed];
         }
     }
-    __decorate$2([
+    __decorate$1([
         e$3({ type: String })
     ], LoadingModelViewerElement.prototype, "poster", void 0);
-    __decorate$2([
+    __decorate$1([
         e$3({ type: String })
     ], LoadingModelViewerElement.prototype, "reveal", void 0);
-    __decorate$2([
+    __decorate$1([
         e$3({ type: String })
     ], LoadingModelViewerElement.prototype, "loading", void 0);
     return LoadingModelViewerElement;
-};
-
-class GLTFExporter {
-
-	constructor() {
-
-		this.pluginCallbacks = [];
-
-		this.register( function ( writer ) {
-
-			return new GLTFLightExtension( writer );
-
-		} );
-
-		this.register( function ( writer ) {
-
-			return new GLTFMaterialsUnlitExtension( writer );
-
-		} );
-
-		this.register( function ( writer ) {
-
-			return new GLTFMaterialsPBRSpecularGlossiness( writer );
-
-		} );
-
-		this.register( function ( writer ) {
-
-			return new GLTFMaterialsTransmissionExtension( writer );
-
-		} );
-
-		this.register( function ( writer ) {
-
-			return new GLTFMaterialsVolumeExtension( writer );
-
-		} );
-
-		this.register( function ( writer ) {
-
-			return new GLTFMaterialsClearcoatExtension( writer );
-
-		} );
-
-		this.register( function ( writer ) {
-
-			return new GLTFMaterialsIridescenceExtension( writer );
-
-		} );
-
-	}
-
-	register( callback ) {
-
-		if ( this.pluginCallbacks.indexOf( callback ) === - 1 ) {
-
-			this.pluginCallbacks.push( callback );
-
-		}
-
-		return this;
-
-	}
-
-	unregister( callback ) {
-
-		if ( this.pluginCallbacks.indexOf( callback ) !== - 1 ) {
-
-			this.pluginCallbacks.splice( this.pluginCallbacks.indexOf( callback ), 1 );
-
-		}
-
-		return this;
-
-	}
-
-	/**
-	 * Parse scenes and generate GLTF output
-	 * @param  {Scene or [THREE.Scenes]} input   Scene or Array of THREE.Scenes
-	 * @param  {Function} onDone  Callback on completed
-	 * @param  {Function} onError  Callback on errors
-	 * @param  {Object} options options
-	 */
-	parse( input, onDone, onError, options ) {
-
-		const writer = new GLTFWriter();
-		const plugins = [];
-
-		for ( let i = 0, il = this.pluginCallbacks.length; i < il; i ++ ) {
-
-			plugins.push( this.pluginCallbacks[ i ]( writer ) );
-
-		}
-
-		writer.setPlugins( plugins );
-		writer.write( input, onDone, options ).catch( onError );
-
-	}
-
-	parseAsync( input, options ) {
-
-		const scope = this;
-
-		return new Promise( function ( resolve, reject ) {
-
-			scope.parse( input, resolve, reject, options );
-
-		} );
-
-	}
-
-}
-
-//------------------------------------------------------------------------------
-// Constants
-//------------------------------------------------------------------------------
-
-const WEBGL_CONSTANTS = {
-	POINTS: 0x0000,
-	LINES: 0x0001,
-	LINE_LOOP: 0x0002,
-	LINE_STRIP: 0x0003,
-	TRIANGLES: 0x0004,
-	TRIANGLE_STRIP: 0x0005,
-	TRIANGLE_FAN: 0x0006,
-
-	UNSIGNED_BYTE: 0x1401,
-	UNSIGNED_SHORT: 0x1403,
-	FLOAT: 0x1406,
-	UNSIGNED_INT: 0x1405,
-	ARRAY_BUFFER: 0x8892,
-	ELEMENT_ARRAY_BUFFER: 0x8893,
-
-	NEAREST: 0x2600,
-	LINEAR: 0x2601,
-	NEAREST_MIPMAP_NEAREST: 0x2700,
-	LINEAR_MIPMAP_NEAREST: 0x2701,
-	NEAREST_MIPMAP_LINEAR: 0x2702,
-	LINEAR_MIPMAP_LINEAR: 0x2703,
-
-	CLAMP_TO_EDGE: 33071,
-	MIRRORED_REPEAT: 33648,
-	REPEAT: 10497
-};
-
-const THREE_TO_WEBGL = {};
-
-THREE_TO_WEBGL[ NearestFilter ] = WEBGL_CONSTANTS.NEAREST;
-THREE_TO_WEBGL[ NearestMipmapNearestFilter ] = WEBGL_CONSTANTS.NEAREST_MIPMAP_NEAREST;
-THREE_TO_WEBGL[ NearestMipmapLinearFilter ] = WEBGL_CONSTANTS.NEAREST_MIPMAP_LINEAR;
-THREE_TO_WEBGL[ LinearFilter ] = WEBGL_CONSTANTS.LINEAR;
-THREE_TO_WEBGL[ LinearMipmapNearestFilter ] = WEBGL_CONSTANTS.LINEAR_MIPMAP_NEAREST;
-THREE_TO_WEBGL[ LinearMipmapLinearFilter ] = WEBGL_CONSTANTS.LINEAR_MIPMAP_LINEAR;
-
-THREE_TO_WEBGL[ ClampToEdgeWrapping ] = WEBGL_CONSTANTS.CLAMP_TO_EDGE;
-THREE_TO_WEBGL[ RepeatWrapping ] = WEBGL_CONSTANTS.REPEAT;
-THREE_TO_WEBGL[ MirroredRepeatWrapping ] = WEBGL_CONSTANTS.MIRRORED_REPEAT;
-
-const PATH_PROPERTIES = {
-	scale: 'scale',
-	position: 'translation',
-	quaternion: 'rotation',
-	morphTargetInfluences: 'weights'
-};
-
-// GLB constants
-// https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#glb-file-format-specification
-
-const GLB_HEADER_BYTES = 12;
-const GLB_HEADER_MAGIC = 0x46546C67;
-const GLB_VERSION = 2;
-
-const GLB_CHUNK_PREFIX_BYTES = 8;
-const GLB_CHUNK_TYPE_JSON = 0x4E4F534A;
-const GLB_CHUNK_TYPE_BIN = 0x004E4942;
-
-//------------------------------------------------------------------------------
-// Utility functions
-//------------------------------------------------------------------------------
-
-/**
- * Compare two arrays
- * @param  {Array} array1 Array 1 to compare
- * @param  {Array} array2 Array 2 to compare
- * @return {Boolean}        Returns true if both arrays are equal
- */
-function equalArray( array1, array2 ) {
-
-	return ( array1.length === array2.length ) && array1.every( function ( element, index ) {
-
-		return element === array2[ index ];
-
-	} );
-
-}
-
-/**
- * Converts a string to an ArrayBuffer.
- * @param  {string} text
- * @return {ArrayBuffer}
- */
-function stringToArrayBuffer( text ) {
-
-	return new TextEncoder().encode( text ).buffer;
-
-}
-
-/**
- * Is identity matrix
- *
- * @param {Matrix4} matrix
- * @returns {Boolean} Returns true, if parameter is identity matrix
- */
-function isIdentityMatrix( matrix ) {
-
-	return equalArray( matrix.elements, [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ] );
-
-}
-
-/**
- * Get the min and max vectors from the given attribute
- * @param  {BufferAttribute} attribute Attribute to find the min/max in range from start to start + count
- * @param  {Integer} start
- * @param  {Integer} count
- * @return {Object} Object containing the `min` and `max` values (As an array of attribute.itemSize components)
- */
-function getMinMax( attribute, start, count ) {
-
-	const output = {
-
-		min: new Array( attribute.itemSize ).fill( Number.POSITIVE_INFINITY ),
-		max: new Array( attribute.itemSize ).fill( Number.NEGATIVE_INFINITY )
-
-	};
-
-	for ( let i = start; i < start + count; i ++ ) {
-
-		for ( let a = 0; a < attribute.itemSize; a ++ ) {
-
-			let value;
-
-			if ( attribute.itemSize > 4 ) {
-
-				 // no support for interleaved data for itemSize > 4
-
-				value = attribute.array[ i * attribute.itemSize + a ];
-
-			} else {
-
-				if ( a === 0 ) value = attribute.getX( i );
-				else if ( a === 1 ) value = attribute.getY( i );
-				else if ( a === 2 ) value = attribute.getZ( i );
-				else if ( a === 3 ) value = attribute.getW( i );
-
-			}
-
-			output.min[ a ] = Math.min( output.min[ a ], value );
-			output.max[ a ] = Math.max( output.max[ a ], value );
-
-		}
-
-	}
-
-	return output;
-
-}
-
-/**
- * Get the required size + padding for a buffer, rounded to the next 4-byte boundary.
- * https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#data-alignment
- *
- * @param {Integer} bufferSize The size the original buffer.
- * @returns {Integer} new buffer size with required padding.
- *
- */
-function getPaddedBufferSize( bufferSize ) {
-
-	return Math.ceil( bufferSize / 4 ) * 4;
-
-}
-
-/**
- * Returns a buffer aligned to 4-byte boundary.
- *
- * @param {ArrayBuffer} arrayBuffer Buffer to pad
- * @param {Integer} paddingByte (Optional)
- * @returns {ArrayBuffer} The same buffer if it's already aligned to 4-byte boundary or a new buffer
- */
-function getPaddedArrayBuffer( arrayBuffer, paddingByte = 0 ) {
-
-	const paddedLength = getPaddedBufferSize( arrayBuffer.byteLength );
-
-	if ( paddedLength !== arrayBuffer.byteLength ) {
-
-		const array = new Uint8Array( paddedLength );
-		array.set( new Uint8Array( arrayBuffer ) );
-
-		if ( paddingByte !== 0 ) {
-
-			for ( let i = arrayBuffer.byteLength; i < paddedLength; i ++ ) {
-
-				array[ i ] = paddingByte;
-
-			}
-
-		}
-
-		return array.buffer;
-
-	}
-
-	return arrayBuffer;
-
-}
-
-function getCanvas() {
-
-	if ( typeof document === 'undefined' && typeof OffscreenCanvas !== 'undefined' ) {
-
-		return new OffscreenCanvas( 1, 1 );
-
-	}
-
-	return document.createElement( 'canvas' );
-
-}
-
-function getToBlobPromise( canvas, mimeType ) {
-
-	if ( canvas.toBlob !== undefined ) {
-
-		return new Promise( ( resolve ) => canvas.toBlob( resolve, mimeType ) );
-
-	}
-
-	let quality;
-
-	// Blink's implementation of convertToBlob seems to default to a quality level of 100%
-	// Use the Blink default quality levels of toBlob instead so that file sizes are comparable.
-	if ( mimeType === 'image/jpeg' ) {
-
-		quality = 0.92;
-
-	} else if ( mimeType === 'image/webp' ) {
-
-		quality = 0.8;
-
-	}
-
-	return canvas.convertToBlob( {
-
-		type: mimeType,
-		quality: quality
-
-	} );
-
-}
-
-/**
- * Writer
- */
-class GLTFWriter {
-
-	constructor() {
-
-		this.plugins = [];
-
-		this.options = {};
-		this.pending = [];
-		this.buffers = [];
-
-		this.byteOffset = 0;
-		this.buffers = [];
-		this.nodeMap = new Map();
-		this.skins = [];
-		this.extensionsUsed = {};
-
-		this.uids = new Map();
-		this.uid = 0;
-
-		this.json = {
-			asset: {
-				version: '2.0',
-				generator: 'THREE.GLTFExporter'
-			}
-		};
-
-		this.cache = {
-			meshes: new Map(),
-			attributes: new Map(),
-			attributesNormalized: new Map(),
-			materials: new Map(),
-			textures: new Map(),
-			images: new Map()
-		};
-
-	}
-
-	setPlugins( plugins ) {
-
-		this.plugins = plugins;
-
-	}
-
-	/**
-	 * Parse scenes and generate GLTF output
-	 * @param  {Scene or [THREE.Scenes]} input   Scene or Array of THREE.Scenes
-	 * @param  {Function} onDone  Callback on completed
-	 * @param  {Object} options options
-	 */
-	async write( input, onDone, options ) {
-
-		this.options = Object.assign( {}, {
-			// default options
-			binary: false,
-			trs: false,
-			onlyVisible: true,
-			truncateDrawRange: true,
-			maxTextureSize: Infinity,
-			animations: [],
-			includeCustomExtensions: false
-		}, options );
-
-		if ( this.options.animations.length > 0 ) {
-
-			// Only TRS properties, and not matrices, may be targeted by animation.
-			this.options.trs = true;
-
-		}
-
-		this.processInput( input );
-
-		await Promise.all( this.pending );
-
-		const writer = this;
-		const buffers = writer.buffers;
-		const json = writer.json;
-		options = writer.options;
-		const extensionsUsed = writer.extensionsUsed;
-
-		// Merge buffers.
-		const blob = new Blob( buffers, { type: 'application/octet-stream' } );
-
-		// Declare extensions.
-		const extensionsUsedList = Object.keys( extensionsUsed );
-
-		if ( extensionsUsedList.length > 0 ) json.extensionsUsed = extensionsUsedList;
-
-		// Update bytelength of the single buffer.
-		if ( json.buffers && json.buffers.length > 0 ) json.buffers[ 0 ].byteLength = blob.size;
-
-		if ( options.binary === true ) {
-
-			// https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#glb-file-format-specification
-
-			const reader = new FileReader();
-			reader.readAsArrayBuffer( blob );
-			reader.onloadend = function () {
-
-				// Binary chunk.
-				const binaryChunk = getPaddedArrayBuffer( reader.result );
-				const binaryChunkPrefix = new DataView( new ArrayBuffer( GLB_CHUNK_PREFIX_BYTES ) );
-				binaryChunkPrefix.setUint32( 0, binaryChunk.byteLength, true );
-				binaryChunkPrefix.setUint32( 4, GLB_CHUNK_TYPE_BIN, true );
-
-				// JSON chunk.
-				const jsonChunk = getPaddedArrayBuffer( stringToArrayBuffer( JSON.stringify( json ) ), 0x20 );
-				const jsonChunkPrefix = new DataView( new ArrayBuffer( GLB_CHUNK_PREFIX_BYTES ) );
-				jsonChunkPrefix.setUint32( 0, jsonChunk.byteLength, true );
-				jsonChunkPrefix.setUint32( 4, GLB_CHUNK_TYPE_JSON, true );
-
-				// GLB header.
-				const header = new ArrayBuffer( GLB_HEADER_BYTES );
-				const headerView = new DataView( header );
-				headerView.setUint32( 0, GLB_HEADER_MAGIC, true );
-				headerView.setUint32( 4, GLB_VERSION, true );
-				const totalByteLength = GLB_HEADER_BYTES
-					+ jsonChunkPrefix.byteLength + jsonChunk.byteLength
-					+ binaryChunkPrefix.byteLength + binaryChunk.byteLength;
-				headerView.setUint32( 8, totalByteLength, true );
-
-				const glbBlob = new Blob( [
-					header,
-					jsonChunkPrefix,
-					jsonChunk,
-					binaryChunkPrefix,
-					binaryChunk
-				], { type: 'application/octet-stream' } );
-
-				const glbReader = new FileReader();
-				glbReader.readAsArrayBuffer( glbBlob );
-				glbReader.onloadend = function () {
-
-					onDone( glbReader.result );
-
-				};
-
-			};
-
-		} else {
-
-			if ( json.buffers && json.buffers.length > 0 ) {
-
-				const reader = new FileReader();
-				reader.readAsDataURL( blob );
-				reader.onloadend = function () {
-
-					const base64data = reader.result;
-					json.buffers[ 0 ].uri = base64data;
-					onDone( json );
-
-				};
-
-			} else {
-
-				onDone( json );
-
-			}
-
-		}
-
-
-	}
-
-	/**
-	 * Serializes a userData.
-	 *
-	 * @param {THREE.Object3D|THREE.Material} object
-	 * @param {Object} objectDef
-	 */
-	serializeUserData( object, objectDef ) {
-
-		if ( Object.keys( object.userData ).length === 0 ) return;
-
-		const options = this.options;
-		const extensionsUsed = this.extensionsUsed;
-
-		try {
-
-			const json = JSON.parse( JSON.stringify( object.userData ) );
-
-			if ( options.includeCustomExtensions && json.gltfExtensions ) {
-
-				if ( objectDef.extensions === undefined ) objectDef.extensions = {};
-
-				for ( const extensionName in json.gltfExtensions ) {
-
-					objectDef.extensions[ extensionName ] = json.gltfExtensions[ extensionName ];
-					extensionsUsed[ extensionName ] = true;
-
-				}
-
-				delete json.gltfExtensions;
-
-			}
-
-			if ( Object.keys( json ).length > 0 ) objectDef.extras = json;
-
-		} catch ( error ) {
-
-			console.warn( 'THREE.GLTFExporter: userData of \'' + object.name + '\' ' +
-				'won\'t be serialized because of JSON.stringify error - ' + error.message );
-
-		}
-
-	}
-
-	/**
-	 * Returns ids for buffer attributes.
-	 * @param  {Object} object
-	 * @return {Integer}
-	 */
-	getUID( attribute, isRelativeCopy = false ) {
-
-		if ( this.uids.has( attribute ) === false ) {
-
-			const uids = new Map();
-
-			uids.set( true, this.uid ++ );
-			uids.set( false, this.uid ++ );
-
-			this.uids.set( attribute, uids );
-
-		}
-
-		const uids = this.uids.get( attribute );
-
-		return uids.get( isRelativeCopy );
-
-	}
-
-	/**
-	 * Checks if normal attribute values are normalized.
-	 *
-	 * @param {BufferAttribute} normal
-	 * @returns {Boolean}
-	 */
-	isNormalizedNormalAttribute( normal ) {
-
-		const cache = this.cache;
-
-		if ( cache.attributesNormalized.has( normal ) ) return false;
-
-		const v = new Vector3();
-
-		for ( let i = 0, il = normal.count; i < il; i ++ ) {
-
-			// 0.0005 is from glTF-validator
-			if ( Math.abs( v.fromBufferAttribute( normal, i ).length() - 1.0 ) > 0.0005 ) return false;
-
-		}
-
-		return true;
-
-	}
-
-	/**
-	 * Creates normalized normal buffer attribute.
-	 *
-	 * @param {BufferAttribute} normal
-	 * @returns {BufferAttribute}
-	 *
-	 */
-	createNormalizedNormalAttribute( normal ) {
-
-		const cache = this.cache;
-
-		if ( cache.attributesNormalized.has( normal ) )	return cache.attributesNormalized.get( normal );
-
-		const attribute = normal.clone();
-		const v = new Vector3();
-
-		for ( let i = 0, il = attribute.count; i < il; i ++ ) {
-
-			v.fromBufferAttribute( attribute, i );
-
-			if ( v.x === 0 && v.y === 0 && v.z === 0 ) {
-
-				// if values can't be normalized set (1, 0, 0)
-				v.setX( 1.0 );
-
-			} else {
-
-				v.normalize();
-
-			}
-
-			attribute.setXYZ( i, v.x, v.y, v.z );
-
-		}
-
-		cache.attributesNormalized.set( normal, attribute );
-
-		return attribute;
-
-	}
-
-	/**
-	 * Applies a texture transform, if present, to the map definition. Requires
-	 * the KHR_texture_transform extension.
-	 *
-	 * @param {Object} mapDef
-	 * @param {THREE.Texture} texture
-	 */
-	applyTextureTransform( mapDef, texture ) {
-
-		let didTransform = false;
-		const transformDef = {};
-
-		if ( texture.offset.x !== 0 || texture.offset.y !== 0 ) {
-
-			transformDef.offset = texture.offset.toArray();
-			didTransform = true;
-
-		}
-
-		if ( texture.rotation !== 0 ) {
-
-			transformDef.rotation = texture.rotation;
-			didTransform = true;
-
-		}
-
-		if ( texture.repeat.x !== 1 || texture.repeat.y !== 1 ) {
-
-			transformDef.scale = texture.repeat.toArray();
-			didTransform = true;
-
-		}
-
-		if ( didTransform ) {
-
-			mapDef.extensions = mapDef.extensions || {};
-			mapDef.extensions[ 'KHR_texture_transform' ] = transformDef;
-			this.extensionsUsed[ 'KHR_texture_transform' ] = true;
-
-		}
-
-	}
-
-	buildMetalRoughTexture( metalnessMap, roughnessMap ) {
-
-		if ( metalnessMap === roughnessMap ) return metalnessMap;
-
-		function getEncodingConversion( map ) {
-
-			if ( map.encoding === sRGBEncoding ) {
-
-				return function SRGBToLinear( c ) {
-
-					return ( c < 0.04045 ) ? c * 0.0773993808 : Math.pow( c * 0.9478672986 + 0.0521327014, 2.4 );
-
-				};
-
-			}
-
-			return function LinearToLinear( c ) {
-
-				return c;
-
-			};
-
-		}
-
-		console.warn( 'THREE.GLTFExporter: Merged metalnessMap and roughnessMap textures.' );
-
-		const metalness = metalnessMap?.image;
-		const roughness = roughnessMap?.image;
-
-		const width = Math.max( metalness?.width || 0, roughness?.width || 0 );
-		const height = Math.max( metalness?.height || 0, roughness?.height || 0 );
-
-		const canvas = getCanvas();
-		canvas.width = width;
-		canvas.height = height;
-
-		const context = canvas.getContext( '2d' );
-		context.fillStyle = '#00ffff';
-		context.fillRect( 0, 0, width, height );
-
-		const composite = context.getImageData( 0, 0, width, height );
-
-		if ( metalness ) {
-
-			context.drawImage( metalness, 0, 0, width, height );
-
-			const convert = getEncodingConversion( metalnessMap );
-			const data = context.getImageData( 0, 0, width, height ).data;
-
-			for ( let i = 2; i < data.length; i += 4 ) {
-
-				composite.data[ i ] = convert( data[ i ] / 256 ) * 256;
-
-			}
-
-		}
-
-		if ( roughness ) {
-
-			context.drawImage( roughness, 0, 0, width, height );
-
-			const convert = getEncodingConversion( roughnessMap );
-			const data = context.getImageData( 0, 0, width, height ).data;
-
-			for ( let i = 1; i < data.length; i += 4 ) {
-
-				composite.data[ i ] = convert( data[ i ] / 256 ) * 256;
-
-			}
-
-		}
-
-		context.putImageData( composite, 0, 0 );
-
-		//
-
-		const reference = metalnessMap || roughnessMap;
-
-		const texture = reference.clone();
-
-		texture.source = new Source( canvas );
-		texture.encoding = LinearEncoding;
-
-		return texture;
-
-	}
-
-	/**
-	 * Process a buffer to append to the default one.
-	 * @param  {ArrayBuffer} buffer
-	 * @return {Integer}
-	 */
-	processBuffer( buffer ) {
-
-		const json = this.json;
-		const buffers = this.buffers;
-
-		if ( ! json.buffers ) json.buffers = [ { byteLength: 0 } ];
-
-		// All buffers are merged before export.
-		buffers.push( buffer );
-
-		return 0;
-
-	}
-
-	/**
-	 * Process and generate a BufferView
-	 * @param  {BufferAttribute} attribute
-	 * @param  {number} componentType
-	 * @param  {number} start
-	 * @param  {number} count
-	 * @param  {number} target (Optional) Target usage of the BufferView
-	 * @return {Object}
-	 */
-	processBufferView( attribute, componentType, start, count, target ) {
-
-		const json = this.json;
-
-		if ( ! json.bufferViews ) json.bufferViews = [];
-
-		// Create a new dataview and dump the attribute's array into it
-
-		let componentSize;
-
-		if ( componentType === WEBGL_CONSTANTS.UNSIGNED_BYTE ) {
-
-			componentSize = 1;
-
-		} else if ( componentType === WEBGL_CONSTANTS.UNSIGNED_SHORT ) {
-
-			componentSize = 2;
-
-		} else {
-
-			componentSize = 4;
-
-		}
-
-		const byteLength = getPaddedBufferSize( count * attribute.itemSize * componentSize );
-		const dataView = new DataView( new ArrayBuffer( byteLength ) );
-		let offset = 0;
-
-		for ( let i = start; i < start + count; i ++ ) {
-
-			for ( let a = 0; a < attribute.itemSize; a ++ ) {
-
-				let value;
-
-				if ( attribute.itemSize > 4 ) {
-
-					 // no support for interleaved data for itemSize > 4
-
-					value = attribute.array[ i * attribute.itemSize + a ];
-
-				} else {
-
-					if ( a === 0 ) value = attribute.getX( i );
-					else if ( a === 1 ) value = attribute.getY( i );
-					else if ( a === 2 ) value = attribute.getZ( i );
-					else if ( a === 3 ) value = attribute.getW( i );
-
-				}
-
-				if ( componentType === WEBGL_CONSTANTS.FLOAT ) {
-
-					dataView.setFloat32( offset, value, true );
-
-				} else if ( componentType === WEBGL_CONSTANTS.UNSIGNED_INT ) {
-
-					dataView.setUint32( offset, value, true );
-
-				} else if ( componentType === WEBGL_CONSTANTS.UNSIGNED_SHORT ) {
-
-					dataView.setUint16( offset, value, true );
-
-				} else if ( componentType === WEBGL_CONSTANTS.UNSIGNED_BYTE ) {
-
-					dataView.setUint8( offset, value );
-
-				}
-
-				offset += componentSize;
-
-			}
-
-		}
-
-		const bufferViewDef = {
-
-			buffer: this.processBuffer( dataView.buffer ),
-			byteOffset: this.byteOffset,
-			byteLength: byteLength
-
-		};
-
-		if ( target !== undefined ) bufferViewDef.target = target;
-
-		if ( target === WEBGL_CONSTANTS.ARRAY_BUFFER ) {
-
-			// Only define byteStride for vertex attributes.
-			bufferViewDef.byteStride = attribute.itemSize * componentSize;
-
-		}
-
-		this.byteOffset += byteLength;
-
-		json.bufferViews.push( bufferViewDef );
-
-		// @TODO Merge bufferViews where possible.
-		const output = {
-
-			id: json.bufferViews.length - 1,
-			byteLength: 0
-
-		};
-
-		return output;
-
-	}
-
-	/**
-	 * Process and generate a BufferView from an image Blob.
-	 * @param {Blob} blob
-	 * @return {Promise<Integer>}
-	 */
-	processBufferViewImage( blob ) {
-
-		const writer = this;
-		const json = writer.json;
-
-		if ( ! json.bufferViews ) json.bufferViews = [];
-
-		return new Promise( function ( resolve ) {
-
-			const reader = new FileReader();
-			reader.readAsArrayBuffer( blob );
-			reader.onloadend = function () {
-
-				const buffer = getPaddedArrayBuffer( reader.result );
-
-				const bufferViewDef = {
-					buffer: writer.processBuffer( buffer ),
-					byteOffset: writer.byteOffset,
-					byteLength: buffer.byteLength
-				};
-
-				writer.byteOffset += buffer.byteLength;
-				resolve( json.bufferViews.push( bufferViewDef ) - 1 );
-
-			};
-
-		} );
-
-	}
-
-	/**
-	 * Process attribute to generate an accessor
-	 * @param  {BufferAttribute} attribute Attribute to process
-	 * @param  {THREE.BufferGeometry} geometry (Optional) Geometry used for truncated draw range
-	 * @param  {Integer} start (Optional)
-	 * @param  {Integer} count (Optional)
-	 * @return {Integer|null} Index of the processed accessor on the "accessors" array
-	 */
-	processAccessor( attribute, geometry, start, count ) {
-
-		const options = this.options;
-		const json = this.json;
-
-		const types = {
-
-			1: 'SCALAR',
-			2: 'VEC2',
-			3: 'VEC3',
-			4: 'VEC4',
-			16: 'MAT4'
-
-		};
-
-		let componentType;
-
-		// Detect the component type of the attribute array (float, uint or ushort)
-		if ( attribute.array.constructor === Float32Array ) {
-
-			componentType = WEBGL_CONSTANTS.FLOAT;
-
-		} else if ( attribute.array.constructor === Uint32Array ) {
-
-			componentType = WEBGL_CONSTANTS.UNSIGNED_INT;
-
-		} else if ( attribute.array.constructor === Uint16Array ) {
-
-			componentType = WEBGL_CONSTANTS.UNSIGNED_SHORT;
-
-		} else if ( attribute.array.constructor === Uint8Array ) {
-
-			componentType = WEBGL_CONSTANTS.UNSIGNED_BYTE;
-
-		} else {
-
-			throw new Error( 'THREE.GLTFExporter: Unsupported bufferAttribute component type.' );
-
-		}
-
-		if ( start === undefined ) start = 0;
-		if ( count === undefined ) count = attribute.count;
-
-		// @TODO Indexed buffer geometry with drawRange not supported yet
-		if ( options.truncateDrawRange && geometry !== undefined && geometry.index === null ) {
-
-			const end = start + count;
-			const end2 = geometry.drawRange.count === Infinity
-				? attribute.count
-				: geometry.drawRange.start + geometry.drawRange.count;
-
-			start = Math.max( start, geometry.drawRange.start );
-			count = Math.min( end, end2 ) - start;
-
-			if ( count < 0 ) count = 0;
-
-		}
-
-		// Skip creating an accessor if the attribute doesn't have data to export
-		if ( count === 0 ) return null;
-
-		const minMax = getMinMax( attribute, start, count );
-		let bufferViewTarget;
-
-		// If geometry isn't provided, don't infer the target usage of the bufferView. For
-		// animation samplers, target must not be set.
-		if ( geometry !== undefined ) {
-
-			bufferViewTarget = attribute === geometry.index ? WEBGL_CONSTANTS.ELEMENT_ARRAY_BUFFER : WEBGL_CONSTANTS.ARRAY_BUFFER;
-
-		}
-
-		const bufferView = this.processBufferView( attribute, componentType, start, count, bufferViewTarget );
-
-		const accessorDef = {
-
-			bufferView: bufferView.id,
-			byteOffset: bufferView.byteOffset,
-			componentType: componentType,
-			count: count,
-			max: minMax.max,
-			min: minMax.min,
-			type: types[ attribute.itemSize ]
-
-		};
-
-		if ( attribute.normalized === true ) accessorDef.normalized = true;
-		if ( ! json.accessors ) json.accessors = [];
-
-		return json.accessors.push( accessorDef ) - 1;
-
-	}
-
-	/**
-	 * Process image
-	 * @param  {Image} image to process
-	 * @param  {Integer} format of the image (RGBAFormat)
-	 * @param  {Boolean} flipY before writing out the image
-	 * @param  {String} mimeType export format
-	 * @return {Integer}     Index of the processed texture in the "images" array
-	 */
-	processImage( image, format, flipY, mimeType = 'image/png' ) {
-
-		const writer = this;
-		const cache = writer.cache;
-		const json = writer.json;
-		const options = writer.options;
-		const pending = writer.pending;
-
-		if ( ! cache.images.has( image ) ) cache.images.set( image, {} );
-
-		const cachedImages = cache.images.get( image );
-
-		const key = mimeType + ':flipY/' + flipY.toString();
-
-		if ( cachedImages[ key ] !== undefined ) return cachedImages[ key ];
-
-		if ( ! json.images ) json.images = [];
-
-		const imageDef = { mimeType: mimeType };
-
-		const canvas = getCanvas();
-
-		canvas.width = Math.min( image.width, options.maxTextureSize );
-		canvas.height = Math.min( image.height, options.maxTextureSize );
-
-		const ctx = canvas.getContext( '2d' );
-
-		if ( flipY === true ) {
-
-			ctx.translate( 0, canvas.height );
-			ctx.scale( 1, - 1 );
-
-		}
-
-		if ( image.data !== undefined ) { // THREE.DataTexture
-
-			if ( format !== RGBAFormat ) {
-
-				console.error( 'GLTFExporter: Only RGBAFormat is supported.' );
-
-			}
-
-			if ( image.width > options.maxTextureSize || image.height > options.maxTextureSize ) {
-
-				console.warn( 'GLTFExporter: Image size is bigger than maxTextureSize', image );
-
-			}
-
-			const data = new Uint8ClampedArray( image.height * image.width * 4 );
-
-			for ( let i = 0; i < data.length; i += 4 ) {
-
-				data[ i + 0 ] = image.data[ i + 0 ];
-				data[ i + 1 ] = image.data[ i + 1 ];
-				data[ i + 2 ] = image.data[ i + 2 ];
-				data[ i + 3 ] = image.data[ i + 3 ];
-
-			}
-
-			ctx.putImageData( new ImageData( data, image.width, image.height ), 0, 0 );
-
-		} else {
-
-			ctx.drawImage( image, 0, 0, canvas.width, canvas.height );
-
-		}
-
-		if ( options.binary === true ) {
-
-			pending.push(
-
-				getToBlobPromise( canvas, mimeType )
-					.then( blob => writer.processBufferViewImage( blob ) )
-					.then( bufferViewIndex => {
-
-						imageDef.bufferView = bufferViewIndex;
-
-					} )
-
-			);
-
-		} else {
-
-			if ( canvas.toDataURL !== undefined ) {
-
-				imageDef.uri = canvas.toDataURL( mimeType );
-
-			} else {
-
-				pending.push(
-
-					getToBlobPromise( canvas, mimeType )
-						.then( blob => new FileReader().readAsDataURL( blob ) )
-						.then( dataURL => {
-
-							imageDef.uri = dataURL;
-
-						} )
-
-				);
-
-			}
-
-		}
-
-		const index = json.images.push( imageDef ) - 1;
-		cachedImages[ key ] = index;
-		return index;
-
-	}
-
-	/**
-	 * Process sampler
-	 * @param  {Texture} map Texture to process
-	 * @return {Integer}     Index of the processed texture in the "samplers" array
-	 */
-	processSampler( map ) {
-
-		const json = this.json;
-
-		if ( ! json.samplers ) json.samplers = [];
-
-		const samplerDef = {
-			magFilter: THREE_TO_WEBGL[ map.magFilter ],
-			minFilter: THREE_TO_WEBGL[ map.minFilter ],
-			wrapS: THREE_TO_WEBGL[ map.wrapS ],
-			wrapT: THREE_TO_WEBGL[ map.wrapT ]
-		};
-
-		return json.samplers.push( samplerDef ) - 1;
-
-	}
-
-	/**
-	 * Process texture
-	 * @param  {Texture} map Map to process
-	 * @return {Integer} Index of the processed texture in the "textures" array
-	 */
-	processTexture( map ) {
-
-		const cache = this.cache;
-		const json = this.json;
-
-		if ( cache.textures.has( map ) ) return cache.textures.get( map );
-
-		if ( ! json.textures ) json.textures = [];
-
-		let mimeType = map.userData.mimeType;
-
-		if ( mimeType === 'image/webp' ) mimeType = 'image/png';
-
-		const textureDef = {
-			sampler: this.processSampler( map ),
-			source: this.processImage( map.image, map.format, map.flipY, mimeType )
-		};
-
-		if ( map.name ) textureDef.name = map.name;
-
-		this._invokeAll( function ( ext ) {
-
-			ext.writeTexture && ext.writeTexture( map, textureDef );
-
-		} );
-
-		const index = json.textures.push( textureDef ) - 1;
-		cache.textures.set( map, index );
-		return index;
-
-	}
-
-	/**
-	 * Process material
-	 * @param  {THREE.Material} material Material to process
-	 * @return {Integer|null} Index of the processed material in the "materials" array
-	 */
-	processMaterial( material ) {
-
-		const cache = this.cache;
-		const json = this.json;
-
-		if ( cache.materials.has( material ) ) return cache.materials.get( material );
-
-		if ( material.isShaderMaterial ) {
-
-			console.warn( 'GLTFExporter: THREE.ShaderMaterial not supported.' );
-			return null;
-
-		}
-
-		if ( ! json.materials ) json.materials = [];
-
-		// @QUESTION Should we avoid including any attribute that has the default value?
-		const materialDef = {	pbrMetallicRoughness: {} };
-
-		if ( material.isMeshStandardMaterial !== true && material.isMeshBasicMaterial !== true ) {
-
-			console.warn( 'GLTFExporter: Use MeshStandardMaterial or MeshBasicMaterial for best results.' );
-
-		}
-
-		// pbrMetallicRoughness.baseColorFactor
-		const color = material.color.toArray().concat( [ material.opacity ] );
-
-		if ( ! equalArray( color, [ 1, 1, 1, 1 ] ) ) {
-
-			materialDef.pbrMetallicRoughness.baseColorFactor = color;
-
-		}
-
-		if ( material.isMeshStandardMaterial ) {
-
-			materialDef.pbrMetallicRoughness.metallicFactor = material.metalness;
-			materialDef.pbrMetallicRoughness.roughnessFactor = material.roughness;
-
-		} else {
-
-			materialDef.pbrMetallicRoughness.metallicFactor = 0.5;
-			materialDef.pbrMetallicRoughness.roughnessFactor = 0.5;
-
-		}
-
-		// pbrMetallicRoughness.metallicRoughnessTexture
-		if ( material.metalnessMap || material.roughnessMap ) {
-
-			const metalRoughTexture = this.buildMetalRoughTexture( material.metalnessMap, material.roughnessMap );
-
-			const metalRoughMapDef = { index: this.processTexture( metalRoughTexture ) };
-			this.applyTextureTransform( metalRoughMapDef, metalRoughTexture );
-			materialDef.pbrMetallicRoughness.metallicRoughnessTexture = metalRoughMapDef;
-
-		}
-
-		// pbrMetallicRoughness.baseColorTexture or pbrSpecularGlossiness diffuseTexture
-		if ( material.map ) {
-
-			const baseColorMapDef = { index: this.processTexture( material.map ) };
-			this.applyTextureTransform( baseColorMapDef, material.map );
-			materialDef.pbrMetallicRoughness.baseColorTexture = baseColorMapDef;
-
-		}
-
-		if ( material.emissive ) {
-
-			// note: emissive components are limited to stay within the 0 - 1 range to accommodate glTF spec. see #21849 and #22000.
-			const emissive = material.emissive.clone().multiplyScalar( material.emissiveIntensity );
-			const maxEmissiveComponent = Math.max( emissive.r, emissive.g, emissive.b );
-
-			if ( maxEmissiveComponent > 1 ) {
-
-				emissive.multiplyScalar( 1 / maxEmissiveComponent );
-
-				console.warn( 'THREE.GLTFExporter: Some emissive components exceed 1; emissive has been limited' );
-
-			}
-
-			if ( maxEmissiveComponent > 0 ) {
-
-				materialDef.emissiveFactor = emissive.toArray();
-
-			}
-
-			// emissiveTexture
-			if ( material.emissiveMap ) {
-
-				const emissiveMapDef = { index: this.processTexture( material.emissiveMap ) };
-				this.applyTextureTransform( emissiveMapDef, material.emissiveMap );
-				materialDef.emissiveTexture = emissiveMapDef;
-
-			}
-
-		}
-
-		// normalTexture
-		if ( material.normalMap ) {
-
-			const normalMapDef = { index: this.processTexture( material.normalMap ) };
-
-			if ( material.normalScale && material.normalScale.x !== 1 ) {
-
-				// glTF normal scale is univariate. Ignore `y`, which may be flipped.
-				// Context: https://github.com/mrdoob/three.js/issues/11438#issuecomment-507003995
-				normalMapDef.scale = material.normalScale.x;
-
-			}
-
-			this.applyTextureTransform( normalMapDef, material.normalMap );
-			materialDef.normalTexture = normalMapDef;
-
-		}
-
-		// occlusionTexture
-		if ( material.aoMap ) {
-
-			const occlusionMapDef = {
-				index: this.processTexture( material.aoMap ),
-				texCoord: 1
-			};
-
-			if ( material.aoMapIntensity !== 1.0 ) {
-
-				occlusionMapDef.strength = material.aoMapIntensity;
-
-			}
-
-			this.applyTextureTransform( occlusionMapDef, material.aoMap );
-			materialDef.occlusionTexture = occlusionMapDef;
-
-		}
-
-		// alphaMode
-		if ( material.transparent ) {
-
-			materialDef.alphaMode = 'BLEND';
-
-		} else {
-
-			if ( material.alphaTest > 0.0 ) {
-
-				materialDef.alphaMode = 'MASK';
-				materialDef.alphaCutoff = material.alphaTest;
-
-			}
-
-		}
-
-		// doubleSided
-		if ( material.side === DoubleSide ) materialDef.doubleSided = true;
-		if ( material.name !== '' ) materialDef.name = material.name;
-
-		this.serializeUserData( material, materialDef );
-
-		this._invokeAll( function ( ext ) {
-
-			ext.writeMaterial && ext.writeMaterial( material, materialDef );
-
-		} );
-
-		const index = json.materials.push( materialDef ) - 1;
-		cache.materials.set( material, index );
-		return index;
-
-	}
-
-	/**
-	 * Process mesh
-	 * @param  {THREE.Mesh} mesh Mesh to process
-	 * @return {Integer|null} Index of the processed mesh in the "meshes" array
-	 */
-	processMesh( mesh ) {
-
-		const cache = this.cache;
-		const json = this.json;
-
-		const meshCacheKeyParts = [ mesh.geometry.uuid ];
-
-		if ( Array.isArray( mesh.material ) ) {
-
-			for ( let i = 0, l = mesh.material.length; i < l; i ++ ) {
-
-				meshCacheKeyParts.push( mesh.material[ i ].uuid	);
-
-			}
-
-		} else {
-
-			meshCacheKeyParts.push( mesh.material.uuid );
-
-		}
-
-		const meshCacheKey = meshCacheKeyParts.join( ':' );
-
-		if ( cache.meshes.has( meshCacheKey ) ) return cache.meshes.get( meshCacheKey );
-
-		const geometry = mesh.geometry;
-
-		let mode;
-
-		// Use the correct mode
-		if ( mesh.isLineSegments ) {
-
-			mode = WEBGL_CONSTANTS.LINES;
-
-		} else if ( mesh.isLineLoop ) {
-
-			mode = WEBGL_CONSTANTS.LINE_LOOP;
-
-		} else if ( mesh.isLine ) {
-
-			mode = WEBGL_CONSTANTS.LINE_STRIP;
-
-		} else if ( mesh.isPoints ) {
-
-			mode = WEBGL_CONSTANTS.POINTS;
-
-		} else {
-
-			mode = mesh.material.wireframe ? WEBGL_CONSTANTS.LINES : WEBGL_CONSTANTS.TRIANGLES;
-
-		}
-
-		const meshDef = {};
-		const attributes = {};
-		const primitives = [];
-		const targets = [];
-
-		// Conversion between attributes names in threejs and gltf spec
-		const nameConversion = {
-			uv: 'TEXCOORD_0',
-			uv2: 'TEXCOORD_1',
-			color: 'COLOR_0',
-			skinWeight: 'WEIGHTS_0',
-			skinIndex: 'JOINTS_0'
-		};
-
-		const originalNormal = geometry.getAttribute( 'normal' );
-
-		if ( originalNormal !== undefined && ! this.isNormalizedNormalAttribute( originalNormal ) ) {
-
-			console.warn( 'THREE.GLTFExporter: Creating normalized normal attribute from the non-normalized one.' );
-
-			geometry.setAttribute( 'normal', this.createNormalizedNormalAttribute( originalNormal ) );
-
-		}
-
-		// @QUESTION Detect if .vertexColors = true?
-		// For every attribute create an accessor
-		let modifiedAttribute = null;
-
-		for ( let attributeName in geometry.attributes ) {
-
-			// Ignore morph target attributes, which are exported later.
-			if ( attributeName.slice( 0, 5 ) === 'morph' ) continue;
-
-			const attribute = geometry.attributes[ attributeName ];
-			attributeName = nameConversion[ attributeName ] || attributeName.toUpperCase();
-
-			// Prefix all geometry attributes except the ones specifically
-			// listed in the spec; non-spec attributes are considered custom.
-			const validVertexAttributes =
-					/^(POSITION|NORMAL|TANGENT|TEXCOORD_\d+|COLOR_\d+|JOINTS_\d+|WEIGHTS_\d+)$/;
-
-			if ( ! validVertexAttributes.test( attributeName ) ) attributeName = '_' + attributeName;
-
-			if ( cache.attributes.has( this.getUID( attribute ) ) ) {
-
-				attributes[ attributeName ] = cache.attributes.get( this.getUID( attribute ) );
-				continue;
-
-			}
-
-			// JOINTS_0 must be UNSIGNED_BYTE or UNSIGNED_SHORT.
-			modifiedAttribute = null;
-			const array = attribute.array;
-
-			if ( attributeName === 'JOINTS_0' &&
-				! ( array instanceof Uint16Array ) &&
-				! ( array instanceof Uint8Array ) ) {
-
-				console.warn( 'GLTFExporter: Attribute "skinIndex" converted to type UNSIGNED_SHORT.' );
-				modifiedAttribute = new BufferAttribute( new Uint16Array( array ), attribute.itemSize, attribute.normalized );
-
-			}
-
-			const accessor = this.processAccessor( modifiedAttribute || attribute, geometry );
-
-			if ( accessor !== null ) {
-
-				attributes[ attributeName ] = accessor;
-				cache.attributes.set( this.getUID( attribute ), accessor );
-
-			}
-
-		}
-
-		if ( originalNormal !== undefined ) geometry.setAttribute( 'normal', originalNormal );
-
-		// Skip if no exportable attributes found
-		if ( Object.keys( attributes ).length === 0 ) return null;
-
-		// Morph targets
-		if ( mesh.morphTargetInfluences !== undefined && mesh.morphTargetInfluences.length > 0 ) {
-
-			const weights = [];
-			const targetNames = [];
-			const reverseDictionary = {};
-
-			if ( mesh.morphTargetDictionary !== undefined ) {
-
-				for ( const key in mesh.morphTargetDictionary ) {
-
-					reverseDictionary[ mesh.morphTargetDictionary[ key ] ] = key;
-
-				}
-
-			}
-
-			for ( let i = 0; i < mesh.morphTargetInfluences.length; ++ i ) {
-
-				const target = {};
-				let warned = false;
-
-				for ( const attributeName in geometry.morphAttributes ) {
-
-					// glTF 2.0 morph supports only POSITION/NORMAL/TANGENT.
-					// Three.js doesn't support TANGENT yet.
-
-					if ( attributeName !== 'position' && attributeName !== 'normal' ) {
-
-						if ( ! warned ) {
-
-							console.warn( 'GLTFExporter: Only POSITION and NORMAL morph are supported.' );
-							warned = true;
-
-						}
-
-						continue;
-
-					}
-
-					const attribute = geometry.morphAttributes[ attributeName ][ i ];
-					const gltfAttributeName = attributeName.toUpperCase();
-
-					// Three.js morph attribute has absolute values while the one of glTF has relative values.
-					//
-					// glTF 2.0 Specification:
-					// https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#morph-targets
-
-					const baseAttribute = geometry.attributes[ attributeName ];
-
-					if ( cache.attributes.has( this.getUID( attribute, true ) ) ) {
-
-						target[ gltfAttributeName ] = cache.attributes.get( this.getUID( attribute, true ) );
-						continue;
-
-					}
-
-					// Clones attribute not to override
-					const relativeAttribute = attribute.clone();
-
-					if ( ! geometry.morphTargetsRelative ) {
-
-						for ( let j = 0, jl = attribute.count; j < jl; j ++ ) {
-
-							relativeAttribute.setXYZ(
-								j,
-								attribute.getX( j ) - baseAttribute.getX( j ),
-								attribute.getY( j ) - baseAttribute.getY( j ),
-								attribute.getZ( j ) - baseAttribute.getZ( j )
-							);
-
-						}
-
-					}
-
-					target[ gltfAttributeName ] = this.processAccessor( relativeAttribute, geometry );
-					cache.attributes.set( this.getUID( baseAttribute, true ), target[ gltfAttributeName ] );
-
-				}
-
-				targets.push( target );
-
-				weights.push( mesh.morphTargetInfluences[ i ] );
-
-				if ( mesh.morphTargetDictionary !== undefined ) targetNames.push( reverseDictionary[ i ] );
-
-			}
-
-			meshDef.weights = weights;
-
-			if ( targetNames.length > 0 ) {
-
-				meshDef.extras = {};
-				meshDef.extras.targetNames = targetNames;
-
-			}
-
-		}
-
-		const isMultiMaterial = Array.isArray( mesh.material );
-
-		if ( isMultiMaterial && geometry.groups.length === 0 ) return null;
-
-		const materials = isMultiMaterial ? mesh.material : [ mesh.material ];
-		const groups = isMultiMaterial ? geometry.groups : [ { materialIndex: 0, start: undefined, count: undefined } ];
-
-		for ( let i = 0, il = groups.length; i < il; i ++ ) {
-
-			const primitive = {
-				mode: mode,
-				attributes: attributes,
-			};
-
-			this.serializeUserData( geometry, primitive );
-
-			if ( targets.length > 0 ) primitive.targets = targets;
-
-			if ( geometry.index !== null ) {
-
-				let cacheKey = this.getUID( geometry.index );
-
-				if ( groups[ i ].start !== undefined || groups[ i ].count !== undefined ) {
-
-					cacheKey += ':' + groups[ i ].start + ':' + groups[ i ].count;
-
-				}
-
-				if ( cache.attributes.has( cacheKey ) ) {
-
-					primitive.indices = cache.attributes.get( cacheKey );
-
-				} else {
-
-					primitive.indices = this.processAccessor( geometry.index, geometry, groups[ i ].start, groups[ i ].count );
-					cache.attributes.set( cacheKey, primitive.indices );
-
-				}
-
-				if ( primitive.indices === null ) delete primitive.indices;
-
-			}
-
-			const material = this.processMaterial( materials[ groups[ i ].materialIndex ] );
-
-			if ( material !== null ) primitive.material = material;
-
-			primitives.push( primitive );
-
-		}
-
-		meshDef.primitives = primitives;
-
-		if ( ! json.meshes ) json.meshes = [];
-
-		this._invokeAll( function ( ext ) {
-
-			ext.writeMesh && ext.writeMesh( mesh, meshDef );
-
-		} );
-
-		const index = json.meshes.push( meshDef ) - 1;
-		cache.meshes.set( meshCacheKey, index );
-		return index;
-
-	}
-
-	/**
-	 * Process camera
-	 * @param  {THREE.Camera} camera Camera to process
-	 * @return {Integer}      Index of the processed mesh in the "camera" array
-	 */
-	processCamera( camera ) {
-
-		const json = this.json;
-
-		if ( ! json.cameras ) json.cameras = [];
-
-		const isOrtho = camera.isOrthographicCamera;
-
-		const cameraDef = {
-			type: isOrtho ? 'orthographic' : 'perspective'
-		};
-
-		if ( isOrtho ) {
-
-			cameraDef.orthographic = {
-				xmag: camera.right * 2,
-				ymag: camera.top * 2,
-				zfar: camera.far <= 0 ? 0.001 : camera.far,
-				znear: camera.near < 0 ? 0 : camera.near
-			};
-
-		} else {
-
-			cameraDef.perspective = {
-				aspectRatio: camera.aspect,
-				yfov: MathUtils.degToRad( camera.fov ),
-				zfar: camera.far <= 0 ? 0.001 : camera.far,
-				znear: camera.near < 0 ? 0 : camera.near
-			};
-
-		}
-
-		// Question: Is saving "type" as name intentional?
-		if ( camera.name !== '' ) cameraDef.name = camera.type;
-
-		return json.cameras.push( cameraDef ) - 1;
-
-	}
-
-	/**
-	 * Creates glTF animation entry from AnimationClip object.
-	 *
-	 * Status:
-	 * - Only properties listed in PATH_PROPERTIES may be animated.
-	 *
-	 * @param {THREE.AnimationClip} clip
-	 * @param {THREE.Object3D} root
-	 * @return {number|null}
-	 */
-	processAnimation( clip, root ) {
-
-		const json = this.json;
-		const nodeMap = this.nodeMap;
-
-		if ( ! json.animations ) json.animations = [];
-
-		clip = GLTFExporter.Utils.mergeMorphTargetTracks( clip.clone(), root );
-
-		const tracks = clip.tracks;
-		const channels = [];
-		const samplers = [];
-
-		for ( let i = 0; i < tracks.length; ++ i ) {
-
-			const track = tracks[ i ];
-			const trackBinding = PropertyBinding.parseTrackName( track.name );
-			let trackNode = PropertyBinding.findNode( root, trackBinding.nodeName );
-			const trackProperty = PATH_PROPERTIES[ trackBinding.propertyName ];
-
-			if ( trackBinding.objectName === 'bones' ) {
-
-				if ( trackNode.isSkinnedMesh === true ) {
-
-					trackNode = trackNode.skeleton.getBoneByName( trackBinding.objectIndex );
-
-				} else {
-
-					trackNode = undefined;
-
-				}
-
-			}
-
-			if ( ! trackNode || ! trackProperty ) {
-
-				console.warn( 'THREE.GLTFExporter: Could not export animation track "%s".', track.name );
-				return null;
-
-			}
-
-			const inputItemSize = 1;
-			let outputItemSize = track.values.length / track.times.length;
-
-			if ( trackProperty === PATH_PROPERTIES.morphTargetInfluences ) {
-
-				outputItemSize /= trackNode.morphTargetInfluences.length;
-
-			}
-
-			let interpolation;
-
-			// @TODO export CubicInterpolant(InterpolateSmooth) as CUBICSPLINE
-
-			// Detecting glTF cubic spline interpolant by checking factory method's special property
-			// GLTFCubicSplineInterpolant is a custom interpolant and track doesn't return
-			// valid value from .getInterpolation().
-			if ( track.createInterpolant.isInterpolantFactoryMethodGLTFCubicSpline === true ) {
-
-				interpolation = 'CUBICSPLINE';
-
-				// itemSize of CUBICSPLINE keyframe is 9
-				// (VEC3 * 3: inTangent, splineVertex, and outTangent)
-				// but needs to be stored as VEC3 so dividing by 3 here.
-				outputItemSize /= 3;
-
-			} else if ( track.getInterpolation() === InterpolateDiscrete ) {
-
-				interpolation = 'STEP';
-
-			} else {
-
-				interpolation = 'LINEAR';
-
-			}
-
-			samplers.push( {
-				input: this.processAccessor( new BufferAttribute( track.times, inputItemSize ) ),
-				output: this.processAccessor( new BufferAttribute( track.values, outputItemSize ) ),
-				interpolation: interpolation
-			} );
-
-			channels.push( {
-				sampler: samplers.length - 1,
-				target: {
-					node: nodeMap.get( trackNode ),
-					path: trackProperty
-				}
-			} );
-
-		}
-
-		json.animations.push( {
-			name: clip.name || 'clip_' + json.animations.length,
-			samplers: samplers,
-			channels: channels
-		} );
-
-		return json.animations.length - 1;
-
-	}
-
-	/**
-	 * @param {THREE.Object3D} object
-	 * @return {number|null}
-	 */
-	 processSkin( object ) {
-
-		const json = this.json;
-		const nodeMap = this.nodeMap;
-
-		const node = json.nodes[ nodeMap.get( object ) ];
-
-		const skeleton = object.skeleton;
-
-		if ( skeleton === undefined ) return null;
-
-		const rootJoint = object.skeleton.bones[ 0 ];
-
-		if ( rootJoint === undefined ) return null;
-
-		const joints = [];
-		const inverseBindMatrices = new Float32Array( skeleton.bones.length * 16 );
-		const temporaryBoneInverse = new Matrix4();
-
-		for ( let i = 0; i < skeleton.bones.length; ++ i ) {
-
-			joints.push( nodeMap.get( skeleton.bones[ i ] ) );
-			temporaryBoneInverse.copy( skeleton.boneInverses[ i ] );
-			temporaryBoneInverse.multiply( object.bindMatrix ).toArray( inverseBindMatrices, i * 16 );
-
-		}
-
-		if ( json.skins === undefined ) json.skins = [];
-
-		json.skins.push( {
-			inverseBindMatrices: this.processAccessor( new BufferAttribute( inverseBindMatrices, 16 ) ),
-			joints: joints,
-			skeleton: nodeMap.get( rootJoint )
-		} );
-
-		const skinIndex = node.skin = json.skins.length - 1;
-
-		return skinIndex;
-
-	}
-
-	/**
-	 * Process Object3D node
-	 * @param  {THREE.Object3D} node Object3D to processNode
-	 * @return {Integer} Index of the node in the nodes list
-	 */
-	processNode( object ) {
-
-		const json = this.json;
-		const options = this.options;
-		const nodeMap = this.nodeMap;
-
-		if ( ! json.nodes ) json.nodes = [];
-
-		const nodeDef = {};
-
-		if ( options.trs ) {
-
-			const rotation = object.quaternion.toArray();
-			const position = object.position.toArray();
-			const scale = object.scale.toArray();
-
-			if ( ! equalArray( rotation, [ 0, 0, 0, 1 ] ) ) {
-
-				nodeDef.rotation = rotation;
-
-			}
-
-			if ( ! equalArray( position, [ 0, 0, 0 ] ) ) {
-
-				nodeDef.translation = position;
-
-			}
-
-			if ( ! equalArray( scale, [ 1, 1, 1 ] ) ) {
-
-				nodeDef.scale = scale;
-
-			}
-
-		} else {
-
-			if ( object.matrixAutoUpdate ) {
-
-				object.updateMatrix();
-
-			}
-
-			if ( isIdentityMatrix( object.matrix ) === false ) {
-
-				nodeDef.matrix = object.matrix.elements;
-
-			}
-
-		}
-
-		// We don't export empty strings name because it represents no-name in Three.js.
-		if ( object.name !== '' ) nodeDef.name = String( object.name );
-
-		this.serializeUserData( object, nodeDef );
-
-		if ( object.isMesh || object.isLine || object.isPoints ) {
-
-			const meshIndex = this.processMesh( object );
-
-			if ( meshIndex !== null ) nodeDef.mesh = meshIndex;
-
-		} else if ( object.isCamera ) {
-
-			nodeDef.camera = this.processCamera( object );
-
-		}
-
-		if ( object.isSkinnedMesh ) this.skins.push( object );
-
-		if ( object.children.length > 0 ) {
-
-			const children = [];
-
-			for ( let i = 0, l = object.children.length; i < l; i ++ ) {
-
-				const child = object.children[ i ];
-
-				if ( child.visible || options.onlyVisible === false ) {
-
-					const nodeIndex = this.processNode( child );
-
-					if ( nodeIndex !== null ) children.push( nodeIndex );
-
-				}
-
-			}
-
-			if ( children.length > 0 ) nodeDef.children = children;
-
-		}
-
-		this._invokeAll( function ( ext ) {
-
-			ext.writeNode && ext.writeNode( object, nodeDef );
-
-		} );
-
-		const nodeIndex = json.nodes.push( nodeDef ) - 1;
-		nodeMap.set( object, nodeIndex );
-		return nodeIndex;
-
-	}
-
-	/**
-	 * Process Scene
-	 * @param  {Scene} node Scene to process
-	 */
-	processScene( scene ) {
-
-		const json = this.json;
-		const options = this.options;
-
-		if ( ! json.scenes ) {
-
-			json.scenes = [];
-			json.scene = 0;
-
-		}
-
-		const sceneDef = {};
-
-		if ( scene.name !== '' ) sceneDef.name = scene.name;
-
-		json.scenes.push( sceneDef );
-
-		const nodes = [];
-
-		for ( let i = 0, l = scene.children.length; i < l; i ++ ) {
-
-			const child = scene.children[ i ];
-
-			if ( child.visible || options.onlyVisible === false ) {
-
-				const nodeIndex = this.processNode( child );
-
-				if ( nodeIndex !== null ) nodes.push( nodeIndex );
-
-			}
-
-		}
-
-		if ( nodes.length > 0 ) sceneDef.nodes = nodes;
-
-		this.serializeUserData( scene, sceneDef );
-
-	}
-
-	/**
-	 * Creates a Scene to hold a list of objects and parse it
-	 * @param  {Array} objects List of objects to process
-	 */
-	processObjects( objects ) {
-
-		const scene = new Scene();
-		scene.name = 'AuxScene';
-
-		for ( let i = 0; i < objects.length; i ++ ) {
-
-			// We push directly to children instead of calling `add` to prevent
-			// modify the .parent and break its original scene and hierarchy
-			scene.children.push( objects[ i ] );
-
-		}
-
-		this.processScene( scene );
-
-	}
-
-	/**
-	 * @param {THREE.Object3D|Array<THREE.Object3D>} input
-	 */
-	processInput( input ) {
-
-		const options = this.options;
-
-		input = input instanceof Array ? input : [ input ];
-
-		this._invokeAll( function ( ext ) {
-
-			ext.beforeParse && ext.beforeParse( input );
-
-		} );
-
-		const objectsWithoutScene = [];
-
-		for ( let i = 0; i < input.length; i ++ ) {
-
-			if ( input[ i ] instanceof Scene ) {
-
-				this.processScene( input[ i ] );
-
-			} else {
-
-				objectsWithoutScene.push( input[ i ] );
-
-			}
-
-		}
-
-		if ( objectsWithoutScene.length > 0 ) this.processObjects( objectsWithoutScene );
-
-		for ( let i = 0; i < this.skins.length; ++ i ) {
-
-			this.processSkin( this.skins[ i ] );
-
-		}
-
-		for ( let i = 0; i < options.animations.length; ++ i ) {
-
-			this.processAnimation( options.animations[ i ], input[ 0 ] );
-
-		}
-
-		this._invokeAll( function ( ext ) {
-
-			ext.afterParse && ext.afterParse( input );
-
-		} );
-
-	}
-
-	_invokeAll( func ) {
-
-		for ( let i = 0, il = this.plugins.length; i < il; i ++ ) {
-
-			func( this.plugins[ i ] );
-
-		}
-
-	}
-
-}
-
-/**
- * Punctual Lights Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_lights_punctual
- */
-class GLTFLightExtension {
-
-	constructor( writer ) {
-
-		this.writer = writer;
-		this.name = 'KHR_lights_punctual';
-
-	}
-
-	writeNode( light, nodeDef ) {
-
-		if ( ! light.isLight ) return;
-
-		if ( ! light.isDirectionalLight && ! light.isPointLight && ! light.isSpotLight ) {
-
-			console.warn( 'THREE.GLTFExporter: Only directional, point, and spot lights are supported.', light );
-			return;
-
-		}
-
-		const writer = this.writer;
-		const json = writer.json;
-		const extensionsUsed = writer.extensionsUsed;
-
-		const lightDef = {};
-
-		if ( light.name ) lightDef.name = light.name;
-
-		lightDef.color = light.color.toArray();
-
-		lightDef.intensity = light.intensity;
-
-		if ( light.isDirectionalLight ) {
-
-			lightDef.type = 'directional';
-
-		} else if ( light.isPointLight ) {
-
-			lightDef.type = 'point';
-
-			if ( light.distance > 0 ) lightDef.range = light.distance;
-
-		} else if ( light.isSpotLight ) {
-
-			lightDef.type = 'spot';
-
-			if ( light.distance > 0 ) lightDef.range = light.distance;
-
-			lightDef.spot = {};
-			lightDef.spot.innerConeAngle = ( light.penumbra - 1.0 ) * light.angle * - 1.0;
-			lightDef.spot.outerConeAngle = light.angle;
-
-		}
-
-		if ( light.decay !== undefined && light.decay !== 2 ) {
-
-			console.warn( 'THREE.GLTFExporter: Light decay may be lost. glTF is physically-based, '
-				+ 'and expects light.decay=2.' );
-
-		}
-
-		if ( light.target
-				&& ( light.target.parent !== light
-				|| light.target.position.x !== 0
-				|| light.target.position.y !== 0
-				|| light.target.position.z !== - 1 ) ) {
-
-			console.warn( 'THREE.GLTFExporter: Light direction may be lost. For best results, '
-				+ 'make light.target a child of the light with position 0,0,-1.' );
-
-		}
-
-		if ( ! extensionsUsed[ this.name ] ) {
-
-			json.extensions = json.extensions || {};
-			json.extensions[ this.name ] = { lights: [] };
-			extensionsUsed[ this.name ] = true;
-
-		}
-
-		const lights = json.extensions[ this.name ].lights;
-		lights.push( lightDef );
-
-		nodeDef.extensions = nodeDef.extensions || {};
-		nodeDef.extensions[ this.name ] = { light: lights.length - 1 };
-
-	}
-
-}
-
-/**
- * Unlit Materials Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_unlit
- */
-class GLTFMaterialsUnlitExtension {
-
-	constructor( writer ) {
-
-		this.writer = writer;
-		this.name = 'KHR_materials_unlit';
-
-	}
-
-	writeMaterial( material, materialDef ) {
-
-		if ( ! material.isMeshBasicMaterial ) return;
-
-		const writer = this.writer;
-		const extensionsUsed = writer.extensionsUsed;
-
-		materialDef.extensions = materialDef.extensions || {};
-		materialDef.extensions[ this.name ] = {};
-
-		extensionsUsed[ this.name ] = true;
-
-		materialDef.pbrMetallicRoughness.metallicFactor = 0.0;
-		materialDef.pbrMetallicRoughness.roughnessFactor = 0.9;
-
-	}
-
-}
-
-/**
- * Specular-Glossiness Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Archived/KHR_materials_pbrSpecularGlossiness
- */
-class GLTFMaterialsPBRSpecularGlossiness {
-
-	constructor( writer ) {
-
-		this.writer = writer;
-		this.name = 'KHR_materials_pbrSpecularGlossiness';
-
-	}
-
-	writeMaterial( material, materialDef ) {
-
-		if ( ! material.isGLTFSpecularGlossinessMaterial ) return;
-
-		const writer = this.writer;
-		const extensionsUsed = writer.extensionsUsed;
-
-		const extensionDef = {};
-
-		if ( materialDef.pbrMetallicRoughness.baseColorFactor ) {
-
-			extensionDef.diffuseFactor = materialDef.pbrMetallicRoughness.baseColorFactor;
-
-		}
-
-		const specularFactor = [ 1, 1, 1 ];
-		material.specular.toArray( specularFactor, 0 );
-		extensionDef.specularFactor = specularFactor;
-		extensionDef.glossinessFactor = material.glossiness;
-
-		if ( materialDef.pbrMetallicRoughness.baseColorTexture ) {
-
-			extensionDef.diffuseTexture = materialDef.pbrMetallicRoughness.baseColorTexture;
-
-		}
-
-		if ( material.specularMap ) {
-
-			const specularMapDef = { index: writer.processTexture( material.specularMap ) };
-			writer.applyTextureTransform( specularMapDef, material.specularMap );
-			extensionDef.specularGlossinessTexture = specularMapDef;
-
-		}
-
-		materialDef.extensions = materialDef.extensions || {};
-		materialDef.extensions[ this.name ] = extensionDef;
-		extensionsUsed[ this.name ] = true;
-
-	}
-
-}
-
-/**
- * Clearcoat Materials Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_clearcoat
- */
-class GLTFMaterialsClearcoatExtension {
-
-	constructor( writer ) {
-
-		this.writer = writer;
-		this.name = 'KHR_materials_clearcoat';
-
-	}
-
-	writeMaterial( material, materialDef ) {
-
-		if ( ! material.isMeshPhysicalMaterial ) return;
-
-		const writer = this.writer;
-		const extensionsUsed = writer.extensionsUsed;
-
-		const extensionDef = {};
-
-		extensionDef.clearcoatFactor = material.clearcoat;
-
-		if ( material.clearcoatMap ) {
-
-			const clearcoatMapDef = { index: writer.processTexture( material.clearcoatMap ) };
-			writer.applyTextureTransform( clearcoatMapDef, material.clearcoatMap );
-			extensionDef.clearcoatTexture = clearcoatMapDef;
-
-		}
-
-		extensionDef.clearcoatRoughnessFactor = material.clearcoatRoughness;
-
-		if ( material.clearcoatRoughnessMap ) {
-
-			const clearcoatRoughnessMapDef = { index: writer.processTexture( material.clearcoatRoughnessMap ) };
-			writer.applyTextureTransform( clearcoatRoughnessMapDef, material.clearcoatRoughnessMap );
-			extensionDef.clearcoatRoughnessTexture = clearcoatRoughnessMapDef;
-
-		}
-
-		if ( material.clearcoatNormalMap ) {
-
-			const clearcoatNormalMapDef = { index: writer.processTexture( material.clearcoatNormalMap ) };
-			writer.applyTextureTransform( clearcoatNormalMapDef, material.clearcoatNormalMap );
-			extensionDef.clearcoatNormalTexture = clearcoatNormalMapDef;
-
-		}
-
-		materialDef.extensions = materialDef.extensions || {};
-		materialDef.extensions[ this.name ] = extensionDef;
-
-		extensionsUsed[ this.name ] = true;
-
-
-	}
-
-}
-
-/**
- * Iridescence Materials Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_iridescence
- */
-class GLTFMaterialsIridescenceExtension {
-
-	constructor( writer ) {
-
-		this.writer = writer;
-		this.name = 'KHR_materials_iridescence';
-
-	}
-
-	writeMaterial( material, materialDef ) {
-
-		if ( ! material.isMeshPhysicalMaterial ) return;
-
-		const writer = this.writer;
-		const extensionsUsed = writer.extensionsUsed;
-
-		const extensionDef = {};
-
-		extensionDef.iridescenceFactor = material.iridescence;
-
-		if ( material.iridescenceMap ) {
-
-			const iridescenceMapDef = { index: writer.processTexture( material.iridescenceMap ) };
-			writer.applyTextureTransform( iridescenceMapDef, material.iridescenceMap );
-			extensionDef.iridescenceTexture = iridescenceMapDef;
-
-		}
-
-		extensionDef.iridescenceIor = material.iridescenceIOR;
-		extensionDef.iridescenceThicknessMinimum = material.iridescenceThicknessRange[ 0 ];
-		extensionDef.iridescenceThicknessMaximum = material.iridescenceThicknessRange[ 1 ];
-
-		if ( material.iridescenceThicknessMap ) {
-
-			const iridescenceThicknessMapDef = { index: writer.processTexture( material.iridescenceThicknessMap ) };
-			writer.applyTextureTransform( iridescenceThicknessMapDef, material.iridescenceThicknessMap );
-			extensionDef.iridescenceThicknessTexture = iridescenceThicknessMapDef;
-
-		}
-
-		materialDef.extensions = materialDef.extensions || {};
-		materialDef.extensions[ this.name ] = extensionDef;
-
-		extensionsUsed[ this.name ] = true;
-
-	}
-
-}
-
-/**
- * Transmission Materials Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_transmission
- */
-class GLTFMaterialsTransmissionExtension {
-
-	constructor( writer ) {
-
-		this.writer = writer;
-		this.name = 'KHR_materials_transmission';
-
-	}
-
-	writeMaterial( material, materialDef ) {
-
-		if ( ! material.isMeshPhysicalMaterial || material.transmission === 0 ) return;
-
-		const writer = this.writer;
-		const extensionsUsed = writer.extensionsUsed;
-
-		const extensionDef = {};
-
-		extensionDef.transmissionFactor = material.transmission;
-
-		if ( material.transmissionMap ) {
-
-			const transmissionMapDef = { index: writer.processTexture( material.transmissionMap ) };
-			writer.applyTextureTransform( transmissionMapDef, material.transmissionMap );
-			extensionDef.transmissionTexture = transmissionMapDef;
-
-		}
-
-		materialDef.extensions = materialDef.extensions || {};
-		materialDef.extensions[ this.name ] = extensionDef;
-
-		extensionsUsed[ this.name ] = true;
-
-	}
-
-}
-
-/**
- * Materials Volume Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_volume
- */
-class GLTFMaterialsVolumeExtension {
-
-	constructor( writer ) {
-
-		this.writer = writer;
-		this.name = 'KHR_materials_volume';
-
-	}
-
-	writeMaterial( material, materialDef ) {
-
-		if ( ! material.isMeshPhysicalMaterial || material.transmission === 0 ) return;
-
-		const writer = this.writer;
-		const extensionsUsed = writer.extensionsUsed;
-
-		const extensionDef = {};
-
-		extensionDef.thicknessFactor = material.thickness;
-
-		if ( material.thicknessMap ) {
-
-			const thicknessMapDef = { index: writer.processTexture( material.thicknessMap ) };
-			writer.applyTextureTransform( thicknessMapDef, material.thicknessMap );
-			extensionDef.thicknessTexture = thicknessMapDef;
-
-		}
-
-		extensionDef.attenuationDistance = material.attenuationDistance;
-		extensionDef.attenuationColor = material.attenuationColor.toArray();
-
-		materialDef.extensions = materialDef.extensions || {};
-		materialDef.extensions[ this.name ] = extensionDef;
-
-		extensionsUsed[ this.name ] = true;
-
-	}
-
-}
-
-/**
- * Static utility functions
- */
-GLTFExporter.Utils = {
-
-	insertKeyframe: function ( track, time ) {
-
-		const tolerance = 0.001; // 1ms
-		const valueSize = track.getValueSize();
-
-		const times = new track.TimeBufferType( track.times.length + 1 );
-		const values = new track.ValueBufferType( track.values.length + valueSize );
-		const interpolant = track.createInterpolant( new track.ValueBufferType( valueSize ) );
-
-		let index;
-
-		if ( track.times.length === 0 ) {
-
-			times[ 0 ] = time;
-
-			for ( let i = 0; i < valueSize; i ++ ) {
-
-				values[ i ] = 0;
-
-			}
-
-			index = 0;
-
-		} else if ( time < track.times[ 0 ] ) {
-
-			if ( Math.abs( track.times[ 0 ] - time ) < tolerance ) return 0;
-
-			times[ 0 ] = time;
-			times.set( track.times, 1 );
-
-			values.set( interpolant.evaluate( time ), 0 );
-			values.set( track.values, valueSize );
-
-			index = 0;
-
-		} else if ( time > track.times[ track.times.length - 1 ] ) {
-
-			if ( Math.abs( track.times[ track.times.length - 1 ] - time ) < tolerance ) {
-
-				return track.times.length - 1;
-
-			}
-
-			times[ times.length - 1 ] = time;
-			times.set( track.times, 0 );
-
-			values.set( track.values, 0 );
-			values.set( interpolant.evaluate( time ), track.values.length );
-
-			index = times.length - 1;
-
-		} else {
-
-			for ( let i = 0; i < track.times.length; i ++ ) {
-
-				if ( Math.abs( track.times[ i ] - time ) < tolerance ) return i;
-
-				if ( track.times[ i ] < time && track.times[ i + 1 ] > time ) {
-
-					times.set( track.times.slice( 0, i + 1 ), 0 );
-					times[ i + 1 ] = time;
-					times.set( track.times.slice( i + 1 ), i + 2 );
-
-					values.set( track.values.slice( 0, ( i + 1 ) * valueSize ), 0 );
-					values.set( interpolant.evaluate( time ), ( i + 1 ) * valueSize );
-					values.set( track.values.slice( ( i + 1 ) * valueSize ), ( i + 2 ) * valueSize );
-
-					index = i + 1;
-
-					break;
-
-				}
-
-			}
-
-		}
-
-		track.times = times;
-		track.values = values;
-
-		return index;
-
-	},
-
-	mergeMorphTargetTracks: function ( clip, root ) {
-
-		const tracks = [];
-		const mergedTracks = {};
-		const sourceTracks = clip.tracks;
-
-		for ( let i = 0; i < sourceTracks.length; ++ i ) {
-
-			let sourceTrack = sourceTracks[ i ];
-			const sourceTrackBinding = PropertyBinding.parseTrackName( sourceTrack.name );
-			const sourceTrackNode = PropertyBinding.findNode( root, sourceTrackBinding.nodeName );
-
-			if ( sourceTrackBinding.propertyName !== 'morphTargetInfluences' || sourceTrackBinding.propertyIndex === undefined ) {
-
-				// Tracks that don't affect morph targets, or that affect all morph targets together, can be left as-is.
-				tracks.push( sourceTrack );
-				continue;
-
-			}
-
-			if ( sourceTrack.createInterpolant !== sourceTrack.InterpolantFactoryMethodDiscrete
-				&& sourceTrack.createInterpolant !== sourceTrack.InterpolantFactoryMethodLinear ) {
-
-				if ( sourceTrack.createInterpolant.isInterpolantFactoryMethodGLTFCubicSpline ) {
-
-					// This should never happen, because glTF morph target animations
-					// affect all targets already.
-					throw new Error( 'THREE.GLTFExporter: Cannot merge tracks with glTF CUBICSPLINE interpolation.' );
-
-				}
-
-				console.warn( 'THREE.GLTFExporter: Morph target interpolation mode not yet supported. Using LINEAR instead.' );
-
-				sourceTrack = sourceTrack.clone();
-				sourceTrack.setInterpolation( InterpolateLinear );
-
-			}
-
-			const targetCount = sourceTrackNode.morphTargetInfluences.length;
-			const targetIndex = sourceTrackNode.morphTargetDictionary[ sourceTrackBinding.propertyIndex ];
-
-			if ( targetIndex === undefined ) {
-
-				throw new Error( 'THREE.GLTFExporter: Morph target name not found: ' + sourceTrackBinding.propertyIndex );
-
-			}
-
-			let mergedTrack;
-
-			// If this is the first time we've seen this object, create a new
-			// track to store merged keyframe data for each morph target.
-			if ( mergedTracks[ sourceTrackNode.uuid ] === undefined ) {
-
-				mergedTrack = sourceTrack.clone();
-
-				const values = new mergedTrack.ValueBufferType( targetCount * mergedTrack.times.length );
-
-				for ( let j = 0; j < mergedTrack.times.length; j ++ ) {
-
-					values[ j * targetCount + targetIndex ] = mergedTrack.values[ j ];
-
-				}
-
-				// We need to take into consideration the intended target node
-				// of our original un-merged morphTarget animation.
-				mergedTrack.name = ( sourceTrackBinding.nodeName || '' ) + '.morphTargetInfluences';
-				mergedTrack.values = values;
-
-				mergedTracks[ sourceTrackNode.uuid ] = mergedTrack;
-				tracks.push( mergedTrack );
-
-				continue;
-
-			}
-
-			const sourceInterpolant = sourceTrack.createInterpolant( new sourceTrack.ValueBufferType( 1 ) );
-
-			mergedTrack = mergedTracks[ sourceTrackNode.uuid ];
-
-			// For every existing keyframe of the merged track, write a (possibly
-			// interpolated) value from the source track.
-			for ( let j = 0; j < mergedTrack.times.length; j ++ ) {
-
-				mergedTrack.values[ j * targetCount + targetIndex ] = sourceInterpolant.evaluate( mergedTrack.times[ j ] );
-
-			}
-
-			// For every existing keyframe of the source track, write a (possibly
-			// new) keyframe to the merged track. Values from the previous loop may
-			// be written again, but keyframes are de-duplicated.
-			for ( let j = 0; j < sourceTrack.times.length; j ++ ) {
-
-				const keyframeIndex = this.insertKeyframe( mergedTrack, sourceTrack.times[ j ] );
-				mergedTrack.values[ keyframeIndex * targetCount + targetIndex ] = sourceTrack.values[ j ];
-
-			}
-
-		}
-
-		clip.tracks = tracks;
-
-		return clip;
-
-	}
-
-};
-
-/* @license
- * Copyright 2021 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-/**
- * @param object {THREE.Object3D}
- * @return {boolean}
- */
-const compatibleObject = (object) => {
-    // @TODO: Need properer variantMaterials format validation?
-    return object.material !==
-        undefined && // easier than (!object.isMesh && !object.isLine &&
-        // !object.isPoints)
-        object.userData && // just in case
-        object.userData.variantMaterials &&
-        // Is this line costly?
-        !!Array
-            .from(object.userData.variantMaterials
-            .values())
-            .filter(m => compatibleMaterial(m.material));
-};
-/**
- * @param material {THREE.Material}
- * @return {boolean}
- */
-const compatibleMaterial = (material) => {
-    // @TODO: support multi materials?
-    return material && material.isMaterial && !Array.isArray(material);
-};
-class GLTFExporterMaterialsVariantsExtension {
-    constructor(writer) {
-        this.writer = writer;
-        this.name = 'KHR_materials_variants';
-        this.variantNames = [];
-    }
-    beforeParse(objects) {
-        // Find all variant names and store them to the table
-        const variantNameSet = new Set();
-        for (const object of objects) {
-            object.traverse(o => {
-                if (!compatibleObject(o)) {
-                    return;
-                }
-                const variantMaterials = o.userData.variantMaterials;
-                const variantDataMap = o.userData.variantData;
-                for (const [variantName, variantData] of variantDataMap) {
-                    const variantMaterial = variantMaterials.get(variantData.index);
-                    // Ignore unloaded variant materials
-                    if (compatibleMaterial(variantMaterial.material)) {
-                        variantNameSet.add(variantName);
-                    }
-                }
-            });
-        }
-        // We may want to sort?
-        variantNameSet.forEach(name => this.variantNames.push(name));
-    }
-    writeMesh(mesh, meshDef) {
-        if (!compatibleObject(mesh)) {
-            return;
-        }
-        const userData = mesh.userData;
-        const variantMaterials = userData.variantMaterials;
-        const variantDataMap = userData.variantData;
-        const mappingTable = new Map();
-        // Removes gaps in the variant indices list (caused by deleting variants).
-        const reIndexedVariants = new Map();
-        const variants = Array.from(variantDataMap.values()).sort((a, b) => {
-            return a.index - b.index;
-        });
-        for (const [i, variantData] of variants.entries()) {
-            reIndexedVariants.set(variantData.index, i);
-        }
-        for (const variantData of variantDataMap.values()) {
-            const variantMaterialInstance = variantMaterials.get(variantData.index).material;
-            if (!compatibleMaterial(variantMaterialInstance)) {
-                continue;
-            }
-            const materialIndex = this.writer.processMaterial(variantMaterialInstance);
-            if (!mappingTable.has(materialIndex)) {
-                mappingTable.set(materialIndex, { material: materialIndex, variants: [] });
-            }
-            mappingTable.get(materialIndex).variants.push(reIndexedVariants.get(variantData.index));
-        }
-        const mappingsDef = Array.from(mappingTable.values())
-            .map((m => { return m.variants.sort((a, b) => a - b) && m; }))
-            .sort((a, b) => a.material - b.material);
-        if (mappingsDef.length === 0) {
-            return;
-        }
-        const originalMaterialIndex = compatibleMaterial(userData.originalMaterial) ?
-            this.writer.processMaterial(userData.originalMaterial) :
-            -1;
-        for (const primitiveDef of meshDef.primitives) {
-            // Override primitiveDef.material with original material.
-            if (originalMaterialIndex >= 0) {
-                primitiveDef.material = originalMaterialIndex;
-            }
-            primitiveDef.extensions = primitiveDef.extensions || {};
-            primitiveDef.extensions[this.name] = { mappings: mappingsDef };
-        }
-    }
-    afterParse() {
-        if (this.variantNames.length === 0) {
-            return;
-        }
-        const root = this.writer.json;
-        root.extensions = root.extensions || {};
-        const variantsDef = this.variantNames.map(n => {
-            return { name: n };
-        });
-        root.extensions[this.name] = { variants: variantsDef };
-        this.writer.extensionsUsed[this.name] = true;
-    }
-}
-
-/* @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-const $correlatedObjects = Symbol('correlatedObjects');
-const $sourceObject = Symbol('sourceObject');
-const $onUpdate = Symbol('onUpdate');
-/**
- * A SerializableThreeDOMElement is the common primitive of all scene graph
- * elements that have been facaded in the host execution context. It adds
- * a common interface to these elements in support of convenient
- * serializability.
- */
-class ThreeDOMElement {
-    constructor(onUpdate, element, correlatedObjects = null) {
-        this[$onUpdate] = onUpdate;
-        this[$sourceObject] = element;
-        this[$correlatedObjects] = correlatedObjects;
-    }
-}
-
-/* @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-const quadMaterial = new MeshBasicMaterial();
-const quad = new PlaneGeometry(2, 2);
-let adhocNum = 0;
-const $threeTexture = Symbol('threeTexture');
-/**
- * Image facade implementation for Three.js textures
- */
-class Image$1 extends ThreeDOMElement {
-    get [$threeTexture]() {
-        var _a;
-        console.assert(this[$correlatedObjects] != null && this[$correlatedObjects].size > 0, 'Image correlated object is undefined');
-        return (_a = this[$correlatedObjects]) === null || _a === void 0 ? void 0 : _a.values().next().value;
-    }
-    constructor(onUpdate, texture, gltfImage) {
-        gltfImage = gltfImage !== null && gltfImage !== void 0 ? gltfImage : {
-            name: (texture && texture.image && texture.image.src) ?
-                texture.image.src.split('/').pop() :
-                'adhoc_image',
-            uri: (texture && texture.image && texture.image.src) ?
-                texture.image.src :
-                'adhoc_image' + adhocNum++
-        };
-        super(onUpdate, gltfImage, new Set(texture ? [texture] : []));
-    }
-    get name() {
-        return this[$sourceObject].name || '';
-    }
-    get uri() {
-        return this[$sourceObject].uri;
-    }
-    get bufferView() {
-        return this[$sourceObject].bufferView;
-    }
-    get type() {
-        return this.uri != null ? 'external' : 'embedded';
-    }
-    set name(name) {
-        this[$sourceObject].name = name;
-    }
-    async createThumbnail(width, height) {
-        const scene = new Scene();
-        quadMaterial.map = this[$threeTexture];
-        const mesh = new Mesh(quad, quadMaterial);
-        scene.add(mesh);
-        const camera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
-        const { threeRenderer } = Renderer.singleton;
-        const renderTarget = new WebGLRenderTarget(width, height);
-        threeRenderer.setRenderTarget(renderTarget);
-        threeRenderer.render(scene, camera);
-        threeRenderer.setRenderTarget(null);
-        const buffer = new Uint8Array(width * height * 4);
-        threeRenderer.readRenderTargetPixels(renderTarget, 0, 0, width, height, buffer);
-        blobCanvas.width = width;
-        blobCanvas.height = height;
-        const blobContext = blobCanvas.getContext('2d');
-        const imageData = blobContext.createImageData(width, height);
-        imageData.data.set(buffer);
-        blobContext.putImageData(imageData, 0, 0);
-        return new Promise(async (resolve, reject) => {
-            blobCanvas.toBlob(blob => {
-                if (!blob) {
-                    return reject('Failed to capture thumbnail.');
-                }
-                resolve(URL.createObjectURL(blob));
-            }, 'image/png');
-        });
-    }
-}
-
-var Filter;
-(function (Filter) {
-    Filter[Filter["Nearest"] = 9728] = "Nearest";
-    Filter[Filter["Linear"] = 9729] = "Linear";
-    Filter[Filter["NearestMipmapNearest"] = 9984] = "NearestMipmapNearest";
-    Filter[Filter["LinearMipmapNearest"] = 9985] = "LinearMipmapNearest";
-    Filter[Filter["NearestMipmapLinear"] = 9986] = "NearestMipmapLinear";
-    Filter[Filter["LinearMipmapLinear"] = 9987] = "LinearMipmapLinear";
-})(Filter || (Filter = {}));
-var Wrap;
-(function (Wrap) {
-    Wrap[Wrap["ClampToEdge"] = 33071] = "ClampToEdge";
-    Wrap[Wrap["MirroredRepeat"] = 33648] = "MirroredRepeat";
-    Wrap[Wrap["Repeat"] = 10497] = "Repeat";
-})(Wrap || (Wrap = {}));
-
-/* @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-const isMinFilter = (() => {
-    const minFilterValues = [
-        Filter.Nearest,
-        Filter.Linear,
-        Filter.NearestMipmapNearest,
-        Filter.LinearMipmapLinear,
-        Filter.NearestMipmapLinear,
-        Filter.LinearMipmapLinear
-    ];
-    return (value) => minFilterValues.indexOf(value) > -1;
-})();
-const isMagFilter = (() => {
-    const magFilterValues = [Filter.Nearest, Filter.Linear];
-    return (value) => magFilterValues.indexOf(value) > -1;
-})();
-const isWrapMode = (() => {
-    const wrapModes = [Wrap.ClampToEdge, Wrap.MirroredRepeat, Wrap.Repeat];
-    return (value) => wrapModes.indexOf(value) > -1;
-})();
-const isValidSamplerValue = (property, value) => {
-    switch (property) {
-        case 'minFilter':
-            return isMinFilter(value);
-        case 'magFilter':
-            return isMagFilter(value);
-        case 'wrapS':
-        case 'wrapT':
-            return isWrapMode(value);
-        default:
-            throw new Error(`Cannot configure property "${property}" on Sampler`);
-    }
-};
-const $threeTextures = Symbol('threeTextures');
-const $setProperty = Symbol('setProperty');
-const $sourceSampler = Symbol('sourceSampler');
-/**
- * Sampler facade implementation for Three.js textures
- */
-class Sampler extends ThreeDOMElement {
-    get [$threeTextures]() {
-        console.assert(this[$correlatedObjects] != null && this[$correlatedObjects].size > 0, 'Sampler correlated object is undefined');
-        return this[$correlatedObjects];
-    }
-    get [$sourceSampler]() {
-        console.assert(this[$sourceObject] != null, 'Sampler source is undefined');
-        return this[$sourceObject];
-    }
-    constructor(onUpdate, texture, gltfSampler) {
-        gltfSampler = gltfSampler !== null && gltfSampler !== void 0 ? gltfSampler : {};
-        // These defaults represent a convergence of glTF defaults for wrap mode and
-        // Three.js defaults for filters. Per glTF 2.0 spec, a renderer may choose
-        // its own defaults for filters.
-        // @see https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#reference-sampler
-        // @see https://threejs.org/docs/#api/en/textures/Texture
-        if (gltfSampler.minFilter == null) {
-            gltfSampler.minFilter =
-                texture ? texture.minFilter : Filter.LinearMipmapLinear;
-        }
-        if (gltfSampler.magFilter == null) {
-            gltfSampler.magFilter =
-                texture ? texture.magFilter : Filter.Linear;
-        }
-        if (gltfSampler.wrapS == null) {
-            gltfSampler.wrapS = texture ? texture.wrapS : Wrap.Repeat;
-        }
-        if (gltfSampler.wrapT == null) {
-            gltfSampler.wrapT = texture ? texture.wrapT : Wrap.Repeat;
-        }
-        super(onUpdate, gltfSampler, new Set(texture ? [texture] : []));
-    }
-    get name() {
-        return this[$sourceObject].name || '';
-    }
-    get minFilter() {
-        return this[$sourceSampler].minFilter;
-    }
-    get magFilter() {
-        return this[$sourceSampler].magFilter;
-    }
-    get wrapS() {
-        return this[$sourceSampler].wrapS;
-    }
-    get wrapT() {
-        return this[$sourceSampler].wrapT;
-    }
-    setMinFilter(filter) {
-        this[$setProperty]('minFilter', filter);
-    }
-    setMagFilter(filter) {
-        this[$setProperty]('magFilter', filter);
-    }
-    setWrapS(mode) {
-        this[$setProperty]('wrapS', mode);
-    }
-    setWrapT(mode) {
-        this[$setProperty]('wrapT', mode);
-    }
-    [$setProperty](property, value) {
-        const sampler = this[$sourceSampler];
-        if (sampler != null) {
-            if (isValidSamplerValue(property, value)) {
-                sampler[property] = value;
-                for (const texture of this[$threeTextures]) {
-                    texture[property] = value;
-                    texture.needsUpdate = true;
-                }
-            }
-            this[$onUpdate]();
-        }
-    }
-}
-
-/* @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-const $image = Symbol('image');
-const $sampler = Symbol('sampler');
-/**
- * Material facade implementation for Three.js materials
- */
-class Texture extends ThreeDOMElement {
-    constructor(onUpdate, threeTexture, gltfTexture = null, gltfSampler = null, gltfImage = null) {
-        super(onUpdate, gltfTexture ? gltfTexture : {}, new Set(threeTexture ? [threeTexture] : []));
-        this[$sampler] = new Sampler(onUpdate, threeTexture, gltfSampler);
-        this[$image] = new Image$1(onUpdate, threeTexture, gltfImage);
-    }
-    get name() {
-        return this[$sourceObject].name || '';
-    }
-    set name(name) {
-        this[$sourceObject].name = name;
-    }
-    get sampler() {
-        return this[$sampler];
-    }
-    get source() {
-        return this[$image];
-    }
-}
-
-/* @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var _a$3, _b$2;
-const $texture = Symbol('texture');
-const $transform = Symbol('transform');
-const $materials$2 = Symbol('materials');
-const $usage = Symbol('usage');
-// Defines what a texture will be used for.
-var TextureUsage;
-(function (TextureUsage) {
-    TextureUsage[TextureUsage["Base"] = 0] = "Base";
-    TextureUsage[TextureUsage["MetallicRoughness"] = 1] = "MetallicRoughness";
-    TextureUsage[TextureUsage["Normal"] = 2] = "Normal";
-    TextureUsage[TextureUsage["Occlusion"] = 3] = "Occlusion";
-    TextureUsage[TextureUsage["Emissive"] = 4] = "Emissive";
-})(TextureUsage || (TextureUsage = {}));
-/**
- * TextureInfo facade implementation for Three.js materials
- */
-class TextureInfo {
-    constructor(onUpdate, usage, threeTexture, material, gltf, gltfTextureInfo) {
-        this[_a$3] = null;
-        this[_b$2] = {
-            rotation: 0,
-            scale: new Vector2(1, 1),
-            offset: new Vector2(0, 0)
-        };
-        // Creates image, sampler, and texture if valid texture info is provided.
-        if (gltfTextureInfo && threeTexture) {
-            const gltfTexture = gltf.textures ? gltf.textures[gltfTextureInfo.index] : null;
-            const sampler = gltfTexture ?
-                (gltf.samplers ? gltf.samplers[gltfTexture.sampler] : null) :
-                null;
-            const image = gltfTexture ?
-                (gltf.images ? gltf.images[gltfTexture.source] : null) :
-                null;
-            this[$transform].rotation = threeTexture.rotation;
-            this[$transform].scale.copy(threeTexture.repeat);
-            this[$transform].offset.copy(threeTexture.offset);
-            this[$texture] =
-                new Texture(onUpdate, threeTexture, gltfTexture, sampler, image);
-        }
-        this.onUpdate = onUpdate;
-        this[$materials$2] = material;
-        this[$usage] = usage;
-    }
-    get texture() {
-        return this[$texture];
-    }
-    setTexture(texture) {
-        const threeTexture = texture != null ? texture.source[$threeTexture] : null;
-        let encoding = sRGBEncoding;
-        this[$texture] = texture;
-        if (this[$materials$2]) {
-            for (const material of this[$materials$2]) {
-                switch (this[$usage]) {
-                    case TextureUsage.Base:
-                        material.map = threeTexture;
-                        break;
-                    case TextureUsage.MetallicRoughness:
-                        encoding = LinearEncoding;
-                        material.metalnessMap = threeTexture;
-                        material.roughnessMap = threeTexture;
-                        break;
-                    case TextureUsage.Normal:
-                        encoding = LinearEncoding;
-                        material.normalMap = threeTexture;
-                        break;
-                    case TextureUsage.Occlusion:
-                        encoding = LinearEncoding;
-                        material.aoMap = threeTexture;
-                        break;
-                    case TextureUsage.Emissive:
-                        material.emissiveMap = threeTexture;
-                        break;
-                }
-                material.needsUpdate = true;
-            }
-        }
-        if (threeTexture) {
-            // Updates the encoding for the texture, affects all references.
-            threeTexture.encoding = encoding;
-            threeTexture.rotation = this[$transform].rotation;
-            threeTexture.repeat = this[$transform].scale;
-            threeTexture.offset = this[$transform].offset;
-        }
-        this.onUpdate();
-    }
-}
-_a$3 = $texture, _b$2 = $transform;
-
-/* @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-const $threeMaterials = Symbol('threeMaterials');
-const $baseColorTexture = Symbol('baseColorTexture');
-const $metallicRoughnessTexture = Symbol('metallicRoughnessTexture');
-/**
- * PBR material properties facade implementation for Three.js materials
- */
-class PBRMetallicRoughness extends ThreeDOMElement {
-    constructor(onUpdate, gltf, pbrMetallicRoughness, correlatedMaterials) {
-        super(onUpdate, pbrMetallicRoughness, correlatedMaterials);
-        // Assign glTF default values
-        if (pbrMetallicRoughness.baseColorFactor == null) {
-            pbrMetallicRoughness.baseColorFactor = [1, 1, 1, 1];
-        }
-        if (pbrMetallicRoughness.roughnessFactor == null) {
-            pbrMetallicRoughness.roughnessFactor = 1;
-        }
-        if (pbrMetallicRoughness.metallicFactor == null) {
-            pbrMetallicRoughness.metallicFactor = 1;
-        }
-        const { baseColorTexture: gltfBaseColorTexture, metallicRoughnessTexture: gltfMetallicRoughnessTexture } = pbrMetallicRoughness;
-        const { map, metalnessMap } = correlatedMaterials.values().next().value;
-        this[$baseColorTexture] = new TextureInfo(onUpdate, TextureUsage.Base, map, correlatedMaterials, gltf, gltfBaseColorTexture ? gltfBaseColorTexture : null);
-        this[$metallicRoughnessTexture] = new TextureInfo(onUpdate, TextureUsage.MetallicRoughness, metalnessMap, correlatedMaterials, gltf, gltfMetallicRoughnessTexture ? gltfMetallicRoughnessTexture : null);
-    }
-    get [$threeMaterials]() {
-        return this[$correlatedObjects];
-    }
-    get baseColorFactor() {
-        return this[$sourceObject]
-            .baseColorFactor;
-    }
-    get metallicFactor() {
-        return this[$sourceObject]
-            .metallicFactor;
-    }
-    get roughnessFactor() {
-        return this[$sourceObject]
-            .roughnessFactor;
-    }
-    get baseColorTexture() {
-        return this[$baseColorTexture];
-    }
-    get metallicRoughnessTexture() {
-        return this[$metallicRoughnessTexture];
-    }
-    setBaseColorFactor(rgba) {
-        for (const material of this[$threeMaterials]) {
-            material.color.fromArray(rgba);
-            material.opacity = (rgba)[3];
-        }
-        const pbrMetallicRoughness = this[$sourceObject];
-        pbrMetallicRoughness.baseColorFactor = rgba;
-        this[$onUpdate]();
-    }
-    setMetallicFactor(value) {
-        for (const material of this[$threeMaterials]) {
-            material.metalness = value;
-        }
-        const pbrMetallicRoughness = this[$sourceObject];
-        pbrMetallicRoughness.metallicFactor = value;
-        this[$onUpdate]();
-    }
-    setRoughnessFactor(value) {
-        for (const material of this[$threeMaterials]) {
-            material.roughness = value;
-        }
-        const pbrMetallicRoughness = this[$sourceObject];
-        pbrMetallicRoughness.roughnessFactor = value;
-        this[$onUpdate]();
-    }
-}
-
-/* @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var _a$2;
-const $pbrMetallicRoughness = Symbol('pbrMetallicRoughness');
-const $normalTexture = Symbol('normalTexture');
-const $occlusionTexture = Symbol('occlusionTexture');
-const $emissiveTexture = Symbol('emissiveTexture');
-const $backingThreeMaterial = Symbol('backingThreeMaterial');
-const $applyAlphaCutoff = Symbol('applyAlphaCutoff');
-const $lazyLoadGLTFInfo = Symbol('lazyLoadGLTFInfo');
-const $initialize = Symbol('initialize');
-const $getLoadedMaterial = Symbol('getLoadedMaterial');
-const $ensureMaterialIsLoaded = Symbol('ensureMaterialIsLoaded');
-const $gltfIndex = Symbol('gltfIndex');
-const $setActive = Symbol('setActive');
-const $variantIndices = Symbol('variantIndices');
-const $isActive = Symbol('isActive');
-const $variantSet = Symbol('variantSet');
-const $modelVariants$1 = Symbol('modelVariants');
-/**
- * Material facade implementation for Three.js materials
- */
-class Material extends ThreeDOMElement {
-    constructor(onUpdate, gltf, gltfMaterial, gltfIndex, isActive, modelVariants, correlatedMaterials, lazyLoadInfo = undefined) {
-        super(onUpdate, gltfMaterial, correlatedMaterials);
-        this[_a$2] = new Set();
-        this[$gltfIndex] = gltfIndex;
-        this[$isActive] = isActive;
-        this[$modelVariants$1] = modelVariants;
-        if (lazyLoadInfo == null) {
-            this[$initialize](gltf);
-        }
-        else {
-            this[$lazyLoadGLTFInfo] = lazyLoadInfo;
-        }
-    }
-    get [(_a$2 = $variantSet, $backingThreeMaterial)]() {
-        return this[$correlatedObjects]
-            .values()
-            .next()
-            .value;
-    }
-    [$initialize](gltf) {
-        const onUpdate = this[$onUpdate];
-        const gltfMaterial = this[$sourceObject];
-        const correlatedMaterials = this[$correlatedObjects];
-        if (gltfMaterial.extensions &&
-            gltfMaterial.extensions['KHR_materials_pbrSpecularGlossiness']) {
-            console.warn(`Material ${gltfMaterial.name} uses a deprecated extension
-          "KHR_materials_pbrSpecularGlossiness", please use
-          "pbrMetallicRoughness" instead. Specular Glossiness materials are
-          currently supported for rendering, but not for our scene-graph API,
-          nor for auto-generation of USDZ for Quick Look.`);
-        }
-        if (gltfMaterial.pbrMetallicRoughness == null) {
-            gltfMaterial.pbrMetallicRoughness = {};
-        }
-        this[$pbrMetallicRoughness] = new PBRMetallicRoughness(onUpdate, gltf, gltfMaterial.pbrMetallicRoughness, correlatedMaterials);
-        if (gltfMaterial.emissiveFactor == null) {
-            gltfMaterial.emissiveFactor = [0, 0, 0];
-        }
-        if (gltfMaterial.doubleSided == null) {
-            gltfMaterial.doubleSided = false;
-        }
-        if (gltfMaterial.alphaMode == null) {
-            gltfMaterial.alphaMode = 'OPAQUE';
-        }
-        if (gltfMaterial.alphaCutoff == null) {
-            gltfMaterial.alphaCutoff = 0.5;
-        }
-        const { normalTexture: gltfNormalTexture, occlusionTexture: gltfOcclusionTexture, emissiveTexture: gltfEmissiveTexture } = gltfMaterial;
-        const { normalMap, aoMap, emissiveMap } = correlatedMaterials.values().next().value;
-        this[$normalTexture] = new TextureInfo(onUpdate, TextureUsage.Normal, normalMap, correlatedMaterials, gltf, gltfNormalTexture ? gltfNormalTexture : null);
-        this[$occlusionTexture] = new TextureInfo(onUpdate, TextureUsage.Occlusion, aoMap, correlatedMaterials, gltf, gltfOcclusionTexture ? gltfOcclusionTexture : null);
-        this[$emissiveTexture] = new TextureInfo(onUpdate, TextureUsage.Emissive, emissiveMap, correlatedMaterials, gltf, gltfEmissiveTexture ? gltfEmissiveTexture : null);
-    }
-    async [$getLoadedMaterial]() {
-        if (this[$lazyLoadGLTFInfo] != null) {
-            const { set, material } = await this[$lazyLoadGLTFInfo].doLazyLoad();
-            // Fills in the missing data.
-            this[$correlatedObjects] = set;
-            this[$initialize](this[$lazyLoadGLTFInfo].gltf);
-            // Releases lazy load info.
-            this[$lazyLoadGLTFInfo] = undefined;
-            // Redefines the method as a noop method.
-            this.ensureLoaded = async () => { };
-            return material;
-        }
-        return this[$correlatedObjects].values().next().value;
-    }
-    [$ensureMaterialIsLoaded]() {
-        if (this[$lazyLoadGLTFInfo] == null) {
-            return;
-        }
-        throw new Error(`Material "${this.name}" has not been loaded, call 'await
-    myMaterial.ensureLoaded()' before using an unloaded material.`);
-    }
-    async ensureLoaded() {
-        await this[$getLoadedMaterial]();
-    }
-    get isLoaded() {
-        return this[$lazyLoadGLTFInfo] == null;
-    }
-    get isActive() {
-        return this[$isActive];
-    }
-    [$setActive](isActive) {
-        this[$isActive] = isActive;
-    }
-    get name() {
-        return this[$sourceObject].name;
-    }
-    set name(name) {
-        const sourceMaterial = this[$sourceObject];
-        if (sourceMaterial != null) {
-            sourceMaterial.name = name;
-        }
-        if (this[$correlatedObjects] != null) {
-            for (const threeMaterial of this[$correlatedObjects]) {
-                threeMaterial.name = name;
-            }
-        }
-    }
-    get pbrMetallicRoughness() {
-        this[$ensureMaterialIsLoaded]();
-        return this[$pbrMetallicRoughness];
-    }
-    get normalTexture() {
-        this[$ensureMaterialIsLoaded]();
-        return this[$normalTexture];
-    }
-    get occlusionTexture() {
-        this[$ensureMaterialIsLoaded]();
-        return this[$occlusionTexture];
-    }
-    get emissiveTexture() {
-        this[$ensureMaterialIsLoaded]();
-        return this[$emissiveTexture];
-    }
-    get emissiveFactor() {
-        this[$ensureMaterialIsLoaded]();
-        return this[$sourceObject].emissiveFactor;
-    }
-    get index() {
-        return this[$gltfIndex];
-    }
-    [$variantIndices]() {
-        return this[$variantSet];
-    }
-    hasVariant(name) {
-        const variantData = this[$modelVariants$1].get(name);
-        return variantData != null && this[$variantSet].has(variantData.index);
-    }
-    setEmissiveFactor(rgb) {
-        this[$ensureMaterialIsLoaded]();
-        for (const material of this[$correlatedObjects]) {
-            material.emissive.fromArray(rgb);
-        }
-        this[$sourceObject].emissiveFactor = rgb;
-        this[$onUpdate]();
-    }
-    [$applyAlphaCutoff]() {
-        this[$ensureMaterialIsLoaded]();
-        const gltfMaterial = this[$sourceObject];
-        for (const material of this[$correlatedObjects]) {
-            if (this[$sourceObject].alphaMode === 'MASK') {
-                material.alphaTest = gltfMaterial.alphaCutoff;
-            }
-            else {
-                material.alphaTest = undefined;
-            }
-            material.needsUpdate = true;
-        }
-    }
-    setAlphaCutoff(cutoff) {
-        this[$ensureMaterialIsLoaded]();
-        this[$sourceObject].alphaCutoff = cutoff;
-        this[$applyAlphaCutoff]();
-        this[$onUpdate]();
-    }
-    getAlphaCutoff() {
-        this[$ensureMaterialIsLoaded]();
-        return this[$sourceObject].alphaCutoff;
-    }
-    setDoubleSided(doubleSided) {
-        this[$ensureMaterialIsLoaded]();
-        for (const material of this[$correlatedObjects]) {
-            // When double-sided is disabled gltf spec dictates that Back-Face culling
-            // must be disabled, in three.js parlance that would mean FrontSide
-            // rendering only.
-            // https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#double-sided
-            material.side = doubleSided ? DoubleSide : FrontSide;
-            material.needsUpdate = true;
-        }
-        this[$sourceObject].doubleSided = doubleSided;
-        this[$onUpdate]();
-    }
-    getDoubleSided() {
-        this[$ensureMaterialIsLoaded]();
-        return this[$sourceObject].doubleSided;
-    }
-    setAlphaMode(alphaMode) {
-        this[$ensureMaterialIsLoaded]();
-        const enableTransparency = (material, enabled) => {
-            material.transparent = enabled;
-            material.depthWrite = !enabled;
-        };
-        this[$sourceObject].alphaMode = alphaMode;
-        for (const material of this[$correlatedObjects]) {
-            enableTransparency(material, alphaMode === 'BLEND');
-            this[$applyAlphaCutoff]();
-            material.needsUpdate = true;
-        }
-        this[$onUpdate]();
-    }
-    getAlphaMode() {
-        this[$ensureMaterialIsLoaded]();
-        return this[$sourceObject].alphaMode;
-    }
-}
-
-var _a$1, _b$1, _c$1;
-const $materials$1 = Symbol('materials');
-const $variantToMaterialMap = Symbol('variantToMaterialMap');
-const $modelVariants = Symbol('modelVariants');
-const $mesh = Symbol('mesh');
-const $children = Symbol('children');
-const $initialMaterialIdx = Symbol('initialMaterialIdx');
-const $activeMaterialIdx = Symbol('activeMaterialIdx');
-// Defines the base level node methods and data.
-class Node$1 {
-    constructor(name) {
-        this.name = '';
-        this[_a$1] = new Array();
-        this.name = name;
-    }
-}
-_a$1 = $children;
-// Represents a primitive in a glTF mesh.
-class PrimitiveNode extends Node$1 {
-    constructor(mesh, mvMaterials, modelVariants, correlatedSceneGraph) {
-        super(mesh.name);
-        // Maps glTF material index number to a material that this primitive supports.
-        this[_b$1] = new Map();
-        // Maps variant index to material.
-        this[_c$1] = new Map();
-        this[$mesh] = mesh;
-        const { gltf, threeGLTF, threeObjectMap } = correlatedSceneGraph;
-        this[$modelVariants] = modelVariants;
-        this.mesh.userData.variantData = modelVariants;
-        // Captures the primitive's initial material.
-        const materialMappings = threeObjectMap.get(mesh.material);
-        if (materialMappings.materials != null) {
-            this[$initialMaterialIdx] = this[$activeMaterialIdx] =
-                materialMappings.materials;
-        }
-        else {
-            console.error(`Primitive (${mesh.name}) missing initial material reference.`);
-        }
-        // Gets the mesh index from the node.
-        const associations = mesh.userData.associations ||
-            {};
-        if (associations.meshes == null) {
-            console.error('Mesh is missing primitive index association');
-            return;
-        }
-        // The gltf mesh array to sample from.
-        const meshElementArray = gltf['meshes'] || [];
-        // List of primitives under the mesh.
-        const gltfPrimitives = (meshElementArray[associations.meshes].primitives || []);
-        const gltfPrimitive = gltfPrimitives[associations.primitives];
-        if (gltfPrimitive == null) {
-            console.error('Mesh primitive definition is missing.');
-            return;
-        }
-        // Maps the gltfPrimitive default to a material.
-        if (gltfPrimitive.material != null) {
-            this[$materials$1].set(gltfPrimitive.material, mvMaterials[gltfPrimitive.material]);
-        }
-        else {
-            const defaultIdx = mvMaterials.findIndex((mat) => {
-                return mat.name === 'Default';
-            });
-            if (defaultIdx >= 0) {
-                this[$materials$1].set(defaultIdx, mvMaterials[defaultIdx]);
-            }
-            else {
-                console.warn('gltfPrimitive has no material!');
-            }
-        }
-        if (gltfPrimitive.extensions &&
-            gltfPrimitive.extensions['KHR_materials_variants']) {
-            const variantsExtension = gltfPrimitive.extensions['KHR_materials_variants'];
-            const extensions = threeGLTF.parser.json.extensions;
-            const variantNames = extensions['KHR_materials_variants'].variants;
-            // Provides definition now that we know there are variants to
-            // support.
-            for (const mapping of variantsExtension.mappings) {
-                const mvMaterial = mvMaterials[mapping.material];
-                // Maps variant indices to Materials.
-                this[$materials$1].set(mapping.material, mvMaterial);
-                for (const variant of mapping.variants) {
-                    const { name } = variantNames[variant];
-                    this[$variantToMaterialMap].set(variant, mvMaterial);
-                    // Provides variant info for material self lookup.
-                    mvMaterial[$variantIndices]().add(variant);
-                    // Updates the models variant data.
-                    if (!modelVariants.has(name)) {
-                        modelVariants.set(name, { name, index: variant });
-                    }
-                }
-            }
-        }
-    }
-    get mesh() {
-        return this[$mesh];
-    }
-    async setActiveMaterial(material) {
-        const mvMaterial = this[$materials$1].get(material);
-        if (mvMaterial != null) {
-            this.mesh.material = await mvMaterial[$getLoadedMaterial]();
-            this[$activeMaterialIdx] = material;
-        }
-        return this.mesh.material;
-    }
-    getActiveMaterial() {
-        return this[$materials$1].get(this[$activeMaterialIdx]);
-    }
-    getMaterial(index) {
-        return this[$materials$1].get(index);
-    }
-    async enableVariant(name) {
-        if (name == null) {
-            return this.setActiveMaterial(this[$initialMaterialIdx]);
-        }
-        if (this[$variantToMaterialMap] != null && this[$modelVariants].has(name)) {
-            const modelVariants = this[$modelVariants].get(name);
-            return this.enableVariantHelper(modelVariants.index);
-        }
-        return null;
-    }
-    async enableVariantHelper(index) {
-        if (this[$variantToMaterialMap] != null && index != null) {
-            const material = this[$variantToMaterialMap].get(index);
-            if (material != null) {
-                return this.setActiveMaterial(material.index);
-            }
-        }
-        return null;
-    }
-    async instantiateVariants() {
-        if (this[$variantToMaterialMap] == null) {
-            return;
-        }
-        for (const index of this[$variantToMaterialMap].keys()) {
-            if (this.mesh.userData.variantMaterials.get(index).material != null) {
-                continue;
-            }
-            const threeMaterial = await this.enableVariantHelper(index);
-            if (threeMaterial != null) {
-                this.mesh.userData.variantMaterials.get(index).material = threeMaterial;
-            }
-        }
-    }
-    get variantInfo() {
-        return this[$variantToMaterialMap];
-    }
-    addVariant(materialVariant, variantName) {
-        if (!this.ensureVariantIsUnused(variantName)) {
-            return false;
-        }
-        // Adds the variant to the model variants if needed.
-        if (!this[$modelVariants].has(variantName)) {
-            this[$modelVariants].set(variantName, { name: variantName, index: this[$modelVariants].size });
-        }
-        const modelVariantData = this[$modelVariants].get(variantName);
-        const variantIndex = modelVariantData.index;
-        // Updates materials mapped to the variant.
-        materialVariant[$variantIndices]().add(variantIndex);
-        // Updates internal mappings.
-        this[$variantToMaterialMap].set(variantIndex, materialVariant);
-        this[$materials$1].set(materialVariant.index, materialVariant);
-        this.updateVariantUserData(variantIndex, materialVariant);
-        return true;
-    }
-    deleteVariant(variantIndex) {
-        if (this.variantInfo.has(variantIndex)) {
-            this.variantInfo.delete(variantIndex);
-            const userDataMap = this.mesh.userData.variantMaterials;
-            if (userDataMap != null) {
-                userDataMap.delete(variantIndex);
-            }
-        }
-    }
-    updateVariantUserData(variantIndex, materialVariant) {
-        // Adds variants name to material variants set.
-        materialVariant[$variantIndices]().add(variantIndex);
-        this.mesh.userData.variantData = this[$modelVariants];
-        // Updates import data (see VariantMaterialLoaderPlugin.ts).
-        this.mesh.userData.variantMaterials = this.mesh.userData.variantMaterials ||
-            new Map();
-        const map = this.mesh.userData.variantMaterials;
-        map.set(variantIndex, {
-            material: materialVariant[$correlatedObjects].values().next().value,
-            gltfMaterialIndex: materialVariant.index,
-        });
-    }
-    ensureVariantIsUnused(variantName) {
-        const modelVariants = this[$modelVariants].get(variantName);
-        if (modelVariants != null && this.variantInfo.has(modelVariants.index)) {
-            console.warn(`Primitive cannot add variant '${variantName}' for this material, it already exists.`);
-            return false;
-        }
-        return true;
-    }
-}
-_b$1 = $materials$1, _c$1 = $variantToMaterialMap;
-
-/* @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var _a, _b, _c, _d, _e, _f;
-const $materials = Symbol('materials');
-const $hierarchy = Symbol('hierarchy');
-const $roots = Symbol('roots');
-const $primitivesList = Symbol('primitives');
-const $correlatedSceneGraph = Symbol('correlatedSceneGraph');
-const $prepareVariantsForExport = Symbol('prepareVariantsForExport');
-const $switchVariant = Symbol('switchVariant');
-const $threeScene = Symbol('threeScene');
-const $materialsFromPoint = Symbol('materialsFromPoint');
-const $materialFromPoint = Symbol('materialFromPoint');
-const $variantData = Symbol('variantData');
-const $availableVariants = Symbol('availableVariants');
-const $modelOnUpdate = Symbol('modelOnUpdate');
-const $cloneMaterial = Symbol('cloneMaterial');
-// Holds onto temporary scene context information needed to perform lazy loading
-// of a resource.
-class LazyLoader {
-    constructor(gltf, gltfElementMap, mapKey, doLazyLoad) {
-        this.gltf = gltf;
-        this.gltfElementMap = gltfElementMap;
-        this.mapKey = mapKey;
-        this.doLazyLoad = doLazyLoad;
-    }
-}
-/**
- * A Model facades the top-level GLTF object returned by Three.js' GLTFLoader.
- * Currently, the model only bothers itself with the materials in the Three.js
- * scene graph.
- */
-class Model {
-    constructor(correlatedSceneGraph, onUpdate = () => { }) {
-        this[_a] = new Array();
-        this[_b] = new Array();
-        this[_c] = new Array();
-        this[_d] = new Array();
-        this[_e] = () => { };
-        this[_f] = new Map();
-        this[$modelOnUpdate] = onUpdate;
-        this[$correlatedSceneGraph] = correlatedSceneGraph;
-        const { gltf, threeGLTF, gltfElementMap } = correlatedSceneGraph;
-        this[$threeScene] = threeGLTF.scene;
-        for (const [i, material] of gltf.materials.entries()) {
-            const correlatedMaterial = gltfElementMap.get(material);
-            if (correlatedMaterial != null) {
-                this[$materials].push(new Material(onUpdate, gltf, material, i, true, this[$variantData], correlatedMaterial));
-            }
-            else {
-                const elementArray = gltf['materials'] || [];
-                const gltfMaterialDef = elementArray[i];
-                // Loads the three.js material.
-                const capturedMatIndex = i;
-                const materialLoadCallback = async () => {
-                    const threeMaterial = await threeGLTF.parser.getDependency('material', capturedMatIndex);
-                    // Adds correlation, maps the variant gltf-def to the
-                    // three material set containing the variant material.
-                    const threeMaterialSet = new Set();
-                    gltfElementMap.set(gltfMaterialDef, threeMaterialSet);
-                    threeMaterialSet.add(threeMaterial);
-                    return { set: threeMaterialSet, material: threeMaterial };
-                };
-                // Configures the material for lazy loading.
-                this[$materials].push(new Material(onUpdate, gltf, gltfMaterialDef, i, false, this[$variantData], correlatedMaterial, new LazyLoader(gltf, gltfElementMap, gltfMaterialDef, materialLoadCallback)));
-            }
-        }
-        // Creates a hierarchy of Nodes. Allows not just for switching which
-        // material is applied to a mesh but also exposes a way to provide API
-        // for switching materials and general assignment/modification.
-        // Prepares for scene iteration.
-        const parentMap = new Map();
-        const nodeStack = new Array();
-        for (const object of threeGLTF.scene.children) {
-            nodeStack.push(object);
-        }
-        // Walks the hierarchy and creates a node tree.
-        while (nodeStack.length > 0) {
-            const object = nodeStack.pop();
-            let node = null;
-            if (object instanceof Mesh) {
-                node = new PrimitiveNode(object, this.materials, this[$variantData], correlatedSceneGraph);
-                this[$primitivesList].push(node);
-            }
-            else {
-                node = new Node$1(object.name);
-            }
-            const parent = parentMap.get(object);
-            if (parent != null) {
-                parent[$children].push(node);
-            }
-            else {
-                this[$roots].push(node);
-            }
-            this[$hierarchy].push(node);
-            for (const child of object.children) {
-                nodeStack.push(child);
-                parentMap.set(object, node);
-            }
-        }
-    }
-    /**
-     * Materials are listed in the order of the GLTF materials array, plus a
-     * default material at the end if one is used.
-     *
-     * TODO(#1003): How do we handle non-active scenes?
-     */
-    get materials() {
-        return this[$materials];
-    }
-    [(_a = $materials, _b = $hierarchy, _c = $roots, _d = $primitivesList, _e = $modelOnUpdate, _f = $variantData, $availableVariants)]() {
-        const variants = Array.from(this[$variantData].values());
-        variants.sort((a, b) => {
-            return a.index - b.index;
-        });
-        return variants.map((data) => {
-            return data.name;
-        });
-    }
-    getMaterialByName(name) {
-        const matches = this[$materials].filter(material => {
-            return material.name === name;
-        });
-        if (matches.length > 0) {
-            return matches[0];
-        }
-        return null;
-    }
-    /**
-     * Intersects a ray with the Model and returns a list of materials whose
-     * objects were intersected.
-     */
-    [$materialsFromPoint](raycaster) {
-        const hits = raycaster.intersectObject(this[$threeScene], true);
-        // Map the object hits to primitives and then to the active material of
-        // the primitive.
-        return hits.map((hit) => {
-            const found = this[$hierarchy].find((node) => {
-                if (node instanceof PrimitiveNode) {
-                    const primitive = node;
-                    if (primitive.mesh === hit.object) {
-                        return true;
-                    }
-                }
-                return false;
-            });
-            if (found != null) {
-                return found.getActiveMaterial();
-            }
-            return null;
-        });
-    }
-    /**
-     * Intersects a ray with the Model and returns the first material whose
-     * object was intersected.
-     */
-    [$materialFromPoint](raycaster) {
-        const materials = this[$materialsFromPoint](raycaster);
-        if (materials.length > 0) {
-            return materials[0];
-        }
-        return null;
-    }
-    /**
-     * Switches model variant to the variant name provided, or switches to
-     * default/initial materials if 'null' is provided.
-     */
-    async [$switchVariant](variantName) {
-        for (const primitive of this[$primitivesList]) {
-            await primitive.enableVariant(variantName);
-        }
-        for (const material of this.materials) {
-            material[$setActive](false);
-        }
-        // Marks the materials that are now in use after the variant switch.
-        for (const primitive of this[$primitivesList]) {
-            this.materials[primitive.getActiveMaterial().index][$setActive](true);
-        }
-    }
-    async [$prepareVariantsForExport]() {
-        const promises = new Array();
-        for (const primitive of this[$primitivesList]) {
-            promises.push(primitive.instantiateVariants());
-        }
-        await Promise.all(promises);
-    }
-    [$cloneMaterial](index, newMaterialName) {
-        const material = this.materials[index];
-        if (!material.isLoaded) {
-            console.error(`Cloning an unloaded material,
-           call 'material.ensureLoaded() before cloning the material.`);
-        }
-        const threeMaterialSet = material[$correlatedObjects];
-        // clones the gltf material data and updates the material name.
-        const gltfSourceMaterial = JSON.parse(JSON.stringify(material[$sourceObject]));
-        gltfSourceMaterial.name = newMaterialName;
-        // Adds the source material clone to the gltf def.
-        const gltf = this[$correlatedSceneGraph].gltf;
-        gltf.materials.push(gltfSourceMaterial);
-        const clonedSet = new Set();
-        for (const [i, threeMaterial] of threeMaterialSet.entries()) {
-            const clone = threeMaterial.clone();
-            clone.name =
-                newMaterialName + (threeMaterialSet.size > 1 ? '_inst' + i : '');
-            clonedSet.add(clone);
-        }
-        const clonedMaterial = new Material(this[$modelOnUpdate], this[$correlatedSceneGraph].gltf, gltfSourceMaterial, this[$materials].length, false, // Cloned as inactive.
-        this[$variantData], clonedSet);
-        this[$materials].push(clonedMaterial);
-        return clonedMaterial;
-    }
-    createMaterialInstanceForVariant(originalMaterialIndex, newMaterialName, variantName, activateVariant = true) {
-        let variantMaterialInstance = null;
-        for (const primitive of this[$primitivesList]) {
-            const variantData = this[$variantData].get(variantName);
-            // Skips the primitive if the variant already exists.
-            if (variantData != null && primitive.variantInfo.has(variantData.index)) {
-                continue;
-            }
-            // Skips the primitive if the source/original material does not exist.
-            if (primitive.getMaterial(originalMaterialIndex) == null) {
-                continue;
-            }
-            if (!this.hasVariant(variantName)) {
-                this.createVariant(variantName);
-            }
-            if (variantMaterialInstance == null) {
-                variantMaterialInstance =
-                    this[$cloneMaterial](originalMaterialIndex, newMaterialName);
-            }
-            primitive.addVariant(variantMaterialInstance, variantName);
-        }
-        if (activateVariant && variantMaterialInstance != null) {
-            variantMaterialInstance[$setActive](true);
-            this.materials[originalMaterialIndex][$setActive](false);
-            for (const primitive of this[$primitivesList]) {
-                primitive.enableVariant(variantName);
-            }
-        }
-        return variantMaterialInstance;
-    }
-    createVariant(variantName) {
-        if (!this[$variantData].has(variantName)) {
-            // Adds the name if it's not already in the list.
-            this[$variantData].set(variantName, { name: variantName, index: this[$variantData].size });
-        }
-        else {
-            console.warn(`Variant '${variantName}'' already exists`);
-        }
-    }
-    hasVariant(variantName) {
-        return this[$variantData].has(variantName);
-    }
-    setMaterialToVariant(materialIndex, targetVariantName) {
-        if (this[$availableVariants]().find(name => name === targetVariantName) ==
-            null) {
-            console.warn(`Can't add material to '${targetVariantName}', the variant does not exist.'`);
-            return;
-        }
-        if (materialIndex < 0 || materialIndex >= this.materials.length) {
-            console.error(`setMaterialToVariant(): materialIndex is out of bounds.`);
-            return;
-        }
-        for (const primitive of this[$primitivesList]) {
-            const material = primitive.getMaterial(materialIndex);
-            // Ensures the material exists on the primitive before setting it to a
-            // variant.
-            if (material != null) {
-                primitive.addVariant(material, targetVariantName);
-            }
-        }
-    }
-    updateVariantName(currentName, newName) {
-        const variantData = this[$variantData].get(currentName);
-        if (variantData == null) {
-            return;
-        }
-        variantData.name = newName;
-        this[$variantData].set(newName, variantData);
-        this[$variantData].delete(currentName);
-    }
-    deleteVariant(variantName) {
-        const variant = this[$variantData].get(variantName);
-        if (variant == null) {
-            return;
-        }
-        for (const material of this.materials) {
-            if (material.hasVariant(variantName)) {
-                material[$variantSet].delete(variant.index);
-            }
-        }
-        for (const primitive of this[$primitivesList]) {
-            primitive.deleteVariant(variant.index);
-        }
-        this[$variantData].delete(variantName);
-    }
-}
-
-/* @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var __decorate$1 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof undefined === "function") r = undefined(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-const $currentGLTF = Symbol('currentGLTF');
-const $model = Symbol('model');
-const $getOnUpdateMethod = Symbol('getOnUpdateMethod');
-const $textureLoader = Symbol('textureLoader');
-const $originalGltfJson = Symbol('originalGltfJson');
-/**
- * SceneGraphMixin manages exposes a model API in order to support operations on
- * the <model-viewer> scene graph.
- */
-const SceneGraphMixin = (ModelViewerElement) => {
-    var _a, _b, _c, _d;
-    class SceneGraphModelViewerElement extends ModelViewerElement {
-        constructor() {
-            super(...arguments);
-            this[_a] = undefined;
-            this[_b] = null;
-            this[_c] = new TextureLoader();
-            this[_d] = null;
-            this.variantName = null;
-            this.orientation = '0 0 0';
-            this.scale = '1 1 1';
-        }
-        // Scene-graph API:
-        /** @export */
-        get model() {
-            return this[$model];
-        }
-        get availableVariants() {
-            return this.model ? this.model[$availableVariants]() : [];
-        }
-        /**
-         * Returns a deep copy of the gltf JSON as loaded. It will not reflect
-         * changes to the scene-graph, nor will editing it have any effect.
-         */
-        get originalGltfJson() {
-            return this[$originalGltfJson];
-        }
-        [(_a = $model, _b = $currentGLTF, _c = $textureLoader, _d = $originalGltfJson, $getOnUpdateMethod)]() {
-            return () => {
-                this[$needsRender]();
-            };
-        }
-        async createTexture(uri, type = 'image/png') {
-            const currentGLTF = this[$currentGLTF];
-            const texture = await new Promise((resolve) => this[$textureLoader].load(uri, resolve));
-            if (!currentGLTF || !texture) {
-                return null;
-            }
-            // Applies default settings.
-            texture.encoding = sRGBEncoding;
-            texture.wrapS = RepeatWrapping;
-            texture.wrapT = RepeatWrapping;
-            texture.flipY = false;
-            texture.userData.mimeType = type;
-            return new Texture(this[$getOnUpdateMethod](), texture);
-        }
-        async updated(changedProperties) {
-            super.updated(changedProperties);
-            if (changedProperties.has('variantName')) {
-                const threeGLTF = this[$currentGLTF];
-                const { variantName } = this;
-                if (threeGLTF != null) {
-                    await this[$model][$switchVariant](variantName);
-                    this[$needsRender]();
-                    this.dispatchEvent(new CustomEvent('variant-applied'));
-                }
-            }
-            if (changedProperties.has('orientation') ||
-                changedProperties.has('scale')) {
-                if (!this.loaded) {
-                    return;
-                }
-                const scene = this[$scene];
-                scene.applyTransform();
-                scene.updateBoundingBox();
-                scene.updateShadow();
-                this[$renderer].arRenderer.onUpdateScene();
-                this[$needsRender]();
-            }
-        }
-        [$onModelLoad]() {
-            super[$onModelLoad]();
-            const { currentGLTF } = this[$scene];
-            if (currentGLTF != null) {
-                const { correlatedSceneGraph } = currentGLTF;
-                if (correlatedSceneGraph != null &&
-                    currentGLTF !== this[$currentGLTF]) {
-                    this[$model] =
-                        new Model(correlatedSceneGraph, this[$getOnUpdateMethod]());
-                    this[$originalGltfJson] =
-                        JSON.parse(JSON.stringify(correlatedSceneGraph.gltf));
-                }
-                // KHR_materials_variants extension spec:
-                // https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_variants
-                if ('variants' in currentGLTF.userData) {
-                    this.requestUpdate('variantName');
-                }
-            }
-            this[$currentGLTF] = currentGLTF;
-        }
-        /** @export */
-        async exportScene(options) {
-            const scene = this[$scene];
-            return new Promise(async (resolve, reject) => {
-                // Defaults
-                const opts = {
-                    binary: true,
-                    onlyVisible: true,
-                    maxTextureSize: Infinity,
-                    includeCustomExtensions: false,
-                    forceIndices: false
-                };
-                Object.assign(opts, options);
-                // Not configurable
-                opts.animations = scene.animations;
-                opts.truncateDrawRange = true;
-                const shadow = scene.shadow;
-                let visible = false;
-                // Remove shadow from export
-                if (shadow != null) {
-                    visible = shadow.visible;
-                    shadow.visible = false;
-                }
-                await this[$model][$prepareVariantsForExport]();
-                const exporter = new GLTFExporter()
-                    .register((writer) => new GLTFExporterMaterialsVariantsExtension(writer));
-                exporter.parse(scene.model, (gltf) => {
-                    return resolve(new Blob([opts.binary ? gltf : JSON.stringify(gltf)], {
-                        type: opts.binary ? 'application/octet-stream' :
-                            'application/json'
-                    }));
-                }, () => {
-                    return reject('glTF export failed');
-                }, opts);
-                if (shadow != null) {
-                    shadow.visible = visible;
-                }
-            });
-        }
-        materialFromPoint(pixelX, pixelY) {
-            const scene = this[$scene];
-            const ndcCoords = scene.getNDC(pixelX, pixelY);
-            scene.raycaster.setFromCamera(ndcCoords, scene.getCamera());
-            return this[$model][$materialFromPoint](scene.raycaster);
-        }
-    }
-    __decorate$1([
-        e$3({ type: String, attribute: 'variant-name' })
-    ], SceneGraphModelViewerElement.prototype, "variantName", void 0);
-    __decorate$1([
-        e$3({ type: String, attribute: 'orientation' })
-    ], SceneGraphModelViewerElement.prototype, "orientation", void 0);
-    __decorate$1([
-        e$3({ type: String, attribute: 'scale' })
-    ], SceneGraphModelViewerElement.prototype, "scale", void 0);
-    return SceneGraphModelViewerElement;
 };
 
 /* @license
@@ -57982,11 +58872,8 @@ const FocusVisiblePolyfillMixin = (SuperClass) => {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// Uncomment these lines to export PMREM textures in Glitch:
-// export {default as TextureUtils} from './three-components/TextureUtils';
-// export * from 'three';
 const ModelViewerElement = AnnotationMixin(SceneGraphMixin(StagingMixin(EnvironmentMixin(ControlsMixin(ARMixin(LoadingMixin(AnimationMixin(FocusVisiblePolyfillMixin(ModelViewerElementBase)))))))));
 customElements.define('model-viewer', ModelViewerElement);
 
-export { ModelViewerElement };
+export { CanvasTexture, FileLoader, Loader, ModelViewerElement, NearestFilter };
 //# sourceMappingURL=model-viewer.js.map

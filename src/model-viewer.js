@@ -16,11 +16,7 @@ const i$2=(i,e)=>"method"===e.kind&&e.descriptor&&!("value"in e.descriptor)?{...
  * Copyright 2010-2022 Three.js Authors
  * SPDX-License-Identifier: MIT
  */
-<<<<<<< Updated upstream
-const REVISION = '146';
-=======
 const REVISION = '148';
->>>>>>> Stashed changes
 const CullFaceNone = 0;
 const CullFaceBack = 1;
 const CullFaceFront = 2;
@@ -5507,7 +5503,6 @@ class Sphere {
 		if ( this.isEmpty() ) {
 
 			this.center.copy( point );
-<<<<<<< Updated upstream
 
 			this.radius = 0;
 
@@ -5515,15 +5510,6 @@ class Sphere {
 
 		}
 
-=======
-
-			this.radius = 0;
-
-			return this;
-
-		}
-
->>>>>>> Stashed changes
 		_v1$6.subVectors( point, this.center );
 
 		const lengthSq = _v1$6.lengthSq();
@@ -5535,15 +5521,9 @@ class Sphere {
 			const length = Math.sqrt( lengthSq );
 
 			const delta = ( length - this.radius ) * 0.5;
-<<<<<<< Updated upstream
 
 			this.center.addScaledVector( _v1$6, delta / length );
 
-=======
-
-			this.center.addScaledVector( _v1$6, delta / length );
-
->>>>>>> Stashed changes
 			this.radius += delta;
 
 		}
@@ -5557,7 +5537,6 @@ class Sphere {
 		if ( sphere.isEmpty() ) {
 
 			return this;
-<<<<<<< Updated upstream
 
 		}
 
@@ -5571,21 +5550,6 @@ class Sphere {
 
 		if ( this.center.equals( sphere.center ) === true ) {
 
-=======
-
-		}
-
-		if ( this.isEmpty() ) {
-
-			this.copy( sphere );
-
-			return this;
-
-		}
-
-		if ( this.center.equals( sphere.center ) === true ) {
-
->>>>>>> Stashed changes
 			 this.radius = Math.max( this.radius, sphere.radius );
 
 		} else {
@@ -5593,15 +5557,9 @@ class Sphere {
 			_v2$3.subVectors( sphere.center, this.center ).setLength( sphere.radius );
 
 			this.expandByPoint( _v1$6.copy( sphere.center ).add( _v2$3 ) );
-<<<<<<< Updated upstream
 
 			this.expandByPoint( _v1$6.copy( sphere.center ).sub( _v2$3 ) );
 
-=======
-
-			this.expandByPoint( _v1$6.copy( sphere.center ).sub( _v2$3 ) );
-
->>>>>>> Stashed changes
 		}
 
 		return this;
@@ -12918,21 +12876,12 @@ var uv2_vertex = "#if defined( USE_LIGHTMAP ) || defined( USE_AOMAP )\n\tvUv2 = 
 var worldpos_vertex = "#if defined( USE_ENVMAP ) || defined( DISTANCE ) || defined ( USE_SHADOWMAP ) || defined ( USE_TRANSMISSION ) || NUM_SPOT_LIGHT_COORDS > 0\n\tvec4 worldPosition = vec4( transformed, 1.0 );\n\t#ifdef USE_INSTANCING\n\t\tworldPosition = instanceMatrix * worldPosition;\n\t#endif\n\tworldPosition = modelMatrix * worldPosition;\n#endif";
 
 const vertex$h = "varying vec2 vUv;\nuniform mat3 uvTransform;\nvoid main() {\n\tvUv = ( uvTransform * vec3( uv, 1 ) ).xy;\n\tgl_Position = vec4( position.xy, 1.0, 1.0 );\n}";
-<<<<<<< Updated upstream
-
-const fragment$h = "uniform sampler2D t2D;\nvarying vec2 vUv;\nvoid main() {\n\tgl_FragColor = texture2D( t2D, vUv );\n\t#ifdef DECODE_VIDEO_TEXTURE\n\t\tgl_FragColor = vec4( mix( pow( gl_FragColor.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), gl_FragColor.rgb * 0.0773993808, vec3( lessThanEqual( gl_FragColor.rgb, vec3( 0.04045 ) ) ) ), gl_FragColor.w );\n\t#endif\n\t#include <tonemapping_fragment>\n\t#include <encodings_fragment>\n}";
-
-const vertex$g = "varying vec3 vWorldDirection;\n#include <common>\nvoid main() {\n\tvWorldDirection = transformDirection( position, modelMatrix );\n\t#include <begin_vertex>\n\t#include <project_vertex>\n\tgl_Position.z = gl_Position.w;\n}";
-
-const fragment$g = "#ifdef ENVMAP_TYPE_CUBE\n\tuniform samplerCube envMap;\n#elif defined( ENVMAP_TYPE_CUBE_UV )\n\tuniform sampler2D envMap;\n#endif\nuniform float flipEnvMap;\nuniform float backgroundBlurriness;\nvarying vec3 vWorldDirection;\n#include <cube_uv_reflection_fragment>\nvoid main() {\n\t#ifdef ENVMAP_TYPE_CUBE\n\t\tvec4 texColor = textureCube( envMap, vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );\n\t#elif defined( ENVMAP_TYPE_CUBE_UV )\n\t\tvec4 texColor = textureCubeUV( envMap, vWorldDirection, backgroundBlurriness );\n\t#else\n\t\tvec4 texColor = vec4( 0.0, 0.0, 0.0, 1.0 );\n\t#endif\n\tgl_FragColor = texColor;\n\t#include <tonemapping_fragment>\n\t#include <encodings_fragment>\n}";
-=======
 
 const fragment$h = "uniform sampler2D t2D;\nuniform float backgroundIntensity;\nvarying vec2 vUv;\nvoid main() {\n\tvec4 texColor = texture2D( t2D, vUv );\n\t#ifdef DECODE_VIDEO_TEXTURE\n\t\ttexColor = vec4( mix( pow( texColor.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), texColor.rgb * 0.0773993808, vec3( lessThanEqual( texColor.rgb, vec3( 0.04045 ) ) ) ), texColor.w );\n\t#endif\n\ttexColor.rgb *= backgroundIntensity;\n\tgl_FragColor = texColor;\n\t#include <tonemapping_fragment>\n\t#include <encodings_fragment>\n}";
 
 const vertex$g = "varying vec3 vWorldDirection;\n#include <common>\nvoid main() {\n\tvWorldDirection = transformDirection( position, modelMatrix );\n\t#include <begin_vertex>\n\t#include <project_vertex>\n\tgl_Position.z = gl_Position.w;\n}";
 
 const fragment$g = "#ifdef ENVMAP_TYPE_CUBE\n\tuniform samplerCube envMap;\n#elif defined( ENVMAP_TYPE_CUBE_UV )\n\tuniform sampler2D envMap;\n#endif\nuniform float flipEnvMap;\nuniform float backgroundBlurriness;\nuniform float backgroundIntensity;\nvarying vec3 vWorldDirection;\n#include <cube_uv_reflection_fragment>\nvoid main() {\n\t#ifdef ENVMAP_TYPE_CUBE\n\t\tvec4 texColor = textureCube( envMap, vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );\n\t#elif defined( ENVMAP_TYPE_CUBE_UV )\n\t\tvec4 texColor = textureCubeUV( envMap, vWorldDirection, backgroundBlurriness );\n\t#else\n\t\tvec4 texColor = vec4( 0.0, 0.0, 0.0, 1.0 );\n\t#endif\n\ttexColor.rgb *= backgroundIntensity;\n\tgl_FragColor = texColor;\n\t#include <tonemapping_fragment>\n\t#include <encodings_fragment>\n}";
->>>>>>> Stashed changes
 
 const vertex$f = "varying vec3 vWorldDirection;\n#include <common>\nvoid main() {\n\tvWorldDirection = transformDirection( position, modelMatrix );\n\t#include <begin_vertex>\n\t#include <project_vertex>\n\tgl_Position.z = gl_Position.w;\n}";
 
@@ -13576,12 +13525,8 @@ const ShaderLib = {
 		uniforms: {
 			envMap: { value: null },
 			flipEnvMap: { value: - 1 },
-<<<<<<< Updated upstream
-			backgroundBlurriness: { value: 0 }
-=======
 			backgroundBlurriness: { value: 0 },
 			backgroundIntensity: { value: 1 }
->>>>>>> Stashed changes
 		},
 
 		vertexShader: ShaderChunk.backgroundCube_vert,
@@ -13690,11 +13635,8 @@ ShaderLib.physical = {
 
 };
 
-<<<<<<< Updated upstream
-=======
 const _rgb = { r: 0, b: 0, g: 0 };
 
->>>>>>> Stashed changes
 function WebGLBackground( renderer, cubemaps, cubeuvmaps, state, objects, alpha, premultipliedAlpha ) {
 
 	const clearColor = new Color( 0x000000 );
@@ -13793,11 +13735,8 @@ function WebGLBackground( renderer, cubemaps, cubeuvmaps, state, objects, alpha,
 			boxMesh.material.uniforms.envMap.value = background;
 			boxMesh.material.uniforms.flipEnvMap.value = ( background.isCubeTexture && background.isRenderTargetTexture === false ) ? - 1 : 1;
 			boxMesh.material.uniforms.backgroundBlurriness.value = scene.backgroundBlurriness;
-<<<<<<< Updated upstream
-=======
 			boxMesh.material.uniforms.backgroundIntensity.value = scene.backgroundIntensity;
 			boxMesh.material.toneMapped = ( background.encoding === sRGBEncoding ) ? false : true;
->>>>>>> Stashed changes
 
 			if ( currentBackground !== background ||
 				currentBackgroundVersion !== background.version ||
@@ -17264,7 +17203,6 @@ function setValueV2i( gl, v ) {
 	const cache = this.cache;
 
 	if ( v.x !== undefined ) {
-<<<<<<< Updated upstream
 
 		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y ) {
 
@@ -17275,18 +17213,6 @@ function setValueV2i( gl, v ) {
 
 		}
 
-=======
-
-		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y ) {
-
-			gl.uniform2i( this.addr, v.x, v.y );
-
-			cache[ 0 ] = v.x;
-			cache[ 1 ] = v.y;
-
-		}
-
->>>>>>> Stashed changes
 	} else {
 
 		if ( arraysEqual( cache, v ) ) return;
@@ -17304,15 +17230,9 @@ function setValueV3i( gl, v ) {
 	const cache = this.cache;
 
 	if ( v.x !== undefined ) {
-<<<<<<< Updated upstream
 
 		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y || cache[ 2 ] !== v.z ) {
 
-=======
-
-		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y || cache[ 2 ] !== v.z ) {
-
->>>>>>> Stashed changes
 			gl.uniform3i( this.addr, v.x, v.y, v.z );
 
 			cache[ 0 ] = v.x;
@@ -17320,7 +17240,6 @@ function setValueV3i( gl, v ) {
 			cache[ 2 ] = v.z;
 
 		}
-<<<<<<< Updated upstream
 
 	} else {
 
@@ -17330,17 +17249,6 @@ function setValueV3i( gl, v ) {
 
 		copyArray( cache, v );
 
-=======
-
-	} else {
-
-		if ( arraysEqual( cache, v ) ) return;
-
-		gl.uniform3iv( this.addr, v );
-
-		copyArray( cache, v );
-
->>>>>>> Stashed changes
 	}
 
 }
@@ -17350,7 +17258,6 @@ function setValueV4i( gl, v ) {
 	const cache = this.cache;
 
 	if ( v.x !== undefined ) {
-<<<<<<< Updated upstream
 
 		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y || cache[ 2 ] !== v.z || cache[ 3 ] !== v.w ) {
 
@@ -17367,24 +17274,6 @@ function setValueV4i( gl, v ) {
 
 		if ( arraysEqual( cache, v ) ) return;
 
-=======
-
-		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y || cache[ 2 ] !== v.z || cache[ 3 ] !== v.w ) {
-
-			gl.uniform4i( this.addr, v.x, v.y, v.z, v.w );
-
-			cache[ 0 ] = v.x;
-			cache[ 1 ] = v.y;
-			cache[ 2 ] = v.z;
-			cache[ 3 ] = v.w;
-
-		}
-
-	} else {
-
-		if ( arraysEqual( cache, v ) ) return;
-
->>>>>>> Stashed changes
 		gl.uniform4iv( this.addr, v );
 
 		copyArray( cache, v );
@@ -17423,7 +17312,6 @@ function setValueV2ui( gl, v ) {
 			cache[ 1 ] = v.y;
 
 		}
-<<<<<<< Updated upstream
 
 	} else {
 
@@ -17433,17 +17321,6 @@ function setValueV2ui( gl, v ) {
 
 		copyArray( cache, v );
 
-=======
-
-	} else {
-
-		if ( arraysEqual( cache, v ) ) return;
-
-		gl.uniform2uiv( this.addr, v );
-
-		copyArray( cache, v );
-
->>>>>>> Stashed changes
 	}
 
 }
@@ -17453,7 +17330,6 @@ function setValueV3ui( gl, v ) {
 	const cache = this.cache;
 
 	if ( v.x !== undefined ) {
-<<<<<<< Updated upstream
 
 		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y || cache[ 2 ] !== v.z ) {
 
@@ -17465,19 +17341,6 @@ function setValueV3ui( gl, v ) {
 
 		}
 
-=======
-
-		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y || cache[ 2 ] !== v.z ) {
-
-			gl.uniform3ui( this.addr, v.x, v.y, v.z );
-
-			cache[ 0 ] = v.x;
-			cache[ 1 ] = v.y;
-			cache[ 2 ] = v.z;
-
-		}
-
->>>>>>> Stashed changes
 	} else {
 
 		if ( arraysEqual( cache, v ) ) return;
@@ -17495,22 +17358,15 @@ function setValueV4ui( gl, v ) {
 	const cache = this.cache;
 
 	if ( v.x !== undefined ) {
-<<<<<<< Updated upstream
 
 		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y || cache[ 2 ] !== v.z || cache[ 3 ] !== v.w ) {
 
-=======
-
-		if ( cache[ 0 ] !== v.x || cache[ 1 ] !== v.y || cache[ 2 ] !== v.z || cache[ 3 ] !== v.w ) {
-
->>>>>>> Stashed changes
 			gl.uniform4ui( this.addr, v.x, v.y, v.z, v.w );
 
 			cache[ 0 ] = v.x;
 			cache[ 1 ] = v.y;
 			cache[ 2 ] = v.z;
 			cache[ 3 ] = v.w;
-<<<<<<< Updated upstream
 
 		}
 
@@ -17518,15 +17374,6 @@ function setValueV4ui( gl, v ) {
 
 		if ( arraysEqual( cache, v ) ) return;
 
-=======
-
-		}
-
-	} else {
-
-		if ( arraysEqual( cache, v ) ) return;
-
->>>>>>> Stashed changes
 		gl.uniform4uiv( this.addr, v );
 
 		copyArray( cache, v );
@@ -21204,7 +21051,6 @@ function WebGLState( gl, extensions, capabilities ) {
 				if ( currentDepthFunc !== depthFunc ) {
 
 					switch ( depthFunc ) {
-<<<<<<< Updated upstream
 
 						case NeverDepth:
 
@@ -21223,26 +21069,6 @@ function WebGLState( gl, extensions, capabilities ) {
 
 						case LessEqualDepth:
 
-=======
-
-						case NeverDepth:
-
-							gl.depthFunc( 512 );
-							break;
-
-						case AlwaysDepth:
-
-							gl.depthFunc( 519 );
-							break;
-
-						case LessDepth:
-
-							gl.depthFunc( 513 );
-							break;
-
-						case LessEqualDepth:
-
->>>>>>> Stashed changes
 							gl.depthFunc( 515 );
 							break;
 
@@ -22004,19 +21830,11 @@ function WebGLState( gl, extensions, capabilities ) {
 	function bindTexture( webglType, webglTexture, webglSlot ) {
 
 		if ( webglSlot === undefined ) {
-<<<<<<< Updated upstream
 
 			if ( currentTextureSlot === null ) {
 
 				webglSlot = 33984 + maxTextures - 1;
 
-=======
-
-			if ( currentTextureSlot === null ) {
-
-				webglSlot = 33984 + maxTextures - 1;
-
->>>>>>> Stashed changes
 			} else {
 
 				webglSlot = currentTextureSlot;
@@ -22426,11 +22244,7 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 	const maxTextureSize = capabilities.maxTextureSize;
 	const maxSamples = capabilities.maxSamples;
 	const multisampledRTTExt = extensions.has( 'WEBGL_multisampled_render_to_texture' ) ? extensions.get( 'WEBGL_multisampled_render_to_texture' ) : null;
-<<<<<<< Updated upstream
-	const supportsInvalidateFramebuffer = /OculusBrowser/g.test( typeof navigator === 'undefined' ? '' : navigator.userAgent );
-=======
 	const supportsInvalidateFramebuffer = typeof navigator === 'undefined' ? false : /OculusBrowser/g.test( navigator.userAgent );
->>>>>>> Stashed changes
 
 	const _videoTextures = new WeakMap();
 	let _canvas;
@@ -23100,15 +22914,9 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 		const source = texture.source;
 
 		state.bindTexture( textureType, textureProperties.__webglTexture, 33984 + slot );
-<<<<<<< Updated upstream
 
 		const sourceProperties = properties.get( source );
 
-=======
-
-		const sourceProperties = properties.get( source );
-
->>>>>>> Stashed changes
 		if ( source.version !== sourceProperties.__version || forceUpload === true ) {
 
 			state.activeTexture( 33984 + slot );
@@ -23282,7 +23090,6 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 			} else if ( texture.isCompressedTexture ) {
 
 				if ( texture.isCompressedArrayTexture ) {
-<<<<<<< Updated upstream
 
 					if ( useTexStorage && allocateMemory ) {
 
@@ -23304,29 +23111,6 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 								} else {
 
-=======
-
-					if ( useTexStorage && allocateMemory ) {
-
-						state.texStorage3D( 35866, levels, glInternalFormat, mipmaps[ 0 ].width, mipmaps[ 0 ].height, image.depth );
-
-					}
-
-					for ( let i = 0, il = mipmaps.length; i < il; i ++ ) {
-
-						mipmap = mipmaps[ i ];
-
-						if ( texture.format !== RGBAFormat ) {
-
-							if ( glFormat !== null ) {
-
-								if ( useTexStorage ) {
-
-									state.compressedTexSubImage3D( 35866, i, 0, 0, 0, mipmap.width, mipmap.height, image.depth, glFormat, mipmap.data, 0, 0 );
-
-								} else {
-
->>>>>>> Stashed changes
 									state.compressedTexImage3D( 35866, i, glInternalFormat, mipmap.width, mipmap.height, image.depth, 0, mipmap.data, 0, 0 );
 
 								}
@@ -23544,19 +23328,11 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 		const source = texture.source;
 
 		state.bindTexture( 34067, textureProperties.__webglTexture, 33984 + slot );
-<<<<<<< Updated upstream
 
 		const sourceProperties = properties.get( source );
 
 		if ( source.version !== sourceProperties.__version || forceUpload === true ) {
 
-=======
-
-		const sourceProperties = properties.get( source );
-
-		if ( source.version !== sourceProperties.__version || forceUpload === true ) {
-
->>>>>>> Stashed changes
 			state.activeTexture( 33984 + slot );
 
 			_gl.pixelStorei( 37440, texture.flipY );
@@ -29198,10 +28974,7 @@ class Scene extends Object3D {
 		this.fog = null;
 
 		this.backgroundBlurriness = 0;
-<<<<<<< Updated upstream
-=======
 		this.backgroundIntensity = 1;
->>>>>>> Stashed changes
 
 		this.overrideMaterial = null;
 
@@ -29222,10 +28995,7 @@ class Scene extends Object3D {
 		if ( source.fog !== null ) this.fog = source.fog.clone();
 
 		this.backgroundBlurriness = source.backgroundBlurriness;
-<<<<<<< Updated upstream
-=======
 		this.backgroundIntensity = source.backgroundIntensity;
->>>>>>> Stashed changes
 
 		if ( source.overrideMaterial !== null ) this.overrideMaterial = source.overrideMaterial.clone();
 
@@ -29241,10 +29011,7 @@ class Scene extends Object3D {
 
 		if ( this.fog !== null ) data.object.fog = this.fog.toJSON();
 		if ( this.backgroundBlurriness > 0 ) data.backgroundBlurriness = this.backgroundBlurriness;
-<<<<<<< Updated upstream
-=======
 		if ( this.backgroundIntensity !== 1 ) data.backgroundIntensity = this.backgroundIntensity;
->>>>>>> Stashed changes
 
 		return data;
 
@@ -30956,8 +30723,6 @@ class CompressedArrayTexture extends CompressedTexture {
 
 }
 
-<<<<<<< Updated upstream
-=======
 class CanvasTexture extends Texture$1 {
 
 	constructor( canvas, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy ) {
@@ -30972,7 +30737,6 @@ class CanvasTexture extends Texture$1 {
 
 }
 
->>>>>>> Stashed changes
 class MeshStandardMaterial extends Material$1 {
 
 	constructor( parameters ) {
@@ -37466,22 +37230,14 @@ const t$2=window,e$2=t$2.ShadowRoot&&(void 0===t$2.ShadyCSS||t$2.ShadyCSS.native
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
-<<<<<<< Updated upstream
- */var s$2;const e$1=window,r$1=e$1.trustedTypes,h$1=r$1?r$1.emptyScript:"",o$2=e$1.reactiveElementPolyfillSupport,n$3={toAttribute(t,i){switch(i){case Boolean:t=t?h$1:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,i){let s=t;switch(i){case Boolean:s=null!==t;break;case Number:s=null===t?null:Number(t);break;case Object:case Array:try{s=JSON.parse(t);}catch(t){s=null;}}return s}},a$1=(t,i)=>i!==t&&(i==i||t==t),l$2={attribute:!0,type:String,converter:n$3,reflect:!1,hasChanged:a$1};class d$1 extends HTMLElement{constructor(){super(),this._$Ei=new Map,this.isUpdatePending=!1,this.hasUpdated=!1,this._$El=null,this.u();}static addInitializer(t){var i;this.finalize(),(null!==(i=this.h)&&void 0!==i?i:this.h=[]).push(t);}static get observedAttributes(){this.finalize();const t=[];return this.elementProperties.forEach(((i,s)=>{const e=this._$Ep(s,i);void 0!==e&&(this._$Ev.set(e,s),t.push(e));})),t}static createProperty(t,i=l$2){if(i.state&&(i.attribute=!1),this.finalize(),this.elementProperties.set(t,i),!i.noAccessor&&!this.prototype.hasOwnProperty(t)){const s="symbol"==typeof t?Symbol():"__"+t,e=this.getPropertyDescriptor(t,s,i);void 0!==e&&Object.defineProperty(this.prototype,t,e);}}static getPropertyDescriptor(t,i,s){return {get(){return this[i]},set(e){const r=this[t];this[i]=e,this.requestUpdate(t,r,s);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)||l$2}static finalize(){if(this.hasOwnProperty("finalized"))return !1;this.finalized=!0;const t=Object.getPrototypeOf(this);if(t.finalize(),void 0!==t.h&&(this.h=[...t.h]),this.elementProperties=new Map(t.elementProperties),this._$Ev=new Map,this.hasOwnProperty("properties")){const t=this.properties,i=[...Object.getOwnPropertyNames(t),...Object.getOwnPropertySymbols(t)];for(const s of i)this.createProperty(s,t[s]);}return this.elementStyles=this.finalizeStyles(this.styles),!0}static finalizeStyles(i){const s=[];if(Array.isArray(i)){const e=new Set(i.flat(1/0).reverse());for(const i of e)s.unshift(c$1(i));}else void 0!==i&&s.push(c$1(i));return s}static _$Ep(t,i){const s=i.attribute;return !1===s?void 0:"string"==typeof s?s:"string"==typeof t?t.toLowerCase():void 0}u(){var t;this._$E_=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$Eg(),this.requestUpdate(),null===(t=this.constructor.h)||void 0===t||t.forEach((t=>t(this)));}addController(t){var i,s;(null!==(i=this._$ES)&&void 0!==i?i:this._$ES=[]).push(t),void 0!==this.renderRoot&&this.isConnected&&(null===(s=t.hostConnected)||void 0===s||s.call(t));}removeController(t){var i;null===(i=this._$ES)||void 0===i||i.splice(this._$ES.indexOf(t)>>>0,1);}_$Eg(){this.constructor.elementProperties.forEach(((t,i)=>{this.hasOwnProperty(i)&&(this._$Ei.set(i,this[i]),delete this[i]);}));}createRenderRoot(){var t;const s=null!==(t=this.shadowRoot)&&void 0!==t?t:this.attachShadow(this.constructor.shadowRootOptions);return S$1(s,this.constructor.elementStyles),s}connectedCallback(){var t;void 0===this.renderRoot&&(this.renderRoot=this.createRenderRoot()),this.enableUpdating(!0),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostConnected)||void 0===i?void 0:i.call(t)}));}enableUpdating(t){}disconnectedCallback(){var t;null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostDisconnected)||void 0===i?void 0:i.call(t)}));}attributeChangedCallback(t,i,s){this._$AK(t,s);}_$EO(t,i,s=l$2){var e;const r=this.constructor._$Ep(t,s);if(void 0!==r&&!0===s.reflect){const h=(void 0!==(null===(e=s.converter)||void 0===e?void 0:e.toAttribute)?s.converter:n$3).toAttribute(i,s.type);this._$El=t,null==h?this.removeAttribute(r):this.setAttribute(r,h),this._$El=null;}}_$AK(t,i){var s;const e=this.constructor,r=e._$Ev.get(t);if(void 0!==r&&this._$El!==r){const t=e.getPropertyOptions(r),h="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==(null===(s=t.converter)||void 0===s?void 0:s.fromAttribute)?t.converter:n$3;this._$El=r,this[r]=h.fromAttribute(i,t.type),this._$El=null;}}requestUpdate(t,i,s){let e=!0;void 0!==t&&(((s=s||this.constructor.getPropertyOptions(t)).hasChanged||a$1)(this[t],i)?(this._$AL.has(t)||this._$AL.set(t,i),!0===s.reflect&&this._$El!==t&&(void 0===this._$EC&&(this._$EC=new Map),this._$EC.set(t,s))):e=!1),!this.isUpdatePending&&e&&(this._$E_=this._$Ej());}async _$Ej(){this.isUpdatePending=!0;try{await this._$E_;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){var t;if(!this.isUpdatePending)return;this.hasUpdated,this._$Ei&&(this._$Ei.forEach(((t,i)=>this[i]=t)),this._$Ei=void 0);let i=!1;const s=this._$AL;try{i=this.shouldUpdate(s),i?(this.willUpdate(s),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostUpdate)||void 0===i?void 0:i.call(t)})),this.update(s)):this._$Ek();}catch(t){throw i=!1,this._$Ek(),t}i&&this._$AE(s);}willUpdate(t){}_$AE(t){var i;null===(i=this._$ES)||void 0===i||i.forEach((t=>{var i;return null===(i=t.hostUpdated)||void 0===i?void 0:i.call(t)})),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}_$Ek(){this._$AL=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$E_}shouldUpdate(t){return !0}update(t){void 0!==this._$EC&&(this._$EC.forEach(((t,i)=>this._$EO(i,this[i],t))),this._$EC=void 0),this._$Ek();}updated(t){}firstUpdated(t){}}d$1.finalized=!0,d$1.elementProperties=new Map,d$1.elementStyles=[],d$1.shadowRootOptions={mode:"open"},null==o$2||o$2({ReactiveElement:d$1}),(null!==(s$2=e$1.reactiveElementVersions)&&void 0!==s$2?s$2:e$1.reactiveElementVersions=[]).push("1.4.2");
-=======
  */var s$2;const e$1=window,r$1=e$1.trustedTypes,h$1=r$1?r$1.emptyScript:"",o$2=e$1.reactiveElementPolyfillSupport,n$3={toAttribute(t,i){switch(i){case Boolean:t=t?h$1:null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,i){let s=t;switch(i){case Boolean:s=null!==t;break;case Number:s=null===t?null:Number(t);break;case Object:case Array:try{s=JSON.parse(t);}catch(t){s=null;}}return s}},a$1=(t,i)=>i!==t&&(i==i||t==t),l$2={attribute:!0,type:String,converter:n$3,reflect:!1,hasChanged:a$1};class d$1 extends HTMLElement{constructor(){super(),this._$Ei=new Map,this.isUpdatePending=!1,this.hasUpdated=!1,this._$El=null,this.u();}static addInitializer(t){var i;this.finalize(),(null!==(i=this.h)&&void 0!==i?i:this.h=[]).push(t);}static get observedAttributes(){this.finalize();const t=[];return this.elementProperties.forEach(((i,s)=>{const e=this._$Ep(s,i);void 0!==e&&(this._$Ev.set(e,s),t.push(e));})),t}static createProperty(t,i=l$2){if(i.state&&(i.attribute=!1),this.finalize(),this.elementProperties.set(t,i),!i.noAccessor&&!this.prototype.hasOwnProperty(t)){const s="symbol"==typeof t?Symbol():"__"+t,e=this.getPropertyDescriptor(t,s,i);void 0!==e&&Object.defineProperty(this.prototype,t,e);}}static getPropertyDescriptor(t,i,s){return {get(){return this[i]},set(e){const r=this[t];this[i]=e,this.requestUpdate(t,r,s);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)||l$2}static finalize(){if(this.hasOwnProperty("finalized"))return !1;this.finalized=!0;const t=Object.getPrototypeOf(this);if(t.finalize(),void 0!==t.h&&(this.h=[...t.h]),this.elementProperties=new Map(t.elementProperties),this._$Ev=new Map,this.hasOwnProperty("properties")){const t=this.properties,i=[...Object.getOwnPropertyNames(t),...Object.getOwnPropertySymbols(t)];for(const s of i)this.createProperty(s,t[s]);}return this.elementStyles=this.finalizeStyles(this.styles),!0}static finalizeStyles(i){const s=[];if(Array.isArray(i)){const e=new Set(i.flat(1/0).reverse());for(const i of e)s.unshift(c$1(i));}else void 0!==i&&s.push(c$1(i));return s}static _$Ep(t,i){const s=i.attribute;return !1===s?void 0:"string"==typeof s?s:"string"==typeof t?t.toLowerCase():void 0}u(){var t;this._$E_=new Promise((t=>this.enableUpdating=t)),this._$AL=new Map,this._$Eg(),this.requestUpdate(),null===(t=this.constructor.h)||void 0===t||t.forEach((t=>t(this)));}addController(t){var i,s;(null!==(i=this._$ES)&&void 0!==i?i:this._$ES=[]).push(t),void 0!==this.renderRoot&&this.isConnected&&(null===(s=t.hostConnected)||void 0===s||s.call(t));}removeController(t){var i;null===(i=this._$ES)||void 0===i||i.splice(this._$ES.indexOf(t)>>>0,1);}_$Eg(){this.constructor.elementProperties.forEach(((t,i)=>{this.hasOwnProperty(i)&&(this._$Ei.set(i,this[i]),delete this[i]);}));}createRenderRoot(){var t;const s=null!==(t=this.shadowRoot)&&void 0!==t?t:this.attachShadow(this.constructor.shadowRootOptions);return S$1(s,this.constructor.elementStyles),s}connectedCallback(){var t;void 0===this.renderRoot&&(this.renderRoot=this.createRenderRoot()),this.enableUpdating(!0),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostConnected)||void 0===i?void 0:i.call(t)}));}enableUpdating(t){}disconnectedCallback(){var t;null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostDisconnected)||void 0===i?void 0:i.call(t)}));}attributeChangedCallback(t,i,s){this._$AK(t,s);}_$EO(t,i,s=l$2){var e;const r=this.constructor._$Ep(t,s);if(void 0!==r&&!0===s.reflect){const h=(void 0!==(null===(e=s.converter)||void 0===e?void 0:e.toAttribute)?s.converter:n$3).toAttribute(i,s.type);this._$El=t,null==h?this.removeAttribute(r):this.setAttribute(r,h),this._$El=null;}}_$AK(t,i){var s;const e=this.constructor,r=e._$Ev.get(t);if(void 0!==r&&this._$El!==r){const t=e.getPropertyOptions(r),h="function"==typeof t.converter?{fromAttribute:t.converter}:void 0!==(null===(s=t.converter)||void 0===s?void 0:s.fromAttribute)?t.converter:n$3;this._$El=r,this[r]=h.fromAttribute(i,t.type),this._$El=null;}}requestUpdate(t,i,s){let e=!0;void 0!==t&&(((s=s||this.constructor.getPropertyOptions(t)).hasChanged||a$1)(this[t],i)?(this._$AL.has(t)||this._$AL.set(t,i),!0===s.reflect&&this._$El!==t&&(void 0===this._$EC&&(this._$EC=new Map),this._$EC.set(t,s))):e=!1),!this.isUpdatePending&&e&&(this._$E_=this._$Ej());}async _$Ej(){this.isUpdatePending=!0;try{await this._$E_;}catch(t){Promise.reject(t);}const t=this.scheduleUpdate();return null!=t&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){var t;if(!this.isUpdatePending)return;this.hasUpdated,this._$Ei&&(this._$Ei.forEach(((t,i)=>this[i]=t)),this._$Ei=void 0);let i=!1;const s=this._$AL;try{i=this.shouldUpdate(s),i?(this.willUpdate(s),null===(t=this._$ES)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostUpdate)||void 0===i?void 0:i.call(t)})),this.update(s)):this._$Ek();}catch(t){throw i=!1,this._$Ek(),t}i&&this._$AE(s);}willUpdate(t){}_$AE(t){var i;null===(i=this._$ES)||void 0===i||i.forEach((t=>{var i;return null===(i=t.hostUpdated)||void 0===i?void 0:i.call(t)})),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}_$Ek(){this._$AL=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$E_}shouldUpdate(t){return !0}update(t){void 0!==this._$EC&&(this._$EC.forEach(((t,i)=>this._$EO(i,this[i],t))),this._$EC=void 0),this._$Ek();}updated(t){}firstUpdated(t){}}d$1.finalized=!0,d$1.elementProperties=new Map,d$1.elementStyles=[],d$1.shadowRootOptions={mode:"open"},null==o$2||o$2({ReactiveElement:d$1}),(null!==(s$2=e$1.reactiveElementVersions)&&void 0!==s$2?s$2:e$1.reactiveElementVersions=[]).push("1.6.1");
->>>>>>> Stashed changes
 
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-<<<<<<< Updated upstream
-var t$1;const i$1=window,s$1=i$1.trustedTypes,e=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$1=`lit$${(Math.random()+"").slice(9)}$`,n$2="?"+o$1,l$1=`<${n$2}>`,h=document,r=(t="")=>h.createComment(t),d=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u=Array.isArray,c=t=>u(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),v=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,a=/-->/g,f=/>/g,_=RegExp(">|[ \t\n\f\r](?:([^\\s\"'>=/]+)([ \t\n\f\r]*=[ \t\n\f\r]*(?:[^ \t\n\f\r\"'`<>=]|(\"|')|))|$)","g"),m=/'/g,p$1=/"/g,$=/^(?:script|style|textarea|title)$/i,g$1=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),y=g$1(1),x$2=Symbol.for("lit-noChange"),b=Symbol.for("lit-nothing"),T=new WeakMap,A$1=h.createTreeWalker(h,129,null,!1),E=(t,i)=>{const s=t.length-1,n=[];let h,r=2===i?"<svg>":"",d=v;for(let i=0;i<s;i++){const s=t[i];let e,u,c=-1,g=0;for(;g<s.length&&(d.lastIndex=g,u=d.exec(s),null!==u);)g=d.lastIndex,d===v?"!--"===u[1]?d=a:void 0!==u[1]?d=f:void 0!==u[2]?($.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=_):void 0!==u[3]&&(d=_):d===_?">"===u[0]?(d=null!=h?h:v,c=-1):void 0===u[1]?c=-2:(c=d.lastIndex-u[2].length,e=u[1],d=void 0===u[3]?_:'"'===u[3]?p$1:m):d===p$1||d===m?d=_:d===a||d===f?d=v:(d=_,h=void 0);const y=d===_&&t[i+1].startsWith("/>")?" ":"";r+=d===v?s+l$1:c>=0?(n.push(e),s.slice(0,c)+"$lit$"+s.slice(c)+o$1+y):s+o$1+(-2===c?(n.push(void 0),i):y);}const u=r+(t[s]||"<?>")+(2===i?"</svg>":"");if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return [void 0!==e?e.createHTML(u):u,n]};class C$1{constructor({strings:t,_$litType$:i},e){let l;this.parts=[];let h=0,d=0;const u=t.length-1,c=this.parts,[v,a]=E(t,i);if(this.el=C$1.createElement(v,e),A$1.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=A$1.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(o$1)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(o$1),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:h,name:i[2],strings:t,ctor:"."===i[1]?M:"?"===i[1]?k:"@"===i[1]?H:S});}else c.push({type:6,index:h});}for(const i of t)l.removeAttribute(i);}if($.test(l.tagName)){const t=l.textContent.split(o$1),i=t.length-1;if(i>0){l.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)l.append(t[s],r()),A$1.nextNode(),c.push({type:2,index:++h});l.append(t[i],r());}}}else if(8===l.nodeType)if(l.data===n$2)c.push({type:2,index:h});else {let t=-1;for(;-1!==(t=l.data.indexOf(o$1,t+1));)c.push({type:7,index:h}),t+=o$1.length-1;}h++;}}static createElement(t,i){const s=h.createElement("template");return s.innerHTML=t,s}}function P(t,i,s=t,e){var o,n,l,h;if(i===x$2)return i;let r=void 0!==e?null===(o=s._$Co)||void 0===o?void 0:o[e]:s._$Cl;const u=d(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Co)&&void 0!==l?l:h._$Co=[])[e]=r:s._$Cl=r),void 0!==r&&(i=P(t,r._$AS(t,i.values),r,e)),i}class V{constructor(t,i){this.u=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}v(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:h).importNode(s,!0);A$1.currentNode=o;let n=A$1.nextNode(),l=0,r=0,d=e[0];for(;void 0!==d;){if(l===d.index){let i;2===d.type?i=new N(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new I$1(n,this,t)),this.u.push(i),d=e[++r];}l!==(null==d?void 0:d.index)&&(n=A$1.nextNode(),l++);}return o}p(t){let i=0;for(const s of this.u)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class N{constructor(t,i,s,e){var o;this.type=2,this._$AH=b,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cm=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$Cm}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=P(this,t,i),d(t)?t===b||null==t||""===t?(this._$AH!==b&&this._$AR(),this._$AH=b):t!==this._$AH&&t!==x$2&&this.g(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):c(t)?this.k(t):this.g(t);}O(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t));}g(t){this._$AH!==b&&d(this._$AH)?this._$AA.nextSibling.data=t:this.T(h.createTextNode(t)),this._$AH=t;}$(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=C$1.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.p(s);else {const t=new V(o,this),i=t.v(this.options);t.p(s),this.T(i),this._$AH=t;}}_$AC(t){let i=T.get(t.strings);return void 0===i&&T.set(t.strings,i=new C$1(t)),i}k(t){u(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new N(this.O(r()),this.O(r()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$Cm=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class S{constructor(t,i,s,e,o){this.type=1,this._$AH=b,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=b;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=P(this,t,i,0),n=!d(t)||t!==this._$AH&&t!==x$2,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=P(this,e[s+l],i,l),h===x$2&&(h=this._$AH[l]),n||(n=!d(h)||h!==this._$AH[l]),h===b?t=b:t!==b&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.j(t);}j(t){t===b?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class M extends S{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===b?void 0:t;}}const R=s$1?s$1.emptyScript:"";class k extends S{constructor(){super(...arguments),this.type=4;}j(t){t&&t!==b?this.element.setAttribute(this.name,R):this.element.removeAttribute(this.name);}}class H extends S{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=P(this,t,i,0))&&void 0!==s?s:b)===x$2)return;const e=this._$AH,o=t===b&&e!==b||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==b&&(e===b||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class I$1{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){P(this,t);}}const z=i$1.litHtmlPolyfillSupport;null==z||z(C$1,N),(null!==(t$1=i$1.litHtmlVersions)&&void 0!==t$1?t$1:i$1.litHtmlVersions=[]).push("2.4.0");const Z=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new N(i.insertBefore(r(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l};
-=======
 var t$1;const i$1=window,s$1=i$1.trustedTypes,e=s$1?s$1.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$1=`lit$${(Math.random()+"").slice(9)}$`,n$2="?"+o$1,l$1=`<${n$2}>`,h=document,r=(t="")=>h.createComment(t),d=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u=Array.isArray,c=t=>u(t)||"function"==typeof(null==t?void 0:t[Symbol.iterator]),v=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,a=/-->/g,f=/>/g,_=RegExp(">|[ \t\n\f\r](?:([^\\s\"'>=/]+)([ \t\n\f\r]*=[ \t\n\f\r]*(?:[^ \t\n\f\r\"'`<>=]|(\"|')|))|$)","g"),m=/'/g,p$1=/"/g,$=/^(?:script|style|textarea|title)$/i,g$1=t=>(i,...s)=>({_$litType$:t,strings:i,values:s}),y=g$1(1),x$2=Symbol.for("lit-noChange"),b=Symbol.for("lit-nothing"),T=new WeakMap,A$1=h.createTreeWalker(h,129,null,!1),E=(t,i)=>{const s=t.length-1,n=[];let h,r=2===i?"<svg>":"",d=v;for(let i=0;i<s;i++){const s=t[i];let e,u,c=-1,g=0;for(;g<s.length&&(d.lastIndex=g,u=d.exec(s),null!==u);)g=d.lastIndex,d===v?"!--"===u[1]?d=a:void 0!==u[1]?d=f:void 0!==u[2]?($.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=_):void 0!==u[3]&&(d=_):d===_?">"===u[0]?(d=null!=h?h:v,c=-1):void 0===u[1]?c=-2:(c=d.lastIndex-u[2].length,e=u[1],d=void 0===u[3]?_:'"'===u[3]?p$1:m):d===p$1||d===m?d=_:d===a||d===f?d=v:(d=_,h=void 0);const y=d===_&&t[i+1].startsWith("/>")?" ":"";r+=d===v?s+l$1:c>=0?(n.push(e),s.slice(0,c)+"$lit$"+s.slice(c)+o$1+y):s+o$1+(-2===c?(n.push(void 0),i):y);}const u=r+(t[s]||"<?>")+(2===i?"</svg>":"");if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return [void 0!==e?e.createHTML(u):u,n]};class C$1{constructor({strings:t,_$litType$:i},e){let l;this.parts=[];let h=0,d=0;const u=t.length-1,c=this.parts,[v,a]=E(t,i);if(this.el=C$1.createElement(v,e),A$1.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=A$1.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(o$1)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(o$1),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:h,name:i[2],strings:t,ctor:"."===i[1]?M:"?"===i[1]?k:"@"===i[1]?H:S});}else c.push({type:6,index:h});}for(const i of t)l.removeAttribute(i);}if($.test(l.tagName)){const t=l.textContent.split(o$1),i=t.length-1;if(i>0){l.textContent=s$1?s$1.emptyScript:"";for(let s=0;s<i;s++)l.append(t[s],r()),A$1.nextNode(),c.push({type:2,index:++h});l.append(t[i],r());}}}else if(8===l.nodeType)if(l.data===n$2)c.push({type:2,index:h});else {let t=-1;for(;-1!==(t=l.data.indexOf(o$1,t+1));)c.push({type:7,index:h}),t+=o$1.length-1;}h++;}}static createElement(t,i){const s=h.createElement("template");return s.innerHTML=t,s}}function P(t,i,s=t,e){var o,n,l,h;if(i===x$2)return i;let r=void 0!==e?null===(o=s._$Co)||void 0===o?void 0:o[e]:s._$Cl;const u=d(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Co)&&void 0!==l?l:h._$Co=[])[e]=r:s._$Cl=r),void 0!==r&&(i=P(t,r._$AS(t,i.values),r,e)),i}class V{constructor(t,i){this.u=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}v(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:h).importNode(s,!0);A$1.currentNode=o;let n=A$1.nextNode(),l=0,r=0,d=e[0];for(;void 0!==d;){if(l===d.index){let i;2===d.type?i=new N(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new I$1(n,this,t)),this.u.push(i),d=e[++r];}l!==(null==d?void 0:d.index)&&(n=A$1.nextNode(),l++);}return o}p(t){let i=0;for(const s of this.u)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class N{constructor(t,i,s,e){var o;this.type=2,this._$AH=b,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cm=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$Cm}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=P(this,t,i),d(t)?t===b||null==t||""===t?(this._$AH!==b&&this._$AR(),this._$AH=b):t!==this._$AH&&t!==x$2&&this.g(t):void 0!==t._$litType$?this.$(t):void 0!==t.nodeType?this.T(t):c(t)?this.k(t):this.g(t);}O(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}T(t){this._$AH!==t&&(this._$AR(),this._$AH=this.O(t));}g(t){this._$AH!==b&&d(this._$AH)?this._$AA.nextSibling.data=t:this.T(h.createTextNode(t)),this._$AH=t;}$(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=C$1.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.p(s);else {const t=new V(o,this),i=t.v(this.options);t.p(s),this.T(i),this._$AH=t;}}_$AC(t){let i=T.get(t.strings);return void 0===i&&T.set(t.strings,i=new C$1(t)),i}k(t){u(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new N(this.O(r()),this.O(r()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$Cm=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class S{constructor(t,i,s,e,o){this.type=1,this._$AH=b,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=b;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=P(this,t,i,0),n=!d(t)||t!==this._$AH&&t!==x$2,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=P(this,e[s+l],i,l),h===x$2&&(h=this._$AH[l]),n||(n=!d(h)||h!==this._$AH[l]),h===b?t=b:t!==b&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.j(t);}j(t){t===b?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class M extends S{constructor(){super(...arguments),this.type=3;}j(t){this.element[this.name]=t===b?void 0:t;}}const R=s$1?s$1.emptyScript:"";class k extends S{constructor(){super(...arguments),this.type=4;}j(t){t&&t!==b?this.element.setAttribute(this.name,R):this.element.removeAttribute(this.name);}}class H extends S{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=P(this,t,i,0))&&void 0!==s?s:b)===x$2)return;const e=this._$AH,o=t===b&&e!==b||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==b&&(e===b||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class I$1{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){P(this,t);}}const z=i$1.litHtmlPolyfillSupport;null==z||z(C$1,N),(null!==(t$1=i$1.litHtmlVersions)&&void 0!==t$1?t$1:i$1.litHtmlVersions=[]).push("2.6.1");const Z=(t,i,s)=>{var e,o;const n=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let l=n._$litPart$;if(void 0===l){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;n._$litPart$=l=new N(i.insertBefore(r(),t),t,void 0,null!=s?s:{});}return l._$AI(t),l};
->>>>>>> Stashed changes
 
 /**
  * @license
@@ -39140,15 +38896,9 @@ class GLTFLoader extends Loader {
 			}
 
 		} else {
-<<<<<<< Updated upstream
 
 			json = data;
 
-=======
-
-			json = data;
-
->>>>>>> Stashed changes
 		}
 
 		if ( json.asset === undefined || json.asset.version[ 0 ] < 2 ) {
@@ -43777,17 +43527,10 @@ KTX2Loader.BasisWorker = function () {
 				);
 
 				if ( ! status ) {
-<<<<<<< Updated upstream
 
 					cleanup();
 					throw new Error( 'THREE.KTX2Loader: .transcodeImage failed.' );
 
-=======
-
-					cleanup();
-					throw new Error( 'THREE.KTX2Loader: .transcodeImage failed.' );
-
->>>>>>> Stashed changes
 				}
 
 				layerMips.push( dst );
@@ -44699,15 +44442,6 @@ class GLTFExporter {
 
 		this.register( function ( writer ) {
 
-<<<<<<< Updated upstream
-			return new GLTFMaterialsPBRSpecularGlossiness( writer );
-
-		} );
-
-		this.register( function ( writer ) {
-
-=======
->>>>>>> Stashed changes
 			return new GLTFMaterialsTransmissionExtension( writer );
 
 		} );
@@ -44860,21 +44594,6 @@ const GLB_CHUNK_TYPE_BIN = 0x004E4942;
 // Utility functions
 //------------------------------------------------------------------------------
 
-<<<<<<< Updated upstream
-/**
- * Compare two arrays
- * @param  {Array} array1 Array 1 to compare
- * @param  {Array} array2 Array 2 to compare
- * @return {Boolean}        Returns true if both arrays are equal
- */
-function equalArray( array1, array2 ) {
-
-	return ( array1.length === array2.length ) && array1.every( function ( element, index ) {
-
-		return element === array2[ index ];
-
-	} );
-=======
 /**
  * Compare two arrays
  * @param  {Array} array1 Array 1 to compare
@@ -44899,20 +44618,10 @@ function equalArray( array1, array2 ) {
 function stringToArrayBuffer( text ) {
 
 	return new TextEncoder().encode( text ).buffer;
->>>>>>> Stashed changes
 
 }
 
 /**
-<<<<<<< Updated upstream
- * Converts a string to an ArrayBuffer.
- * @param  {string} text
- * @return {ArrayBuffer}
- */
-function stringToArrayBuffer( text ) {
-
-	return new TextEncoder().encode( text ).buffer;
-=======
  * Is identity matrix
  *
  * @param {Matrix4} matrix
@@ -44921,21 +44630,10 @@ function stringToArrayBuffer( text ) {
 function isIdentityMatrix( matrix ) {
 
 	return equalArray( matrix.elements, [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ] );
->>>>>>> Stashed changes
 
 }
 
 /**
-<<<<<<< Updated upstream
- * Is identity matrix
- *
- * @param {Matrix4} matrix
- * @returns {Boolean} Returns true, if parameter is identity matrix
- */
-function isIdentityMatrix( matrix ) {
-
-	return equalArray( matrix.elements, [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ] );
-=======
  * Get the min and max vectors from the given attribute
  * @param  {BufferAttribute} attribute Attribute to find the min/max in range from start to start + count
  * @param  {Integer} start
@@ -44986,73 +44684,10 @@ function getMinMax( attribute, start, count ) {
 	}
 
 	return output;
->>>>>>> Stashed changes
 
 }
 
 /**
-<<<<<<< Updated upstream
- * Get the min and max vectors from the given attribute
- * @param  {BufferAttribute} attribute Attribute to find the min/max in range from start to start + count
- * @param  {Integer} start
- * @param  {Integer} count
- * @return {Object} Object containing the `min` and `max` values (As an array of attribute.itemSize components)
- */
-function getMinMax( attribute, start, count ) {
-
-	const output = {
-
-		min: new Array( attribute.itemSize ).fill( Number.POSITIVE_INFINITY ),
-		max: new Array( attribute.itemSize ).fill( Number.NEGATIVE_INFINITY )
-
-	};
-
-	for ( let i = start; i < start + count; i ++ ) {
-
-		for ( let a = 0; a < attribute.itemSize; a ++ ) {
-
-			let value;
-
-			if ( attribute.itemSize > 4 ) {
-
-				 // no support for interleaved data for itemSize > 4
-
-				value = attribute.array[ i * attribute.itemSize + a ];
-
-			} else {
-
-				if ( a === 0 ) value = attribute.getX( i );
-				else if ( a === 1 ) value = attribute.getY( i );
-				else if ( a === 2 ) value = attribute.getZ( i );
-				else if ( a === 3 ) value = attribute.getW( i );
-
-			}
-
-			output.min[ a ] = Math.min( output.min[ a ], value );
-			output.max[ a ] = Math.max( output.max[ a ], value );
-
-		}
-
-	}
-
-	return output;
-=======
- * Get the required size + padding for a buffer, rounded to the next 4-byte boundary.
- * https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#data-alignment
- *
- * @param {Integer} bufferSize The size the original buffer.
- * @returns {Integer} new buffer size with required padding.
- *
- */
-function getPaddedBufferSize( bufferSize ) {
-
-	return Math.ceil( bufferSize / 4 ) * 4;
->>>>>>> Stashed changes
-
-}
-
-/**
-<<<<<<< Updated upstream
  * Get the required size + padding for a buffer, rounded to the next 4-byte boundary.
  * https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#data-alignment
  *
@@ -45067,138 +44702,6 @@ function getPaddedBufferSize( bufferSize ) {
 }
 
 /**
- * Returns a buffer aligned to 4-byte boundary.
- *
- * @param {ArrayBuffer} arrayBuffer Buffer to pad
- * @param {Integer} paddingByte (Optional)
- * @returns {ArrayBuffer} The same buffer if it's already aligned to 4-byte boundary or a new buffer
- */
-function getPaddedArrayBuffer( arrayBuffer, paddingByte = 0 ) {
-
-	const paddedLength = getPaddedBufferSize( arrayBuffer.byteLength );
-
-	if ( paddedLength !== arrayBuffer.byteLength ) {
-
-		const array = new Uint8Array( paddedLength );
-		array.set( new Uint8Array( arrayBuffer ) );
-
-		if ( paddingByte !== 0 ) {
-
-			for ( let i = arrayBuffer.byteLength; i < paddedLength; i ++ ) {
-
-				array[ i ] = paddingByte;
-
-			}
-
-		}
-
-		return array.buffer;
-
-	}
-
-	return arrayBuffer;
-
-}
-
-function getCanvas() {
-
-	if ( typeof document === 'undefined' && typeof OffscreenCanvas !== 'undefined' ) {
-
-		return new OffscreenCanvas( 1, 1 );
-
-	}
-
-	return document.createElement( 'canvas' );
-
-}
-
-function getToBlobPromise( canvas, mimeType ) {
-
-	if ( canvas.toBlob !== undefined ) {
-
-		return new Promise( ( resolve ) => canvas.toBlob( resolve, mimeType ) );
-
-	}
-
-	let quality;
-
-	// Blink's implementation of convertToBlob seems to default to a quality level of 100%
-	// Use the Blink default quality levels of toBlob instead so that file sizes are comparable.
-	if ( mimeType === 'image/jpeg' ) {
-
-		quality = 0.92;
-
-	} else if ( mimeType === 'image/webp' ) {
-
-		quality = 0.8;
-
-	}
-
-	return canvas.convertToBlob( {
-
-		type: mimeType,
-		quality: quality
-
-	} );
-
-}
-
-/**
- * Writer
- */
-class GLTFWriter {
-
-	constructor() {
-
-		this.plugins = [];
-
-		this.options = {};
-		this.pending = [];
-		this.buffers = [];
-
-		this.byteOffset = 0;
-		this.buffers = [];
-		this.nodeMap = new Map();
-		this.skins = [];
-		this.extensionsUsed = {};
-
-		this.uids = new Map();
-		this.uid = 0;
-
-		this.json = {
-			asset: {
-				version: '2.0',
-				generator: 'THREE.GLTFExporter'
-			}
-		};
-
-		this.cache = {
-			meshes: new Map(),
-			attributes: new Map(),
-			attributesNormalized: new Map(),
-			materials: new Map(),
-			textures: new Map(),
-			images: new Map()
-		};
-
-	}
-
-	setPlugins( plugins ) {
-
-		this.plugins = plugins;
-
-	}
-
-	/**
-	 * Parse scenes and generate GLTF output
-	 * @param  {Scene or [THREE.Scenes]} input   Scene or Array of THREE.Scenes
-	 * @param  {Function} onDone  Callback on completed
-	 * @param  {Object} options options
-	 */
-	async write( input, onDone, options ) {
-
-		this.options = Object.assign( {}, {
-=======
  * Returns a buffer aligned to 4-byte boundary.
  *
  * @param {ArrayBuffer} arrayBuffer Buffer to pad
@@ -45330,7 +44833,6 @@ class GLTFWriter {
 	async write( input, onDone, options = {} ) {
 
 		this.options = Object.assign( {
->>>>>>> Stashed changes
 			// default options
 			binary: false,
 			trs: false,
@@ -45779,15 +45281,12 @@ class GLTFWriter {
 					else if ( a === 2 ) value = attribute.getZ( i );
 					else if ( a === 3 ) value = attribute.getW( i );
 
-<<<<<<< Updated upstream
-=======
 					if ( attribute.normalized === true ) {
 
 						value = MathUtils.normalize( value, attribute.array );
 
 					}
 
->>>>>>> Stashed changes
 				}
 
 				if ( componentType === WEBGL_CONSTANTS.FLOAT ) {
@@ -45977,114 +45476,6 @@ class GLTFWriter {
 	 */
 	processImage( image, format, flipY, mimeType = 'image/png' ) {
 
-<<<<<<< Updated upstream
-		const writer = this;
-		const cache = writer.cache;
-		const json = writer.json;
-		const options = writer.options;
-		const pending = writer.pending;
-
-		if ( ! cache.images.has( image ) ) cache.images.set( image, {} );
-
-		const cachedImages = cache.images.get( image );
-
-		const key = mimeType + ':flipY/' + flipY.toString();
-
-		if ( cachedImages[ key ] !== undefined ) return cachedImages[ key ];
-
-		if ( ! json.images ) json.images = [];
-
-		const imageDef = { mimeType: mimeType };
-
-		const canvas = getCanvas();
-
-		canvas.width = Math.min( image.width, options.maxTextureSize );
-		canvas.height = Math.min( image.height, options.maxTextureSize );
-
-		const ctx = canvas.getContext( '2d' );
-
-		if ( flipY === true ) {
-
-			ctx.translate( 0, canvas.height );
-			ctx.scale( 1, - 1 );
-
-		}
-
-		if ( image.data !== undefined ) { // THREE.DataTexture
-
-			if ( format !== RGBAFormat ) {
-
-				console.error( 'GLTFExporter: Only RGBAFormat is supported.' );
-
-			}
-
-			if ( image.width > options.maxTextureSize || image.height > options.maxTextureSize ) {
-
-				console.warn( 'GLTFExporter: Image size is bigger than maxTextureSize', image );
-
-			}
-
-			const data = new Uint8ClampedArray( image.height * image.width * 4 );
-
-			for ( let i = 0; i < data.length; i += 4 ) {
-
-				data[ i + 0 ] = image.data[ i + 0 ];
-				data[ i + 1 ] = image.data[ i + 1 ];
-				data[ i + 2 ] = image.data[ i + 2 ];
-				data[ i + 3 ] = image.data[ i + 3 ];
-
-			}
-
-			ctx.putImageData( new ImageData( data, image.width, image.height ), 0, 0 );
-
-		} else {
-
-			ctx.drawImage( image, 0, 0, canvas.width, canvas.height );
-
-		}
-
-		if ( options.binary === true ) {
-
-			pending.push(
-
-				getToBlobPromise( canvas, mimeType )
-					.then( blob => writer.processBufferViewImage( blob ) )
-					.then( bufferViewIndex => {
-
-						imageDef.bufferView = bufferViewIndex;
-
-					} )
-
-			);
-
-		} else {
-
-			if ( canvas.toDataURL !== undefined ) {
-
-				imageDef.uri = canvas.toDataURL( mimeType );
-
-			} else {
-
-				pending.push(
-
-					getToBlobPromise( canvas, mimeType )
-						.then( blob => new FileReader().readAsDataURL( blob ) )
-						.then( dataURL => {
-
-							imageDef.uri = dataURL;
-
-						} )
-
-				);
-
-			}
-
-		}
-
-		const index = json.images.push( imageDef ) - 1;
-		cachedImages[ key ] = index;
-		return index;
-=======
 		if ( image !== null ) {
 
 			const writer = this;
@@ -46199,7 +45590,6 @@ class GLTFWriter {
 			throw new Error( 'THREE.GLTFExporter: No valid image data found. Unable to process texture.' );
 
 		}
->>>>>>> Stashed changes
 
 	}
 
@@ -46635,14 +46025,6 @@ class GLTFWriter {
 
 						for ( let j = 0, jl = attribute.count; j < jl; j ++ ) {
 
-<<<<<<< Updated upstream
-							relativeAttribute.setXYZ(
-								j,
-								attribute.getX( j ) - baseAttribute.getX( j ),
-								attribute.getY( j ) - baseAttribute.getY( j ),
-								attribute.getZ( j ) - baseAttribute.getZ( j )
-							);
-=======
 							for ( let a = 0; a < attribute.itemSize; a ++ ) {
 
 								if ( a === 0 ) relativeAttribute.setX( j, attribute.getX( j ) - baseAttribute.getX( j ) );
@@ -46651,7 +46033,6 @@ class GLTFWriter {
 								if ( a === 3 ) relativeAttribute.setW( j, attribute.getW( j ) - baseAttribute.getW( j ) );
 
 							}
->>>>>>> Stashed changes
 
 						}
 
@@ -46754,7 +46135,6 @@ class GLTFWriter {
 	 * @return {Integer}      Index of the processed mesh in the "camera" array
 	 */
 	processCamera( camera ) {
-<<<<<<< Updated upstream
 
 		const json = this.json;
 
@@ -46855,108 +46235,6 @@ class GLTFWriter {
 
 			let interpolation;
 
-=======
-
-		const json = this.json;
-
-		if ( ! json.cameras ) json.cameras = [];
-
-		const isOrtho = camera.isOrthographicCamera;
-
-		const cameraDef = {
-			type: isOrtho ? 'orthographic' : 'perspective'
-		};
-
-		if ( isOrtho ) {
-
-			cameraDef.orthographic = {
-				xmag: camera.right * 2,
-				ymag: camera.top * 2,
-				zfar: camera.far <= 0 ? 0.001 : camera.far,
-				znear: camera.near < 0 ? 0 : camera.near
-			};
-
-		} else {
-
-			cameraDef.perspective = {
-				aspectRatio: camera.aspect,
-				yfov: MathUtils.degToRad( camera.fov ),
-				zfar: camera.far <= 0 ? 0.001 : camera.far,
-				znear: camera.near < 0 ? 0 : camera.near
-			};
-
-		}
-
-		// Question: Is saving "type" as name intentional?
-		if ( camera.name !== '' ) cameraDef.name = camera.type;
-
-		return json.cameras.push( cameraDef ) - 1;
-
-	}
-
-	/**
-	 * Creates glTF animation entry from AnimationClip object.
-	 *
-	 * Status:
-	 * - Only properties listed in PATH_PROPERTIES may be animated.
-	 *
-	 * @param {THREE.AnimationClip} clip
-	 * @param {THREE.Object3D} root
-	 * @return {number|null}
-	 */
-	processAnimation( clip, root ) {
-
-		const json = this.json;
-		const nodeMap = this.nodeMap;
-
-		if ( ! json.animations ) json.animations = [];
-
-		clip = GLTFExporter.Utils.mergeMorphTargetTracks( clip.clone(), root );
-
-		const tracks = clip.tracks;
-		const channels = [];
-		const samplers = [];
-
-		for ( let i = 0; i < tracks.length; ++ i ) {
-
-			const track = tracks[ i ];
-			const trackBinding = PropertyBinding.parseTrackName( track.name );
-			let trackNode = PropertyBinding.findNode( root, trackBinding.nodeName );
-			const trackProperty = PATH_PROPERTIES[ trackBinding.propertyName ];
-
-			if ( trackBinding.objectName === 'bones' ) {
-
-				if ( trackNode.isSkinnedMesh === true ) {
-
-					trackNode = trackNode.skeleton.getBoneByName( trackBinding.objectIndex );
-
-				} else {
-
-					trackNode = undefined;
-
-				}
-
-			}
-
-			if ( ! trackNode || ! trackProperty ) {
-
-				console.warn( 'THREE.GLTFExporter: Could not export animation track "%s".', track.name );
-				return null;
-
-			}
-
-			const inputItemSize = 1;
-			let outputItemSize = track.values.length / track.times.length;
-
-			if ( trackProperty === PATH_PROPERTIES.morphTargetInfluences ) {
-
-				outputItemSize /= trackNode.morphTargetInfluences.length;
-
-			}
-
-			let interpolation;
-
->>>>>>> Stashed changes
 			// @TODO export CubicInterpolant(InterpolateSmooth) as CUBICSPLINE
 
 			// Detecting glTF cubic spline interpolant by checking factory method's special property
@@ -47058,7 +46336,6 @@ class GLTFWriter {
 	 * @return {Integer} Index of the node in the nodes list
 	 */
 	processNode( object ) {
-<<<<<<< Updated upstream
 
 		const json = this.json;
 		const options = this.options;
@@ -47215,101 +46492,6 @@ class GLTFWriter {
 		scene.name = 'AuxScene';
 
 		for ( let i = 0; i < objects.length; i ++ ) {
-=======
-
-		const json = this.json;
-		const options = this.options;
-		const nodeMap = this.nodeMap;
-
-		if ( ! json.nodes ) json.nodes = [];
-
-		const nodeDef = {};
-
-		if ( options.trs ) {
-
-			const rotation = object.quaternion.toArray();
-			const position = object.position.toArray();
-			const scale = object.scale.toArray();
-
-			if ( ! equalArray( rotation, [ 0, 0, 0, 1 ] ) ) {
-
-				nodeDef.rotation = rotation;
-
-			}
-
-			if ( ! equalArray( position, [ 0, 0, 0 ] ) ) {
-
-				nodeDef.translation = position;
-
-			}
-
-			if ( ! equalArray( scale, [ 1, 1, 1 ] ) ) {
-
-				nodeDef.scale = scale;
-
-			}
-
-		} else {
-
-			if ( object.matrixAutoUpdate ) {
-
-				object.updateMatrix();
-
-			}
-
-			if ( isIdentityMatrix( object.matrix ) === false ) {
-
-				nodeDef.matrix = object.matrix.elements;
-
-			}
-
-		}
-
-		// We don't export empty strings name because it represents no-name in Three.js.
-		if ( object.name !== '' ) nodeDef.name = String( object.name );
-
-		this.serializeUserData( object, nodeDef );
-
-		if ( object.isMesh || object.isLine || object.isPoints ) {
-
-			const meshIndex = this.processMesh( object );
-
-			if ( meshIndex !== null ) nodeDef.mesh = meshIndex;
-
-		} else if ( object.isCamera ) {
-
-			nodeDef.camera = this.processCamera( object );
-
-		}
-
-		if ( object.isSkinnedMesh ) this.skins.push( object );
-
-		if ( object.children.length > 0 ) {
-
-			const children = [];
-
-			for ( let i = 0, l = object.children.length; i < l; i ++ ) {
-
-				const child = object.children[ i ];
-
-				if ( child.visible || options.onlyVisible === false ) {
-
-					const nodeIndex = this.processNode( child );
-
-					if ( nodeIndex !== null ) children.push( nodeIndex );
-
-				}
-
-			}
-
-			if ( children.length > 0 ) nodeDef.children = children;
-
-		}
-
-		this._invokeAll( function ( ext ) {
-
-			ext.writeNode && ext.writeNode( object, nodeDef );
->>>>>>> Stashed changes
 
 			// We push directly to children instead of calling `add` to prevent
 			// modify the .parent and break its original scene and hierarchy
@@ -47319,14 +46501,9 @@ class GLTFWriter {
 
 		this.processScene( scene );
 
-		const nodeIndex = json.nodes.push( nodeDef ) - 1;
-		nodeMap.set( object, nodeIndex );
-		return nodeIndex;
-
 	}
 
 	/**
-<<<<<<< Updated upstream
 	 * @param {THREE.Object3D|Array<THREE.Object3D>} input
 	 */
 	processInput( input ) {
@@ -47376,28 +46553,9 @@ class GLTFWriter {
 			ext.afterParse && ext.afterParse( input );
 
 		} );
-=======
-	 * Process Scene
-	 * @param  {Scene} node Scene to process
-	 */
-	processScene( scene ) {
 
-		const json = this.json;
-		const options = this.options;
+	}
 
-		if ( ! json.scenes ) {
-
-			json.scenes = [];
-			json.scene = 0;
-
-		}
-
-		const sceneDef = {};
->>>>>>> Stashed changes
-
-		if ( scene.name !== '' ) sceneDef.name = scene.name;
-
-<<<<<<< Updated upstream
 	_invokeAll( func ) {
 
 		for ( let i = 0, il = this.plugins.length; i < il; i ++ ) {
@@ -47420,236 +46578,6 @@ class GLTFLightExtension {
 	constructor( writer ) {
 
 		this.writer = writer;
-		this.name = 'KHR_lights_punctual';
-
-	}
-
-	writeNode( light, nodeDef ) {
-
-		if ( ! light.isLight ) return;
-
-		if ( ! light.isDirectionalLight && ! light.isPointLight && ! light.isSpotLight ) {
-
-			console.warn( 'THREE.GLTFExporter: Only directional, point, and spot lights are supported.', light );
-			return;
-
-		}
-
-		const writer = this.writer;
-		const json = writer.json;
-		const extensionsUsed = writer.extensionsUsed;
-=======
-		json.scenes.push( sceneDef );
-
-		const nodes = [];
-
-		for ( let i = 0, l = scene.children.length; i < l; i ++ ) {
-
-			const child = scene.children[ i ];
-
-			if ( child.visible || options.onlyVisible === false ) {
-
-				const nodeIndex = this.processNode( child );
-
-				if ( nodeIndex !== null ) nodes.push( nodeIndex );
-
-			}
-
-		}
-
-		if ( nodes.length > 0 ) sceneDef.nodes = nodes;
-
-		this.serializeUserData( scene, sceneDef );
-
-	}
-
-	/**
-	 * Creates a Scene to hold a list of objects and parse it
-	 * @param  {Array} objects List of objects to process
-	 */
-	processObjects( objects ) {
-
-		const scene = new Scene();
-		scene.name = 'AuxScene';
-
-		for ( let i = 0; i < objects.length; i ++ ) {
-
-			// We push directly to children instead of calling `add` to prevent
-			// modify the .parent and break its original scene and hierarchy
-			scene.children.push( objects[ i ] );
-
-		}
-
-		this.processScene( scene );
->>>>>>> Stashed changes
-
-		const lightDef = {};
-
-<<<<<<< Updated upstream
-		if ( light.name ) lightDef.name = light.name;
-
-		lightDef.color = light.color.toArray();
-
-		lightDef.intensity = light.intensity;
-
-		if ( light.isDirectionalLight ) {
-=======
-	/**
-	 * @param {THREE.Object3D|Array<THREE.Object3D>} input
-	 */
-	processInput( input ) {
-
-		const options = this.options;
-
-		input = input instanceof Array ? input : [ input ];
-
-		this._invokeAll( function ( ext ) {
-
-			ext.beforeParse && ext.beforeParse( input );
->>>>>>> Stashed changes
-
-			lightDef.type = 'directional';
-
-<<<<<<< Updated upstream
-		} else if ( light.isPointLight ) {
-
-			lightDef.type = 'point';
-
-			if ( light.distance > 0 ) lightDef.range = light.distance;
-
-		} else if ( light.isSpotLight ) {
-
-			lightDef.type = 'spot';
-
-			if ( light.distance > 0 ) lightDef.range = light.distance;
-
-			lightDef.spot = {};
-			lightDef.spot.innerConeAngle = ( light.penumbra - 1.0 ) * light.angle * - 1.0;
-			lightDef.spot.outerConeAngle = light.angle;
-
-		}
-
-		if ( light.decay !== undefined && light.decay !== 2 ) {
-
-			console.warn( 'THREE.GLTFExporter: Light decay may be lost. glTF is physically-based, '
-				+ 'and expects light.decay=2.' );
-
-		}
-
-		if ( light.target
-				&& ( light.target.parent !== light
-				|| light.target.position.x !== 0
-				|| light.target.position.y !== 0
-				|| light.target.position.z !== - 1 ) ) {
-
-			console.warn( 'THREE.GLTFExporter: Light direction may be lost. For best results, '
-				+ 'make light.target a child of the light with position 0,0,-1.' );
-
-		}
-
-		if ( ! extensionsUsed[ this.name ] ) {
-
-			json.extensions = json.extensions || {};
-			json.extensions[ this.name ] = { lights: [] };
-			extensionsUsed[ this.name ] = true;
-
-		}
-
-		const lights = json.extensions[ this.name ].lights;
-		lights.push( lightDef );
-
-		nodeDef.extensions = nodeDef.extensions || {};
-		nodeDef.extensions[ this.name ] = { light: lights.length - 1 };
-=======
-		const objectsWithoutScene = [];
-
-		for ( let i = 0; i < input.length; i ++ ) {
-
-			if ( input[ i ] instanceof Scene ) {
-
-				this.processScene( input[ i ] );
-
-			} else {
-
-				objectsWithoutScene.push( input[ i ] );
-
-			}
-
-		}
-
-		if ( objectsWithoutScene.length > 0 ) this.processObjects( objectsWithoutScene );
-
-		for ( let i = 0; i < this.skins.length; ++ i ) {
-
-			this.processSkin( this.skins[ i ] );
-
-		}
-
-		for ( let i = 0; i < options.animations.length; ++ i ) {
-
-			this.processAnimation( options.animations[ i ], input[ 0 ] );
-
-		}
-
-		this._invokeAll( function ( ext ) {
-
-			ext.afterParse && ext.afterParse( input );
-
-		} );
-
-	}
-
-	_invokeAll( func ) {
-
-		for ( let i = 0, il = this.plugins.length; i < il; i ++ ) {
-
-			func( this.plugins[ i ] );
-
-		}
->>>>>>> Stashed changes
-
-	}
-
-}
-
-/**
-<<<<<<< Updated upstream
- * Unlit Materials Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_unlit
- */
-class GLTFMaterialsUnlitExtension {
-=======
- * Punctual Lights Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_lights_punctual
- */
-class GLTFLightExtension {
->>>>>>> Stashed changes
-
-	constructor( writer ) {
-
-		this.writer = writer;
-<<<<<<< Updated upstream
-		this.name = 'KHR_materials_unlit';
-
-	}
-
-	writeMaterial( material, materialDef ) {
-
-		if ( ! material.isMeshBasicMaterial ) return;
-
-		const writer = this.writer;
-		const extensionsUsed = writer.extensionsUsed;
-
-		materialDef.extensions = materialDef.extensions || {};
-		materialDef.extensions[ this.name ] = {};
-
-		extensionsUsed[ this.name ] = true;
-
-		materialDef.pbrMetallicRoughness.metallicFactor = 0.0;
-		materialDef.pbrMetallicRoughness.roughnessFactor = 0.9;
-=======
 		this.name = 'KHR_lights_punctual';
 
 	}
@@ -47730,22 +46658,12 @@ class GLTFLightExtension {
 
 		nodeDef.extensions = nodeDef.extensions || {};
 		nodeDef.extensions[ this.name ] = { light: lights.length - 1 };
->>>>>>> Stashed changes
 
 	}
 
 }
 
 /**
-<<<<<<< Updated upstream
- * Specular-Glossiness Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Archived/KHR_materials_pbrSpecularGlossiness
- */
-class GLTFMaterialsPBRSpecularGlossiness {
-
-	constructor( writer ) {
-=======
  * Unlit Materials Extension
  *
  * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_unlit
@@ -47775,107 +46693,9 @@ class GLTFMaterialsUnlitExtension {
 		materialDef.pbrMetallicRoughness.roughnessFactor = 0.9;
 
 	}
->>>>>>> Stashed changes
 
-		this.writer = writer;
-		this.name = 'KHR_materials_pbrSpecularGlossiness';
+}
 
-<<<<<<< Updated upstream
-	}
-
-	writeMaterial( material, materialDef ) {
-
-		if ( ! material.isGLTFSpecularGlossinessMaterial ) return;
-
-		const writer = this.writer;
-		const extensionsUsed = writer.extensionsUsed;
-
-		const extensionDef = {};
-
-		if ( materialDef.pbrMetallicRoughness.baseColorFactor ) {
-
-			extensionDef.diffuseFactor = materialDef.pbrMetallicRoughness.baseColorFactor;
-
-		}
-
-		const specularFactor = [ 1, 1, 1 ];
-		material.specular.toArray( specularFactor, 0 );
-		extensionDef.specularFactor = specularFactor;
-		extensionDef.glossinessFactor = material.glossiness;
-
-		if ( materialDef.pbrMetallicRoughness.baseColorTexture ) {
-
-			extensionDef.diffuseTexture = materialDef.pbrMetallicRoughness.baseColorTexture;
-
-		}
-
-		if ( material.specularMap ) {
-
-			const specularMapDef = { index: writer.processTexture( material.specularMap ) };
-			writer.applyTextureTransform( specularMapDef, material.specularMap );
-			extensionDef.specularGlossinessTexture = specularMapDef;
-
-		}
-
-		materialDef.extensions = materialDef.extensions || {};
-		materialDef.extensions[ this.name ] = extensionDef;
-		extensionsUsed[ this.name ] = true;
-
-	}
-=======
-/**
- * Clearcoat Materials Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_clearcoat
- */
-class GLTFMaterialsClearcoatExtension {
-
-	constructor( writer ) {
-
-		this.writer = writer;
-		this.name = 'KHR_materials_clearcoat';
-
-	}
-
-	writeMaterial( material, materialDef ) {
-
-		if ( ! material.isMeshPhysicalMaterial ) return;
-
-		const writer = this.writer;
-		const extensionsUsed = writer.extensionsUsed;
-
-		const extensionDef = {};
-
-		extensionDef.clearcoatFactor = material.clearcoat;
-
-		if ( material.clearcoatMap ) {
-
-			const clearcoatMapDef = { index: writer.processTexture( material.clearcoatMap ) };
-			writer.applyTextureTransform( clearcoatMapDef, material.clearcoatMap );
-			extensionDef.clearcoatTexture = clearcoatMapDef;
-
-		}
-
-		extensionDef.clearcoatRoughnessFactor = material.clearcoatRoughness;
-
-		if ( material.clearcoatRoughnessMap ) {
-
-			const clearcoatRoughnessMapDef = { index: writer.processTexture( material.clearcoatRoughnessMap ) };
-			writer.applyTextureTransform( clearcoatRoughnessMapDef, material.clearcoatRoughnessMap );
-			extensionDef.clearcoatRoughnessTexture = clearcoatRoughnessMapDef;
-
-		}
-
-		if ( material.clearcoatNormalMap ) {
-
-			const clearcoatNormalMapDef = { index: writer.processTexture( material.clearcoatNormalMap ) };
-			writer.applyTextureTransform( clearcoatNormalMapDef, material.clearcoatNormalMap );
-			extensionDef.clearcoatNormalTexture = clearcoatNormalMapDef;
->>>>>>> Stashed changes
-
-		}
-
-<<<<<<< Updated upstream
 /**
  * Clearcoat Materials Extension
  *
@@ -47930,11 +46750,6 @@ class GLTFMaterialsClearcoatExtension {
 		materialDef.extensions = materialDef.extensions || {};
 		materialDef.extensions[ this.name ] = extensionDef;
 
-=======
-		materialDef.extensions = materialDef.extensions || {};
-		materialDef.extensions[ this.name ] = extensionDef;
-
->>>>>>> Stashed changes
 		extensionsUsed[ this.name ] = true;
 
 
@@ -47964,8 +46779,6 @@ class GLTFMaterialsIridescenceExtension {
 		const extensionsUsed = writer.extensionsUsed;
 
 		const extensionDef = {};
-<<<<<<< Updated upstream
-=======
 
 		extensionDef.iridescenceFactor = material.iridescence;
 
@@ -47986,57 +46799,12 @@ class GLTFMaterialsIridescenceExtension {
 			const iridescenceThicknessMapDef = { index: writer.processTexture( material.iridescenceThicknessMap ) };
 			writer.applyTextureTransform( iridescenceThicknessMapDef, material.iridescenceThicknessMap );
 			extensionDef.iridescenceThicknessTexture = iridescenceThicknessMapDef;
->>>>>>> Stashed changes
-
-		extensionDef.iridescenceFactor = material.iridescence;
-
-<<<<<<< Updated upstream
-		if ( material.iridescenceMap ) {
-=======
-		materialDef.extensions = materialDef.extensions || {};
-		materialDef.extensions[ this.name ] = extensionDef;
-
-		extensionsUsed[ this.name ] = true;
->>>>>>> Stashed changes
-
-			const iridescenceMapDef = { index: writer.processTexture( material.iridescenceMap ) };
-			writer.applyTextureTransform( iridescenceMapDef, material.iridescenceMap );
-			extensionDef.iridescenceTexture = iridescenceMapDef;
-
-<<<<<<< Updated upstream
-		}
-
-		extensionDef.iridescenceIor = material.iridescenceIOR;
-		extensionDef.iridescenceThicknessMinimum = material.iridescenceThicknessRange[ 0 ];
-		extensionDef.iridescenceThicknessMaximum = material.iridescenceThicknessRange[ 1 ];
-
-		if ( material.iridescenceThicknessMap ) {
-
-			const iridescenceThicknessMapDef = { index: writer.processTexture( material.iridescenceThicknessMap ) };
-			writer.applyTextureTransform( iridescenceThicknessMapDef, material.iridescenceThicknessMap );
-			extensionDef.iridescenceThicknessTexture = iridescenceThicknessMapDef;
 
 		}
-=======
-}
-
-/**
- * Transmission Materials Extension
- *
- * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_transmission
- */
-class GLTFMaterialsTransmissionExtension {
-
-	constructor( writer ) {
-
-		this.writer = writer;
-		this.name = 'KHR_materials_transmission';
->>>>>>> Stashed changes
 
 		materialDef.extensions = materialDef.extensions || {};
 		materialDef.extensions[ this.name ] = extensionDef;
 
-<<<<<<< Updated upstream
 		extensionsUsed[ this.name ] = true;
 
 	}
@@ -48054,20 +46822,9 @@ class GLTFMaterialsTransmissionExtension {
 
 		this.writer = writer;
 		this.name = 'KHR_materials_transmission';
-=======
-	writeMaterial( material, materialDef ) {
 
-		if ( ! material.isMeshPhysicalMaterial || material.transmission === 0 ) return;
+	}
 
-		const writer = this.writer;
-		const extensionsUsed = writer.extensionsUsed;
-
-		const extensionDef = {};
->>>>>>> Stashed changes
-
-		extensionDef.transmissionFactor = material.transmission;
-
-<<<<<<< Updated upstream
 	writeMaterial( material, materialDef ) {
 
 		if ( ! material.isMeshPhysicalMaterial || material.transmission === 0 ) return;
@@ -48084,24 +46841,9 @@ class GLTFMaterialsTransmissionExtension {
 			const transmissionMapDef = { index: writer.processTexture( material.transmissionMap ) };
 			writer.applyTextureTransform( transmissionMapDef, material.transmissionMap );
 			extensionDef.transmissionTexture = transmissionMapDef;
-=======
-		if ( material.transmissionMap ) {
-
-			const transmissionMapDef = { index: writer.processTexture( material.transmissionMap ) };
-			writer.applyTextureTransform( transmissionMapDef, material.transmissionMap );
-			extensionDef.transmissionTexture = transmissionMapDef;
 
 		}
 
-		materialDef.extensions = materialDef.extensions || {};
-		materialDef.extensions[ this.name ] = extensionDef;
-
-		extensionsUsed[ this.name ] = true;
->>>>>>> Stashed changes
-
-		}
-
-<<<<<<< Updated upstream
 		materialDef.extensions = materialDef.extensions || {};
 		materialDef.extensions[ this.name ] = extensionDef;
 
@@ -48109,8 +46851,6 @@ class GLTFMaterialsTransmissionExtension {
 
 	}
 
-=======
->>>>>>> Stashed changes
 }
 
 /**
@@ -48119,13 +46859,6 @@ class GLTFMaterialsTransmissionExtension {
  * Specification: https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_volume
  */
 class GLTFMaterialsVolumeExtension {
-<<<<<<< Updated upstream
-
-	constructor( writer ) {
-
-		this.writer = writer;
-		this.name = 'KHR_materials_volume';
-=======
 
 	constructor( writer ) {
 
@@ -48140,28 +46873,9 @@ class GLTFMaterialsVolumeExtension {
 
 		const writer = this.writer;
 		const extensionsUsed = writer.extensionsUsed;
->>>>>>> Stashed changes
 
 		const extensionDef = {};
 
-<<<<<<< Updated upstream
-	writeMaterial( material, materialDef ) {
-
-		if ( ! material.isMeshPhysicalMaterial || material.transmission === 0 ) return;
-
-		const writer = this.writer;
-		const extensionsUsed = writer.extensionsUsed;
-
-		const extensionDef = {};
-
-		extensionDef.thicknessFactor = material.thickness;
-
-		if ( material.thicknessMap ) {
-
-			const thicknessMapDef = { index: writer.processTexture( material.thicknessMap ) };
-			writer.applyTextureTransform( thicknessMapDef, material.thicknessMap );
-			extensionDef.thicknessTexture = thicknessMapDef;
-=======
 		extensionDef.thicknessFactor = material.thickness;
 
 		if ( material.thicknessMap ) {
@@ -48179,69 +46893,9 @@ class GLTFMaterialsVolumeExtension {
 		materialDef.extensions[ this.name ] = extensionDef;
 
 		extensionsUsed[ this.name ] = true;
->>>>>>> Stashed changes
 
 	}
 
-<<<<<<< Updated upstream
-		extensionDef.attenuationDistance = material.attenuationDistance;
-		extensionDef.attenuationColor = material.attenuationColor.toArray();
-
-		materialDef.extensions = materialDef.extensions || {};
-		materialDef.extensions[ this.name ] = extensionDef;
-
-		extensionsUsed[ this.name ] = true;
-
-	}
-
-}
-
-/**
- * Static utility functions
- */
-GLTFExporter.Utils = {
-
-	insertKeyframe: function ( track, time ) {
-
-		const tolerance = 0.001; // 1ms
-		const valueSize = track.getValueSize();
-
-		const times = new track.TimeBufferType( track.times.length + 1 );
-		const values = new track.ValueBufferType( track.values.length + valueSize );
-		const interpolant = track.createInterpolant( new track.ValueBufferType( valueSize ) );
-
-		let index;
-
-		if ( track.times.length === 0 ) {
-
-			times[ 0 ] = time;
-
-			for ( let i = 0; i < valueSize; i ++ ) {
-
-				values[ i ] = 0;
-
-			}
-
-			index = 0;
-
-		} else if ( time < track.times[ 0 ] ) {
-
-			if ( Math.abs( track.times[ 0 ] - time ) < tolerance ) return 0;
-
-			times[ 0 ] = time;
-			times.set( track.times, 1 );
-
-			values.set( interpolant.evaluate( time ), 0 );
-			values.set( track.values, valueSize );
-
-			index = 0;
-
-		} else if ( time > track.times[ track.times.length - 1 ] ) {
-
-			if ( Math.abs( track.times[ track.times.length - 1 ] - time ) < tolerance ) {
-
-				return track.times.length - 1;
-=======
 }
 
 /**
@@ -48301,39 +46955,9 @@ GLTFExporter.Utils = {
 			index = times.length - 1;
 
 		} else {
->>>>>>> Stashed changes
 
 			for ( let i = 0; i < track.times.length; i ++ ) {
 
-<<<<<<< Updated upstream
-			times[ times.length - 1 ] = time;
-			times.set( track.times, 0 );
-
-			values.set( track.values, 0 );
-			values.set( interpolant.evaluate( time ), track.values.length );
-
-			index = times.length - 1;
-
-		} else {
-
-			for ( let i = 0; i < track.times.length; i ++ ) {
-
-				if ( Math.abs( track.times[ i ] - time ) < tolerance ) return i;
-
-				if ( track.times[ i ] < time && track.times[ i + 1 ] > time ) {
-
-					times.set( track.times.slice( 0, i + 1 ), 0 );
-					times[ i + 1 ] = time;
-					times.set( track.times.slice( i + 1 ), i + 2 );
-
-					values.set( track.values.slice( 0, ( i + 1 ) * valueSize ), 0 );
-					values.set( interpolant.evaluate( time ), ( i + 1 ) * valueSize );
-					values.set( track.values.slice( ( i + 1 ) * valueSize ), ( i + 2 ) * valueSize );
-
-					index = i + 1;
-
-					break;
-=======
 				if ( Math.abs( track.times[ i ] - time ) < tolerance ) return i;
 
 				if ( track.times[ i ] < time && track.times[ i + 1 ] > time ) {
@@ -48362,119 +46986,9 @@ GLTFExporter.Utils = {
 		return index;
 
 	},
->>>>>>> Stashed changes
 
 	mergeMorphTargetTracks: function ( clip, root ) {
 
-<<<<<<< Updated upstream
-			}
-
-		}
-
-		track.times = times;
-		track.values = values;
-
-		return index;
-
-	},
-
-	mergeMorphTargetTracks: function ( clip, root ) {
-
-		const tracks = [];
-		const mergedTracks = {};
-		const sourceTracks = clip.tracks;
-
-		for ( let i = 0; i < sourceTracks.length; ++ i ) {
-
-			let sourceTrack = sourceTracks[ i ];
-			const sourceTrackBinding = PropertyBinding.parseTrackName( sourceTrack.name );
-			const sourceTrackNode = PropertyBinding.findNode( root, sourceTrackBinding.nodeName );
-
-			if ( sourceTrackBinding.propertyName !== 'morphTargetInfluences' || sourceTrackBinding.propertyIndex === undefined ) {
-
-				// Tracks that don't affect morph targets, or that affect all morph targets together, can be left as-is.
-				tracks.push( sourceTrack );
-				continue;
-
-			}
-
-			if ( sourceTrack.createInterpolant !== sourceTrack.InterpolantFactoryMethodDiscrete
-				&& sourceTrack.createInterpolant !== sourceTrack.InterpolantFactoryMethodLinear ) {
-
-				if ( sourceTrack.createInterpolant.isInterpolantFactoryMethodGLTFCubicSpline ) {
-
-					// This should never happen, because glTF morph target animations
-					// affect all targets already.
-					throw new Error( 'THREE.GLTFExporter: Cannot merge tracks with glTF CUBICSPLINE interpolation.' );
-
-				}
-
-				console.warn( 'THREE.GLTFExporter: Morph target interpolation mode not yet supported. Using LINEAR instead.' );
-
-				sourceTrack = sourceTrack.clone();
-				sourceTrack.setInterpolation( InterpolateLinear );
-
-			}
-
-			const targetCount = sourceTrackNode.morphTargetInfluences.length;
-			const targetIndex = sourceTrackNode.morphTargetDictionary[ sourceTrackBinding.propertyIndex ];
-
-			if ( targetIndex === undefined ) {
-
-				throw new Error( 'THREE.GLTFExporter: Morph target name not found: ' + sourceTrackBinding.propertyIndex );
-
-			}
-
-			let mergedTrack;
-
-			// If this is the first time we've seen this object, create a new
-			// track to store merged keyframe data for each morph target.
-			if ( mergedTracks[ sourceTrackNode.uuid ] === undefined ) {
-
-				mergedTrack = sourceTrack.clone();
-
-				const values = new mergedTrack.ValueBufferType( targetCount * mergedTrack.times.length );
-
-				for ( let j = 0; j < mergedTrack.times.length; j ++ ) {
-
-					values[ j * targetCount + targetIndex ] = mergedTrack.values[ j ];
-
-				}
-
-				// We need to take into consideration the intended target node
-				// of our original un-merged morphTarget animation.
-				mergedTrack.name = ( sourceTrackBinding.nodeName || '' ) + '.morphTargetInfluences';
-				mergedTrack.values = values;
-
-				mergedTracks[ sourceTrackNode.uuid ] = mergedTrack;
-				tracks.push( mergedTrack );
-
-				continue;
-
-			}
-
-			const sourceInterpolant = sourceTrack.createInterpolant( new sourceTrack.ValueBufferType( 1 ) );
-
-			mergedTrack = mergedTracks[ sourceTrackNode.uuid ];
-
-			// For every existing keyframe of the merged track, write a (possibly
-			// interpolated) value from the source track.
-			for ( let j = 0; j < mergedTrack.times.length; j ++ ) {
-
-				mergedTrack.values[ j * targetCount + targetIndex ] = sourceInterpolant.evaluate( mergedTrack.times[ j ] );
-
-			}
-
-			// For every existing keyframe of the source track, write a (possibly
-			// new) keyframe to the merged track. Values from the previous loop may
-			// be written again, but keyframes are de-duplicated.
-			for ( let j = 0; j < sourceTrack.times.length; j ++ ) {
-
-				const keyframeIndex = this.insertKeyframe( mergedTrack, sourceTrack.times[ j ] );
-				mergedTrack.values[ keyframeIndex * targetCount + targetIndex ] = sourceTrack.values[ j ];
-
-			}
-=======
 		const tracks = [];
 		const mergedTracks = {};
 		const sourceTracks = clip.tracks;
@@ -48726,188 +47240,6 @@ class SessionLightProbe {
 			// This is the simplest way I know of to initialize a WebGL cubemap in Three.
 			const cubeRenderTarget = new WebGLCubeRenderTarget( 16 );
 			xrLight.environment = cubeRenderTarget.texture;
->>>>>>> Stashed changes
-
-			const gl = renderer.getContext();
-
-<<<<<<< Updated upstream
-		clip.tracks = tracks;
-
-		return clip;
-
-	}
-
-};
-
-/* @license
- * Copyright 2021 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-/**
- * @param object {THREE.Object3D}
- * @return {boolean}
- */
-const compatibleObject = (object) => {
-    // @TODO: Need properer variantMaterials format validation?
-    return object.material !==
-        undefined && // easier than (!object.isMesh && !object.isLine &&
-        // !object.isPoints)
-        object.userData && // just in case
-        object.userData.variantMaterials &&
-        // Is this line costly?
-        !!Array
-            .from(object.userData.variantMaterials
-            .values())
-            .filter(m => compatibleMaterial(m.material));
-};
-/**
- * @param material {THREE.Material}
- * @return {boolean}
- */
-const compatibleMaterial = (material) => {
-    // @TODO: support multi materials?
-    return material && material.isMaterial && !Array.isArray(material);
-};
-class GLTFExporterMaterialsVariantsExtension {
-    constructor(writer) {
-        this.writer = writer;
-        this.name = 'KHR_materials_variants';
-        this.variantNames = [];
-    }
-    beforeParse(objects) {
-        // Find all variant names and store them to the table
-        const variantNameSet = new Set();
-        for (const object of objects) {
-            object.traverse(o => {
-                if (!compatibleObject(o)) {
-                    return;
-                }
-                const variantMaterials = o.userData.variantMaterials;
-                const variantDataMap = o.userData.variantData;
-                for (const [variantName, variantData] of variantDataMap) {
-                    const variantMaterial = variantMaterials.get(variantData.index);
-                    // Ignore unloaded variant materials
-                    if (variantMaterial && compatibleMaterial(variantMaterial.material)) {
-                        variantNameSet.add(variantName);
-                    }
-                }
-            });
-        }
-        // We may want to sort?
-        variantNameSet.forEach(name => this.variantNames.push(name));
-    }
-    writeMesh(mesh, meshDef) {
-        if (!compatibleObject(mesh)) {
-            return;
-        }
-        const userData = mesh.userData;
-        const variantMaterials = userData.variantMaterials;
-        const variantDataMap = userData.variantData;
-        const mappingTable = new Map();
-        // Removes gaps in the variant indices list (caused by deleting variants).
-        const reIndexedVariants = new Map();
-        const variants = Array.from(variantDataMap.values()).sort((a, b) => {
-            return a.index - b.index;
-        });
-        for (const [i, variantData] of variants.entries()) {
-            reIndexedVariants.set(variantData.index, i);
-        }
-        for (const variantData of variantDataMap.values()) {
-            const variantInstance = variantMaterials.get(variantData.index);
-            if (!variantInstance || !compatibleMaterial(variantInstance.material)) {
-                continue;
-            }
-            const materialIndex = this.writer.processMaterial(variantInstance.material);
-            if (!mappingTable.has(materialIndex)) {
-                mappingTable.set(materialIndex, { material: materialIndex, variants: [] });
-            }
-            mappingTable.get(materialIndex).variants.push(reIndexedVariants.get(variantData.index));
-        }
-        const mappingsDef = Array.from(mappingTable.values())
-            .map((m => { return m.variants.sort((a, b) => a - b) && m; }))
-            .sort((a, b) => a.material - b.material);
-        if (mappingsDef.length === 0) {
-            return;
-        }
-        const originalMaterialIndex = compatibleMaterial(userData.originalMaterial) ?
-            this.writer.processMaterial(userData.originalMaterial) :
-            -1;
-        for (const primitiveDef of meshDef.primitives) {
-            // Override primitiveDef.material with original material.
-            if (originalMaterialIndex >= 0) {
-                primitiveDef.material = originalMaterialIndex;
-            }
-            primitiveDef.extensions = primitiveDef.extensions || {};
-            primitiveDef.extensions[this.name] = { mappings: mappingsDef };
-        }
-    }
-    afterParse() {
-        if (this.variantNames.length === 0) {
-            return;
-        }
-        const root = this.writer.json;
-        root.extensions = root.extensions || {};
-        const variantsDef = this.variantNames.map(n => {
-            return { name: n };
-        });
-        root.extensions[this.name] = { variants: variantsDef };
-        this.writer.extensionsUsed[this.name] = true;
-    }
-}
-
-class SessionLightProbe {
-=======
-			// Ensure that we have any extensions needed to use the preferred cube map format.
-			switch ( session.preferredReflectionFormat ) {
-
-				case 'srgba8':
-					gl.getExtension( 'EXT_sRGB' );
-					break;
-
-				case 'rgba16f':
-					gl.getExtension( 'OES_texture_half_float' );
-					break;
-
-			}
-
-			this.xrWebGLBinding = new XRWebGLBinding( session, gl );
-
-			this.lightProbe.addEventListener( 'reflectionchange', () => {
-
-				this.updateReflection();
-
-			} );
->>>>>>> Stashed changes
-
-	constructor( xrLight, renderer, lightProbe, environmentEstimation, estimationStartCallback ) {
-
-<<<<<<< Updated upstream
-		this.xrLight = xrLight;
-		this.renderer = renderer;
-		this.lightProbe = lightProbe;
-		this.xrWebGLBinding = null;
-		this.estimationStartCallback = estimationStartCallback;
-		this.frameCallback = this.onXRFrame.bind( this );
-
-		const session = renderer.xr.getSession();
-
-		// If the XRWebGLBinding class is available then we can also query an
-		// estimated reflection cube map.
-		if ( environmentEstimation && 'XRWebGLBinding' in window ) {
-
-			// This is the simplest way I know of to initialize a WebGL cubemap in Three.
-			const cubeRenderTarget = new WebGLCubeRenderTarget( 16 );
-			xrLight.environment = cubeRenderTarget.texture;
 
 			const gl = renderer.getContext();
 
@@ -48953,26 +47285,6 @@ class SessionLightProbe {
 				textureProperties.__webglTexture = cubeMap;
 
 				this.xrLight.environment.needsPMREMUpdate = true;
-=======
-		// Start monitoring the XR animation frame loop to look for lighting
-		// estimation changes.
-		session.requestAnimationFrame( this.frameCallback );
-
-	}
-
-	updateReflection() {
-
-		const textureProperties = this.renderer.properties.get( this.xrLight.environment );
-
-		if ( textureProperties ) {
-
-			const cubeMap = this.xrWebGLBinding.getReflectionCubeMap( this.lightProbe );
-
-			if ( cubeMap ) {
-
-				textureProperties.__webglTexture = cubeMap;
-
-				this.xrLight.environment.needsPMREMUpdate = true;
 
 			}
 
@@ -48989,52 +47301,7 @@ class SessionLightProbe {
 			return;
 
 		}
->>>>>>> Stashed changes
 
-		const session = xrFrame.session;
-		session.requestAnimationFrame( this.frameCallback );
-
-		const lightEstimate = xrFrame.getLightEstimate( this.lightProbe );
-		if ( lightEstimate ) {
-
-<<<<<<< Updated upstream
-	}
-
-	onXRFrame( time, xrFrame ) {
-
-		// If either this obejct or the XREstimatedLight has been destroyed, stop
-		// running the frame loop.
-		if ( ! this.xrLight ) {
-=======
-			// We can copy the estimate's spherical harmonics array directly into the light probe.
-			this.xrLight.lightProbe.sh.fromArray( lightEstimate.sphericalHarmonicsCoefficients );
-			this.xrLight.lightProbe.intensity = 1.0;
-
-			// For the directional light we have to normalize the color and set the scalar as the
-			// intensity, since WebXR can return color values that exceed 1.0.
-			const intensityScalar = Math.max( 1.0,
-				Math.max( lightEstimate.primaryLightIntensity.x,
-					Math.max( lightEstimate.primaryLightIntensity.y,
-						lightEstimate.primaryLightIntensity.z ) ) );
-
-			this.xrLight.directionalLight.color.setRGB(
-				lightEstimate.primaryLightIntensity.x / intensityScalar,
-				lightEstimate.primaryLightIntensity.y / intensityScalar,
-				lightEstimate.primaryLightIntensity.z / intensityScalar );
-			this.xrLight.directionalLight.intensity = intensityScalar;
-			this.xrLight.directionalLight.position.copy( lightEstimate.primaryLightDirection );
-
-			if ( this.estimationStartCallback ) {
-
-				this.estimationStartCallback();
-				this.estimationStartCallback = null;
->>>>>>> Stashed changes
-
-			return;
-
-		}
-
-<<<<<<< Updated upstream
 		const session = xrFrame.session;
 		session.requestAnimationFrame( this.frameCallback );
 
@@ -49070,10 +47337,6 @@ class SessionLightProbe {
 
 	}
 
-=======
-	}
-
->>>>>>> Stashed changes
 	dispose() {
 
 		this.xrLight = null;
@@ -49764,11 +48027,6 @@ class ARRenderer extends EventDispatcher {
             const scale = view.recommendedViewportScale;
             view.requestViewportScale(Math.max(scale, MIN_VIEWPORT_SCALE));
         }
-<<<<<<< Updated upstream
-        const layer = this.currentSession.renderState.baseLayer;
-        const viewport = layer.getViewport(view);
-        this.threeRenderer.setViewport(viewport.x, viewport.y, viewport.width, viewport.height);
-=======
         const layer = xr.getBaseLayer();
         if (layer != null) {
             const viewport = layer instanceof XRWebGLLayer ?
@@ -49776,7 +48034,6 @@ class ARRenderer extends EventDispatcher {
                 xr.getBinding().getViewSubImage(layer, view).viewport;
             this.threeRenderer.setViewport(viewport.x, viewport.y, viewport.width, viewport.height);
         }
->>>>>>> Stashed changes
     }
     placeInitially() {
         const scene = this.presentedScene;
@@ -50629,7 +48886,6 @@ class RGBELoader extends DataTextureLoader {
 	}
 
 	// adapted from http://www.graphics.cornell.edu/~bjw/rgbe.html
-<<<<<<< Updated upstream
 
 	parse( buffer ) {
 
@@ -50891,269 +49147,6 @@ class RGBELoader extends DataTextureLoader {
 
 						if ( ( 0 === count ) || ( ptr + count > ptr_end ) ) {
 
-=======
-
-	parse( buffer ) {
-
-		const
-			/* return codes for rgbe routines */
-			//RGBE_RETURN_SUCCESS = 0,
-			RGBE_RETURN_FAILURE = - 1,
-
-			/* default error routine.  change this to change error handling */
-			rgbe_read_error = 1,
-			rgbe_write_error = 2,
-			rgbe_format_error = 3,
-			rgbe_memory_error = 4,
-			rgbe_error = function ( rgbe_error_code, msg ) {
-
-				switch ( rgbe_error_code ) {
-
-					case rgbe_read_error: console.error( 'THREE.RGBELoader Read Error: ' + ( msg || '' ) );
-						break;
-					case rgbe_write_error: console.error( 'THREE.RGBELoader Write Error: ' + ( msg || '' ) );
-						break;
-					case rgbe_format_error: console.error( 'THREE.RGBELoader Bad File Format: ' + ( msg || '' ) );
-						break;
-					default:
-					case rgbe_memory_error: console.error( 'THREE.RGBELoader: Error: ' + ( msg || '' ) );
-
-				}
-
-				return RGBE_RETURN_FAILURE;
-
-			},
-
-			/* offsets to red, green, and blue components in a data (float) pixel */
-			//RGBE_DATA_RED = 0,
-			//RGBE_DATA_GREEN = 1,
-			//RGBE_DATA_BLUE = 2,
-
-			/* number of floats per pixel, use 4 since stored in rgba image format */
-			//RGBE_DATA_SIZE = 4,
-
-			/* flags indicating which fields in an rgbe_header_info are valid */
-			RGBE_VALID_PROGRAMTYPE = 1,
-			RGBE_VALID_FORMAT = 2,
-			RGBE_VALID_DIMENSIONS = 4,
-
-			NEWLINE = '\n',
-
-			fgets = function ( buffer, lineLimit, consume ) {
-
-				const chunkSize = 128;
-
-				lineLimit = ! lineLimit ? 1024 : lineLimit;
-				let p = buffer.pos,
-					i = - 1, len = 0, s = '',
-					chunk = String.fromCharCode.apply( null, new Uint16Array( buffer.subarray( p, p + chunkSize ) ) );
-
-				while ( ( 0 > ( i = chunk.indexOf( NEWLINE ) ) ) && ( len < lineLimit ) && ( p < buffer.byteLength ) ) {
-
-					s += chunk; len += chunk.length;
-					p += chunkSize;
-					chunk += String.fromCharCode.apply( null, new Uint16Array( buffer.subarray( p, p + chunkSize ) ) );
-
-				}
-
-				if ( - 1 < i ) {
-
-					/*for (i=l-1; i>=0; i--) {
-						byteCode = m.charCodeAt(i);
-						if (byteCode > 0x7f && byteCode <= 0x7ff) byteLen++;
-						else if (byteCode > 0x7ff && byteCode <= 0xffff) byteLen += 2;
-						if (byteCode >= 0xDC00 && byteCode <= 0xDFFF) i--; //trail surrogate
-					}*/
-					if ( false !== consume ) buffer.pos += len + i + 1;
-					return s + chunk.slice( 0, i );
-
-				}
-
-				return false;
-
-			},
-
-			/* minimal header reading.  modify if you want to parse more information */
-			RGBE_ReadHeader = function ( buffer ) {
-
-
-				// regexes to parse header info fields
-				const magic_token_re = /^#\?(\S+)/,
-					gamma_re = /^\s*GAMMA\s*=\s*(\d+(\.\d+)?)\s*$/,
-					exposure_re = /^\s*EXPOSURE\s*=\s*(\d+(\.\d+)?)\s*$/,
-					format_re = /^\s*FORMAT=(\S+)\s*$/,
-					dimensions_re = /^\s*\-Y\s+(\d+)\s+\+X\s+(\d+)\s*$/,
-
-					// RGBE format header struct
-					header = {
-
-						valid: 0, /* indicate which fields are valid */
-
-						string: '', /* the actual header string */
-
-						comments: '', /* comments found in header */
-
-						programtype: 'RGBE', /* listed at beginning of file to identify it after "#?". defaults to "RGBE" */
-
-						format: '', /* RGBE format, default 32-bit_rle_rgbe */
-
-						gamma: 1.0, /* image has already been gamma corrected with given gamma. defaults to 1.0 (no correction) */
-
-						exposure: 1.0, /* a value of 1.0 in an image corresponds to <exposure> watts/steradian/m^2. defaults to 1.0 */
-
-						width: 0, height: 0 /* image dimensions, width/height */
-
-					};
-
-				let line, match;
-
-				if ( buffer.pos >= buffer.byteLength || ! ( line = fgets( buffer ) ) ) {
-
-					return rgbe_error( rgbe_read_error, 'no header found' );
-
-				}
-
-				/* if you want to require the magic token then uncomment the next line */
-				if ( ! ( match = line.match( magic_token_re ) ) ) {
-
-					return rgbe_error( rgbe_format_error, 'bad initial token' );
-
-				}
-
-				header.valid |= RGBE_VALID_PROGRAMTYPE;
-				header.programtype = match[ 1 ];
-				header.string += line + '\n';
-
-				while ( true ) {
-
-					line = fgets( buffer );
-					if ( false === line ) break;
-					header.string += line + '\n';
-
-					if ( '#' === line.charAt( 0 ) ) {
-
-						header.comments += line + '\n';
-						continue; // comment line
-
-					}
-
-					if ( match = line.match( gamma_re ) ) {
-
-						header.gamma = parseFloat( match[ 1 ] );
-
-					}
-
-					if ( match = line.match( exposure_re ) ) {
-
-						header.exposure = parseFloat( match[ 1 ] );
-
-					}
-
-					if ( match = line.match( format_re ) ) {
-
-						header.valid |= RGBE_VALID_FORMAT;
-						header.format = match[ 1 ];//'32-bit_rle_rgbe';
-
-					}
-
-					if ( match = line.match( dimensions_re ) ) {
-
-						header.valid |= RGBE_VALID_DIMENSIONS;
-						header.height = parseInt( match[ 1 ], 10 );
-						header.width = parseInt( match[ 2 ], 10 );
-
-					}
-
-					if ( ( header.valid & RGBE_VALID_FORMAT ) && ( header.valid & RGBE_VALID_DIMENSIONS ) ) break;
-
-				}
-
-				if ( ! ( header.valid & RGBE_VALID_FORMAT ) ) {
-
-					return rgbe_error( rgbe_format_error, 'missing format specifier' );
-
-				}
-
-				if ( ! ( header.valid & RGBE_VALID_DIMENSIONS ) ) {
-
-					return rgbe_error( rgbe_format_error, 'missing image size specifier' );
-
-				}
-
-				return header;
-
-			},
-
-			RGBE_ReadPixels_RLE = function ( buffer, w, h ) {
-
-				const scanline_width = w;
-
-				if (
-					// run length encoding is not allowed so read flat
-					( ( scanline_width < 8 ) || ( scanline_width > 0x7fff ) ) ||
-					// this file is not run length encoded
-					( ( 2 !== buffer[ 0 ] ) || ( 2 !== buffer[ 1 ] ) || ( buffer[ 2 ] & 0x80 ) )
-				) {
-
-					// return the flat buffer
-					return new Uint8Array( buffer );
-
-				}
-
-				if ( scanline_width !== ( ( buffer[ 2 ] << 8 ) | buffer[ 3 ] ) ) {
-
-					return rgbe_error( rgbe_format_error, 'wrong scanline width' );
-
-				}
-
-				const data_rgba = new Uint8Array( 4 * w * h );
-
-				if ( ! data_rgba.length ) {
-
-					return rgbe_error( rgbe_memory_error, 'unable to allocate buffer space' );
-
-				}
-
-				let offset = 0, pos = 0;
-
-				const ptr_end = 4 * scanline_width;
-				const rgbeStart = new Uint8Array( 4 );
-				const scanline_buffer = new Uint8Array( ptr_end );
-				let num_scanlines = h;
-
-				// read in each successive scanline
-				while ( ( num_scanlines > 0 ) && ( pos < buffer.byteLength ) ) {
-
-					if ( pos + 4 > buffer.byteLength ) {
-
-						return rgbe_error( rgbe_read_error );
-
-					}
-
-					rgbeStart[ 0 ] = buffer[ pos ++ ];
-					rgbeStart[ 1 ] = buffer[ pos ++ ];
-					rgbeStart[ 2 ] = buffer[ pos ++ ];
-					rgbeStart[ 3 ] = buffer[ pos ++ ];
-
-					if ( ( 2 != rgbeStart[ 0 ] ) || ( 2 != rgbeStart[ 1 ] ) || ( ( ( rgbeStart[ 2 ] << 8 ) | rgbeStart[ 3 ] ) != scanline_width ) ) {
-
-						return rgbe_error( rgbe_format_error, 'bad rgbe scanline format' );
-
-					}
-
-					// read each of the four channels for the scanline into the buffer
-					// first red, then green, then blue, then exponent
-					let ptr = 0, count;
-
-					while ( ( ptr < ptr_end ) && ( pos < buffer.byteLength ) ) {
-
-						count = buffer[ pos ++ ];
-						const isEncodedRun = count > 128;
-						if ( isEncodedRun ) count -= 128;
-
-						if ( ( 0 === count ) || ( ptr + count > ptr_end ) ) {
-
->>>>>>> Stashed changes
 							return rgbe_error( rgbe_format_error, 'bad scanline data' );
 
 						}
@@ -51336,11 +49329,6 @@ class RGBELoader extends DataTextureLoader {
 	}
 
 }
-<<<<<<< Updated upstream
-
-/* @license
- * Copyright 2021 Google LLC. All Rights Reserved.
-=======
 
 /* @license
  * Copyright 2021 Google LLC. All Rights Reserved.
@@ -51885,7 +49873,6 @@ class TextureUtils extends EventDispatcher {
 
 /* @license
  * Copyright 2019 Google LLC. All Rights Reserved.
->>>>>>> Stashed changes
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51898,93 +49885,6 @@ class TextureUtils extends EventDispatcher {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-<<<<<<< Updated upstream
-class EnvironmentScene extends Scene {
-    constructor() {
-        super();
-        this.position.y = -3.5;
-        const geometry = new BoxGeometry();
-        geometry.deleteAttribute('uv');
-        const roomMaterial = new MeshStandardMaterial({ metalness: 0, side: BackSide });
-        const boxMaterial = new MeshStandardMaterial({ metalness: 0 });
-        const mainLight = new PointLight(0xffffff, 500.0, 28, 2);
-        mainLight.position.set(0.418, 16.199, 0.300);
-        this.add(mainLight);
-        const room = new Mesh(geometry, roomMaterial);
-        room.position.set(-0.757, 13.219, 0.717);
-        room.scale.set(31.713, 28.305, 28.591);
-        this.add(room);
-        const box1 = new Mesh(geometry, boxMaterial);
-        box1.position.set(-10.906, 2.009, 1.846);
-        box1.rotation.set(0, -0.195, 0);
-        box1.scale.set(2.328, 7.905, 4.651);
-        this.add(box1);
-        const box2 = new Mesh(geometry, boxMaterial);
-        box2.position.set(-5.607, -0.754, -0.758);
-        box2.rotation.set(0, 0.994, 0);
-        box2.scale.set(1.970, 1.534, 3.955);
-        this.add(box2);
-        const box3 = new Mesh(geometry, boxMaterial);
-        box3.position.set(6.167, 0.857, 7.803);
-        box3.rotation.set(0, 0.561, 0);
-        box3.scale.set(3.927, 6.285, 3.687);
-        this.add(box3);
-        const box4 = new Mesh(geometry, boxMaterial);
-        box4.position.set(-2.017, 0.018, 6.124);
-        box4.rotation.set(0, 0.333, 0);
-        box4.scale.set(2.002, 4.566, 2.064);
-        this.add(box4);
-        const box5 = new Mesh(geometry, boxMaterial);
-        box5.position.set(2.291, -0.756, -2.621);
-        box5.rotation.set(0, -0.286, 0);
-        box5.scale.set(1.546, 1.552, 1.496);
-        this.add(box5);
-        const box6 = new Mesh(geometry, boxMaterial);
-        box6.position.set(-2.193, -0.369, -5.547);
-        box6.rotation.set(0, 0.516, 0);
-        box6.scale.set(3.875, 3.487, 2.986);
-        this.add(box6);
-        // -x right
-        const light1 = new Mesh(geometry, this.createAreaLightMaterial(50));
-        light1.position.set(-16.116, 14.37, 8.208);
-        light1.scale.set(0.1, 2.428, 2.739);
-        this.add(light1);
-        // -x left
-        const light2 = new Mesh(geometry, this.createAreaLightMaterial(50));
-        light2.position.set(-16.109, 18.021, -8.207);
-        light2.scale.set(0.1, 2.425, 2.751);
-        this.add(light2);
-        // +x
-        const light3 = new Mesh(geometry, this.createAreaLightMaterial(17));
-        light3.position.set(14.904, 12.198, -1.832);
-        light3.scale.set(0.15, 4.265, 6.331);
-        this.add(light3);
-        // +z
-        const light4 = new Mesh(geometry, this.createAreaLightMaterial(43));
-        light4.position.set(-0.462, 8.89, 14.520);
-        light4.scale.set(4.38, 5.441, 0.088);
-        this.add(light4);
-        // -z
-        const light5 = new Mesh(geometry, this.createAreaLightMaterial(20));
-        light5.position.set(3.235, 11.486, -12.541);
-        light5.scale.set(2.5, 2.0, 0.1);
-        this.add(light5);
-        // +y
-        const light6 = new Mesh(geometry, this.createAreaLightMaterial(100));
-        light6.position.set(0.0, 20.0, 0.0);
-        light6.scale.set(1.0, 0.1, 1.0);
-        this.add(light6);
-    }
-    createAreaLightMaterial(intensity) {
-        const material = new MeshBasicMaterial();
-        material.color.setScalar(intensity);
-        return material;
-    }
-}
-
-/* @license
- * Copyright 2021 Google LLC. All Rights Reserved.
-=======
 // Between 0 and 1: larger means the average responds faster and is less smooth.
 const DURATION_DECAY = 0.2;
 const LOW_FRAME_DURATION_MS = 40;
@@ -52405,7 +50305,6 @@ Renderer._singleton = new Renderer({
 
 /* @license
  * Copyright 2020 Google LLC. All Rights Reserved.
->>>>>>> Stashed changes
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52418,93 +50317,6 @@ Renderer._singleton = new Renderer({
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-<<<<<<< Updated upstream
-class EnvironmentSceneAlt extends Scene {
-    constructor() {
-        super();
-        this.position.y = -3.5;
-        const geometry = new BoxGeometry();
-        geometry.deleteAttribute('uv');
-        const roomMaterial = new MeshStandardMaterial({ metalness: 0, side: BackSide });
-        const boxMaterial = new MeshStandardMaterial({ metalness: 0 });
-        const mainLight = new PointLight(0xffffff, 400.0, 28, 2);
-        mainLight.position.set(0.5, 14.0, 0.5);
-        this.add(mainLight);
-        const room = new Mesh(geometry, roomMaterial);
-        room.position.set(0.0, 13.2, 0.0);
-        room.scale.set(31.5, 28.5, 31.5);
-        this.add(room);
-        const box1 = new Mesh(geometry, boxMaterial);
-        box1.position.set(-10.906, -1.0, 1.846);
-        box1.rotation.set(0, -0.195, 0);
-        box1.scale.set(2.328, 7.905, 4.651);
-        this.add(box1);
-        const box2 = new Mesh(geometry, boxMaterial);
-        box2.position.set(-5.607, -0.754, -0.758);
-        box2.rotation.set(0, 0.994, 0);
-        box2.scale.set(1.970, 1.534, 3.955);
-        this.add(box2);
-        const box3 = new Mesh(geometry, boxMaterial);
-        box3.position.set(6.167, -0.16, 7.803);
-        box3.rotation.set(0, 0.561, 0);
-        box3.scale.set(3.927, 6.285, 3.687);
-        this.add(box3);
-        const box4 = new Mesh(geometry, boxMaterial);
-        box4.position.set(-2.017, 0.018, 6.124);
-        box4.rotation.set(0, 0.333, 0);
-        box4.scale.set(2.002, 4.566, 2.064);
-        this.add(box4);
-        const box5 = new Mesh(geometry, boxMaterial);
-        box5.position.set(2.291, -0.756, -2.621);
-        box5.rotation.set(0, -0.286, 0);
-        box5.scale.set(1.546, 1.552, 1.496);
-        this.add(box5);
-        const box6 = new Mesh(geometry, boxMaterial);
-        box6.position.set(-2.193, -0.369, -5.547);
-        box6.rotation.set(0, 0.516, 0);
-        box6.scale.set(3.875, 3.487, 2.986);
-        this.add(box6);
-        // -x_left
-        const light1 = new Mesh(geometry, this.createAreaLightMaterial(80));
-        light1.position.set(-14.0, 10.0, 8.0);
-        light1.scale.set(0.1, 2.5, 2.5);
-        this.add(light1);
-        // -x_right
-        const light2 = new Mesh(geometry, this.createAreaLightMaterial(80));
-        light2.position.set(-14.0, 14.0, -4.0);
-        light2.scale.set(0.1, 2.5, 2.5);
-        this.add(light2);
-        // +x only on light
-        const light3 = new Mesh(geometry, this.createAreaLightMaterial(23));
-        light3.position.set(14.0, 12.0, 0.0);
-        light3.scale.set(0.1, 5.0, 5.0);
-        this.add(light3);
-        // +z
-        const light4 = new Mesh(geometry, this.createAreaLightMaterial(16));
-        light4.position.set(0.0, 9.0, 14.0);
-        light4.scale.set(5.0, 5.0, 0.1);
-        this.add(light4);
-        // -z right
-        const light5 = new Mesh(geometry, this.createAreaLightMaterial(80));
-        light5.position.set(7.0, 8.0, -14.0);
-        light5.scale.set(2.5, 2.5, 0.1);
-        this.add(light5);
-        // -z left
-        const light6 = new Mesh(geometry, this.createAreaLightMaterial(80));
-        light6.position.set(-7.0, 16.0, -14.0);
-        light6.scale.set(2.5, 2.5, 0.1);
-        this.add(light6);
-        // +y
-        const light7 = new Mesh(geometry, this.createAreaLightMaterial(1));
-        light7.position.set(0.0, 20.0, 0.0);
-        light7.scale.set(0.1, 0.1, 0.1);
-        this.add(light7);
-    }
-    createAreaLightMaterial(intensity) {
-        const material = new MeshBasicMaterial();
-        material.color.setScalar(intensity);
-        return material;
-=======
 const $correlatedObjects = Symbol('correlatedObjects');
 const $sourceObject = Symbol('sourceObject');
 const $onUpdate$1 = Symbol('onUpdate');
@@ -52519,16 +50331,11 @@ class ThreeDOMElement {
         this[$onUpdate$1] = onUpdate;
         this[$sourceObject] = element;
         this[$correlatedObjects] = correlatedObjects;
->>>>>>> Stashed changes
     }
 }
 
 /* @license
-<<<<<<< Updated upstream
- * Copyright 2019 Google LLC. All Rights Reserved.
-=======
  * Copyright 2020 Google LLC. All Rights Reserved.
->>>>>>> Stashed changes
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52541,731 +50348,6 @@ class ThreeDOMElement {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-<<<<<<< Updated upstream
-const GENERATED_SIGMA = 0.04;
-// The maximum length of the blur for loop. Smaller sigmas will use fewer
-// samples and exit early, but not recompile the shader.
-const MAX_SAMPLES = 20;
-const HDR_FILE_RE = /\.hdr(\.js)?$/;
-const ldrLoader = new TextureLoader();
-const hdrLoader = new RGBELoader();
-hdrLoader.setDataType(HalfFloatType);
-class TextureUtils extends EventDispatcher {
-    constructor(threeRenderer) {
-        super();
-        this.threeRenderer = threeRenderer;
-        this.generatedEnvironmentMap = null;
-        this.generatedEnvironmentMapAlt = null;
-        this.skyboxCache = new Map();
-        this.blurMaterial = null;
-        this.blurScene = null;
-    }
-    async load(url, progressCallback = () => { }) {
-        try {
-            const isHDR = HDR_FILE_RE.test(url);
-            const loader = isHDR ? hdrLoader : ldrLoader;
-            const texture = await new Promise((resolve, reject) => loader.load(url, resolve, (event) => {
-                progressCallback(event.loaded / event.total * 0.9);
-            }, reject));
-            progressCallback(1.0);
-            texture.name = url;
-            texture.mapping = EquirectangularReflectionMapping;
-            if (!isHDR) {
-                texture.encoding = sRGBEncoding;
-            }
-            return texture;
-        }
-        finally {
-            if (progressCallback) {
-                progressCallback(1);
-            }
-        }
-    }
-    /**
-     * Returns a { skybox, environmentMap } object with the targets/textures
-     * accordingly. `skybox` is a WebGLRenderCubeTarget, and `environmentMap`
-     * is a Texture from a WebGLRenderCubeTarget.
-     */
-    async generateEnvironmentMapAndSkybox(skyboxUrl = null, environmentMapUrl = null, progressCallback = () => { }) {
-        const useAltEnvironment = environmentMapUrl !== 'legacy';
-        if (environmentMapUrl === 'legacy' || environmentMapUrl === 'neutral') {
-            environmentMapUrl = null;
-        }
-        environmentMapUrl = deserializeUrl(environmentMapUrl);
-        let skyboxLoads = Promise.resolve(null);
-        let environmentMapLoads;
-        // If we have a skybox URL, attempt to load it as a cubemap
-        if (!!skyboxUrl) {
-            skyboxLoads = this.loadEquirectFromUrl(skyboxUrl, progressCallback);
-        }
-        if (!!environmentMapUrl) {
-            // We have an available environment map URL
-            environmentMapLoads =
-                this.loadEquirectFromUrl(environmentMapUrl, progressCallback);
-        }
-        else if (!!skyboxUrl) {
-            // Fallback to deriving the environment map from an available skybox
-            environmentMapLoads =
-                this.loadEquirectFromUrl(skyboxUrl, progressCallback);
-        }
-        else {
-            // Fallback to generating the environment map
-            environmentMapLoads = useAltEnvironment ?
-                this.loadGeneratedEnvironmentMapAlt() :
-                this.loadGeneratedEnvironmentMap();
-        }
-        const [environmentMap, skybox] = await Promise.all([environmentMapLoads, skyboxLoads]);
-        if (environmentMap == null) {
-            throw new Error('Failed to load environment map.');
-        }
-        return { environmentMap, skybox };
-    }
-    /**
-     * Loads an equirect Texture from a given URL, for use as a skybox.
-     */
-    async loadEquirectFromUrl(url, progressCallback) {
-        if (!this.skyboxCache.has(url)) {
-            const skyboxMapLoads = this.load(url, progressCallback);
-            this.skyboxCache.set(url, skyboxMapLoads);
-        }
-        return this.skyboxCache.get(url);
-    }
-    async GenerateEnvironmentMap(scene, name) {
-        await timePasses();
-        const renderer = this.threeRenderer;
-        const cubeTarget = new WebGLCubeRenderTarget(256, {
-            generateMipmaps: false,
-            type: HalfFloatType,
-            format: RGBAFormat,
-            encoding: LinearEncoding,
-            depthBuffer: true
-        });
-        const cubeCamera = new CubeCamera(0.1, 100, cubeTarget);
-        const generatedEnvironmentMap = cubeCamera.renderTarget.texture;
-        generatedEnvironmentMap.name = name;
-        const outputEncoding = renderer.outputEncoding;
-        const toneMapping = renderer.toneMapping;
-        renderer.toneMapping = NoToneMapping;
-        renderer.outputEncoding = LinearEncoding;
-        cubeCamera.update(renderer, scene);
-        this.blurCubemap(cubeTarget, GENERATED_SIGMA);
-        renderer.toneMapping = toneMapping;
-        renderer.outputEncoding = outputEncoding;
-        return generatedEnvironmentMap;
-    }
-    /**
-     * Loads a dynamically generated environment map.
-     */
-    async loadGeneratedEnvironmentMap() {
-        if (this.generatedEnvironmentMap == null) {
-            this.generatedEnvironmentMap =
-                this.GenerateEnvironmentMap(new EnvironmentScene(), 'legacy');
-        }
-        return this.generatedEnvironmentMap;
-    }
-    /**
-     * Loads a dynamically generated environment map, designed to be neutral and
-     * color-preserving. Shows less contrast around the different sides of the
-     * object.
-     */
-    async loadGeneratedEnvironmentMapAlt() {
-        if (this.generatedEnvironmentMapAlt == null) {
-            this.generatedEnvironmentMapAlt =
-                this.GenerateEnvironmentMap(new EnvironmentSceneAlt(), 'neutral');
-        }
-        return this.generatedEnvironmentMapAlt;
-    }
-    blurCubemap(cubeTarget, sigma) {
-        if (this.blurMaterial == null) {
-            this.blurMaterial = this.getBlurShader(MAX_SAMPLES);
-            const box = new BoxGeometry();
-            const blurMesh = new Mesh(box, this.blurMaterial);
-            this.blurScene = new Scene();
-            this.blurScene.add(blurMesh);
-        }
-        const tempTarget = cubeTarget.clone();
-        this.halfblur(cubeTarget, tempTarget, sigma, 'latitudinal');
-        this.halfblur(tempTarget, cubeTarget, sigma, 'longitudinal');
-        // Disposing this target after we're done with it somehow corrupts Safari's
-        // whole graphics driver. It's random, but occurs more frequently on
-        // lower-powered GPUs (macbooks with intel graphics, older iPhones). It goes
-        // beyond just messing up the PMREM, as it also occasionally causes
-        // visible corruption on the canvas and even on the rest of the page.
-        /** tempTarget.dispose(); */
-    }
-    halfblur(targetIn, targetOut, sigmaRadians, direction) {
-        // Number of standard deviations at which to cut off the discrete
-        // approximation.
-        const STANDARD_DEVIATIONS = 3;
-        const pixels = targetIn.width;
-        const radiansPerPixel = isFinite(sigmaRadians) ?
-            Math.PI / (2 * pixels) :
-            2 * Math.PI / (2 * MAX_SAMPLES - 1);
-        const sigmaPixels = sigmaRadians / radiansPerPixel;
-        const samples = isFinite(sigmaRadians) ?
-            1 + Math.floor(STANDARD_DEVIATIONS * sigmaPixels) :
-            MAX_SAMPLES;
-        if (samples > MAX_SAMPLES) {
-            console.warn(`sigmaRadians, ${sigmaRadians}, is too large and will clip, as it requested ${samples} samples when the maximum is set to ${MAX_SAMPLES}`);
-        }
-        const weights = [];
-        let sum = 0;
-        for (let i = 0; i < MAX_SAMPLES; ++i) {
-            const x = i / sigmaPixels;
-            const weight = Math.exp(-x * x / 2);
-            weights.push(weight);
-            if (i == 0) {
-                sum += weight;
-            }
-            else if (i < samples) {
-                sum += 2 * weight;
-            }
-        }
-        for (let i = 0; i < weights.length; i++) {
-            weights[i] = weights[i] / sum;
-        }
-        const blurUniforms = this.blurMaterial.uniforms;
-        blurUniforms['envMap'].value = targetIn.texture;
-        blurUniforms['samples'].value = samples;
-        blurUniforms['weights'].value = weights;
-        blurUniforms['latitudinal'].value = direction === 'latitudinal';
-        blurUniforms['dTheta'].value = radiansPerPixel;
-        const cubeCamera = new CubeCamera(0.1, 100, targetOut);
-        cubeCamera.update(this.threeRenderer, this.blurScene);
-    }
-    getBlurShader(maxSamples) {
-        const weights = new Float32Array(maxSamples);
-        const poleAxis = new Vector3(0, 1, 0);
-        const shaderMaterial = new ShaderMaterial({
-            name: 'SphericalGaussianBlur',
-            defines: { 'n': maxSamples },
-            uniforms: {
-                'envMap': { value: null },
-                'samples': { value: 1 },
-                'weights': { value: weights },
-                'latitudinal': { value: false },
-                'dTheta': { value: 0 },
-                'poleAxis': { value: poleAxis }
-            },
-            vertexShader: /* glsl */ `
-      
-      varying vec3 vOutputDirection;
-  
-      void main() {
-  
-        vOutputDirection = vec3( position );
-        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-  
-      }
-    `,
-            fragmentShader: /* glsl */ `
-        varying vec3 vOutputDirection;
-  
-        uniform samplerCube envMap;
-        uniform int samples;
-        uniform float weights[ n ];
-        uniform bool latitudinal;
-        uniform float dTheta;
-        uniform vec3 poleAxis;
-  
-        vec3 getSample( float theta, vec3 axis ) {
-  
-          float cosTheta = cos( theta );
-          // Rodrigues' axis-angle rotation
-          vec3 sampleDirection = vOutputDirection * cosTheta
-            + cross( axis, vOutputDirection ) * sin( theta )
-            + axis * dot( axis, vOutputDirection ) * ( 1.0 - cosTheta );
-  
-          return vec3( textureCube( envMap, sampleDirection ) );
-  
-        }
-  
-        void main() {
-  
-          vec3 axis = latitudinal ? poleAxis : cross( poleAxis, vOutputDirection );
-  
-          if ( all( equal( axis, vec3( 0.0 ) ) ) ) {
-  
-            axis = vec3( vOutputDirection.z, 0.0, - vOutputDirection.x );
-  
-          }
-  
-          axis = normalize( axis );
-  
-          gl_FragColor = vec4( 0.0, 0.0, 0.0, 1.0 );
-          gl_FragColor.rgb += weights[ 0 ] * getSample( 0.0, axis );
-  
-          for ( int i = 1; i < n; i++ ) {
-  
-            if ( i >= samples ) {
-  
-              break;
-  
-            }
-  
-            float theta = dTheta * float( i );
-            gl_FragColor.rgb += weights[ i ] * getSample( -1.0 * theta, axis );
-            gl_FragColor.rgb += weights[ i ] * getSample( theta, axis );
-  
-          }
-        }
-      `,
-            blending: NoBlending,
-            depthTest: false,
-            depthWrite: false,
-            side: BackSide
-        });
-        return shaderMaterial;
-    }
-    async dispose() {
-        for (const [, promise] of this.skyboxCache) {
-            const skybox = await promise;
-            skybox.dispose();
-        }
-        if (this.generatedEnvironmentMap != null) {
-            (await this.generatedEnvironmentMap).dispose();
-            this.generatedEnvironmentMap = null;
-        }
-        if (this.generatedEnvironmentMapAlt != null) {
-            (await this.generatedEnvironmentMapAlt).dispose();
-            this.generatedEnvironmentMapAlt = null;
-        }
-        if (this.blurMaterial != null) {
-            this.blurMaterial.dispose();
-        }
-    }
-}
-
-/* @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-// Between 0 and 1: larger means the average responds faster and is less smooth.
-const DURATION_DECAY = 0.2;
-const LOW_FRAME_DURATION_MS = 40;
-const HIGH_FRAME_DURATION_MS = 60;
-const MAX_AVG_CHANGE_MS = 5;
-const SCALE_STEPS = [1, 0.79, 0.62, 0.5, 0.4, 0.31, 0.25];
-const DEFAULT_LAST_STEP = 3;
-const DEFAULT_POWER_PREFERENCE = 'high-performance';
-/**
- * Registers canvases with Canvas2DRenderingContexts and renders them
- * all in the same WebGLRenderingContext, spitting out textures to apply
- * to the canvases. Creates a fullscreen WebGL canvas that is not added
- * to the DOM, and on each frame, renders each registered canvas on a portion
- * of the WebGL canvas, and applies the texture on the registered canvas.
- *
- * In the future, can use ImageBitmapRenderingContext instead of
- * Canvas2DRenderingContext if supported for cheaper transferring of
- * the texture.
- */
-class Renderer extends EventDispatcher {
-    constructor(options) {
-        super();
-        this.loader = new CachingGLTFLoader(ModelViewerGLTFInstance);
-        this.width = 0;
-        this.height = 0;
-        this.dpr = 1;
-        this.debugger = null;
-        this.scenes = new Set();
-        this.multipleScenesVisible = false;
-        this.lastTick = performance.now();
-        this.renderedLastFrame = false;
-        this.scaleStep = 0;
-        this.lastStep = DEFAULT_LAST_STEP;
-        this.avgFrameDuration = (HIGH_FRAME_DURATION_MS + LOW_FRAME_DURATION_MS) / 2;
-        this.onWebGLContextLost = (event) => {
-            this.dispatchEvent({ type: 'contextlost', sourceEvent: event });
-        };
-        this.onWebGLContextRestored = () => {
-            var _a;
-            (_a = this.textureUtils) === null || _a === void 0 ? void 0 : _a.dispose();
-            this.textureUtils = new TextureUtils(this.threeRenderer);
-            for (const scene of this.scenes) {
-                scene.element[$updateEnvironment]();
-            }
-        };
-        this.dpr = resolveDpr();
-        this.canvas3D = document.createElement('canvas');
-        this.canvas3D.id = 'webgl-canvas';
-        this.canvas3D.classList.add('show');
-        try {
-            this.threeRenderer = new WebGLRenderer({
-                canvas: this.canvas3D,
-                alpha: true,
-                antialias: true,
-                powerPreference: options.powerPreference,
-                preserveDrawingBuffer: true
-            });
-            this.threeRenderer.autoClear = true;
-            this.threeRenderer.outputEncoding = sRGBEncoding;
-            this.threeRenderer.physicallyCorrectLights = true;
-            this.threeRenderer.setPixelRatio(1); // handle pixel ratio externally
-            this.debugger = !!options.debug ? new Debugger(this) : null;
-            this.threeRenderer.debug = { checkShaderErrors: !!this.debugger };
-            // ACESFilmicToneMapping appears to be the most "saturated",
-            // and similar to Filament's gltf-viewer.
-            this.threeRenderer.toneMapping = ACESFilmicToneMapping;
-        }
-        catch (error) {
-            console.warn(error);
-        }
-        this.arRenderer = new ARRenderer(this);
-        this.textureUtils =
-            this.canRender ? new TextureUtils(this.threeRenderer) : null;
-        CachingGLTFLoader.initializeKTX2Loader(this.threeRenderer);
-        this.canvas3D.addEventListener('webglcontextlost', this.onWebGLContextLost);
-        this.canvas3D.addEventListener('webglcontextrestored', this.onWebGLContextRestored);
-        this.updateRendererSize();
-    }
-    static get singleton() {
-        return this._singleton;
-    }
-    static resetSingleton() {
-        const elements = this._singleton.dispose();
-        for (const element of elements) {
-            element.disconnectedCallback();
-        }
-        this._singleton = new Renderer({
-            powerPreference: (self.ModelViewerElement || {})
-                .powerPreference ||
-                DEFAULT_POWER_PREFERENCE,
-            debug: isDebugMode()
-        });
-        for (const element of elements) {
-            element.connectedCallback();
-        }
-    }
-    get canRender() {
-        return this.threeRenderer != null;
-    }
-    get scaleFactor() {
-        return SCALE_STEPS[this.scaleStep];
-    }
-    set minScale(scale) {
-        let i = 1;
-        while (i < SCALE_STEPS.length) {
-            if (SCALE_STEPS[i] < scale) {
-                break;
-            }
-            ++i;
-        }
-        this.lastStep = i - 1;
-    }
-    registerScene(scene) {
-        this.scenes.add(scene);
-        scene.forceRescale();
-        const size = new Vector2();
-        this.threeRenderer.getSize(size);
-        scene.canvas.width = size.x;
-        scene.canvas.height = size.y;
-        if (this.canRender && this.scenes.size > 0) {
-            this.threeRenderer.setAnimationLoop((time, frame) => this.render(time, frame));
-        }
-        if (this.debugger != null) {
-            this.debugger.addScene(scene);
-        }
-    }
-    unregisterScene(scene) {
-        this.scenes.delete(scene);
-        if (this.canvas3D.parentElement === scene.canvas.parentElement) {
-            scene.canvas.parentElement.removeChild(this.canvas3D);
-        }
-        if (this.canRender && this.scenes.size === 0) {
-            this.threeRenderer.setAnimationLoop(null);
-        }
-        if (this.debugger != null) {
-            this.debugger.removeScene(scene);
-        }
-    }
-    displayCanvas(scene) {
-        return this.multipleScenesVisible ? scene.element[$canvas] : this.canvas3D;
-    }
-    /**
-     * The function enables an optimization, where when there is only a single
-     * <model-viewer> element, we can use the renderer's 3D canvas directly for
-     * display. Otherwise we need to use the element's 2D canvas and copy the
-     * renderer's result into it.
-     */
-    countVisibleScenes() {
-        const { canvas3D } = this;
-        let visibleScenes = 0;
-        let canvas3DScene = null;
-        for (const scene of this.scenes) {
-            const { element } = scene;
-            if (element.modelIsVisible && scene.externalRenderer == null) {
-                ++visibleScenes;
-            }
-            if (canvas3D.parentElement === scene.canvas.parentElement) {
-                canvas3DScene = scene;
-            }
-        }
-        const multipleScenesVisible = visibleScenes > 1;
-        if (canvas3DScene != null) {
-            const newlyMultiple = multipleScenesVisible && !this.multipleScenesVisible;
-            const disappearing = !canvas3DScene.element.modelIsVisible;
-            if (newlyMultiple || disappearing) {
-                const { width, height } = this.sceneSize(canvas3DScene);
-                this.copyPixels(canvas3DScene, width, height);
-                canvas3D.parentElement.removeChild(canvas3D);
-            }
-        }
-        this.multipleScenesVisible = multipleScenesVisible;
-    }
-    /**
-     * Updates the renderer's size based on the largest scene and any changes to
-     * device pixel ratio.
-     */
-    updateRendererSize() {
-        const dpr = resolveDpr();
-        if (dpr !== this.dpr) {
-            // If the device pixel ratio has changed due to page zoom, elements
-            // specified by % width do not fire a resize event even though their CSS
-            // pixel dimensions change, so we force them to update their size here.
-            for (const scene of this.scenes) {
-                const { element } = scene;
-                element[$updateSize](element.getBoundingClientRect());
-            }
-        }
-        // Make the renderer the size of the largest scene
-        let width = 0;
-        let height = 0;
-        for (const scene of this.scenes) {
-            width = Math.max(width, scene.width);
-            height = Math.max(height, scene.height);
-        }
-        if (width === this.width && height === this.height && dpr === this.dpr) {
-            return;
-        }
-        this.width = width;
-        this.height = height;
-        this.dpr = dpr;
-        width = Math.ceil(width * dpr);
-        height = Math.ceil(height * dpr);
-        if (this.canRender) {
-            this.threeRenderer.setSize(width, height, false);
-        }
-        // Each scene's canvas must match the renderer size. In general they can be
-        // larger than the element that contains them, but the overflow is hidden
-        // and only the portion that is shown is copied over.
-        for (const scene of this.scenes) {
-            const { canvas } = scene;
-            canvas.width = width;
-            canvas.height = height;
-            scene.forceRescale();
-        }
-    }
-    updateRendererScale(delta) {
-        const scaleStep = this.scaleStep;
-        this.avgFrameDuration += clamp(DURATION_DECAY * (delta - this.avgFrameDuration), -MAX_AVG_CHANGE_MS, MAX_AVG_CHANGE_MS);
-        if (this.avgFrameDuration > HIGH_FRAME_DURATION_MS) {
-            ++this.scaleStep;
-        }
-        else if (this.avgFrameDuration < LOW_FRAME_DURATION_MS && this.scaleStep > 0) {
-            --this.scaleStep;
-        }
-        this.scaleStep = Math.min(this.scaleStep, this.lastStep);
-        if (scaleStep !== this.scaleStep) {
-            this.avgFrameDuration =
-                (HIGH_FRAME_DURATION_MS + LOW_FRAME_DURATION_MS) / 2;
-        }
-    }
-    shouldRender(scene) {
-        if (!scene.shouldRender()) {
-            // The first frame we stop rendering the scene (because it stops moving),
-            // trigger one extra render at full scale.
-            if (scene.scaleStep != 0) {
-                scene.scaleStep = 0;
-                this.rescaleCanvas(scene);
-            }
-            else {
-                return false;
-            }
-        }
-        else if (scene.scaleStep != this.scaleStep) {
-            // Update render scale
-            scene.scaleStep = this.scaleStep;
-            this.rescaleCanvas(scene);
-        }
-        return true;
-    }
-    rescaleCanvas(scene) {
-        const scale = SCALE_STEPS[scene.scaleStep];
-        const width = Math.ceil(this.width / scale);
-        const height = Math.ceil(this.height / scale);
-        const { style } = scene.canvas;
-        style.width = `${width}px`;
-        style.height = `${height}px`;
-        this.canvas3D.style.width = `${width}px`;
-        this.canvas3D.style.height = `${height}px`;
-        const renderedDpr = this.dpr * scale;
-        const reason = scale < 1 ? 'GPU throttling' :
-            this.dpr !== window.devicePixelRatio ? 'No meta viewport tag' :
-                '';
-        scene.element.dispatchEvent(new CustomEvent('render-scale', {
-            detail: {
-                reportedDpr: window.devicePixelRatio,
-                renderedDpr: renderedDpr,
-                minimumDpr: this.dpr * SCALE_STEPS[this.lastStep],
-                pixelWidth: Math.ceil(scene.width * renderedDpr),
-                pixelHeight: Math.ceil(scene.height * renderedDpr),
-                reason: reason
-            }
-        }));
-    }
-    sceneSize(scene) {
-        const { dpr } = this;
-        const scaleFactor = SCALE_STEPS[scene.scaleStep];
-        // We avoid using the Three.js PixelRatio and handle it ourselves here so
-        // that we can do proper rounding and avoid white boundary pixels.
-        const width = Math.min(Math.ceil(scene.width * scaleFactor * dpr), this.canvas3D.width);
-        const height = Math.min(Math.ceil(scene.height * scaleFactor * dpr), this.canvas3D.height);
-        return { width, height };
-    }
-    copyPixels(scene, width, height) {
-        const context2D = scene.context;
-        if (context2D == null) {
-            console.log('could not acquire 2d context');
-            return;
-        }
-        context2D.clearRect(0, 0, width, height);
-        context2D.drawImage(this.canvas3D, 0, 0, width, height, 0, 0, width, height);
-        scene.canvas.classList.add('show');
-    }
-    /**
-     * Returns an array version of this.scenes where the non-visible ones are
-     * first. This allows eager scenes to be rendered before they are visible,
-     * without needing the multi-canvas render path.
-     */
-    orderedScenes() {
-        const scenes = [];
-        for (const visible of [false, true]) {
-            for (const scene of this.scenes) {
-                if (scene.element.modelIsVisible === visible) {
-                    scenes.push(scene);
-                }
-            }
-        }
-        return scenes;
-    }
-    get isPresenting() {
-        return this.arRenderer.isPresenting;
-    }
-    /**
-     * This method takes care of updating the element and renderer state based on
-     * the time that has passed since the last rendered frame.
-     */
-    preRender(scene, t, delta) {
-        const { element, exposure } = scene;
-        element[$tick](t, delta);
-        const exposureIsNumber = typeof exposure === 'number' && !Number.isNaN(exposure);
-        this.threeRenderer.toneMappingExposure = exposureIsNumber ? exposure : 1.0;
-    }
-    render(t, frame) {
-        if (frame != null) {
-            this.arRenderer.onWebXRFrame(t, frame);
-            return;
-        }
-        const delta = t - this.lastTick;
-        this.lastTick = t;
-        if (!this.canRender || this.isPresenting) {
-            return;
-        }
-        this.countVisibleScenes();
-        this.updateRendererSize();
-        if (this.renderedLastFrame) {
-            this.updateRendererScale(delta);
-            this.renderedLastFrame = false;
-        }
-        const { canvas3D } = this;
-        for (const scene of this.orderedScenes()) {
-            const { element } = scene;
-            if (!element.loaded ||
-                (!element.modelIsVisible && scene.renderCount > 0)) {
-                continue;
-            }
-            this.preRender(scene, t, delta);
-            if (!this.shouldRender(scene)) {
-                continue;
-            }
-            if (scene.externalRenderer != null) {
-                const camera = scene.getCamera();
-                camera.updateMatrix();
-                const { matrix, projectionMatrix } = camera;
-                const viewMatrix = matrix.elements.slice();
-                const target = scene.getTarget();
-                viewMatrix[12] += target.x;
-                viewMatrix[13] += target.y;
-                viewMatrix[14] += target.z;
-                scene.externalRenderer.render({
-                    viewMatrix: viewMatrix,
-                    projectionMatrix: projectionMatrix.elements
-                });
-                continue;
-            }
-            if (!element.modelIsVisible && !this.multipleScenesVisible) {
-                // Here we are pre-rendering on the visible canvas, so we must mark the
-                // visible scene dirty to ensure it overwrites us.
-                for (const visibleScene of this.scenes) {
-                    if (visibleScene.element.modelIsVisible) {
-                        visibleScene.queueRender();
-                    }
-                }
-            }
-            const { width, height } = this.sceneSize(scene);
-            scene.renderShadow(this.threeRenderer);
-            // Need to set the render target in order to prevent
-            // clearing the depth from a different buffer
-            this.threeRenderer.setRenderTarget(null);
-            this.threeRenderer.setViewport(0, Math.ceil(this.height * this.dpr) - height, width, height);
-            this.threeRenderer.render(scene, scene.camera);
-            if (this.multipleScenesVisible || scene.renderCount === 0) {
-                this.copyPixels(scene, width, height);
-            }
-            else {
-                scene.canvas.parentElement.appendChild(canvas3D);
-                scene.canvas.classList.remove('show');
-            }
-            scene.hasRendered();
-            ++scene.renderCount;
-            this.renderedLastFrame = true;
-        }
-    }
-    dispose() {
-        if (this.textureUtils != null) {
-            this.textureUtils.dispose();
-        }
-        if (this.threeRenderer != null) {
-            this.threeRenderer.dispose();
-        }
-        this.textureUtils = null;
-        this.threeRenderer = null;
-        const elements = [];
-        for (const scene of this.scenes) {
-            elements.push(scene.element);
-        }
-        this.canvas3D.removeEventListener('webglcontextlost', this.onWebGLContextLost);
-        this.canvas3D.removeEventListener('webglcontextrestored', this.onWebGLContextRestored);
-        return elements;
-    }
-}
-Renderer._singleton = new Renderer({
-    powerPreference: (self.ModelViewerElement || {})
-        .powerPreference ||
-        DEFAULT_POWER_PREFERENCE,
-    debug: isDebugMode()
-});
-=======
 const quadMaterial = new MeshBasicMaterial();
 const quad = new PlaneGeometry(2, 2);
 let adhocNum = 0;
@@ -53372,7 +50454,6 @@ var Wrap;
     Wrap[Wrap["MirroredRepeat"] = 33648] = "MirroredRepeat";
     Wrap[Wrap["Repeat"] = 10497] = "Repeat";
 })(Wrap || (Wrap = {}));
->>>>>>> Stashed changes
 
 /* @license
  * Copyright 2020 Google LLC. All Rights Reserved.
@@ -53388,22 +50469,6 @@ var Wrap;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-<<<<<<< Updated upstream
-const $correlatedObjects = Symbol('correlatedObjects');
-const $sourceObject = Symbol('sourceObject');
-const $onUpdate = Symbol('onUpdate');
-/**
- * A SerializableThreeDOMElement is the common primitive of all scene graph
- * elements that have been facaded in the host execution context. It adds
- * a common interface to these elements in support of convenient
- * serializability.
- */
-class ThreeDOMElement {
-    constructor(onUpdate, element, correlatedObjects = null) {
-        this[$onUpdate] = onUpdate;
-        this[$sourceObject] = element;
-        this[$correlatedObjects] = correlatedObjects;
-=======
 const isMinFilter = (() => {
     const minFilterValues = [
         Filter.Nearest,
@@ -53513,7 +50578,6 @@ class Sampler extends ThreeDOMElement {
             }
             this[$onUpdate$1]();
         }
->>>>>>> Stashed changes
     }
 }
 
@@ -53531,31 +50595,6 @@ class Sampler extends ThreeDOMElement {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-<<<<<<< Updated upstream
-const quadMaterial = new MeshBasicMaterial();
-const quad = new PlaneGeometry(2, 2);
-let adhocNum = 0;
-const $threeTexture = Symbol('threeTexture');
-/**
- * Image facade implementation for Three.js textures
- */
-class Image$1 extends ThreeDOMElement {
-    get [$threeTexture]() {
-        var _a;
-        console.assert(this[$correlatedObjects] != null && this[$correlatedObjects].size > 0, 'Image correlated object is undefined');
-        return (_a = this[$correlatedObjects]) === null || _a === void 0 ? void 0 : _a.values().next().value;
-    }
-    constructor(onUpdate, texture, gltfImage) {
-        gltfImage = gltfImage !== null && gltfImage !== void 0 ? gltfImage : {
-            name: (texture && texture.image && texture.image.src) ?
-                texture.image.src.split('/').pop() :
-                'adhoc_image',
-            uri: (texture && texture.image && texture.image.src) ?
-                texture.image.src :
-                'adhoc_image' + adhocNum++
-        };
-        super(onUpdate, gltfImage, new Set(texture ? [texture] : []));
-=======
 const $image = Symbol('image');
 const $sampler = Symbol('sampler');
 /**
@@ -53566,70 +50605,10 @@ class Texture extends ThreeDOMElement {
         super(onUpdate, gltfTexture ? gltfTexture : {}, new Set(threeTexture ? [threeTexture] : []));
         this[$sampler] = new Sampler(onUpdate, threeTexture, gltfSampler);
         this[$image] = new Image$1(onUpdate, threeTexture, gltfImage);
->>>>>>> Stashed changes
     }
     get name() {
         return this[$sourceObject].name || '';
     }
-<<<<<<< Updated upstream
-    get uri() {
-        return this[$sourceObject].uri;
-    }
-    get bufferView() {
-        return this[$sourceObject].bufferView;
-    }
-    get type() {
-        return this.uri != null ? 'external' : 'embedded';
-    }
-    set name(name) {
-        this[$sourceObject].name = name;
-    }
-    async createThumbnail(width, height) {
-        const scene = new Scene();
-        quadMaterial.map = this[$threeTexture];
-        const mesh = new Mesh(quad, quadMaterial);
-        scene.add(mesh);
-        const camera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
-        const { threeRenderer } = Renderer.singleton;
-        const renderTarget = new WebGLRenderTarget(width, height);
-        threeRenderer.setRenderTarget(renderTarget);
-        threeRenderer.render(scene, camera);
-        threeRenderer.setRenderTarget(null);
-        const buffer = new Uint8Array(width * height * 4);
-        threeRenderer.readRenderTargetPixels(renderTarget, 0, 0, width, height, buffer);
-        blobCanvas.width = width;
-        blobCanvas.height = height;
-        const blobContext = blobCanvas.getContext('2d');
-        const imageData = blobContext.createImageData(width, height);
-        imageData.data.set(buffer);
-        blobContext.putImageData(imageData, 0, 0);
-        return new Promise(async (resolve, reject) => {
-            blobCanvas.toBlob(blob => {
-                if (!blob) {
-                    return reject('Failed to capture thumbnail.');
-                }
-                resolve(URL.createObjectURL(blob));
-            }, 'image/png');
-        });
-    }
-}
-
-var Filter;
-(function (Filter) {
-    Filter[Filter["Nearest"] = 9728] = "Nearest";
-    Filter[Filter["Linear"] = 9729] = "Linear";
-    Filter[Filter["NearestMipmapNearest"] = 9984] = "NearestMipmapNearest";
-    Filter[Filter["LinearMipmapNearest"] = 9985] = "LinearMipmapNearest";
-    Filter[Filter["NearestMipmapLinear"] = 9986] = "NearestMipmapLinear";
-    Filter[Filter["LinearMipmapLinear"] = 9987] = "LinearMipmapLinear";
-})(Filter || (Filter = {}));
-var Wrap;
-(function (Wrap) {
-    Wrap[Wrap["ClampToEdge"] = 33071] = "ClampToEdge";
-    Wrap[Wrap["MirroredRepeat"] = 33648] = "MirroredRepeat";
-    Wrap[Wrap["Repeat"] = 10497] = "Repeat";
-})(Wrap || (Wrap = {}));
-=======
     set name(name) {
         this[$sourceObject].name = name;
     }
@@ -53771,7 +50750,6 @@ class TextureInfo {
     }
 }
 _a$7 = $texture, _b$6 = $transform, _c$5 = $activeVideo;
->>>>>>> Stashed changes
 
 /* @license
  * Copyright 2020 Google LLC. All Rights Reserved.
@@ -53787,117 +50765,6 @@ _a$7 = $texture, _b$6 = $transform, _c$5 = $activeVideo;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-<<<<<<< Updated upstream
-const isMinFilter = (() => {
-    const minFilterValues = [
-        Filter.Nearest,
-        Filter.Linear,
-        Filter.NearestMipmapNearest,
-        Filter.LinearMipmapLinear,
-        Filter.NearestMipmapLinear,
-        Filter.LinearMipmapLinear
-    ];
-    return (value) => minFilterValues.indexOf(value) > -1;
-})();
-const isMagFilter = (() => {
-    const magFilterValues = [Filter.Nearest, Filter.Linear];
-    return (value) => magFilterValues.indexOf(value) > -1;
-})();
-const isWrapMode = (() => {
-    const wrapModes = [Wrap.ClampToEdge, Wrap.MirroredRepeat, Wrap.Repeat];
-    return (value) => wrapModes.indexOf(value) > -1;
-})();
-const isValidSamplerValue = (property, value) => {
-    switch (property) {
-        case 'minFilter':
-            return isMinFilter(value);
-        case 'magFilter':
-            return isMagFilter(value);
-        case 'wrapS':
-        case 'wrapT':
-            return isWrapMode(value);
-        default:
-            throw new Error(`Cannot configure property "${property}" on Sampler`);
-    }
-};
-const $threeTextures = Symbol('threeTextures');
-const $setProperty = Symbol('setProperty');
-const $sourceSampler = Symbol('sourceSampler');
-/**
- * Sampler facade implementation for Three.js textures
- */
-class Sampler extends ThreeDOMElement {
-    get [$threeTextures]() {
-        console.assert(this[$correlatedObjects] != null && this[$correlatedObjects].size > 0, 'Sampler correlated object is undefined');
-        return this[$correlatedObjects];
-    }
-    get [$sourceSampler]() {
-        console.assert(this[$sourceObject] != null, 'Sampler source is undefined');
-        return this[$sourceObject];
-    }
-    constructor(onUpdate, texture, gltfSampler) {
-        gltfSampler = gltfSampler !== null && gltfSampler !== void 0 ? gltfSampler : {};
-        // These defaults represent a convergence of glTF defaults for wrap mode and
-        // Three.js defaults for filters. Per glTF 2.0 spec, a renderer may choose
-        // its own defaults for filters.
-        // @see https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#reference-sampler
-        // @see https://threejs.org/docs/#api/en/textures/Texture
-        if (gltfSampler.minFilter == null) {
-            gltfSampler.minFilter =
-                texture ? texture.minFilter : Filter.LinearMipmapLinear;
-        }
-        if (gltfSampler.magFilter == null) {
-            gltfSampler.magFilter =
-                texture ? texture.magFilter : Filter.Linear;
-        }
-        if (gltfSampler.wrapS == null) {
-            gltfSampler.wrapS = texture ? texture.wrapS : Wrap.Repeat;
-        }
-        if (gltfSampler.wrapT == null) {
-            gltfSampler.wrapT = texture ? texture.wrapT : Wrap.Repeat;
-        }
-        super(onUpdate, gltfSampler, new Set(texture ? [texture] : []));
-    }
-    get name() {
-        return this[$sourceObject].name || '';
-    }
-    get minFilter() {
-        return this[$sourceSampler].minFilter;
-    }
-    get magFilter() {
-        return this[$sourceSampler].magFilter;
-    }
-    get wrapS() {
-        return this[$sourceSampler].wrapS;
-    }
-    get wrapT() {
-        return this[$sourceSampler].wrapT;
-    }
-    setMinFilter(filter) {
-        this[$setProperty]('minFilter', filter);
-    }
-    setMagFilter(filter) {
-        this[$setProperty]('magFilter', filter);
-    }
-    setWrapS(mode) {
-        this[$setProperty]('wrapS', mode);
-    }
-    setWrapT(mode) {
-        this[$setProperty]('wrapT', mode);
-    }
-    [$setProperty](property, value) {
-        const sampler = this[$sourceSampler];
-        if (sampler != null) {
-            if (isValidSamplerValue(property, value)) {
-                sampler[property] = value;
-                for (const texture of this[$threeTextures]) {
-                    texture[property] = value;
-                    texture.needsUpdate = true;
-                }
-            }
-            this[$onUpdate]();
-        }
-=======
 const $threeMaterials = Symbol('threeMaterials');
 const $baseColorTexture = Symbol('baseColorTexture');
 const $metallicRoughnessTexture = Symbol('metallicRoughnessTexture');
@@ -53980,7 +50847,6 @@ class PBRMetallicRoughness extends ThreeDOMElement {
         const pbrMetallicRoughness = this[$sourceObject];
         pbrMetallicRoughness.roughnessFactor = value;
         this[$onUpdate$1]();
->>>>>>> Stashed changes
     }
 }
 
@@ -53998,135 +50864,6 @@ class PBRMetallicRoughness extends ThreeDOMElement {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-<<<<<<< Updated upstream
-const $image = Symbol('image');
-const $sampler = Symbol('sampler');
-/**
- * Material facade implementation for Three.js materials
- */
-class Texture extends ThreeDOMElement {
-    constructor(onUpdate, threeTexture, gltfTexture = null, gltfSampler = null, gltfImage = null) {
-        super(onUpdate, gltfTexture ? gltfTexture : {}, new Set(threeTexture ? [threeTexture] : []));
-        this[$sampler] = new Sampler(onUpdate, threeTexture, gltfSampler);
-        this[$image] = new Image$1(onUpdate, threeTexture, gltfImage);
-    }
-    get name() {
-        return this[$sourceObject].name || '';
-    }
-    set name(name) {
-        this[$sourceObject].name = name;
-    }
-    get sampler() {
-        return this[$sampler];
-    }
-    get source() {
-        return this[$image];
-    }
-}
-
-/* @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var _a$7, _b$6;
-const $texture = Symbol('texture');
-const $transform = Symbol('transform');
-const $materials$2 = Symbol('materials');
-const $usage = Symbol('usage');
-// Defines what a texture will be used for.
-var TextureUsage;
-(function (TextureUsage) {
-    TextureUsage[TextureUsage["Base"] = 0] = "Base";
-    TextureUsage[TextureUsage["MetallicRoughness"] = 1] = "MetallicRoughness";
-    TextureUsage[TextureUsage["Normal"] = 2] = "Normal";
-    TextureUsage[TextureUsage["Occlusion"] = 3] = "Occlusion";
-    TextureUsage[TextureUsage["Emissive"] = 4] = "Emissive";
-})(TextureUsage || (TextureUsage = {}));
-/**
- * TextureInfo facade implementation for Three.js materials
- */
-class TextureInfo {
-    constructor(onUpdate, usage, threeTexture, material, gltf, gltfTextureInfo) {
-        this[_a$7] = null;
-        this[_b$6] = {
-            rotation: 0,
-            scale: new Vector2(1, 1),
-            offset: new Vector2(0, 0)
-        };
-        // Creates image, sampler, and texture if valid texture info is provided.
-        if (gltfTextureInfo && threeTexture) {
-            const gltfTexture = gltf.textures ? gltf.textures[gltfTextureInfo.index] : null;
-            const sampler = gltfTexture ?
-                (gltf.samplers ? gltf.samplers[gltfTexture.sampler] : null) :
-                null;
-            const image = gltfTexture ?
-                (gltf.images ? gltf.images[gltfTexture.source] : null) :
-                null;
-            this[$transform].rotation = threeTexture.rotation;
-            this[$transform].scale.copy(threeTexture.repeat);
-            this[$transform].offset.copy(threeTexture.offset);
-            this[$texture] =
-                new Texture(onUpdate, threeTexture, gltfTexture, sampler, image);
-        }
-        this.onUpdate = onUpdate;
-        this[$materials$2] = material;
-        this[$usage] = usage;
-    }
-    get texture() {
-        return this[$texture];
-    }
-    setTexture(texture) {
-        const threeTexture = texture != null ? texture.source[$threeTexture] : null;
-        let encoding = sRGBEncoding;
-        this[$texture] = texture;
-        if (this[$materials$2]) {
-            for (const material of this[$materials$2]) {
-                switch (this[$usage]) {
-                    case TextureUsage.Base:
-                        material.map = threeTexture;
-                        break;
-                    case TextureUsage.MetallicRoughness:
-                        encoding = LinearEncoding;
-                        material.metalnessMap = threeTexture;
-                        material.roughnessMap = threeTexture;
-                        break;
-                    case TextureUsage.Normal:
-                        encoding = LinearEncoding;
-                        material.normalMap = threeTexture;
-                        break;
-                    case TextureUsage.Occlusion:
-                        encoding = LinearEncoding;
-                        material.aoMap = threeTexture;
-                        break;
-                    case TextureUsage.Emissive:
-                        material.emissiveMap = threeTexture;
-                        break;
-                }
-                material.needsUpdate = true;
-            }
-        }
-        if (threeTexture) {
-            // Updates the encoding for the texture, affects all references.
-            threeTexture.encoding = encoding;
-            threeTexture.rotation = this[$transform].rotation;
-            threeTexture.repeat = this[$transform].scale;
-            threeTexture.offset = this[$transform].offset;
-        }
-        this.onUpdate();
-    }
-}
-_a$7 = $texture, _b$6 = $transform;
-=======
 var _a$6;
 const $pbrMetallicRoughness = Symbol('pbrMetallicRoughness');
 const $normalTexture = Symbol('normalTexture');
@@ -54553,7 +51290,6 @@ class PrimitiveNode extends Node$1 {
     }
 }
 _b$5 = $materials$1, _c$4 = $variantToMaterialMap, _d$3 = $initialMaterialIdx, _e$2 = $activeMaterialIdx;
->>>>>>> Stashed changes
 
 /* @license
  * Copyright 2020 Google LLC. All Rights Reserved.
@@ -54569,90 +51305,6 @@ _b$5 = $materials$1, _c$4 = $variantToMaterialMap, _d$3 = $initialMaterialIdx, _
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-<<<<<<< Updated upstream
-const $threeMaterials = Symbol('threeMaterials');
-const $baseColorTexture = Symbol('baseColorTexture');
-const $metallicRoughnessTexture = Symbol('metallicRoughnessTexture');
-/**
- * PBR material properties facade implementation for Three.js materials
- */
-class PBRMetallicRoughness extends ThreeDOMElement {
-    constructor(onUpdate, gltf, pbrMetallicRoughness, correlatedMaterials) {
-        super(onUpdate, pbrMetallicRoughness, correlatedMaterials);
-        // Assign glTF default values
-        if (pbrMetallicRoughness.baseColorFactor == null) {
-            pbrMetallicRoughness.baseColorFactor = [1, 1, 1, 1];
-        }
-        if (pbrMetallicRoughness.roughnessFactor == null) {
-            pbrMetallicRoughness.roughnessFactor = 1;
-        }
-        if (pbrMetallicRoughness.metallicFactor == null) {
-            pbrMetallicRoughness.metallicFactor = 1;
-        }
-        const { baseColorTexture: gltfBaseColorTexture, metallicRoughnessTexture: gltfMetallicRoughnessTexture } = pbrMetallicRoughness;
-        const { map, metalnessMap } = correlatedMaterials.values().next().value;
-        this[$baseColorTexture] = new TextureInfo(onUpdate, TextureUsage.Base, map, correlatedMaterials, gltf, gltfBaseColorTexture ? gltfBaseColorTexture : null);
-        this[$metallicRoughnessTexture] = new TextureInfo(onUpdate, TextureUsage.MetallicRoughness, metalnessMap, correlatedMaterials, gltf, gltfMetallicRoughnessTexture ? gltfMetallicRoughnessTexture : null);
-    }
-    get [$threeMaterials]() {
-        return this[$correlatedObjects];
-    }
-    get baseColorFactor() {
-        return this[$sourceObject]
-            .baseColorFactor;
-    }
-    get metallicFactor() {
-        return this[$sourceObject]
-            .metallicFactor;
-    }
-    get roughnessFactor() {
-        return this[$sourceObject]
-            .roughnessFactor;
-    }
-    get baseColorTexture() {
-        return this[$baseColorTexture];
-    }
-    get metallicRoughnessTexture() {
-        return this[$metallicRoughnessTexture];
-    }
-    setBaseColorFactor(rgba) {
-        const color = new Color();
-        if (rgba instanceof Array) {
-            color.fromArray(rgba);
-        }
-        else {
-            color.set(rgba).convertSRGBToLinear();
-        }
-        for (const material of this[$threeMaterials]) {
-            material.color.set(color);
-            if (rgba instanceof Array) {
-                material.opacity = (rgba)[3];
-            }
-            else {
-                rgba = [0, 0, 0, material.opacity];
-                color.toArray(rgba);
-            }
-        }
-        const pbrMetallicRoughness = this[$sourceObject];
-        pbrMetallicRoughness.baseColorFactor = rgba;
-        this[$onUpdate]();
-    }
-    setMetallicFactor(value) {
-        for (const material of this[$threeMaterials]) {
-            material.metalness = value;
-        }
-        const pbrMetallicRoughness = this[$sourceObject];
-        pbrMetallicRoughness.metallicFactor = value;
-        this[$onUpdate]();
-    }
-    setRoughnessFactor(value) {
-        for (const material of this[$threeMaterials]) {
-            material.roughness = value;
-        }
-        const pbrMetallicRoughness = this[$sourceObject];
-        pbrMetallicRoughness.roughnessFactor = value;
-        this[$onUpdate]();
-=======
 var _a$4, _b$4, _c$3, _d$2, _e$1, _f$1;
 const $materials = Symbol('materials');
 const $hierarchy = Symbol('hierarchy');
@@ -54946,7 +51598,6 @@ class Model {
             primitive.deleteVariant(variant.index);
         }
         this[$variantData].delete(variantName);
->>>>>>> Stashed changes
     }
 }
 
@@ -54964,437 +51615,6 @@ class Model {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-<<<<<<< Updated upstream
-var _a$6;
-const $pbrMetallicRoughness = Symbol('pbrMetallicRoughness');
-const $normalTexture = Symbol('normalTexture');
-const $occlusionTexture = Symbol('occlusionTexture');
-const $emissiveTexture = Symbol('emissiveTexture');
-const $backingThreeMaterial = Symbol('backingThreeMaterial');
-const $applyAlphaCutoff = Symbol('applyAlphaCutoff');
-const $lazyLoadGLTFInfo = Symbol('lazyLoadGLTFInfo');
-const $initialize = Symbol('initialize');
-const $getLoadedMaterial = Symbol('getLoadedMaterial');
-const $ensureMaterialIsLoaded = Symbol('ensureMaterialIsLoaded');
-const $gltfIndex = Symbol('gltfIndex');
-const $setActive = Symbol('setActive');
-const $variantIndices = Symbol('variantIndices');
-const $isActive = Symbol('isActive');
-const $variantSet = Symbol('variantSet');
-const $modelVariants$1 = Symbol('modelVariants');
-/**
- * Material facade implementation for Three.js materials
- */
-class Material extends ThreeDOMElement {
-    constructor(onUpdate, gltf, gltfMaterial, gltfIndex, isActive, modelVariants, correlatedMaterials, lazyLoadInfo = undefined) {
-        super(onUpdate, gltfMaterial, correlatedMaterials);
-        this[_a$6] = new Set();
-        this[$gltfIndex] = gltfIndex;
-        this[$isActive] = isActive;
-        this[$modelVariants$1] = modelVariants;
-        if (lazyLoadInfo == null) {
-            this[$initialize](gltf);
-        }
-        else {
-            this[$lazyLoadGLTFInfo] = lazyLoadInfo;
-        }
-    }
-    get [(_a$6 = $variantSet, $backingThreeMaterial)]() {
-        return this[$correlatedObjects]
-            .values()
-            .next()
-            .value;
-    }
-    [$initialize](gltf) {
-        const onUpdate = this[$onUpdate];
-        const gltfMaterial = this[$sourceObject];
-        const correlatedMaterials = this[$correlatedObjects];
-        if (gltfMaterial.extensions &&
-            gltfMaterial.extensions['KHR_materials_pbrSpecularGlossiness']) {
-            console.warn(`Material ${gltfMaterial.name} uses a deprecated extension
-          "KHR_materials_pbrSpecularGlossiness", please use
-          "pbrMetallicRoughness" instead. Specular Glossiness materials are
-          currently supported for rendering, but not for our scene-graph API,
-          nor for auto-generation of USDZ for Quick Look.`);
-        }
-        if (gltfMaterial.pbrMetallicRoughness == null) {
-            gltfMaterial.pbrMetallicRoughness = {};
-        }
-        this[$pbrMetallicRoughness] = new PBRMetallicRoughness(onUpdate, gltf, gltfMaterial.pbrMetallicRoughness, correlatedMaterials);
-        if (gltfMaterial.emissiveFactor == null) {
-            gltfMaterial.emissiveFactor = [0, 0, 0];
-        }
-        if (gltfMaterial.doubleSided == null) {
-            gltfMaterial.doubleSided = false;
-        }
-        if (gltfMaterial.alphaMode == null) {
-            gltfMaterial.alphaMode = 'OPAQUE';
-        }
-        if (gltfMaterial.alphaCutoff == null) {
-            gltfMaterial.alphaCutoff = 0.5;
-        }
-        const { normalTexture: gltfNormalTexture, occlusionTexture: gltfOcclusionTexture, emissiveTexture: gltfEmissiveTexture } = gltfMaterial;
-        const { normalMap, aoMap, emissiveMap } = correlatedMaterials.values().next().value;
-        this[$normalTexture] = new TextureInfo(onUpdate, TextureUsage.Normal, normalMap, correlatedMaterials, gltf, gltfNormalTexture ? gltfNormalTexture : null);
-        this[$occlusionTexture] = new TextureInfo(onUpdate, TextureUsage.Occlusion, aoMap, correlatedMaterials, gltf, gltfOcclusionTexture ? gltfOcclusionTexture : null);
-        this[$emissiveTexture] = new TextureInfo(onUpdate, TextureUsage.Emissive, emissiveMap, correlatedMaterials, gltf, gltfEmissiveTexture ? gltfEmissiveTexture : null);
-    }
-    async [$getLoadedMaterial]() {
-        if (this[$lazyLoadGLTFInfo] != null) {
-            const { set, material } = await this[$lazyLoadGLTFInfo].doLazyLoad();
-            // Fills in the missing data.
-            this[$correlatedObjects] = set;
-            this[$initialize](this[$lazyLoadGLTFInfo].gltf);
-            // Releases lazy load info.
-            this[$lazyLoadGLTFInfo] = undefined;
-            // Redefines the method as a noop method.
-            this.ensureLoaded = async () => { };
-            return material;
-        }
-        return this[$correlatedObjects].values().next().value;
-    }
-    [$ensureMaterialIsLoaded]() {
-        if (this[$lazyLoadGLTFInfo] == null) {
-            return;
-        }
-        throw new Error(`Material "${this.name}" has not been loaded, call 'await
-    myMaterial.ensureLoaded()' before using an unloaded material.`);
-    }
-    async ensureLoaded() {
-        await this[$getLoadedMaterial]();
-    }
-    get isLoaded() {
-        return this[$lazyLoadGLTFInfo] == null;
-    }
-    get isActive() {
-        return this[$isActive];
-    }
-    [$setActive](isActive) {
-        this[$isActive] = isActive;
-    }
-    get name() {
-        return this[$sourceObject].name;
-    }
-    set name(name) {
-        const sourceMaterial = this[$sourceObject];
-        if (sourceMaterial != null) {
-            sourceMaterial.name = name;
-        }
-        if (this[$correlatedObjects] != null) {
-            for (const threeMaterial of this[$correlatedObjects]) {
-                threeMaterial.name = name;
-            }
-        }
-    }
-    get pbrMetallicRoughness() {
-        this[$ensureMaterialIsLoaded]();
-        return this[$pbrMetallicRoughness];
-    }
-    get normalTexture() {
-        this[$ensureMaterialIsLoaded]();
-        return this[$normalTexture];
-    }
-    get occlusionTexture() {
-        this[$ensureMaterialIsLoaded]();
-        return this[$occlusionTexture];
-    }
-    get emissiveTexture() {
-        this[$ensureMaterialIsLoaded]();
-        return this[$emissiveTexture];
-    }
-    get emissiveFactor() {
-        this[$ensureMaterialIsLoaded]();
-        return this[$sourceObject].emissiveFactor;
-    }
-    get index() {
-        return this[$gltfIndex];
-    }
-    [$variantIndices]() {
-        return this[$variantSet];
-    }
-    hasVariant(name) {
-        const variantData = this[$modelVariants$1].get(name);
-        return variantData != null && this[$variantSet].has(variantData.index);
-    }
-    setEmissiveFactor(rgb) {
-        this[$ensureMaterialIsLoaded]();
-        const color = new Color();
-        if (rgb instanceof Array) {
-            color.fromArray(rgb);
-        }
-        else {
-            color.set(rgb).convertSRGBToLinear();
-        }
-        for (const material of this[$correlatedObjects]) {
-            material.emissive.set(color);
-        }
-        this[$sourceObject].emissiveFactor =
-            color.toArray();
-        this[$onUpdate]();
-    }
-    [$applyAlphaCutoff]() {
-        this[$ensureMaterialIsLoaded]();
-        const gltfMaterial = this[$sourceObject];
-        for (const material of this[$correlatedObjects]) {
-            if (this[$sourceObject].alphaMode === 'MASK') {
-                material.alphaTest = gltfMaterial.alphaCutoff;
-            }
-            else {
-                material.alphaTest = undefined;
-            }
-            material.needsUpdate = true;
-        }
-    }
-    setAlphaCutoff(cutoff) {
-        this[$ensureMaterialIsLoaded]();
-        this[$sourceObject].alphaCutoff = cutoff;
-        this[$applyAlphaCutoff]();
-        this[$onUpdate]();
-    }
-    getAlphaCutoff() {
-        this[$ensureMaterialIsLoaded]();
-        return this[$sourceObject].alphaCutoff;
-    }
-    setDoubleSided(doubleSided) {
-        this[$ensureMaterialIsLoaded]();
-        for (const material of this[$correlatedObjects]) {
-            // When double-sided is disabled gltf spec dictates that Back-Face culling
-            // must be disabled, in three.js parlance that would mean FrontSide
-            // rendering only.
-            // https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#double-sided
-            material.side = doubleSided ? DoubleSide : FrontSide;
-            material.needsUpdate = true;
-        }
-        this[$sourceObject].doubleSided = doubleSided;
-        this[$onUpdate]();
-    }
-    getDoubleSided() {
-        this[$ensureMaterialIsLoaded]();
-        return this[$sourceObject].doubleSided;
-    }
-    setAlphaMode(alphaMode) {
-        this[$ensureMaterialIsLoaded]();
-        const enableTransparency = (material, enabled) => {
-            material.transparent = enabled;
-            material.depthWrite = !enabled;
-        };
-        this[$sourceObject].alphaMode = alphaMode;
-        for (const material of this[$correlatedObjects]) {
-            enableTransparency(material, alphaMode === 'BLEND');
-            this[$applyAlphaCutoff]();
-            material.needsUpdate = true;
-        }
-        this[$onUpdate]();
-    }
-    getAlphaMode() {
-        this[$ensureMaterialIsLoaded]();
-        return this[$sourceObject].alphaMode;
-    }
-}
-
-var _a$5, _b$5, _c$4, _d$3, _e$2;
-const $materials$1 = Symbol('materials');
-const $variantToMaterialMap = Symbol('variantToMaterialMap');
-const $modelVariants = Symbol('modelVariants');
-const $mesh = Symbol('mesh');
-const $children = Symbol('children');
-const $initialMaterialIdx = Symbol('initialMaterialIdx');
-const $activeMaterialIdx = Symbol('activeMaterialIdx');
-// Defines the base level node methods and data.
-class Node$1 {
-    constructor(name) {
-        this.name = '';
-        this[_a$5] = new Array();
-        this.name = name;
-    }
-}
-_a$5 = $children;
-// Represents a primitive in a glTF mesh.
-class PrimitiveNode extends Node$1 {
-    constructor(mesh, mvMaterials, modelVariants, correlatedSceneGraph) {
-        super(mesh.name);
-        // Maps glTF material index number to a material that this primitive supports.
-        this[_b$5] = new Map();
-        // Maps variant index to material.
-        this[_c$4] = new Map();
-        this[_d$3] = 0;
-        this[_e$2] = 0;
-        this[$mesh] = mesh;
-        const { gltf, threeGLTF, threeObjectMap } = correlatedSceneGraph;
-        this[$modelVariants] = modelVariants;
-        this.mesh.userData.variantData = modelVariants;
-        // Captures the primitive's initial material.
-        const materialMappings = threeObjectMap.get(mesh.material);
-        if (materialMappings.materials != null) {
-            this[$initialMaterialIdx] = this[$activeMaterialIdx] =
-                materialMappings.materials;
-        }
-        else {
-            console.error(`Primitive (${mesh.name}) missing initial material reference.`);
-        }
-        // Gets the mesh index from the node.
-        const associations = mesh.userData.associations ||
-            {};
-        if (associations.meshes == null) {
-            console.error('Mesh is missing primitive index association');
-            return;
-        }
-        // The gltf mesh array to sample from.
-        const meshElementArray = gltf['meshes'] || [];
-        // List of primitives under the mesh.
-        const gltfPrimitives = (meshElementArray[associations.meshes].primitives || []);
-        const gltfPrimitive = gltfPrimitives[associations.primitives];
-        if (gltfPrimitive == null) {
-            console.error('Mesh primitive definition is missing.');
-            return;
-        }
-        // Maps the gltfPrimitive default to a material.
-        if (gltfPrimitive.material != null) {
-            this[$materials$1].set(gltfPrimitive.material, mvMaterials[gltfPrimitive.material]);
-        }
-        else {
-            const defaultIdx = mvMaterials.findIndex((mat) => {
-                return mat.name === 'Default';
-            });
-            if (defaultIdx >= 0) {
-                this[$materials$1].set(defaultIdx, mvMaterials[defaultIdx]);
-            }
-            else {
-                console.warn('gltfPrimitive has no material!');
-            }
-        }
-        if (gltfPrimitive.extensions &&
-            gltfPrimitive.extensions['KHR_materials_variants']) {
-            const variantsExtension = gltfPrimitive.extensions['KHR_materials_variants'];
-            const extensions = threeGLTF.parser.json.extensions;
-            const variantNames = extensions['KHR_materials_variants'].variants;
-            // Provides definition now that we know there are variants to
-            // support.
-            for (const mapping of variantsExtension.mappings) {
-                const mvMaterial = mvMaterials[mapping.material];
-                // Maps variant indices to Materials.
-                this[$materials$1].set(mapping.material, mvMaterial);
-                for (const variant of mapping.variants) {
-                    const { name } = variantNames[variant];
-                    this[$variantToMaterialMap].set(variant, mvMaterial);
-                    // Provides variant info for material self lookup.
-                    mvMaterial[$variantIndices]().add(variant);
-                    // Updates the models variant data.
-                    if (!modelVariants.has(name)) {
-                        modelVariants.set(name, { name, index: variant });
-                    }
-                }
-            }
-        }
-    }
-    get mesh() {
-        return this[$mesh];
-    }
-    async setActiveMaterial(material) {
-        const mvMaterial = this[$materials$1].get(material);
-        if (mvMaterial != null) {
-            this.mesh.material = await mvMaterial[$getLoadedMaterial]();
-            this[$activeMaterialIdx] = material;
-        }
-        return this.mesh.material;
-    }
-    getActiveMaterial() {
-        return this[$materials$1].get(this[$activeMaterialIdx]);
-    }
-    getMaterial(index) {
-        return this[$materials$1].get(index);
-    }
-    async enableVariant(name) {
-        if (name == null) {
-            return this.setActiveMaterial(this[$initialMaterialIdx]);
-        }
-        if (this[$variantToMaterialMap] != null && this[$modelVariants].has(name)) {
-            const modelVariants = this[$modelVariants].get(name);
-            return this.enableVariantHelper(modelVariants.index);
-        }
-        return null;
-    }
-    async enableVariantHelper(index) {
-        if (this[$variantToMaterialMap] != null && index != null) {
-            const material = this[$variantToMaterialMap].get(index);
-            if (material != null) {
-                return this.setActiveMaterial(material.index);
-            }
-        }
-        return null;
-    }
-    async instantiateVariants() {
-        if (this[$variantToMaterialMap] == null) {
-            return;
-        }
-        for (const index of this[$variantToMaterialMap].keys()) {
-            const variantMaterial = this.mesh.userData.variantMaterials.get(index);
-            if (variantMaterial.material != null) {
-                continue;
-            }
-            const threeMaterial = await this.enableVariantHelper(index);
-            if (threeMaterial != null) {
-                variantMaterial.material = threeMaterial;
-            }
-        }
-    }
-    get variantInfo() {
-        return this[$variantToMaterialMap];
-    }
-    addVariant(materialVariant, variantName) {
-        if (!this.ensureVariantIsUnused(variantName)) {
-            return false;
-        }
-        // Adds the variant to the model variants if needed.
-        if (!this[$modelVariants].has(variantName)) {
-            this[$modelVariants].set(variantName, { name: variantName, index: this[$modelVariants].size });
-        }
-        const modelVariantData = this[$modelVariants].get(variantName);
-        const variantIndex = modelVariantData.index;
-        // Updates materials mapped to the variant.
-        materialVariant[$variantIndices]().add(variantIndex);
-        // Updates internal mappings.
-        this[$variantToMaterialMap].set(variantIndex, materialVariant);
-        this[$materials$1].set(materialVariant.index, materialVariant);
-        this.updateVariantUserData(variantIndex, materialVariant);
-        return true;
-    }
-    deleteVariant(variantIndex) {
-        if (this.variantInfo.has(variantIndex)) {
-            this.variantInfo.delete(variantIndex);
-            const userDataMap = this.mesh.userData.variantMaterials;
-            if (userDataMap != null) {
-                userDataMap.delete(variantIndex);
-            }
-        }
-    }
-    updateVariantUserData(variantIndex, materialVariant) {
-        // Adds variants name to material variants set.
-        materialVariant[$variantIndices]().add(variantIndex);
-        this.mesh.userData.variantData = this[$modelVariants];
-        // Updates import data (see VariantMaterialLoaderPlugin.ts).
-        this.mesh.userData.variantMaterials = this.mesh.userData.variantMaterials ||
-            new Map();
-        const map = this.mesh.userData.variantMaterials;
-        map.set(variantIndex, {
-            material: materialVariant[$correlatedObjects].values().next().value,
-            gltfMaterialIndex: materialVariant.index,
-        });
-    }
-    ensureVariantIsUnused(variantName) {
-        const modelVariants = this[$modelVariants].get(variantName);
-        if (modelVariants != null && this.variantInfo.has(modelVariants.index)) {
-            console.warn(`Primitive cannot add variant '${variantName}' for this material, it already exists.`);
-            return false;
-        }
-        return true;
-    }
-}
-_b$5 = $materials$1, _c$4 = $variantToMaterialMap, _d$3 = $initialMaterialIdx, _e$2 = $activeMaterialIdx;
-
-/* @license
- * Copyright 2020 Google LLC. All Rights Reserved.
-=======
 var __decorate$6 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof undefined === "function") r = undefined(decorators, target, key, desc);
@@ -55818,947 +52038,6 @@ const ZERO = Object.freeze({ type: 'number', number: 0, unit: null });
 
 /* @license
  * Copyright 2019 Google LLC. All Rights Reserved.
->>>>>>> Stashed changes
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-<<<<<<< Updated upstream
-var _a$4, _b$4, _c$3, _d$2, _e$1, _f$1;
-const $materials = Symbol('materials');
-const $hierarchy = Symbol('hierarchy');
-const $roots = Symbol('roots');
-const $primitivesList = Symbol('primitives');
-const $correlatedSceneGraph = Symbol('correlatedSceneGraph');
-const $prepareVariantsForExport = Symbol('prepareVariantsForExport');
-const $switchVariant = Symbol('switchVariant');
-const $threeScene = Symbol('threeScene');
-const $materialsFromPoint = Symbol('materialsFromPoint');
-const $materialFromPoint = Symbol('materialFromPoint');
-const $variantData = Symbol('variantData');
-const $availableVariants = Symbol('availableVariants');
-const $modelOnUpdate = Symbol('modelOnUpdate');
-const $cloneMaterial = Symbol('cloneMaterial');
-// Holds onto temporary scene context information needed to perform lazy loading
-// of a resource.
-class LazyLoader {
-    constructor(gltf, gltfElementMap, mapKey, doLazyLoad) {
-        this.gltf = gltf;
-        this.gltfElementMap = gltfElementMap;
-        this.mapKey = mapKey;
-        this.doLazyLoad = doLazyLoad;
-    }
-}
-/**
- * A Model facades the top-level GLTF object returned by Three.js' GLTFLoader.
- * Currently, the model only bothers itself with the materials in the Three.js
- * scene graph.
- */
-class Model {
-    constructor(correlatedSceneGraph, onUpdate = () => { }) {
-        this[_a$4] = new Array();
-        this[_b$4] = new Array();
-        this[_c$3] = new Array();
-        this[_d$2] = new Array();
-        this[_e$1] = () => { };
-        this[_f$1] = new Map();
-        this[$modelOnUpdate] = onUpdate;
-        this[$correlatedSceneGraph] = correlatedSceneGraph;
-        const { gltf, threeGLTF, gltfElementMap } = correlatedSceneGraph;
-        this[$threeScene] = threeGLTF.scene;
-        for (const [i, material] of gltf.materials.entries()) {
-            const correlatedMaterial = gltfElementMap.get(material);
-            if (correlatedMaterial != null) {
-                this[$materials].push(new Material(onUpdate, gltf, material, i, true, this[$variantData], correlatedMaterial));
-            }
-            else {
-                const elementArray = gltf['materials'] || [];
-                const gltfMaterialDef = elementArray[i];
-                // Loads the three.js material.
-                const capturedMatIndex = i;
-                const materialLoadCallback = async () => {
-                    const threeMaterial = await threeGLTF.parser.getDependency('material', capturedMatIndex);
-                    // Adds correlation, maps the variant gltf-def to the
-                    // three material set containing the variant material.
-                    const threeMaterialSet = new Set();
-                    gltfElementMap.set(gltfMaterialDef, threeMaterialSet);
-                    threeMaterialSet.add(threeMaterial);
-                    return { set: threeMaterialSet, material: threeMaterial };
-                };
-                // Configures the material for lazy loading.
-                this[$materials].push(new Material(onUpdate, gltf, gltfMaterialDef, i, false, this[$variantData], correlatedMaterial, new LazyLoader(gltf, gltfElementMap, gltfMaterialDef, materialLoadCallback)));
-            }
-        }
-        // Creates a hierarchy of Nodes. Allows not just for switching which
-        // material is applied to a mesh but also exposes a way to provide API
-        // for switching materials and general assignment/modification.
-        // Prepares for scene iteration.
-        const parentMap = new Map();
-        const nodeStack = new Array();
-        for (const object of threeGLTF.scene.children) {
-            nodeStack.push(object);
-        }
-        // Walks the hierarchy and creates a node tree.
-        while (nodeStack.length > 0) {
-            const object = nodeStack.pop();
-            let node = null;
-            if (object instanceof Mesh) {
-                node = new PrimitiveNode(object, this.materials, this[$variantData], correlatedSceneGraph);
-                this[$primitivesList].push(node);
-            }
-            else {
-                node = new Node$1(object.name);
-            }
-            const parent = parentMap.get(object);
-            if (parent != null) {
-                parent[$children].push(node);
-            }
-            else {
-                this[$roots].push(node);
-            }
-            this[$hierarchy].push(node);
-            for (const child of object.children) {
-                nodeStack.push(child);
-                parentMap.set(object, node);
-            }
-        }
-    }
-    /**
-     * Materials are listed in the order of the GLTF materials array, plus a
-     * default material at the end if one is used.
-     *
-     * TODO(#1003): How do we handle non-active scenes?
-     */
-    get materials() {
-        return this[$materials];
-    }
-    [(_a$4 = $materials, _b$4 = $hierarchy, _c$3 = $roots, _d$2 = $primitivesList, _e$1 = $modelOnUpdate, _f$1 = $variantData, $availableVariants)]() {
-        const variants = Array.from(this[$variantData].values());
-        variants.sort((a, b) => {
-            return a.index - b.index;
-        });
-        return variants.map((data) => {
-            return data.name;
-        });
-    }
-    getMaterialByName(name) {
-        const matches = this[$materials].filter(material => {
-            return material.name === name;
-        });
-        if (matches.length > 0) {
-            return matches[0];
-        }
-        return null;
-    }
-    /**
-     * Intersects a ray with the Model and returns a list of materials whose
-     * objects were intersected.
-     */
-    [$materialsFromPoint](raycaster) {
-        const hits = raycaster.intersectObject(this[$threeScene], true);
-        // Map the object hits to primitives and then to the active material of
-        // the primitive.
-        return hits.map((hit) => {
-            const found = this[$hierarchy].find((node) => {
-                if (node instanceof PrimitiveNode) {
-                    const primitive = node;
-                    if (primitive.mesh === hit.object) {
-                        return true;
-                    }
-                }
-                return false;
-            });
-            if (found != null) {
-                return found.getActiveMaterial();
-            }
-            return null;
-        });
-    }
-    /**
-     * Intersects a ray with the Model and returns the first material whose
-     * object was intersected.
-     */
-    [$materialFromPoint](raycaster) {
-        const materials = this[$materialsFromPoint](raycaster);
-        if (materials.length > 0) {
-            return materials[0];
-        }
-        return null;
-    }
-    /**
-     * Switches model variant to the variant name provided, or switches to
-     * default/initial materials if 'null' is provided.
-     */
-    async [$switchVariant](variantName) {
-        for (const primitive of this[$primitivesList]) {
-            await primitive.enableVariant(variantName);
-        }
-        for (const material of this.materials) {
-            material[$setActive](false);
-        }
-        // Marks the materials that are now in use after the variant switch.
-        for (const primitive of this[$primitivesList]) {
-            this.materials[primitive.getActiveMaterial().index][$setActive](true);
-        }
-    }
-    async [$prepareVariantsForExport]() {
-        const promises = new Array();
-        for (const primitive of this[$primitivesList]) {
-            promises.push(primitive.instantiateVariants());
-        }
-        await Promise.all(promises);
-    }
-    [$cloneMaterial](index, newMaterialName) {
-        const material = this.materials[index];
-        if (!material.isLoaded) {
-            console.error(`Cloning an unloaded material,
-           call 'material.ensureLoaded() before cloning the material.`);
-        }
-        const threeMaterialSet = material[$correlatedObjects];
-        // clones the gltf material data and updates the material name.
-        const gltfSourceMaterial = JSON.parse(JSON.stringify(material[$sourceObject]));
-        gltfSourceMaterial.name = newMaterialName;
-        // Adds the source material clone to the gltf def.
-        const gltf = this[$correlatedSceneGraph].gltf;
-        gltf.materials.push(gltfSourceMaterial);
-        const clonedSet = new Set();
-        for (const [i, threeMaterial] of threeMaterialSet.entries()) {
-            const clone = threeMaterial.clone();
-            clone.name =
-                newMaterialName + (threeMaterialSet.size > 1 ? '_inst' + i : '');
-            clonedSet.add(clone);
-        }
-        const clonedMaterial = new Material(this[$modelOnUpdate], this[$correlatedSceneGraph].gltf, gltfSourceMaterial, this[$materials].length, false, // Cloned as inactive.
-        this[$variantData], clonedSet);
-        this[$materials].push(clonedMaterial);
-        return clonedMaterial;
-    }
-    createMaterialInstanceForVariant(originalMaterialIndex, newMaterialName, variantName, activateVariant = true) {
-        let variantMaterialInstance = null;
-        for (const primitive of this[$primitivesList]) {
-            const variantData = this[$variantData].get(variantName);
-            // Skips the primitive if the variant already exists.
-            if (variantData != null && primitive.variantInfo.has(variantData.index)) {
-                continue;
-            }
-            // Skips the primitive if the source/original material does not exist.
-            if (primitive.getMaterial(originalMaterialIndex) == null) {
-                continue;
-            }
-            if (!this.hasVariant(variantName)) {
-                this.createVariant(variantName);
-            }
-            if (variantMaterialInstance == null) {
-                variantMaterialInstance =
-                    this[$cloneMaterial](originalMaterialIndex, newMaterialName);
-            }
-            primitive.addVariant(variantMaterialInstance, variantName);
-        }
-        if (activateVariant && variantMaterialInstance != null) {
-            variantMaterialInstance[$setActive](true);
-            this.materials[originalMaterialIndex][$setActive](false);
-            for (const primitive of this[$primitivesList]) {
-                primitive.enableVariant(variantName);
-            }
-        }
-        return variantMaterialInstance;
-    }
-    createVariant(variantName) {
-        if (!this[$variantData].has(variantName)) {
-            // Adds the name if it's not already in the list.
-            this[$variantData].set(variantName, { name: variantName, index: this[$variantData].size });
-        }
-        else {
-            console.warn(`Variant '${variantName}'' already exists`);
-        }
-    }
-    hasVariant(variantName) {
-        return this[$variantData].has(variantName);
-    }
-    setMaterialToVariant(materialIndex, targetVariantName) {
-        if (this[$availableVariants]().find(name => name === targetVariantName) ==
-            null) {
-            console.warn(`Can't add material to '${targetVariantName}', the variant does not exist.'`);
-            return;
-        }
-        if (materialIndex < 0 || materialIndex >= this.materials.length) {
-            console.error(`setMaterialToVariant(): materialIndex is out of bounds.`);
-            return;
-        }
-        for (const primitive of this[$primitivesList]) {
-            const material = primitive.getMaterial(materialIndex);
-            // Ensures the material exists on the primitive before setting it to a
-            // variant.
-            if (material != null) {
-                primitive.addVariant(material, targetVariantName);
-            }
-        }
-    }
-    updateVariantName(currentName, newName) {
-        const variantData = this[$variantData].get(currentName);
-        if (variantData == null) {
-            return;
-        }
-        variantData.name = newName;
-        this[$variantData].set(newName, variantData);
-        this[$variantData].delete(currentName);
-    }
-    deleteVariant(variantName) {
-        const variant = this[$variantData].get(variantName);
-        if (variant == null) {
-            return;
-        }
-        for (const material of this.materials) {
-            if (material.hasVariant(variantName)) {
-                material[$variantSet].delete(variant.index);
-            }
-        }
-        for (const primitive of this[$primitivesList]) {
-            primitive.deleteVariant(variant.index);
-        }
-        this[$variantData].delete(variantName);
-    }
-}
-=======
-/**
- * Ensures that a given number is expressed in radians. If the number is already
- * in radians, does nothing. If the value is in degrees, converts it to radians.
- * If the value has no specified unit, the unit is assumed to be radians. If the
- * value is not in radians or degrees, the value is resolved as 0 radians.
- *
- * Also accepts a second argument that is a default value to use if the input
- * numberNode number is NaN or Infinity.
- */
-const degreesToRadians = (numberNode, fallbackRadianValue = 0) => {
-    let { number, unit } = numberNode;
-    if (!isFinite(number)) {
-        number = fallbackRadianValue;
-        unit = 'rad';
-    }
-    else if (numberNode.unit === 'rad' || numberNode.unit == null) {
-        return numberNode;
-    }
-    const valueIsDegrees = unit === 'deg' && number != null;
-    const value = valueIsDegrees ? number : 0;
-    const radians = value * Math.PI / 180;
-    return { type: 'number', number: radians, unit: 'rad' };
-};
-/**
- * Converts a given length to meters. Currently supported input units are
- * meters, centimeters and millimeters.
- *
- * Also accepts a second argument that is a default value to use if the input
- * numberNode number is NaN or Infinity.
- */
-const lengthToBaseMeters = (numberNode, fallbackMeterValue = 0) => {
-    let { number, unit } = numberNode;
-    if (!isFinite(number)) {
-        number = fallbackMeterValue;
-        unit = 'm';
-    }
-    else if (numberNode.unit === 'm') {
-        return numberNode;
-    }
-    let scale;
-    switch (unit) {
-        default:
-            scale = 1;
-            break;
-        case 'cm':
-            scale = 1 / 100;
-            break;
-        case 'mm':
-            scale = 1 / 1000;
-            break;
-    }
-    const value = scale * number;
-    return { type: 'number', number: value, unit: 'm' };
-};
-/**
- * Normalizes the unit of a given input number so that it is expressed in a
- * preferred unit. For length nodes, the return value will be expressed in
- * meters. For angle nodes, the return value will be expressed in radians.
- *
- * Also takes a fallback number that is used when the number value is not a
- * valid number or when the unit of the given number cannot be normalized.
- */
-const normalizeUnit = (() => {
-    const identity = (node) => node;
-    const unitNormalizers = {
-        'rad': identity,
-        'deg': degreesToRadians,
-        'm': identity,
-        'mm': lengthToBaseMeters,
-        'cm': lengthToBaseMeters
-    };
-    return (node, fallback = ZERO) => {
-        if (!isFinite(node.number)) {
-            node.number = fallback.number;
-            node.unit = fallback.unit;
-        }
-        const { unit } = node;
-        if (unit == null) {
-            return node;
-        }
-        const normalize = unitNormalizers[unit];
-        if (normalize == null) {
-            return fallback;
-        }
-        return normalize(node);
-    };
-})();
->>>>>>> Stashed changes
-
-/* @license
- * Copyright 2020 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-<<<<<<< Updated upstream
-var __decorate$6 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof undefined === "function") r = undefined(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-const $currentGLTF = Symbol('currentGLTF');
-const $originalGltfJson = Symbol('originalGltfJson');
-const $model = Symbol('model');
-const $getOnUpdateMethod = Symbol('getOnUpdateMethod');
-const $textureLoader = Symbol('textureLoader');
-/**
- * SceneGraphMixin manages exposes a model API in order to support operations on
- * the <model-viewer> scene graph.
- */
-const SceneGraphMixin = (ModelViewerElement) => {
-    var _a, _b, _c, _d;
-    class SceneGraphModelViewerElement extends ModelViewerElement {
-        constructor() {
-            super(...arguments);
-            this[_a] = undefined;
-            this[_b] = null;
-            this[_c] = new TextureLoader();
-            this[_d] = null;
-            this.variantName = null;
-            this.orientation = '0 0 0';
-            this.scale = '1 1 1';
-        }
-        // Scene-graph API:
-        /** @export */
-        get model() {
-            return this[$model];
-        }
-        get availableVariants() {
-            return this.model ? this.model[$availableVariants]() : [];
-        }
-        /**
-         * Returns a deep copy of the gltf JSON as loaded. It will not reflect
-         * changes to the scene-graph, nor will editing it have any effect.
-         */
-        get originalGltfJson() {
-            return this[$originalGltfJson];
-        }
-        [(_a = $model, _b = $currentGLTF, _c = $textureLoader, _d = $originalGltfJson, $getOnUpdateMethod)]() {
-            return () => {
-                this[$needsRender]();
-            };
-        }
-        async createTexture(uri, type = 'image/png') {
-            const currentGLTF = this[$currentGLTF];
-            const texture = await new Promise((resolve) => this[$textureLoader].load(uri, resolve));
-            if (!currentGLTF || !texture) {
-                return null;
-            }
-            // Applies default settings.
-            texture.encoding = sRGBEncoding;
-            texture.wrapS = RepeatWrapping;
-            texture.wrapT = RepeatWrapping;
-            texture.flipY = false;
-            texture.userData.mimeType = type;
-            return new Texture(this[$getOnUpdateMethod](), texture);
-        }
-        async updated(changedProperties) {
-            super.updated(changedProperties);
-            if (changedProperties.has('variantName')) {
-                const updateVariantProgress = this[$progressTracker].beginActivity();
-                updateVariantProgress(0.1);
-                const model = this[$model];
-                const { variantName } = this;
-                if (model != null) {
-                    await model[$switchVariant](variantName);
-                    this[$needsRender]();
-                    this.dispatchEvent(new CustomEvent('variant-applied'));
-                }
-                updateVariantProgress(1.0);
-            }
-            if (changedProperties.has('orientation') ||
-                changedProperties.has('scale')) {
-                if (!this.loaded) {
-                    return;
-                }
-                const scene = this[$scene];
-                scene.applyTransform();
-                scene.updateBoundingBox();
-                scene.updateShadow();
-                this[$renderer].arRenderer.onUpdateScene();
-                this[$needsRender]();
-            }
-        }
-        [$onModelLoad]() {
-            super[$onModelLoad]();
-            const { currentGLTF } = this[$scene];
-            if (currentGLTF != null) {
-                const { correlatedSceneGraph } = currentGLTF;
-                if (correlatedSceneGraph != null &&
-                    currentGLTF !== this[$currentGLTF]) {
-                    this[$model] =
-                        new Model(correlatedSceneGraph, this[$getOnUpdateMethod]());
-                    this[$originalGltfJson] =
-                        JSON.parse(JSON.stringify(correlatedSceneGraph.gltf));
-                }
-                // KHR_materials_variants extension spec:
-                // https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_variants
-                if ('variants' in currentGLTF.userData) {
-                    this.requestUpdate('variantName');
-                }
-            }
-            this[$currentGLTF] = currentGLTF;
-        }
-        /** @export */
-        async exportScene(options) {
-            const scene = this[$scene];
-            return new Promise(async (resolve, reject) => {
-                // Defaults
-                const opts = {
-                    binary: true,
-                    onlyVisible: true,
-                    maxTextureSize: Infinity,
-                    includeCustomExtensions: false,
-                    forceIndices: false
-                };
-                Object.assign(opts, options);
-                // Not configurable
-                opts.animations = scene.animations;
-                opts.truncateDrawRange = true;
-                const shadow = scene.shadow;
-                let visible = false;
-                // Remove shadow from export
-                if (shadow != null) {
-                    visible = shadow.visible;
-                    shadow.visible = false;
-                }
-                await this[$model][$prepareVariantsForExport]();
-                const exporter = new GLTFExporter()
-                    .register((writer) => new GLTFExporterMaterialsVariantsExtension(writer));
-                exporter.parse(scene.model, (gltf) => {
-                    return resolve(new Blob([opts.binary ? gltf : JSON.stringify(gltf)], {
-                        type: opts.binary ? 'application/octet-stream' :
-                            'application/json'
-                    }));
-                }, () => {
-                    return reject('glTF export failed');
-                }, opts);
-                if (shadow != null) {
-                    shadow.visible = visible;
-                }
-            });
-        }
-        materialFromPoint(pixelX, pixelY) {
-            const scene = this[$scene];
-            const ndcCoords = scene.getNDC(pixelX, pixelY);
-            scene.raycaster.setFromCamera(ndcCoords, scene.getCamera());
-            return this[$model][$materialFromPoint](scene.raycaster);
-        }
-    }
-    __decorate$6([
-        e$3({ type: String, attribute: 'variant-name' })
-    ], SceneGraphModelViewerElement.prototype, "variantName", void 0);
-    __decorate$6([
-        e$3({ type: String, attribute: 'orientation' })
-    ], SceneGraphModelViewerElement.prototype, "orientation", void 0);
-    __decorate$6([
-        e$3({ type: String, attribute: 'scale' })
-    ], SceneGraphModelViewerElement.prototype, "scale", void 0);
-    return SceneGraphModelViewerElement;
-};
-=======
-/**
- * The Hotspot object is a reference-counted slot. If decrement() returns true,
- * it should be removed from the tree so it can be garbage-collected.
- */
-class Hotspot extends CSS2DObject {
-    constructor(config) {
-        super(document.createElement('div'));
-        this.normal = new Vector3(0, 1, 0);
-        this.initialized = false;
-        this.referenceCount = 1;
-        this.pivot = document.createElement('div');
-        this.slot = document.createElement('slot');
-        this.element.classList.add('annotation-wrapper');
-        this.slot.name = config.name;
-        this.element.appendChild(this.pivot);
-        this.pivot.appendChild(this.slot);
-        this.updatePosition(config.position);
-        this.updateNormal(config.normal);
-    }
-    get facingCamera() {
-        return !this.element.classList.contains('hide');
-    }
-    /**
-     * Sets the hotspot to be in the highly visible foreground state.
-     */
-    show() {
-        if (!this.facingCamera || !this.initialized) {
-            this.updateVisibility(true);
-        }
-    }
-    /**
-     * Sets the hotspot to be in the diminished background state.
-     */
-    hide() {
-        if (this.facingCamera || !this.initialized) {
-            this.updateVisibility(false);
-        }
-    }
-    /**
-     * Call this when adding elements to the same slot to keep track.
-     */
-    increment() {
-        this.referenceCount++;
-    }
-    /**
-     * Call this when removing elements from the slot; returns true when the slot
-     * is unused.
-     */
-    decrement() {
-        if (this.referenceCount > 0) {
-            --this.referenceCount;
-        }
-        return this.referenceCount === 0;
-    }
-    /**
-     * Change the position of the hotspot to the input string, in the same format
-     * as the data-position attribute.
-     */
-    updatePosition(position) {
-        if (position == null)
-            return;
-        const positionNodes = parseExpressions(position)[0].terms;
-        for (let i = 0; i < 3; ++i) {
-            this.position.setComponent(i, normalizeUnit(positionNodes[i]).number);
-        }
-        this.updateMatrixWorld();
-    }
-    /**
-     * Change the hotspot's normal to the input string, in the same format as the
-     * data-normal attribute.
-     */
-    updateNormal(normal) {
-        if (normal == null)
-            return;
-        const normalNodes = parseExpressions(normal)[0].terms;
-        for (let i = 0; i < 3; ++i) {
-            this.normal.setComponent(i, normalizeUnit(normalNodes[i]).number);
-        }
-    }
-    orient(radians) {
-        this.pivot.style.transform = `rotate(${radians}rad)`;
-    }
-    updateVisibility(show) {
-        // NOTE: IE11 doesn't support a second arg for classList.toggle
-        if (show) {
-            this.element.classList.remove('hide');
-        }
-        else {
-            this.element.classList.add('hide');
-        }
-        // NOTE: ShadyDOM doesn't support slot.assignedElements, otherwise we could
-        // use that here.
-        this.slot.assignedNodes().forEach((node) => {
-            if (node.nodeType !== Node.ELEMENT_NODE) {
-                return;
-            }
-            const element = node;
-            // Visibility attribute can be configured per-node in the hotspot:
-            const visibilityAttribute = element.dataset.visibilityAttribute;
-            if (visibilityAttribute != null) {
-                const attributeName = `data-${visibilityAttribute}`;
-                // NOTE: IE11 doesn't support toggleAttribute
-                if (show) {
-                    element.setAttribute(attributeName, '');
-                }
-                else {
-                    element.removeAttribute(attributeName);
-                }
-            }
-            element.dispatchEvent(new CustomEvent('hotspot-visibility', {
-                detail: {
-                    visible: show,
-                },
-            }));
-        });
-        this.initialized = true;
-    }
-}
->>>>>>> Stashed changes
-
-/* @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-<<<<<<< Updated upstream
-const numberNode = (value, unit) => ({ type: 'number', number: value, unit });
-/**
- * Given a string representing a comma-separated set of CSS-like expressions,
- * parses and returns an array of ASTs that correspond to those expressions.
- *
- * Currently supported syntax includes:
- *
- *  - functions (top-level and nested)
- *  - calc() arithmetic operators
- *  - numbers with units
- *  - hexadecimal-encoded colors in 3, 6 or 8 digit form
- *  - idents
- *
- * All syntax is intended to match the parsing rules and semantics of the actual
- * CSS spec as closely as possible.
- *
- * @see https://www.w3.org/TR/CSS2/
- * @see https://www.w3.org/TR/css-values-3/
- */
-const parseExpressions = (() => {
-    const cache = {};
-    const MAX_PARSE_ITERATIONS = 1000; // Arbitrarily large
-    return (inputString) => {
-        const cacheKey = inputString;
-        if (cacheKey in cache) {
-            return cache[cacheKey];
-        }
-        const expressions = [];
-        let parseIterations = 0;
-        while (inputString) {
-            if (++parseIterations > MAX_PARSE_ITERATIONS) {
-                // Avoid a potentially infinite loop due to typos:
-                inputString = '';
-                break;
-            }
-            const expressionParseResult = parseExpression(inputString);
-            const expression = expressionParseResult.nodes[0];
-            if (expression == null || expression.terms.length === 0) {
-                break;
-            }
-            expressions.push(expression);
-            inputString = expressionParseResult.remainingInput;
-        }
-        return cache[cacheKey] = expressions;
-    };
-})();
-/**
- * Parse a single expression. For the purposes of our supported syntax, an
- * expression is the set of semantically meaningful terms that appear before the
- * next comma, or between the parens of a function invocation.
- */
-const parseExpression = (() => {
-    const IS_IDENT_RE = /^(\-\-|[a-z\u0240-\uffff])/i;
-    const IS_OPERATOR_RE = /^([\*\+\/]|[\-]\s)/i;
-    const IS_EXPRESSION_END_RE = /^[\),]/;
-    const FUNCTION_ARGUMENTS_FIRST_TOKEN = '(';
-    const HEX_FIRST_TOKEN = '#';
-    return (inputString) => {
-        const terms = [];
-        while (inputString.length) {
-            inputString = inputString.trim();
-            if (IS_EXPRESSION_END_RE.test(inputString)) {
-                break;
-            }
-            else if (inputString[0] === FUNCTION_ARGUMENTS_FIRST_TOKEN) {
-                const { nodes, remainingInput } = parseFunctionArguments(inputString);
-                inputString = remainingInput;
-                terms.push({
-                    type: 'function',
-                    name: { type: 'ident', value: 'calc' },
-                    arguments: nodes
-                });
-            }
-            else if (IS_IDENT_RE.test(inputString)) {
-                const identParseResult = parseIdent(inputString);
-                const identNode = identParseResult.nodes[0];
-                inputString = identParseResult.remainingInput;
-                if (inputString[0] === FUNCTION_ARGUMENTS_FIRST_TOKEN) {
-                    const { nodes, remainingInput } = parseFunctionArguments(inputString);
-                    terms.push({ type: 'function', name: identNode, arguments: nodes });
-                    inputString = remainingInput;
-                }
-                else {
-                    terms.push(identNode);
-                }
-            }
-            else if (IS_OPERATOR_RE.test(inputString)) {
-                // Operators are always a single character, so just pluck them out:
-                terms.push({ type: 'operator', value: inputString[0] });
-                inputString = inputString.slice(1);
-            }
-            else {
-                const { nodes, remainingInput } = inputString[0] === HEX_FIRST_TOKEN ?
-                    parseHex(inputString) :
-                    parseNumber(inputString);
-                // The remaining string may not have had any meaningful content. Exit
-                // early if this is the case:
-                if (nodes.length === 0) {
-                    break;
-                }
-                terms.push(nodes[0]);
-                inputString = remainingInput;
-            }
-        }
-        return { nodes: [{ type: 'expression', terms }], remainingInput: inputString };
-    };
-})();
-/**
- * An ident is something like a function name or the keyword "auto".
- */
-const parseIdent = (() => {
-    const NOT_IDENT_RE = /[^a-z0-9_\-\u0240-\uffff]/i;
-    return (inputString) => {
-        const match = inputString.match(NOT_IDENT_RE);
-        const ident = match == null ? inputString : inputString.substr(0, match.index);
-        const remainingInput = match == null ? '' : inputString.substr(match.index);
-        return { nodes: [{ type: 'ident', value: ident }], remainingInput };
-    };
-})();
-/**
- * Parses a number. A number value can be expressed with an integer or
- * non-integer syntax, and usually includes a unit (but does not strictly
- * require one for our purposes).
- */
-const parseNumber = (() => {
-    // @see https://www.w3.org/TR/css-syntax/#number-token-diagram
-    const VALUE_RE = /[\+\-]?(\d+[\.]\d+|\d+|[\.]\d+)([eE][\+\-]?\d+)?/;
-    const UNIT_RE = /^[a-z%]+/i;
-    const ALLOWED_UNITS = /^(m|mm|cm|rad|deg|[%])$/;
-    return (inputString) => {
-        const valueMatch = inputString.match(VALUE_RE);
-        const value = valueMatch == null ? '0' : valueMatch[0];
-        inputString = value == null ? inputString : inputString.slice(value.length);
-        const unitMatch = inputString.match(UNIT_RE);
-        let unit = unitMatch != null && unitMatch[0] !== '' ? unitMatch[0] : null;
-        const remainingInput = unitMatch == null ? inputString : inputString.slice(unit.length);
-        if (unit != null && !ALLOWED_UNITS.test(unit)) {
-            unit = null;
-        }
-        return {
-            nodes: [{
-                    type: 'number',
-                    number: parseFloat(value) || 0,
-                    unit: unit
-                }],
-            remainingInput
-        };
-    };
-})();
-/**
- * Parses a hexadecimal-encoded color in 3, 6 or 8 digit form.
- */
-const parseHex = (() => {
-    // TODO(cdata): right now we don't actually enforce the number of digits
-    const HEX_RE = /^[a-f0-9]*/i;
-    return (inputString) => {
-        inputString = inputString.slice(1).trim();
-        const hexMatch = inputString.match(HEX_RE);
-        const nodes = hexMatch == null ? [] : [{ type: 'hex', value: hexMatch[0] }];
-        return {
-            nodes,
-            remainingInput: hexMatch == null ? inputString :
-                inputString.slice(hexMatch[0].length)
-        };
-    };
-})();
-/**
- * Parses arguments passed to a function invocation (e.g., the expressions
- * within a matched set of parens).
- */
-const parseFunctionArguments = (inputString) => {
-    const expressionNodes = [];
-    // Consume the opening paren
-    inputString = inputString.slice(1).trim();
-    while (inputString.length) {
-        const expressionParseResult = parseExpression(inputString);
-        expressionNodes.push(expressionParseResult.nodes[0]);
-        inputString = expressionParseResult.remainingInput.trim();
-        if (inputString[0] === ',') {
-            inputString = inputString.slice(1).trim();
-        }
-        else if (inputString[0] === ')') {
-            // Consume the closing paren and stop parsing
-            inputString = inputString.slice(1);
-            break;
-        }
-    }
-    return { nodes: expressionNodes, remainingInput: inputString };
-};
-const $visitedTypes = Symbol('visitedTypes');
-/**
- * An ASTWalker walks an array of ASTs such as the type produced by
- * parseExpressions and invokes a callback for a configured set of nodes that
- * the user wishes to "visit" during the walk.
- */
-class ASTWalker {
-    constructor(visitedTypes) {
-        this[$visitedTypes] = visitedTypes;
-    }
-    /**
-     * Walk the given set of ASTs, and invoke the provided callback for nodes that
-     * match the filtered set that the ASTWalker was constructed with.
-     */
-    walk(ast, callback) {
-        const remaining = ast.slice();
-        while (remaining.length) {
-            const next = remaining.shift();
-            if (this[$visitedTypes].indexOf(next.type) > -1) {
-                callback(next);
-            }
-            switch (next.type) {
-                case 'expression':
-                    remaining.unshift(...next.terms);
-                    break;
-                case 'function':
-                    remaining.unshift(next.name, ...next.arguments);
-                    break;
-            }
-        }
-    }
-}
-const ZERO = Object.freeze({ type: 'number', number: 0, unit: null });
-
-/* @license
- * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -57006,176 +52285,6 @@ class Hotspot extends CSS2DObject {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * Performs a reduction across all the vertices of the input model and all its
- * children. The supplied function takes the reduced value and a vertex and
- * returns the newly reduced value. The value is initialized as zero.
- *
- * Adapted from Three.js, @see https://github.com/mrdoob/three.js/blob/7e0a78beb9317e580d7fa4da9b5b12be051c6feb/src/math/Box3.js#L241
- */
-const reduceVertices = (model, func, initialValue) => {
-    let value = initialValue;
-    const vertex = new Vector3();
-    model.traverseVisible((object) => {
-        let i, l;
-        object.updateWorldMatrix(false, false);
-        const geometry = object.geometry;
-        if (geometry !== undefined) {
-            if (geometry.isGeometry) {
-                const vertices = geometry.vertices;
-                for (i = 0, l = vertices.length; i < l; i++) {
-                    vertex.copy(vertices[i]);
-                    if (object.isSkinnedMesh) {
-                        object.boneTransform(i, vertex);
-                    }
-                    else {
-                        vertex.applyMatrix4(object.matrixWorld);
-                    }
-                    value = func(value, vertex);
-                }
-            }
-            else if (geometry.isBufferGeometry) {
-                const { position } = geometry.attributes;
-                if (position !== undefined) {
-                    for (i = 0, l = position.count; i < l; i++) {
-                        vertex.fromBufferAttribute(position, i);
-                        if (object.isSkinnedMesh) {
-                            object.boneTransform(i, vertex);
-                        }
-                        else {
-                            vertex.applyMatrix4(object.matrixWorld);
-                        }
-                        value = func(value, vertex);
-                    }
-                }
-            }
-        }
-    });
-    return value;
-};
-
-/**
- * Two pass Gaussian blur filter (horizontal and vertical blur shaders)
- * - see http://www.cake23.de/traveling-wavefronts-lit-up.html
- *
- * - 9 samples per pass
- * - standard deviation 2.7
- * - "h" and "v" parameters should be set to "1 / width" and "1 / height"
- */
-
-const HorizontalBlurShader = {
-
-	uniforms: {
-
-		'tDiffuse': { value: null },
-		'h': { value: 1.0 / 512.0 }
-
-	},
-
-	vertexShader: /* glsl */`
-
-		varying vec2 vUv;
-
-		void main() {
-
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-
-		}`,
-
-	fragmentShader: /* glsl */`
-
-		uniform sampler2D tDiffuse;
-		uniform float h;
-
-		varying vec2 vUv;
-
-		void main() {
-
-			vec4 sum = vec4( 0.0 );
-
-			sum += texture2D( tDiffuse, vec2( vUv.x - 4.0 * h, vUv.y ) ) * 0.051;
-			sum += texture2D( tDiffuse, vec2( vUv.x - 3.0 * h, vUv.y ) ) * 0.0918;
-			sum += texture2D( tDiffuse, vec2( vUv.x - 2.0 * h, vUv.y ) ) * 0.12245;
-			sum += texture2D( tDiffuse, vec2( vUv.x - 1.0 * h, vUv.y ) ) * 0.1531;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y ) ) * 0.1633;
-			sum += texture2D( tDiffuse, vec2( vUv.x + 1.0 * h, vUv.y ) ) * 0.1531;
-			sum += texture2D( tDiffuse, vec2( vUv.x + 2.0 * h, vUv.y ) ) * 0.12245;
-			sum += texture2D( tDiffuse, vec2( vUv.x + 3.0 * h, vUv.y ) ) * 0.0918;
-			sum += texture2D( tDiffuse, vec2( vUv.x + 4.0 * h, vUv.y ) ) * 0.051;
-
-			gl_FragColor = sum;
-
-		}`
-
-};
-
-/**
- * Two pass Gaussian blur filter (horizontal and vertical blur shaders)
- * - see http://www.cake23.de/traveling-wavefronts-lit-up.html
- *
- * - 9 samples per pass
- * - standard deviation 2.7
- * - "h" and "v" parameters should be set to "1 / width" and "1 / height"
- */
-
-const VerticalBlurShader = {
-
-	uniforms: {
-
-		'tDiffuse': { value: null },
-		'v': { value: 1.0 / 512.0 }
-
-	},
-
-	vertexShader: /* glsl */`
-
-		varying vec2 vUv;
-
-		void main() {
-
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-
-		}`,
-
-	fragmentShader: /* glsl */`
-
-		uniform sampler2D tDiffuse;
-		uniform float v;
-
-		varying vec2 vUv;
-
-		void main() {
-
-			vec4 sum = vec4( 0.0 );
-
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 4.0 * v ) ) * 0.051;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 3.0 * v ) ) * 0.0918;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 2.0 * v ) ) * 0.12245;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 1.0 * v ) ) * 0.1531;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y ) ) * 0.1633;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 1.0 * v ) ) * 0.1531;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 2.0 * v ) ) * 0.12245;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 3.0 * v ) ) * 0.0918;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 4.0 * v ) ) * 0.051;
-
-			gl_FragColor = sum;
-
-		}`
-
-};
-
-// https://en.wikipedia.org/wiki/Linear_interpolation
-function lerp( x, y, t ) {
-
-	return ( 1 - t ) * x + t * y;
-
-}
-
-/* @license
- * Copyright 2022 Google LLC. All Rights Reserved.
-=======
 /**
  * Performs a reduction across all the vertices of the input model and all its
  * children. The supplied function takes the reduced value and a vertex and
@@ -58430,7 +53539,6 @@ const dataUrlToBlob = async (base64DataUrl) => {
 
 /* @license
  * Copyright 2019 Google LLC. All Rights Reserved.
->>>>>>> Stashed changes
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -58443,268 +53551,6 @@ const dataUrlToBlob = async (base64DataUrl) => {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-<<<<<<< Updated upstream
-// The softness [0, 1] of the shadow is mapped to a resolution between
-// 2^LOG_MAX_RESOLUTION and 2^LOG_MIN_RESOLUTION.
-const LOG_MAX_RESOLUTION = 9;
-const LOG_MIN_RESOLUTION = 6;
-// Animated models are not in general contained in their bounding box, as this
-// is calculated only for their resting pose. We create a cubic shadow volume
-// for animated models sized to their largest bounding box dimension multiplied
-// by this scale factor.
-const ANIMATION_SCALING = 2;
-// Since hard shadows are not lightened by blurring and depth, set a lower
-// default intensity to make them more perceptually similar to the intensity of
-// the soft shadows.
-const DEFAULT_HARD_INTENSITY = 0.3;
-/**
- * The Shadow class creates a shadow that fits a given scene and follows a
- * target. This shadow will follow the scene without any updates needed so long
- * as the shadow and scene are both parented to the same object (call it the
- * scene) and this scene is passed as the target parameter to the shadow's
- * constructor. We also must constrain the scene to motion within the horizontal
- * plane and call the setRotation() method whenever the scene's Y-axis rotation
- * changes. For motion outside of the horizontal plane, this.needsUpdate must be
- * set to true.
- *
- * The softness of the shadow is controlled by changing its resolution, making
- * softer shadows faster, but less precise.
- */
-class Shadow extends Object3D {
-    constructor(scene, softness, side) {
-        super();
-        this.camera = new OrthographicCamera();
-        // private cameraHelper = new CameraHelper(this.camera);
-        this.renderTarget = null;
-        this.renderTargetBlur = null;
-        this.depthMaterial = new MeshDepthMaterial();
-        this.horizontalBlurMaterial = new ShaderMaterial(HorizontalBlurShader);
-        this.verticalBlurMaterial = new ShaderMaterial(VerticalBlurShader);
-        this.intensity = 0;
-        this.softness = 1;
-        this.boundingBox = new Box3;
-        this.size = new Vector3;
-        this.maxDimension = 0;
-        this.isAnimated = false;
-        this.needsUpdate = false;
-        const { camera } = this;
-        camera.rotation.x = Math.PI / 2;
-        camera.left = -0.5;
-        camera.right = 0.5;
-        camera.bottom = -0.5;
-        camera.top = 0.5;
-        this.add(camera);
-        // this.add(this.cameraHelper);
-        // this.cameraHelper.updateMatrixWorld = function() {
-        //   this.matrixWorld = this.camera.matrixWorld;
-        // };
-        const plane = new PlaneGeometry();
-        const shadowMaterial = new MeshBasicMaterial({
-            // color: new Color(1, 0, 0),
-            opacity: 1,
-            transparent: true,
-            side: BackSide,
-        });
-        this.floor = new Mesh(plane, shadowMaterial);
-        this.floor.userData.shadow = true;
-        camera.add(this.floor);
-        // the plane onto which to blur the texture
-        this.blurPlane = new Mesh(plane);
-        this.blurPlane.visible = false;
-        camera.add(this.blurPlane);
-        scene.target.add(this);
-        // like MeshDepthMaterial, but goes from black to transparent
-        this.depthMaterial.onBeforeCompile = function (shader) {
-            shader.fragmentShader = shader.fragmentShader.replace('gl_FragColor = vec4( vec3( 1.0 - fragCoordZ ), opacity );', 'gl_FragColor = vec4( vec3( 0.0 ), ( 1.0 - fragCoordZ ) * opacity );');
-        };
-        this.horizontalBlurMaterial.depthTest = false;
-        this.verticalBlurMaterial.depthTest = false;
-        this.setScene(scene, softness, side);
-    }
-    /**
-     * Update the shadow's size and position for a new scene. Softness is also
-     * needed, as this controls the shadow's resolution.
-     */
-    setScene(scene, softness, side) {
-        const { boundingBox, size, rotation, position } = this;
-        this.isAnimated = scene.animationNames.length > 0;
-        this.boundingBox.copy(scene.boundingBox);
-        this.size.copy(scene.size);
-        this.maxDimension = Math.max(size.x, size.y, size.z) *
-            (this.isAnimated ? ANIMATION_SCALING : 1);
-        this.boundingBox.getCenter(position);
-        if (side === 'back') {
-            const { min, max } = boundingBox;
-            [min.y, min.z] = [min.z, min.y];
-            [max.y, max.z] = [max.z, max.y];
-            [size.y, size.z] = [size.z, size.y];
-            rotation.x = Math.PI / 2;
-            rotation.y = Math.PI;
-        }
-        else {
-            rotation.x = 0;
-            rotation.y = 0;
-        }
-        if (this.isAnimated) {
-            const minY = boundingBox.min.y;
-            const maxY = boundingBox.max.y;
-            size.y = this.maxDimension;
-            boundingBox.expandByVector(size.subScalar(this.maxDimension).multiplyScalar(-0.5));
-            boundingBox.min.y = minY;
-            boundingBox.max.y = maxY;
-            size.set(this.maxDimension, maxY - minY, this.maxDimension);
-        }
-        if (side === 'bottom') {
-            position.y = boundingBox.min.y;
-        }
-        else {
-            position.z = boundingBox.min.y;
-        }
-        this.setSoftness(softness);
-    }
-    /**
-     * Update the shadow's resolution based on softness (between 0 and 1). Should
-     * not be called frequently, as this results in reallocation.
-     */
-    setSoftness(softness) {
-        this.softness = softness;
-        const { size, camera } = this;
-        const scaleY = (this.isAnimated ? ANIMATION_SCALING : 1);
-        const resolution = scaleY *
-            Math.pow(2, LOG_MAX_RESOLUTION -
-                softness * (LOG_MAX_RESOLUTION - LOG_MIN_RESOLUTION));
-        this.setMapSize(resolution);
-        const softFar = size.y / 2;
-        const hardFar = size.y * scaleY;
-        camera.near = 0;
-        camera.far = lerp(hardFar, softFar, softness);
-        // we have co-opted opacity to scale the depth to clip
-        this.depthMaterial.opacity = 1.0 / softness;
-        camera.updateProjectionMatrix();
-        // this.cameraHelper.update();
-        this.setIntensity(this.intensity);
-        this.setOffset(0);
-    }
-    /**
-     * Lower-level version of the above function.
-     */
-    setMapSize(maxMapSize) {
-        const { size } = this;
-        if (this.isAnimated) {
-            maxMapSize *= ANIMATION_SCALING;
-        }
-        const baseWidth = Math.floor(size.x > size.z ? maxMapSize : maxMapSize * size.x / size.z);
-        const baseHeight = Math.floor(size.x > size.z ? maxMapSize * size.z / size.x : maxMapSize);
-        // width of blur filter in pixels (not adjustable)
-        const TAP_WIDTH = 10;
-        const width = TAP_WIDTH + baseWidth;
-        const height = TAP_WIDTH + baseHeight;
-        if (this.renderTarget != null &&
-            (this.renderTarget.width !== width ||
-                this.renderTarget.height !== height)) {
-            this.renderTarget.dispose();
-            this.renderTarget = null;
-            this.renderTargetBlur.dispose();
-            this.renderTargetBlur = null;
-        }
-        if (this.renderTarget == null) {
-            const params = { format: RGBAFormat };
-            this.renderTarget = new WebGLRenderTarget(width, height, params);
-            this.renderTargetBlur = new WebGLRenderTarget(width, height, params);
-            this.floor.material.map =
-                this.renderTarget.texture;
-        }
-        // These pads account for the softening radius around the shadow.
-        this.camera.scale.set(size.x * (1 + TAP_WIDTH / baseWidth), size.z * (1 + TAP_WIDTH / baseHeight), 1);
-        this.needsUpdate = true;
-    }
-    /**
-     * Set the shadow's intensity (0 to 1), which is just its opacity. Turns off
-     * shadow rendering if zero.
-     */
-    setIntensity(intensity) {
-        this.intensity = intensity;
-        if (intensity > 0) {
-            this.visible = true;
-            this.floor.visible = true;
-            this.floor.material.opacity = intensity *
-                lerp(DEFAULT_HARD_INTENSITY, 1, this.softness * this.softness);
-        }
-        else {
-            this.visible = false;
-            this.floor.visible = false;
-        }
-    }
-    getIntensity() {
-        return this.intensity;
-    }
-    /**
-     * An offset can be specified to move the
-     * shadow vertically relative to the bottom of the scene. Positive is up, so
-     * values are generally negative. A small offset keeps our shadow from
-     * z-fighting with any baked-in shadow plane.
-     */
-    setOffset(offset) {
-        this.floor.position.z = -offset + 0.001 * this.maxDimension;
-    }
-    render(renderer, scene) {
-        // this.cameraHelper.visible = false;
-        // force the depthMaterial to everything
-        scene.overrideMaterial = this.depthMaterial;
-        // set renderer clear alpha
-        const initialClearAlpha = renderer.getClearAlpha();
-        renderer.setClearAlpha(0);
-        this.floor.visible = false;
-        // disable XR for offscreen rendering
-        const xrEnabled = renderer.xr.enabled;
-        renderer.xr.enabled = false;
-        // render to the render target to get the depths
-        const oldRenderTarget = renderer.getRenderTarget();
-        renderer.setRenderTarget(this.renderTarget);
-        renderer.render(scene, this.camera);
-        // and reset the override material
-        scene.overrideMaterial = null;
-        this.floor.visible = true;
-        this.blurShadow(renderer);
-        // reset and render the normal scene
-        renderer.xr.enabled = xrEnabled;
-        renderer.setRenderTarget(oldRenderTarget);
-        renderer.setClearAlpha(initialClearAlpha);
-        // this.cameraHelper.visible = true;
-    }
-    blurShadow(renderer) {
-        const { camera, horizontalBlurMaterial, verticalBlurMaterial, renderTarget, renderTargetBlur, blurPlane } = this;
-        blurPlane.visible = true;
-        // blur horizontally and draw in the renderTargetBlur
-        blurPlane.material = horizontalBlurMaterial;
-        horizontalBlurMaterial.uniforms.h.value = 1 / this.renderTarget.width;
-        horizontalBlurMaterial.uniforms.tDiffuse.value = this.renderTarget.texture;
-        renderer.setRenderTarget(renderTargetBlur);
-        renderer.render(blurPlane, camera);
-        // blur vertically and draw in the main renderTarget
-        blurPlane.material = verticalBlurMaterial;
-        verticalBlurMaterial.uniforms.v.value = 1 / this.renderTarget.height;
-        verticalBlurMaterial.uniforms.tDiffuse.value =
-            this.renderTargetBlur.texture;
-        renderer.setRenderTarget(renderTarget);
-        renderer.render(blurPlane, camera);
-        blurPlane.visible = false;
-    }
-    dispose() {
-        if (this.renderTarget != null) {
-            this.renderTarget.dispose();
-        }
-        if (this.renderTargetBlur != null) {
-            this.renderTargetBlur.dispose();
-        }
-        this.depthMaterial.dispose();
-        this.horizontalBlurMaterial.dispose();
-        this.verticalBlurMaterial.dispose();
-        this.floor.material.dispose();
-        this.floor.geometry.dispose();
-        this.blurPlane.geometry.dispose();
-        this.removeFromParent();
-=======
 /**
  * ProgressTracker is an event emitter that helps to track the ongoing progress
  * of many simultaneous actions.
@@ -58795,7 +53641,6 @@ class ProgressTracker extends EventTarget {
             this.totalProgress = 0.0;
             this.ongoingActivities.clear();
         }
->>>>>>> Stashed changes
     }
 }
 
@@ -58813,758 +53658,6 @@ class ProgressTracker extends EventTarget {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-<<<<<<< Updated upstream
-const MIN_SHADOW_RATIO = 100;
-const view = new Vector3();
-const target = new Vector3();
-const normalWorld = new Vector3();
-const raycaster = new Raycaster();
-const vector3$1 = new Vector3();
-const ndc = new Vector2();
-/**
- * A THREE.Scene object that takes a Model and CanvasHTMLElement and
- * constructs a framed scene based off of the canvas dimensions.
- * Provides lights and cameras to be used in a renderer.
- */
-class ModelScene extends Scene {
-    constructor({ canvas, element, width, height }) {
-        super();
-        this.annotationRenderer = new CSS2DRenderer();
-        this.schemaElement = document.createElement('script');
-        this.width = 1;
-        this.height = 1;
-        this.aspect = 1;
-        this.scaleStep = 0;
-        this.renderCount = 0;
-        this.externalRenderer = null;
-        // These default camera values are never used, as they are reset once the
-        // model is loaded and framing is computed.
-        this.camera = new PerspectiveCamera(45, 1, 0.1, 100);
-        this.xrCamera = null;
-        this.url = null;
-        this.target = new Object3D();
-        this.animationNames = [];
-        this.boundingBox = new Box3();
-        this.boundingSphere = new Sphere();
-        this.size = new Vector3();
-        this.idealAspect = 0;
-        this.framedFoVDeg = 0;
-        this.shadow = null;
-        this.shadowIntensity = 0;
-        this.shadowSoftness = 1;
-        this.bakedShadows = new Set();
-        this.exposure = 1;
-        this.canScale = true;
-        this.isDirty = false;
-        this.goalTarget = new Vector3();
-        this.targetDamperX = new Damper();
-        this.targetDamperY = new Damper();
-        this.targetDamperZ = new Damper();
-        this._currentGLTF = null;
-        this._model = null;
-        this.cancelPendingSourceChange = null;
-        this.animationsByName = new Map();
-        this.currentAnimationAction = null;
-        this.name = 'ModelScene';
-        this.element = element;
-        this.canvas = canvas;
-        // These default camera values are never used, as they are reset once the
-        // model is loaded and framing is computed.
-        this.camera = new PerspectiveCamera(45, 1, 0.1, 100);
-        this.camera.name = 'MainCamera';
-        this.add(this.target);
-        this.setSize(width, height);
-        this.target.name = 'Target';
-        this.mixer = new AnimationMixer(this.target);
-        const { domElement } = this.annotationRenderer;
-        const { style } = domElement;
-        style.display = 'none';
-        style.pointerEvents = 'none';
-        style.position = 'absolute';
-        style.top = '0';
-        this.element.shadowRoot.querySelector('.default').appendChild(domElement);
-        this.schemaElement.setAttribute('type', 'application/ld+json');
-    }
-    /**
-     * Function to create the context lazily, as when there is only one
-     * <model-viewer> element, the renderer's 3D context can be displayed
-     * directly. This extra context is necessary to copy the renderings into when
-     * there are more than one.
-     */
-    get context() {
-        return this.canvas.getContext('2d');
-    }
-    getCamera() {
-        return this.xrCamera != null ? this.xrCamera : this.camera;
-    }
-    queueRender() {
-        this.isDirty = true;
-    }
-    shouldRender() {
-        return this.isDirty;
-    }
-    hasRendered() {
-        this.isDirty = false;
-    }
-    forceRescale() {
-        this.scaleStep = -1;
-        this.queueRender();
-    }
-    /**
-     * Pass in a THREE.Object3D to be controlled
-     * by this model.
-     */
-    async setObject(model) {
-        this.reset();
-        this._model = model;
-        this.target.add(model);
-        await this.setupScene();
-    }
-    /**
-     * Sets the model via URL.
-     */
-    async setSource(url, progressCallback = () => { }) {
-        if (!url || url === this.url) {
-            progressCallback(1);
-            return;
-        }
-        this.reset();
-        this.url = url;
-        if (this.externalRenderer != null) {
-            const framingInfo = await this.externalRenderer.load(progressCallback);
-            this.boundingSphere.radius = framingInfo.framedRadius;
-            this.idealAspect = framingInfo.fieldOfViewAspect;
-            return;
-        }
-        // If we have pending work due to a previous source change in progress,
-        // cancel it so that we do not incur a race condition:
-        if (this.cancelPendingSourceChange != null) {
-            this.cancelPendingSourceChange();
-            this.cancelPendingSourceChange = null;
-        }
-        let gltf;
-        try {
-            gltf = await new Promise(async (resolve, reject) => {
-                this.cancelPendingSourceChange = () => reject();
-                try {
-                    const result = await this.element[$renderer].loader.load(url, this.element, progressCallback);
-                    resolve(result);
-                }
-                catch (error) {
-                    reject(error);
-                }
-            });
-        }
-        catch (error) {
-            if (error == null) {
-                // Loading was cancelled, so silently return
-                return;
-            }
-            throw error;
-        }
-        this.cancelPendingSourceChange = null;
-        this.reset();
-        this.url = url;
-        this._currentGLTF = gltf;
-        if (gltf != null) {
-            this._model = gltf.scene;
-            this.target.add(gltf.scene);
-        }
-        const { animations } = gltf;
-        const animationsByName = new Map();
-        const animationNames = [];
-        for (const animation of animations) {
-            animationsByName.set(animation.name, animation);
-            animationNames.push(animation.name);
-        }
-        this.animations = animations;
-        this.animationsByName = animationsByName;
-        this.animationNames = animationNames;
-        await this.setupScene();
-    }
-    async setupScene() {
-        this.applyTransform();
-        this.updateBoundingBox();
-        await this.updateFraming();
-        this.updateShadow();
-        this.setShadowIntensity(this.shadowIntensity);
-    }
-    reset() {
-        this.url = null;
-        this.queueRender();
-        if (this.shadow != null) {
-            this.shadow.setIntensity(0);
-        }
-        this.bakedShadows.clear();
-        const { _model } = this;
-        if (_model != null) {
-            _model.removeFromParent();
-            this._model = null;
-        }
-        const gltf = this._currentGLTF;
-        if (gltf != null) {
-            gltf.dispose();
-            this._currentGLTF = null;
-        }
-        if (this.currentAnimationAction != null) {
-            this.currentAnimationAction.stop();
-            this.currentAnimationAction = null;
-        }
-        this.mixer.stopAllAction();
-        this.mixer.uncacheRoot(this);
-    }
-    dispose() {
-        this.reset();
-        if (this.shadow != null) {
-            this.shadow.dispose();
-            this.shadow = null;
-        }
-        this.element[$currentGLTF] = null;
-        this.element[$originalGltfJson] = null;
-        this.element[$model] = null;
-    }
-    get currentGLTF() {
-        return this._currentGLTF;
-    }
-    /**
-     * Updates the ModelScene for a new container size in CSS pixels.
-     */
-    setSize(width, height) {
-        if (this.width === width && this.height === height) {
-            return;
-        }
-        this.width = Math.max(width, 1);
-        this.height = Math.max(height, 1);
-        this.annotationRenderer.setSize(width, height);
-        this.aspect = this.width / this.height;
-        if (this.externalRenderer != null) {
-            const dpr = resolveDpr();
-            this.externalRenderer.resize(width * dpr, height * dpr);
-        }
-        this.queueRender();
-    }
-    markBakedShadow(mesh) {
-        mesh.userData.shadow = true;
-        this.bakedShadows.add(mesh);
-    }
-    unmarkBakedShadow(mesh) {
-        mesh.userData.shadow = false;
-        mesh.visible = true;
-        this.bakedShadows.delete(mesh);
-        this.boundingBox.expandByObject(mesh);
-    }
-    findBakedShadows(group) {
-        const boundingBox = new Box3();
-        group.traverse((object) => {
-            const mesh = object;
-            if (!mesh.isMesh) {
-                return;
-            }
-            const material = mesh.material;
-            if (!material.transparent) {
-                return;
-            }
-            boundingBox.setFromObject(mesh);
-            const size = boundingBox.getSize(vector3$1);
-            const minDim = Math.min(size.x, size.y, size.z);
-            const maxDim = Math.max(size.x, size.y, size.z);
-            if (maxDim < MIN_SHADOW_RATIO * minDim) {
-                return;
-            }
-            this.markBakedShadow(mesh);
-        });
-    }
-    checkBakedShadows() {
-        const { min, max } = this.boundingBox;
-        const shadowBox = new Box3();
-        this.boundingBox.getSize(this.size);
-        for (const mesh of this.bakedShadows) {
-            shadowBox.setFromObject(mesh);
-            if (shadowBox.min.y < min.y + this.size.y / MIN_SHADOW_RATIO &&
-                shadowBox.min.x <= min.x && shadowBox.max.x >= max.x &&
-                shadowBox.min.z <= min.z && shadowBox.max.z >= max.z) {
-                // floor shadow
-                continue;
-            }
-            if (shadowBox.min.z < min.z + this.size.z / MIN_SHADOW_RATIO &&
-                shadowBox.min.x <= min.x && shadowBox.max.x >= max.x &&
-                shadowBox.min.y <= min.y && shadowBox.max.y >= max.y) {
-                // wall shadow
-                continue;
-            }
-            this.unmarkBakedShadow(mesh);
-        }
-    }
-    applyTransform() {
-        const { model } = this;
-        if (model == null) {
-            return;
-        }
-        const orientation = parseExpressions(this.element.orientation)[0]
-            .terms;
-        const roll = normalizeUnit(orientation[0]).number;
-        const pitch = normalizeUnit(orientation[1]).number;
-        const yaw = normalizeUnit(orientation[2]).number;
-        model.quaternion.setFromEuler(new Euler(pitch, yaw, roll, 'YXZ'));
-        const scale = parseExpressions(this.element.scale)[0]
-            .terms;
-        model.scale.set(scale[0].number, scale[1].number, scale[2].number);
-    }
-    updateBoundingBox() {
-        const { model } = this;
-        if (model == null) {
-            return;
-        }
-        this.target.remove(model);
-        this.findBakedShadows(model);
-        const bound = (box, vertex) => {
-            return box.expandByPoint(vertex);
-        };
-        this.setBakedShadowVisibility(false);
-        this.boundingBox = reduceVertices(model, bound, new Box3());
-        // If there's nothing but the baked shadow, then it's not a baked shadow.
-        if (this.boundingBox.isEmpty()) {
-            this.setBakedShadowVisibility(true);
-            this.bakedShadows.forEach((mesh) => this.unmarkBakedShadow(mesh));
-            this.boundingBox = reduceVertices(model, bound, new Box3());
-        }
-        this.checkBakedShadows();
-        this.setBakedShadowVisibility();
-        this.boundingBox.getSize(this.size);
-        this.target.add(model);
-    }
-    /**
-     * Calculates the boundingSphere and idealAspect that allows the 3D
-     * object to be framed tightly in a 2D window of any aspect ratio without
-     * clipping at any camera orbit. The camera's center target point can be
-     * optionally specified. If no center is specified, it defaults to the center
-     * of the bounding box, which means asymmetric models will tend to be tight on
-     * one side instead of both. Proper choice of center can correct this.
-     */
-    async updateFraming() {
-        const { model } = this;
-        if (model == null) {
-            return;
-        }
-        this.target.remove(model);
-        this.setBakedShadowVisibility(false);
-        const { center } = this.boundingSphere;
-        this.element.requestUpdate('cameraTarget');
-        await this.element.updateComplete;
-        center.copy(this.getTarget());
-        const radiusSquared = (value, vertex) => {
-            return Math.max(value, center.distanceToSquared(vertex));
-        };
-        this.boundingSphere.radius =
-            Math.sqrt(reduceVertices(model, radiusSquared, 0));
-        const horizontalTanFov = (value, vertex) => {
-            vertex.sub(center);
-            const radiusXZ = Math.sqrt(vertex.x * vertex.x + vertex.z * vertex.z);
-            return Math.max(value, radiusXZ / (this.idealCameraDistance() - Math.abs(vertex.y)));
-        };
-        this.idealAspect = reduceVertices(model, horizontalTanFov, 0) /
-            Math.tan((this.framedFoVDeg / 2) * Math.PI / 180);
-        this.setBakedShadowVisibility();
-        this.target.add(model);
-    }
-    setBakedShadowVisibility(visible = this.shadowIntensity <= 0) {
-        for (const shadow of this.bakedShadows) {
-            shadow.visible = visible;
-        }
-    }
-    idealCameraDistance() {
-        const halfFovRad = (this.framedFoVDeg / 2) * Math.PI / 180;
-        return this.boundingSphere.radius / Math.sin(halfFovRad);
-    }
-    /**
-     * Set's the framedFieldOfView based on the aspect ratio of the window in
-     * order to keep the model fully visible at any camera orientation.
-     */
-    adjustedFoV(fovDeg) {
-        const vertical = Math.tan((fovDeg / 2) * Math.PI / 180) *
-            Math.max(1, this.idealAspect / this.aspect);
-        return 2 * Math.atan(vertical) * 180 / Math.PI;
-    }
-    getNDC(clientX, clientY) {
-        if (this.xrCamera != null) {
-            ndc.set(clientX / window.screen.width, clientY / window.screen.height);
-        }
-        else {
-            const rect = this.element.getBoundingClientRect();
-            ndc.set((clientX - rect.x) / this.width, (clientY - rect.y) / this.height);
-        }
-        ndc.multiplyScalar(2).subScalar(1);
-        ndc.y *= -1;
-        return ndc;
-    }
-    /**
-     * Returns the size of the corresponding canvas element.
-     */
-    getSize() {
-        return { width: this.width, height: this.height };
-    }
-    setEnvironmentAndSkybox(environment, skybox) {
-        if (this.element[$renderer].arRenderer.presentedScene === this) {
-            return;
-        }
-        this.environment = environment;
-        this.background = skybox;
-        this.queueRender();
-    }
-    /**
-     * Sets the point in model coordinates the model should orbit/pivot around.
-     */
-    setTarget(modelX, modelY, modelZ) {
-        this.goalTarget.set(-modelX, -modelY, -modelZ);
-    }
-    /**
-     * Set the decay time of, affects the speed of target transitions.
-     */
-    setTargetDamperDecayTime(decayMilliseconds) {
-        this.targetDamperX.setDecayTime(decayMilliseconds);
-        this.targetDamperY.setDecayTime(decayMilliseconds);
-        this.targetDamperZ.setDecayTime(decayMilliseconds);
-    }
-    /**
-     * Gets the point in model coordinates the model should orbit/pivot around.
-     */
-    getTarget() {
-        return this.goalTarget.clone().multiplyScalar(-1);
-    }
-    /**
-     * Shifts the model to the target point immediately instead of easing in.
-     */
-    jumpToGoal() {
-        this.updateTarget(SETTLING_TIME);
-    }
-    /**
-     * This should be called every frame with the frame delta to cause the target
-     * to transition to its set point.
-     */
-    updateTarget(delta) {
-        const goal = this.goalTarget;
-        const target = this.target.position;
-        if (!goal.equals(target)) {
-            const normalization = this.boundingSphere.radius / 10;
-            let { x, y, z } = target;
-            x = this.targetDamperX.update(x, goal.x, delta, normalization);
-            y = this.targetDamperY.update(y, goal.y, delta, normalization);
-            z = this.targetDamperZ.update(z, goal.z, delta, normalization);
-            this.target.position.set(x, y, z);
-            this.target.updateMatrixWorld();
-            this.queueRender();
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-    /**
-     * Yaw the +z (front) of the model toward the indicated world coordinates.
-     */
-    pointTowards(worldX, worldZ) {
-        const { x, z } = this.position;
-        this.yaw = Math.atan2(worldX - x, worldZ - z);
-    }
-    get model() {
-        return this._model;
-    }
-    /**
-     * Yaw is the scene's orientation about the y-axis, around the rotation
-     * center.
-     */
-    set yaw(radiansY) {
-        this.rotation.y = radiansY;
-        this.queueRender();
-    }
-    get yaw() {
-        return this.rotation.y;
-    }
-    set animationTime(value) {
-        this.mixer.setTime(value);
-        this.queueShadowRender();
-    }
-    get animationTime() {
-        if (this.currentAnimationAction != null) {
-            const loopCount = Math.max(this.currentAnimationAction._loopCount, 0);
-            if (this.currentAnimationAction.loop === LoopPingPong &&
-                (loopCount & 1) === 1) {
-                return this.duration - this.currentAnimationAction.time;
-            }
-            else {
-                return this.currentAnimationAction.time;
-            }
-        }
-        return 0;
-    }
-    set animationTimeScale(value) {
-        this.mixer.timeScale = value;
-    }
-    get animationTimeScale() {
-        return this.mixer.timeScale;
-    }
-    get duration() {
-        if (this.currentAnimationAction != null &&
-            this.currentAnimationAction.getClip()) {
-            return this.currentAnimationAction.getClip().duration;
-        }
-        return 0;
-    }
-    get hasActiveAnimation() {
-        return this.currentAnimationAction != null;
-    }
-    /**
-     * Plays an animation if there are any associated with the current model.
-     * Accepts an optional string name of an animation to play. If no name is
-     * provided, or if no animation is found by the given name, always falls back
-     * to playing the first animation.
-     */
-    playAnimation(name = null, crossfadeTime = 0, loopMode = LoopRepeat, repetitionCount = Infinity) {
-        if (this._currentGLTF == null) {
-            return;
-        }
-        const { animations } = this;
-        if (animations == null || animations.length === 0) {
-            console.warn(`Cannot play animation (model does not have any animations)`);
-            return;
-        }
-        let animationClip = null;
-        if (name != null) {
-            animationClip = this.animationsByName.get(name);
-            if (animationClip == null) {
-                const parsedAnimationIndex = parseInt(name);
-                if (!isNaN(parsedAnimationIndex) && parsedAnimationIndex >= 0 &&
-                    parsedAnimationIndex < animations.length) {
-                    animationClip = animations[parsedAnimationIndex];
-                }
-            }
-        }
-        if (animationClip == null) {
-            animationClip = animations[0];
-        }
-        try {
-            const { currentAnimationAction: lastAnimationAction } = this;
-            const action = this.mixer.clipAction(animationClip, this);
-            this.currentAnimationAction = action;
-            if (this.element.paused) {
-                this.mixer.stopAllAction();
-            }
-            else {
-                action.paused = false;
-                if (lastAnimationAction != null && action !== lastAnimationAction) {
-                    action.crossFadeFrom(lastAnimationAction, crossfadeTime, false);
-                }
-                else if (this.animationTimeScale > 0 &&
-                    this.animationTime == this.duration) {
-                    // This is a workaround for what I believe is a three.js bug.
-                    this.animationTime = 0;
-                }
-            }
-            action.setLoop(loopMode, repetitionCount);
-            action.enabled = true;
-            action.clampWhenFinished = true;
-            action.play();
-        }
-        catch (error) {
-            console.error(error);
-        }
-    }
-    stopAnimation() {
-        this.currentAnimationAction = null;
-        this.mixer.stopAllAction();
-    }
-    updateAnimation(step) {
-        this.mixer.update(step);
-        this.queueShadowRender();
-    }
-    subscribeMixerEvent(event, callback) {
-        this.mixer.addEventListener(event, callback);
-    }
-    /**
-     * Call if the object has been changed in such a way that the shadow's shape
-     * has changed (not a rotation about the Y axis).
-     */
-    updateShadow() {
-        const shadow = this.shadow;
-        if (shadow != null) {
-            const side = this.element.arPlacement === 'wall' ? 'back' : 'bottom';
-            shadow.setScene(this, this.shadowSoftness, side);
-            shadow.needsUpdate = true;
-        }
-    }
-    renderShadow(renderer) {
-        const shadow = this.shadow;
-        if (shadow != null && shadow.needsUpdate == true) {
-            shadow.render(renderer, this);
-            shadow.needsUpdate = false;
-        }
-    }
-    queueShadowRender() {
-        if (this.shadow != null) {
-            this.shadow.needsUpdate = true;
-        }
-    }
-    /**
-     * Sets the shadow's intensity, lazily creating the shadow as necessary.
-     */
-    setShadowIntensity(shadowIntensity) {
-        this.shadowIntensity = shadowIntensity;
-        if (this._currentGLTF == null) {
-            return;
-        }
-        this.setBakedShadowVisibility();
-        if (shadowIntensity <= 0 && this.shadow == null) {
-            return;
-        }
-        if (this.shadow == null) {
-            const side = this.element.arPlacement === 'wall' ? 'back' : 'bottom';
-            this.shadow = new Shadow(this, this.shadowSoftness, side);
-        }
-        this.shadow.setIntensity(shadowIntensity);
-    }
-    /**
-     * Sets the shadow's softness by mapping a [0, 1] softness parameter to the
-     * shadow's resolution. This involves reallocation, so it should not be
-     * changed frequently. Softer shadows are cheaper to render.
-     */
-    setShadowSoftness(softness) {
-        this.shadowSoftness = softness;
-        const shadow = this.shadow;
-        if (shadow != null) {
-            shadow.setSoftness(softness);
-        }
-    }
-    /**
-     * Shift the floor vertically from the bottom of the model's bounding box by
-     * offset (should generally be negative).
-     */
-    setShadowOffset(offset) {
-        const shadow = this.shadow;
-        if (shadow != null) {
-            shadow.setOffset(offset);
-        }
-    }
-    get raycaster() {
-        return raycaster;
-    }
-    /**
-     * This method returns the world position, model-space normal and texture
-     * coordinate of the point on the mesh corresponding to the input pixel
-     * coordinates given relative to the model-viewer element. If the mesh
-     * is not hit, the result is null.
-     */
-    positionAndNormalFromPoint(ndcPosition, object = this) {
-        this.raycaster.setFromCamera(ndcPosition, this.getCamera());
-        const hits = this.raycaster.intersectObject(object, true);
-        const hit = hits.find((hit) => hit.object.visible && !hit.object.userData.shadow);
-        if (hit == null || hit.face == null) {
-            return null;
-        }
-        if (hit.uv == null) {
-            return { position: hit.point, normal: hit.face.normal, uv: null };
-        }
-        hit.face.normal.applyNormalMatrix(new Matrix3().getNormalMatrix(hit.object.matrixWorld));
-        return { position: hit.point, normal: hit.face.normal, uv: hit.uv };
-    }
-    /**
-     * The following methods are for operating on the set of Hotspot objects
-     * attached to the scene. These come from DOM elements, provided to slots by
-     * the Annotation Mixin.
-     */
-    addHotspot(hotspot) {
-        this.target.add(hotspot);
-        // This happens automatically in render(), but we do it early so that
-        // the slots appear in the shadow DOM and the elements get attached,
-        // allowing us to dispatch events on them.
-        this.annotationRenderer.domElement.appendChild(hotspot.element);
-    }
-    removeHotspot(hotspot) {
-        this.target.remove(hotspot);
-    }
-    /**
-     * Helper method to apply a function to all hotspots.
-     */
-    forHotspots(func) {
-        const { children } = this.target;
-        for (let i = 0, l = children.length; i < l; i++) {
-            const hotspot = children[i];
-            if (hotspot instanceof Hotspot) {
-                func(hotspot);
-            }
-        }
-    }
-    /**
-     * Update the CSS visibility of the hotspots based on whether their normals
-     * point toward the camera.
-     */
-    updateHotspots(viewerPosition) {
-        this.forHotspots((hotspot) => {
-            view.copy(viewerPosition);
-            target.setFromMatrixPosition(hotspot.matrixWorld);
-            view.sub(target);
-            normalWorld.copy(hotspot.normal)
-                .transformDirection(this.target.matrixWorld);
-            if (view.dot(normalWorld) < 0) {
-                hotspot.hide();
-            }
-            else {
-                hotspot.show();
-            }
-        });
-    }
-    /**
-     * Rotate all hotspots to an absolute orientation given by the input number of
-     * radians. Zero returns them to upright.
-     */
-    orientHotspots(radians) {
-        this.forHotspots((hotspot) => {
-            hotspot.orient(radians);
-        });
-    }
-    /**
-     * Set the rendering visibility of all hotspots. This is used to hide them
-     * during transitions and such.
-     */
-    setHotspotsVisibility(visible) {
-        this.forHotspots((hotspot) => {
-            hotspot.visible = visible;
-        });
-    }
-    updateSchema(src) {
-        var _a;
-        const { schemaElement, element } = this;
-        const { alt, poster, iosSrc } = element;
-        if (src != null) {
-            const encoding = [{
-                    '@type': 'MediaObject',
-                    contentUrl: src,
-                    encodingFormat: ((_a = src.split('.').pop()) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === 'gltf' ?
-                        'model/gltf+json' :
-                        'model/gltf-binary'
-                }];
-            if (iosSrc) {
-                encoding.push({
-                    '@type': 'MediaObject',
-                    contentUrl: iosSrc,
-                    encodingFormat: 'model/vnd.usdz+zip'
-                });
-            }
-            const structuredData = {
-                '@context': 'http://schema.org/',
-                '@type': '3DModel',
-                image: poster !== null && poster !== void 0 ? poster : undefined,
-                name: alt !== null && alt !== void 0 ? alt : undefined,
-                encoding
-            };
-            schemaElement.textContent = JSON.stringify(structuredData);
-            document.head.appendChild(schemaElement);
-        }
-        else if (schemaElement.parentElement != null) {
-            schemaElement.parentElement.removeChild(schemaElement);
-        }
-    }
-}
-=======
 var __decorate$5 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof undefined === "function") r = undefined(decorators, target, key, desc);
@@ -60049,779 +54142,6 @@ __decorate$5([
 __decorate$5([
     e$3({ type: Boolean, attribute: 'generate-schema' })
 ], ModelViewerElementBase.prototype, "generateSchema", void 0);
->>>>>>> Stashed changes
-
-/* @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-<<<<<<< Updated upstream
-/**
- * Converts a base64 string which represents a data url
- * into a Blob of the same contents.
- */
-const dataUrlToBlob = async (base64DataUrl) => {
-    return new Promise((resolve, reject) => {
-        const sliceSize = 512;
-        const typeMatch = base64DataUrl.match(/data:(.*);/);
-        if (!typeMatch) {
-            return reject(new Error(`${base64DataUrl} is not a valid data Url`));
-        }
-        const type = typeMatch[1];
-        const base64 = base64DataUrl.replace(/data:image\/\w+;base64,/, '');
-        const byteCharacters = atob(base64);
-        const byteArrays = [];
-        for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-            const slice = byteCharacters.slice(offset, offset + sliceSize);
-            const byteNumbers = new Array(slice.length);
-            for (let i = 0; i < slice.length; i++) {
-                byteNumbers[i] = slice.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            byteArrays.push(byteArray);
-        }
-        resolve(new Blob(byteArrays, { type }));
-    });
-=======
-var __decorate$4 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof undefined === "function") r = undefined(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-const MILLISECONDS_PER_SECOND = 1000.0;
-const $changeAnimation = Symbol('changeAnimation');
-const $paused = Symbol('paused');
-const DEFAULT_PLAY_OPTIONS = {
-    repetitions: Infinity,
-    pingpong: false
-};
-const AnimationMixin = (ModelViewerElement) => {
-    var _a;
-    class AnimationModelViewerElement extends ModelViewerElement {
-        constructor(...args) {
-            super(args);
-            this.autoplay = false;
-            this.animationName = undefined;
-            this.animationCrossfadeDuration = 300;
-            this[_a] = true;
-            this[$scene].subscribeMixerEvent('loop', (e) => {
-                const count = e.action._loopCount;
-                this.dispatchEvent(new CustomEvent('loop', { detail: { count } }));
-            });
-            this[$scene].subscribeMixerEvent('finished', () => {
-                this[$paused] = true;
-                this.dispatchEvent(new CustomEvent('finished'));
-            });
-        }
-        /**
-         * Returns an array
-         */
-        get availableAnimations() {
-            if (this.loaded) {
-                return this[$scene].animationNames;
-            }
-            return [];
-        }
-        get duration() {
-            return this[$scene].duration;
-        }
-        get paused() {
-            return this[$paused];
-        }
-        get currentTime() {
-            return this[$scene].animationTime;
-        }
-        set currentTime(value) {
-            this[$scene].animationTime = value;
-            this[$needsRender]();
-        }
-        get timeScale() {
-            return this[$scene].animationTimeScale;
-        }
-        set timeScale(value) {
-            this[$scene].animationTimeScale = value;
-        }
-        pause() {
-            if (this[$paused]) {
-                return;
-            }
-            this[$paused] = true;
-            this.dispatchEvent(new CustomEvent('pause'));
-        }
-        play(options) {
-            if (this.availableAnimations.length > 0) {
-                this[$paused] = false;
-                this[$changeAnimation](options);
-                this.dispatchEvent(new CustomEvent('play'));
-            }
-        }
-        [(_a = $paused, $onModelLoad)]() {
-            super[$onModelLoad]();
-            this[$paused] = true;
-            if (this.autoplay) {
-                this.play();
-            }
-        }
-        [$tick](_time, delta) {
-            super[$tick](_time, delta);
-            if (this[$paused] ||
-                (!this[$getModelIsVisible]() && !this[$renderer].isPresenting)) {
-                return;
-            }
-            this[$scene].updateAnimation(delta / MILLISECONDS_PER_SECOND);
-            this[$needsRender]();
-        }
-        updated(changedProperties) {
-            super.updated(changedProperties);
-            if (changedProperties.has('autoplay') && this.autoplay) {
-                this.play();
-            }
-            if (changedProperties.has('animationName')) {
-                this[$changeAnimation]();
-            }
-        }
-        [$changeAnimation](options = DEFAULT_PLAY_OPTIONS) {
-            var _b;
-            const repetitions = (_b = options.repetitions) !== null && _b !== void 0 ? _b : Infinity;
-            const mode = options.pingpong ?
-                LoopPingPong :
-                (repetitions === 1 ? LoopOnce : LoopRepeat);
-            this[$scene].playAnimation(this.animationName, this.animationCrossfadeDuration / MILLISECONDS_PER_SECOND, mode, repetitions);
-            // If we are currently paused, we need to force a render so that
-            // the scene updates to the first frame of the new animation
-            if (this[$paused]) {
-                this[$scene].updateAnimation(0);
-                this[$needsRender]();
-            }
-        }
-    }
-    __decorate$4([
-        e$3({ type: Boolean })
-    ], AnimationModelViewerElement.prototype, "autoplay", void 0);
-    __decorate$4([
-        e$3({ type: String, attribute: 'animation-name' })
-    ], AnimationModelViewerElement.prototype, "animationName", void 0);
-    __decorate$4([
-        e$3({ type: Number, attribute: 'animation-crossfade-duration' })
-    ], AnimationModelViewerElement.prototype, "animationCrossfadeDuration", void 0);
-    return AnimationModelViewerElement;
->>>>>>> Stashed changes
-};
-
-/* @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-<<<<<<< Updated upstream
-/**
- * ProgressTracker is an event emitter that helps to track the ongoing progress
- * of many simultaneous actions.
- *
- * ProgressTracker reports progress activity in the form of a progress event.
- * The event.detail.totalProgress value indicates the elapsed progress of all
- * activities being tracked by the ProgressTracker.
- *
- * The value of totalProgress is a number that progresses from 0 to 1. The
- * ProgressTracker allows for the lazy accumulation of tracked actions, so the
- * total progress represents a abstract, non-absolute progress towards the
- * completion of all currently tracked events.
- *
- * When all currently tracked activities are finished, the ProgressTracker
- * emits one final progress event and then resets the list of its currently
- * tracked activities. This means that from an observer's perspective,
- * ongoing activities will accumulate and collectively contribute to the notion
- * of total progress until all currently tracked ongoing activities have
- * completed.
- */
-class ProgressTracker extends EventTarget {
-    constructor() {
-        super(...arguments);
-        this.ongoingActivities = new Set();
-        this.totalProgress = 0;
-    }
-    /**
-     * The total number of activities currently being tracked.
-     */
-    get ongoingActivityCount() {
-        return this.ongoingActivities.size;
-    }
-    /**
-     * Registers a new activity to be tracked by the progress tracker. The method
-     * returns a special callback that should be invoked whenever new progress is
-     * ready to be reported. The progress should be reported as a value between 0
-     * and 1, where 0 would represent the beginning of the action and 1 would
-     * represent its completion.
-     *
-     * There is no built-in notion of a time-out for ongoing activities, so once
-     * an ongoing activity is begun, it is up to the consumer of this API to
-     * update the progress until that activity is no longer ongoing.
-     *
-     * Progress is only allowed to move forward for any given activity. If a lower
-     * progress is reported than the previously reported progress, it will be
-     * ignored.
-     */
-    beginActivity() {
-        const activity = { progress: 0, completed: false };
-        this.ongoingActivities.add(activity);
-        if (this.ongoingActivityCount === 1) {
-            // Announce the first progress event (which should always be 0 / 1
-            // total progress):
-            this.announceTotalProgress(activity, 0);
-        }
-        return (progress) => {
-            let nextProgress;
-            nextProgress = Math.max(clamp(progress, 0, 1), activity.progress);
-            if (nextProgress !== activity.progress) {
-                this.announceTotalProgress(activity, nextProgress);
-            }
-            return activity.progress;
-        };
-    }
-    announceTotalProgress(updatedActivity, nextProgress) {
-        let progressLeft = 0;
-        let completedActivities = 0;
-        if (nextProgress == 1.0)
-            updatedActivity.completed = true;
-        for (const activity of this.ongoingActivities) {
-            const { progress } = activity;
-            progressLeft += 1.0 - progress;
-            if (activity.completed === true) {
-                completedActivities++;
-            }
-        }
-        const lastProgress = updatedActivity.progress;
-        updatedActivity.progress = nextProgress;
-        // Advance the total progress by the fraction of total remaining progress
-        // due to this activity.
-        this.totalProgress += (nextProgress - lastProgress) *
-            (1.0 - this.totalProgress) / progressLeft;
-        const totalProgress = completedActivities === this.ongoingActivityCount ?
-            1.0 :
-            this.totalProgress;
-        this.dispatchEvent(new CustomEvent('progress', { detail: { totalProgress } }));
-        if (completedActivities === this.ongoingActivityCount) {
-            this.totalProgress = 0.0;
-            this.ongoingActivities.clear();
-        }
-    }
-}
-
-/* @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var __decorate$5 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof undefined === "function") r = undefined(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var _a$3, _b$3, _c$2, _d$1, _e, _f, _g, _h, _j, _k, _l, _m, _o;
-const CLEAR_MODEL_TIMEOUT_MS = 1000;
-const FALLBACK_SIZE_UPDATE_THRESHOLD_MS = 50;
-const ANNOUNCE_MODEL_VISIBILITY_DEBOUNCE_THRESHOLD = 0;
-const UNSIZED_MEDIA_WIDTH = 300;
-const UNSIZED_MEDIA_HEIGHT = 150;
-const blobCanvas = document.createElement('canvas');
-const $fallbackResizeHandler = Symbol('fallbackResizeHandler');
-const $defaultAriaLabel = Symbol('defaultAriaLabel');
-const $resizeObserver = Symbol('resizeObserver');
-const $clearModelTimeout = Symbol('clearModelTimeout');
-const $onContextLost = Symbol('onContextLost');
-const $loaded = Symbol('loaded');
-const $status = Symbol('status');
-const $onFocus = Symbol('onFocus');
-const $onBlur = Symbol('onBlur');
-const $updateSize = Symbol('updateSize');
-const $intersectionObserver = Symbol('intersectionObserver');
-const $isElementInViewport = Symbol('isElementInViewport');
-const $announceModelVisibility = Symbol('announceModelVisibility');
-const $ariaLabel = Symbol('ariaLabel');
-const $altDefaulted = Symbol('altDefaulted');
-const $statusElement = Symbol('statusElement');
-const $updateStatus = Symbol('updateStatus');
-const $loadedTime = Symbol('loadedTime');
-const $updateSource = Symbol('updateSource');
-const $markLoaded = Symbol('markLoaded');
-const $container = Symbol('container');
-const $userInputElement = Symbol('input');
-const $canvas = Symbol('canvas');
-const $scene = Symbol('scene');
-const $needsRender = Symbol('needsRender');
-const $tick = Symbol('tick');
-const $onModelLoad = Symbol('onModelLoad');
-const $onResize = Symbol('onResize');
-const $renderer = Symbol('renderer');
-const $progressTracker = Symbol('progressTracker');
-const $getLoaded = Symbol('getLoaded');
-const $getModelIsVisible = Symbol('getModelIsVisible');
-const $shouldAttemptPreload = Symbol('shouldAttemptPreload');
-const toVector3D = (v) => {
-    return {
-        x: v.x,
-        y: v.y,
-        z: v.z,
-        toString() {
-            return `${this.x}m ${this.y}m ${this.z}m`;
-        }
-    };
-};
-const toVector2D = (v) => {
-    return {
-        u: v.x,
-        v: v.y,
-        toString() {
-            return `${this.u} ${this.v}`;
-        }
-    };
-};
-/**
- * Definition for a basic <model-viewer> element.
- */
-class ModelViewerElementBase extends d$1 {
-    /**
-     * Creates a new ModelViewerElement.
-     */
-    constructor() {
-        super();
-        this.alt = null;
-        this.src = null;
-        this.withCredentials = false;
-        /**
-         * Generates a 3D model schema https://schema.org/3DModel associated with
-         * the loaded src and inserts it into the header of the page for search
-         * engines to crawl.
-         */
-        this.generateSchema = false;
-        this[_a$3] = false;
-        this[_b$3] = false;
-        this[_c$2] = 0;
-        this[_d$1] = '';
-        this[_e] = null;
-        this[_f] = debounce(() => {
-            const boundingRect = this.getBoundingClientRect();
-            this[$updateSize](boundingRect);
-        }, FALLBACK_SIZE_UPDATE_THRESHOLD_MS);
-        this[_g] = debounce((oldVisibility) => {
-            const newVisibility = this.modelIsVisible;
-            if (newVisibility !== oldVisibility) {
-                this.dispatchEvent(new CustomEvent('model-visibility', { detail: { visible: newVisibility } }));
-            }
-        }, ANNOUNCE_MODEL_VISIBILITY_DEBOUNCE_THRESHOLD);
-        this[_h] = null;
-        this[_j] = null;
-        this[_k] = new ProgressTracker();
-        this[_l] = () => {
-            this[$statusElement].textContent = this[$status];
-        };
-        this[_m] = () => {
-            this[$statusElement].textContent = '';
-        };
-        this[_o] = (event) => {
-            this.dispatchEvent(new CustomEvent('error', { detail: { type: 'webglcontextlost', sourceError: event.sourceEvent } }));
-        };
-        this.attachShadow({ mode: 'open' });
-        const shadowRoot = this.shadowRoot;
-        makeTemplate(shadowRoot);
-        this[$container] = shadowRoot.querySelector('.container');
-        this[$userInputElement] =
-            shadowRoot.querySelector('.userInput');
-        this[$canvas] = shadowRoot.querySelector('canvas');
-        this[$statusElement] =
-            shadowRoot.querySelector('#status');
-        this[$defaultAriaLabel] =
-            this[$userInputElement].getAttribute('aria-label');
-        // Because of potential race conditions related to invoking the constructor
-        // we only use the bounding rect to set the initial size if the element is
-        // already connected to the document:
-        let width, height;
-        if (this.isConnected) {
-            const rect = this.getBoundingClientRect();
-            width = rect.width;
-            height = rect.height;
-        }
-        else {
-            width = UNSIZED_MEDIA_WIDTH;
-            height = UNSIZED_MEDIA_HEIGHT;
-        }
-        // Create the underlying ModelScene.
-        this[$scene] =
-            new ModelScene({ canvas: this[$canvas], element: this, width, height });
-        // Update initial size on microtask timing so that subclasses have a
-        // chance to initialize
-        Promise.resolve().then(() => {
-            this[$updateSize](this.getBoundingClientRect());
-        });
-        if (HAS_RESIZE_OBSERVER) {
-            // Set up a resize observer so we can scale our canvas
-            // if our <model-viewer> changes
-            this[$resizeObserver] =
-                new ResizeObserver((entries) => {
-                    // Don't resize anything if in AR mode; otherwise the canvas
-                    // scaling to fullscreen on entering AR will clobber the flat/2d
-                    // dimensions of the element.
-                    if (this[$renderer].isPresenting) {
-                        return;
-                    }
-                    for (let entry of entries) {
-                        if (entry.target === this) {
-                            this[$updateSize](entry.contentRect);
-                        }
-                    }
-                });
-        }
-        if (HAS_INTERSECTION_OBSERVER) {
-            this[$intersectionObserver] = new IntersectionObserver(entries => {
-                for (let entry of entries) {
-                    if (entry.target === this) {
-                        const oldVisibility = this.modelIsVisible;
-                        this[$isElementInViewport] = entry.isIntersecting;
-                        this[$announceModelVisibility](oldVisibility);
-                        if (this[$isElementInViewport] && !this.loaded) {
-                            this[$updateSource]();
-                        }
-                    }
-                }
-            }, {
-                root: null,
-                // We used to have margin here, but it was causing animated models below
-                // the fold to steal the frame budget. Weirder still, it would also
-                // cause input events to be swallowed, sometimes for seconds on the
-                // model above the fold, but only when the animated model was completely
-                // below. Setting this margin to zero fixed it.
-                rootMargin: '0px',
-                // With zero threshold, an element adjacent to but not intersecting the
-                // viewport will be reported as intersecting, which will cause
-                // unnecessary rendering. Any slight positive threshold alleviates this.
-                threshold: 0.00001,
-            });
-        }
-        else {
-            // If there is no intersection observer, then all models should be visible
-            // at all times:
-            this[$isElementInViewport] = true;
-        }
-    }
-    static get is() {
-        return 'model-viewer';
-    }
-    /** @export */
-    static set modelCacheSize(value) {
-        CachingGLTFLoader[$evictionPolicy].evictionThreshold = value;
-    }
-    /** @export */
-    static get modelCacheSize() {
-        return CachingGLTFLoader[$evictionPolicy].evictionThreshold;
-    }
-    /** @export */
-    static set minimumRenderScale(value) {
-        if (value > 1) {
-            console.warn('<model-viewer> minimumRenderScale has been clamped to a maximum value of 1.');
-        }
-        if (value <= 0) {
-            console.warn('<model-viewer> minimumRenderScale has been clamped to a minimum value of 0.25.');
-        }
-        Renderer.singleton.minScale = value;
-    }
-    /** @export */
-    static get minimumRenderScale() {
-        return Renderer.singleton.minScale;
-    }
-    /** @export */
-    get loaded() {
-        return this[$getLoaded]();
-    }
-    get [(_a$3 = $isElementInViewport, _b$3 = $loaded, _c$2 = $loadedTime, _d$1 = $status, _e = $clearModelTimeout, _f = $fallbackResizeHandler, _g = $announceModelVisibility, _h = $resizeObserver, _j = $intersectionObserver, _k = $progressTracker, $renderer)]() {
-        return Renderer.singleton;
-    }
-    /** @export */
-    get modelIsVisible() {
-        return this[$getModelIsVisible]();
-    }
-    connectedCallback() {
-        super.connectedCallback && super.connectedCallback();
-        if (HAS_RESIZE_OBSERVER) {
-            this[$resizeObserver].observe(this);
-        }
-        else {
-            self.addEventListener('resize', this[$fallbackResizeHandler]);
-        }
-        if (HAS_INTERSECTION_OBSERVER) {
-            this[$intersectionObserver].observe(this);
-        }
-        this.addEventListener('focus', this[$onFocus]);
-        this.addEventListener('blur', this[$onBlur]);
-        const renderer = this[$renderer];
-        renderer.addEventListener('contextlost', this[$onContextLost]);
-        renderer.registerScene(this[$scene]);
-        if (this[$clearModelTimeout] != null) {
-            self.clearTimeout(this[$clearModelTimeout]);
-            this[$clearModelTimeout] = null;
-            // Force an update in case the model has been evicted from our GLTF cache
-            // @see https://lit-element.polymer-project.org/guide/lifecycle#requestupdate
-            this.requestUpdate('src', null);
-        }
-    }
-    disconnectedCallback() {
-        super.disconnectedCallback && super.disconnectedCallback();
-        if (HAS_RESIZE_OBSERVER) {
-            this[$resizeObserver].unobserve(this);
-        }
-        else {
-            self.removeEventListener('resize', this[$fallbackResizeHandler]);
-        }
-        if (HAS_INTERSECTION_OBSERVER) {
-            this[$intersectionObserver].unobserve(this);
-        }
-        this.removeEventListener('focus', this[$onFocus]);
-        this.removeEventListener('blur', this[$onBlur]);
-        const renderer = this[$renderer];
-        renderer.removeEventListener('contextlost', this[$onContextLost]);
-        renderer.unregisterScene(this[$scene]);
-        this[$clearModelTimeout] = self.setTimeout(() => {
-            this[$scene].dispose();
-            this[$clearModelTimeout] = null;
-        }, CLEAR_MODEL_TIMEOUT_MS);
-    }
-    updated(changedProperties) {
-        super.updated(changedProperties);
-        // NOTE(cdata): If a property changes from values A -> B -> A in the space
-        // of a microtask, LitElement/UpdatingElement will notify of a change even
-        // though the value has effectively not changed, so we need to check to make
-        // sure that the value has actually changed before changing the loaded flag.
-        if (changedProperties.has('src')) {
-            if (this.src == null) {
-                this[$loaded] = false;
-                this[$loadedTime] = 0;
-                this[$scene].reset();
-            }
-            else if (this.src !== this[$scene].url) {
-                this[$loaded] = false;
-                this[$loadedTime] = 0;
-                this[$updateSource]();
-            }
-        }
-        if (changedProperties.has('alt')) {
-            this[$userInputElement].setAttribute('aria-label', this[$ariaLabel]);
-        }
-        if (changedProperties.has('withCredentials')) {
-            CachingGLTFLoader.withCredentials = this.withCredentials;
-        }
-        if (changedProperties.has('generateSchema')) {
-            if (this.generateSchema) {
-                this[$scene].updateSchema(this.src);
-            }
-            else {
-                this[$scene].updateSchema(null);
-            }
-        }
-    }
-    /** @export */
-    toDataURL(type, encoderOptions) {
-        return this[$renderer]
-            .displayCanvas(this[$scene])
-            .toDataURL(type, encoderOptions);
-    }
-    /** @export */
-    async toBlob(options) {
-        const mimeType = options ? options.mimeType : undefined;
-        const qualityArgument = options ? options.qualityArgument : undefined;
-        const useIdealAspect = options ? options.idealAspect : undefined;
-        const { width, height, idealAspect, aspect } = this[$scene];
-        const { dpr, scaleFactor } = this[$renderer];
-        let outputWidth = width * scaleFactor * dpr;
-        let outputHeight = height * scaleFactor * dpr;
-        let offsetX = 0;
-        let offsetY = 0;
-        if (useIdealAspect === true) {
-            if (idealAspect > aspect) {
-                const oldHeight = outputHeight;
-                outputHeight = Math.round(outputWidth / idealAspect);
-                offsetY = (oldHeight - outputHeight) / 2;
-            }
-            else {
-                const oldWidth = outputWidth;
-                outputWidth = Math.round(outputHeight * idealAspect);
-                offsetX = (oldWidth - outputWidth) / 2;
-            }
-        }
-        blobCanvas.width = outputWidth;
-        blobCanvas.height = outputHeight;
-        try {
-            return new Promise(async (resolve, reject) => {
-                blobCanvas.getContext('2d').drawImage(this[$renderer].displayCanvas(this[$scene]), offsetX, offsetY, outputWidth, outputHeight, 0, 0, outputWidth, outputHeight);
-                if (blobCanvas.msToBlob) {
-                    // NOTE: msToBlob only returns image/png
-                    // so ensure mimeType is not specified (defaults to image/png)
-                    // or is image/png, otherwise fallback to using toDataURL on IE.
-                    if (!mimeType || mimeType === 'image/png') {
-                        return resolve(blobCanvas.msToBlob());
-                    }
-                }
-                if (!blobCanvas.toBlob) {
-                    return resolve(await dataUrlToBlob(blobCanvas.toDataURL(mimeType, qualityArgument)));
-                }
-                blobCanvas.toBlob((blob) => {
-                    if (!blob) {
-                        return reject(new Error('Unable to retrieve canvas blob'));
-                    }
-                    resolve(blob);
-                }, mimeType, qualityArgument);
-            });
-        }
-        finally {
-            this[$updateSize]({ width, height });
-        }
-    }
-    registerRenderer(renderer) {
-        this[$scene].externalRenderer = renderer;
-    }
-    unregisterRenderer() {
-        this[$scene].externalRenderer = null;
-    }
-    get [$ariaLabel]() {
-        return this[$altDefaulted];
-    }
-    get [$altDefaulted]() {
-        return (this.alt == null || this.alt === 'null') ? this[$defaultAriaLabel] :
-            this.alt;
-    }
-    // NOTE(cdata): Although this may seem extremely redundant, it is required in
-    // order to support overloading when TypeScript is compiled to ES5
-    // @see https://github.com/Polymer/lit-element/pull/745
-    // @see https://github.com/microsoft/TypeScript/issues/338
-    [$getLoaded]() {
-        return this[$loaded];
-    }
-    // @see [$getLoaded]
-    [$getModelIsVisible]() {
-        return this.loaded && this[$isElementInViewport];
-    }
-    [$shouldAttemptPreload]() {
-        return !!this.src && this[$isElementInViewport];
-    }
-    /**
-     * Called on initialization and when the resize observer fires.
-     */
-    [$updateSize]({ width, height }) {
-        this[$container].style.width = `${width}px`;
-        this[$container].style.height = `${height}px`;
-        this[$onResize]({ width: parseFloat(width), height: parseFloat(height) });
-    }
-    [$tick](_time, _delta) {
-    }
-    [$markLoaded]() {
-        if (this[$loaded]) {
-            return;
-        }
-        this[$loaded] = true;
-        this[$loadedTime] = performance.now();
-    }
-    [$needsRender]() {
-        this[$scene].queueRender();
-    }
-    [$onModelLoad]() {
-    }
-    [$updateStatus](status) {
-        this[$status] = status;
-        const rootNode = this.getRootNode();
-        // Only change the aria-label if <model-viewer> is currently focused:
-        if (rootNode != null && rootNode.activeElement === this &&
-            this[$statusElement].textContent != status) {
-            this[$statusElement].textContent = status;
-        }
-    }
-    [(_l = $onFocus, _m = $onBlur, $onResize)](e) {
-        this[$scene].setSize(e.width, e.height);
-    }
-    /**
-     * Parses the element for an appropriate source URL and
-     * sets the views to use the new model based.
-     */
-    async [(_o = $onContextLost, $updateSource)]() {
-        const scene = this[$scene];
-        if (this.loaded || !this[$shouldAttemptPreload]() ||
-            this.src === scene.url) {
-            return;
-        }
-        if (this.generateSchema) {
-            scene.updateSchema(this.src);
-        }
-        this[$updateStatus]('Loading');
-        // If we are loading a new model, we need to stop the animation of
-        // the current one (if any is playing). Otherwise, we might lose
-        // the reference to the scene root and running actions start to
-        // throw exceptions and/or behave in unexpected ways:
-        scene.stopAnimation();
-        const updateSourceProgress = this[$progressTracker].beginActivity();
-        const source = this.src;
-        try {
-            const srcUpdated = scene.setSource(source, (progress) => updateSourceProgress(clamp(progress, 0, 1) * 0.95));
-            const envUpdated = this[$updateEnvironment]();
-            await Promise.all([srcUpdated, envUpdated]);
-            this[$markLoaded]();
-            this[$onModelLoad]();
-            // Wait for shaders to compile and pixels to be drawn.
-            await new Promise(resolve => {
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        this.dispatchEvent(new CustomEvent('load', { detail: { url: source } }));
-                        resolve();
-                    });
-                });
-            });
-        }
-        catch (error) {
-            this.dispatchEvent(new CustomEvent('error', { detail: { type: 'loadfailure', sourceError: error } }));
-        }
-        finally {
-            updateSourceProgress(1.0);
-        }
-    }
-}
-__decorate$5([
-    e$3({ type: String })
-], ModelViewerElementBase.prototype, "alt", void 0);
-__decorate$5([
-    e$3({ type: String })
-], ModelViewerElementBase.prototype, "src", void 0);
-__decorate$5([
-    e$3({ type: Boolean, attribute: 'with-credentials' })
-], ModelViewerElementBase.prototype, "withCredentials", void 0);
-__decorate$5([
-    e$3({ type: Boolean, attribute: 'generate-schema' })
-], ModelViewerElementBase.prototype, "generateSchema", void 0);
 
 /* @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -60976,904 +54296,6 @@ const AnimationMixin = (ModelViewerElement) => {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const $hotspotMap = Symbol('hotspotMap');
-const $mutationCallback = Symbol('mutationCallback');
-const $observer = Symbol('observer');
-const $addHotspot = Symbol('addHotspot');
-const $removeHotspot = Symbol('removeHotspot');
-const worldToModel = new Matrix4();
-const worldToModelNormal = new Matrix3();
-/**
- * AnnotationMixin implements a declarative API to add hotspots and annotations.
- * Child elements of the <model-viewer> element that have a slot name that
- * begins with "hotspot" and data-position and data-normal attributes in
- * the format of the camera-target attribute will be added to the scene and
- * track the specified model coordinates.
- */
-const AnnotationMixin = (ModelViewerElement) => {
-    var _a, _b, _c;
-    class AnnotationModelViewerElement extends ModelViewerElement {
-        constructor() {
-            super(...arguments);
-            this[_a] = new Map();
-            this[_b] = (mutations) => {
-                mutations.forEach((mutation) => {
-                    // NOTE: Be wary that in ShadyDOM cases, the MutationRecord
-                    // only has addedNodes and removedNodes (and no other details).
-                    if (!(mutation instanceof MutationRecord) ||
-                        mutation.type === 'childList') {
-                        mutation.addedNodes.forEach((node) => {
-                            this[$addHotspot](node);
-                        });
-                        mutation.removedNodes.forEach((node) => {
-                            this[$removeHotspot](node);
-                        });
-                        this[$needsRender]();
-                    }
-                });
-            };
-            this[_c] = new MutationObserver(this[$mutationCallback]);
-        }
-        connectedCallback() {
-            super.connectedCallback();
-            for (let i = 0; i < this.children.length; ++i) {
-                this[$addHotspot](this.children[i]);
-            }
-            const { ShadyDOM } = self;
-            if (ShadyDOM == null) {
-                this[$observer].observe(this, { childList: true });
-            }
-            else {
-                this[$observer] =
-                    ShadyDOM.observeChildren(this, this[$mutationCallback]);
-            }
-        }
-        disconnectedCallback() {
-            super.disconnectedCallback();
-            const { ShadyDOM } = self;
-            if (ShadyDOM == null) {
-                this[$observer].disconnect();
-            }
-            else {
-                ShadyDOM.unobserveChildren(this[$observer]);
-            }
-        }
-        [(_a = $hotspotMap, _b = $mutationCallback, _c = $observer, $tick)](time, delta) {
-            super[$tick](time, delta);
-            const scene = this[$scene];
-            const { annotationRenderer } = scene;
-            const camera = scene.getCamera();
-            if (scene.shouldRender()) {
-                scene.updateHotspots(camera.position);
-                annotationRenderer.domElement.style.display = '';
-                annotationRenderer.render(scene, camera);
-            }
-        }
-        /**
-         * Since the data-position and data-normal attributes are not observed, use
-         * this method to move a hotspot. Keep in mind that all hotspots with the
-         * same slot name use a single location and the first definition takes
-         * precedence, until updated with this method.
-         */
-        updateHotspot(config) {
-            const hotspot = this[$hotspotMap].get(config.name);
-            if (hotspot == null) {
-                return;
-            }
-            hotspot.updatePosition(config.position);
-            hotspot.updateNormal(config.normal);
-            this[$needsRender]();
-        }
-        /**
-         * This method returns in-scene data about a requested hotspot including
-         * its position in screen (canvas) space and its current visibility.
-         */
-        queryHotspot(name) {
-            const hotspot = this[$hotspotMap].get(name);
-            if (hotspot == null) {
-                return null;
-            }
-            const position = toVector3D(hotspot.position);
-            const normal = toVector3D(hotspot.normal);
-            const facingCamera = hotspot.facingCamera;
-            const scene = this[$scene];
-            const camera = scene.getCamera();
-            const vector = new Vector3();
-            vector.setFromMatrixPosition(hotspot.matrixWorld);
-            vector.project(camera);
-            const widthHalf = scene.width / 2;
-            const heightHalf = scene.height / 2;
-            vector.x = (vector.x * widthHalf) + widthHalf;
-            vector.y = -(vector.y * heightHalf) + heightHalf;
-            const canvasPosition = toVector3D(new Vector3(vector.x, vector.y, vector.z));
-            if (!Number.isFinite(canvasPosition.x) ||
-                !Number.isFinite(canvasPosition.y)) {
-                return null;
-            }
-            return { position, normal, canvasPosition, facingCamera };
-        }
-        /**
-         * This method returns the model position, normal and texture coordinate
-         * of the point on the mesh corresponding to the input pixel coordinates
-         * given relative to the model-viewer element. The position and normal
-         * are returned as strings in the format suitable for putting in a
-         * hotspot's data-position and data-normal attributes. If the mesh is
-         * not hit, the result is null.
-         */
-        positionAndNormalFromPoint(pixelX, pixelY) {
-            const scene = this[$scene];
-            const ndcPosition = scene.getNDC(pixelX, pixelY);
-            const hit = scene.positionAndNormalFromPoint(ndcPosition);
-            if (hit == null) {
-                return null;
-            }
-            worldToModel.copy(scene.target.matrixWorld).invert();
-            const position = toVector3D(hit.position.applyMatrix4(worldToModel));
-            worldToModelNormal.getNormalMatrix(worldToModel);
-            const normal = toVector3D(hit.normal.applyNormalMatrix(worldToModelNormal));
-            let uv = null;
-            if (hit.uv != null) {
-                uv = toVector2D(hit.uv);
-            }
-            return { position: position, normal: normal, uv: uv };
-        }
-        [$addHotspot](node) {
-            if (!(node instanceof HTMLElement &&
-                node.slot.indexOf('hotspot') === 0)) {
-                return;
-            }
-            let hotspot = this[$hotspotMap].get(node.slot);
-            if (hotspot != null) {
-                hotspot.increment();
-            }
-            else {
-                hotspot = new Hotspot({
-                    name: node.slot,
-                    position: node.dataset.position,
-                    normal: node.dataset.normal,
-                });
-                this[$hotspotMap].set(node.slot, hotspot);
-                this[$scene].addHotspot(hotspot);
-            }
-            this[$scene].queueRender();
-        }
-        [$removeHotspot](node) {
-            if (!(node instanceof HTMLElement)) {
-                return;
-            }
-            const hotspot = this[$hotspotMap].get(node.slot);
-            if (!hotspot) {
-                return;
-            }
-            if (hotspot.decrement()) {
-                this[$scene].removeHotspot(hotspot);
-                this[$hotspotMap].delete(node.slot);
-            }
-            this[$scene].queueRender();
-        }
-    }
-    return AnnotationModelViewerElement;
-};
-
-/*!
-fflate - fast JavaScript compression/decompression
-<https://101arrowz.github.io/fflate>
-Licensed under MIT. https://github.com/101arrowz/fflate/blob/master/LICENSE
-version 0.6.9
-*/
-var durl = function (c) { return URL.createObjectURL(new Blob([c], { type: 'text/javascript' })); };
-try {
-    URL.revokeObjectURL(durl(''));
-}
-catch (e) {
-    // We're in Deno or a very old browser
-    durl = function (c) { return 'data:application/javascript;charset=UTF-8,' + encodeURI(c); };
-}
-
-// aliases for shorter compressed code (most minifers don't do this)
-var u8 = Uint8Array, u16 = Uint16Array, u32 = Uint32Array;
-// fixed length extra bits
-var fleb = new u8([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, /* unused */ 0, 0, /* impossible */ 0]);
-// fixed distance extra bits
-// see fleb note
-var fdeb = new u8([0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, /* unused */ 0, 0]);
-// code length index map
-var clim = new u8([16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]);
-// get base, reverse index map from extra bits
-var freb = function (eb, start) {
-    var b = new u16(31);
-    for (var i = 0; i < 31; ++i) {
-        b[i] = start += 1 << eb[i - 1];
-    }
-    // numbers here are at max 18 bits
-    var r = new u32(b[30]);
-    for (var i = 1; i < 30; ++i) {
-        for (var j = b[i]; j < b[i + 1]; ++j) {
-            r[j] = ((j - b[i]) << 5) | i;
-        }
-    }
-    return [b, r];
-};
-var _a$2 = freb(fleb, 2), fl = _a$2[0], revfl = _a$2[1];
-// we can ignore the fact that the other numbers are wrong; they never happen anyway
-fl[28] = 258, revfl[258] = 28;
-var _b$2 = freb(fdeb, 0), revfd = _b$2[1];
-// map of value to reverse (assuming 16 bits)
-var rev = new u16(32768);
-for (var i = 0; i < 32768; ++i) {
-    // reverse table algorithm from SO
-    var x = ((i & 0xAAAA) >>> 1) | ((i & 0x5555) << 1);
-    x = ((x & 0xCCCC) >>> 2) | ((x & 0x3333) << 2);
-    x = ((x & 0xF0F0) >>> 4) | ((x & 0x0F0F) << 4);
-    rev[i] = (((x & 0xFF00) >>> 8) | ((x & 0x00FF) << 8)) >>> 1;
-}
-// create huffman tree from u8 "map": index -> code length for code index
-// mb (max bits) must be at most 15
-// TODO: optimize/split up?
-var hMap = (function (cd, mb, r) {
-    var s = cd.length;
-    // index
-    var i = 0;
-    // u16 "map": index -> # of codes with bit length = index
-    var l = new u16(mb);
-    // length of cd must be 288 (total # of codes)
-    for (; i < s; ++i)
-        ++l[cd[i] - 1];
-    // u16 "map": index -> minimum code for bit length = index
-    var le = new u16(mb);
-    for (i = 0; i < mb; ++i) {
-        le[i] = (le[i - 1] + l[i - 1]) << 1;
-    }
-    var co;
-    if (r) {
-        // u16 "map": index -> number of actual bits, symbol for code
-        co = new u16(1 << mb);
-        // bits to remove for reverser
-        var rvb = 15 - mb;
-        for (i = 0; i < s; ++i) {
-            // ignore 0 lengths
-            if (cd[i]) {
-                // num encoding both symbol and bits read
-                var sv = (i << 4) | cd[i];
-                // free bits
-                var r_1 = mb - cd[i];
-                // start value
-                var v = le[cd[i] - 1]++ << r_1;
-                // m is end value
-                for (var m = v | ((1 << r_1) - 1); v <= m; ++v) {
-                    // every 16 bit value starting with the code yields the same result
-                    co[rev[v] >>> rvb] = sv;
-                }
-            }
-        }
-    }
-    else {
-        co = new u16(s);
-        for (i = 0; i < s; ++i) {
-            if (cd[i]) {
-                co[i] = rev[le[cd[i] - 1]++] >>> (15 - cd[i]);
-            }
-        }
-    }
-    return co;
-});
-// fixed length tree
-var flt = new u8(288);
-for (var i = 0; i < 144; ++i)
-    flt[i] = 8;
-for (var i = 144; i < 256; ++i)
-    flt[i] = 9;
-for (var i = 256; i < 280; ++i)
-    flt[i] = 7;
-for (var i = 280; i < 288; ++i)
-    flt[i] = 8;
-// fixed distance tree
-var fdt = new u8(32);
-for (var i = 0; i < 32; ++i)
-    fdt[i] = 5;
-// fixed length map
-var flm = /*#__PURE__*/ hMap(flt, 9, 0);
-// fixed distance map
-var fdm = /*#__PURE__*/ hMap(fdt, 5, 0);
-// get end of byte
-var shft = function (p) { return ((p / 8) | 0) + (p & 7 && 1); };
-// typed array slice - allows garbage collector to free original reference,
-// while being more compatible than .slice
-var slc = function (v, s, e) {
-    if (s == null || s < 0)
-        s = 0;
-    if (e == null || e > v.length)
-        e = v.length;
-    // can't use .constructor in case user-supplied
-    var n = new (v instanceof u16 ? u16 : v instanceof u32 ? u32 : u8)(e - s);
-    n.set(v.subarray(s, e));
-    return n;
-};
-// starting at p, write the minimum number of bits that can hold v to d
-var wbits = function (d, p, v) {
-    v <<= p & 7;
-    var o = (p / 8) | 0;
-    d[o] |= v;
-    d[o + 1] |= v >>> 8;
-};
-// starting at p, write the minimum number of bits (>8) that can hold v to d
-var wbits16 = function (d, p, v) {
-    v <<= p & 7;
-    var o = (p / 8) | 0;
-    d[o] |= v;
-    d[o + 1] |= v >>> 8;
-    d[o + 2] |= v >>> 16;
-};
-// creates code lengths from a frequency table
-var hTree = function (d, mb) {
-    // Need extra info to make a tree
-    var t = [];
-    for (var i = 0; i < d.length; ++i) {
-        if (d[i])
-            t.push({ s: i, f: d[i] });
-    }
-    var s = t.length;
-    var t2 = t.slice();
-    if (!s)
-        return [et, 0];
-    if (s == 1) {
-        var v = new u8(t[0].s + 1);
-        v[t[0].s] = 1;
-        return [v, 1];
-    }
-    t.sort(function (a, b) { return a.f - b.f; });
-    // after i2 reaches last ind, will be stopped
-    // freq must be greater than largest possible number of symbols
-    t.push({ s: -1, f: 25001 });
-    var l = t[0], r = t[1], i0 = 0, i1 = 1, i2 = 2;
-    t[0] = { s: -1, f: l.f + r.f, l: l, r: r };
-    // efficient algorithm from UZIP.js
-    // i0 is lookbehind, i2 is lookahead - after processing two low-freq
-    // symbols that combined have high freq, will start processing i2 (high-freq,
-    // non-composite) symbols instead
-    // see https://reddit.com/r/photopea/comments/ikekht/uzipjs_questions/
-    while (i1 != s - 1) {
-        l = t[t[i0].f < t[i2].f ? i0++ : i2++];
-        r = t[i0 != i1 && t[i0].f < t[i2].f ? i0++ : i2++];
-        t[i1++] = { s: -1, f: l.f + r.f, l: l, r: r };
-    }
-    var maxSym = t2[0].s;
-    for (var i = 1; i < s; ++i) {
-        if (t2[i].s > maxSym)
-            maxSym = t2[i].s;
-    }
-    // code lengths
-    var tr = new u16(maxSym + 1);
-    // max bits in tree
-    var mbt = ln(t[i1 - 1], tr, 0);
-    if (mbt > mb) {
-        // more algorithms from UZIP.js
-        // TODO: find out how this code works (debt)
-        //  ind    debt
-        var i = 0, dt = 0;
-        //    left            cost
-        var lft = mbt - mb, cst = 1 << lft;
-        t2.sort(function (a, b) { return tr[b.s] - tr[a.s] || a.f - b.f; });
-        for (; i < s; ++i) {
-            var i2_1 = t2[i].s;
-            if (tr[i2_1] > mb) {
-                dt += cst - (1 << (mbt - tr[i2_1]));
-                tr[i2_1] = mb;
-            }
-            else
-                break;
-        }
-        dt >>>= lft;
-        while (dt > 0) {
-            var i2_2 = t2[i].s;
-            if (tr[i2_2] < mb)
-                dt -= 1 << (mb - tr[i2_2]++ - 1);
-            else
-                ++i;
-        }
-        for (; i >= 0 && dt; --i) {
-            var i2_3 = t2[i].s;
-            if (tr[i2_3] == mb) {
-                --tr[i2_3];
-                ++dt;
-            }
-        }
-        mbt = mb;
-    }
-    return [new u8(tr), mbt];
-};
-// get the max length and assign length codes
-var ln = function (n, l, d) {
-    return n.s == -1
-        ? Math.max(ln(n.l, l, d + 1), ln(n.r, l, d + 1))
-        : (l[n.s] = d);
-};
-// length codes generation
-var lc = function (c) {
-    var s = c.length;
-    // Note that the semicolon was intentional
-    while (s && !c[--s])
-        ;
-    var cl = new u16(++s);
-    //  ind      num         streak
-    var cli = 0, cln = c[0], cls = 1;
-    var w = function (v) { cl[cli++] = v; };
-    for (var i = 1; i <= s; ++i) {
-        if (c[i] == cln && i != s)
-            ++cls;
-        else {
-            if (!cln && cls > 2) {
-                for (; cls > 138; cls -= 138)
-                    w(32754);
-                if (cls > 2) {
-                    w(cls > 10 ? ((cls - 11) << 5) | 28690 : ((cls - 3) << 5) | 12305);
-                    cls = 0;
-                }
-            }
-            else if (cls > 3) {
-                w(cln), --cls;
-                for (; cls > 6; cls -= 6)
-                    w(8304);
-                if (cls > 2)
-                    w(((cls - 3) << 5) | 8208), cls = 0;
-            }
-            while (cls--)
-                w(cln);
-            cls = 1;
-            cln = c[i];
-        }
-    }
-    return [cl.subarray(0, cli), s];
-};
-// calculate the length of output from tree, code lengths
-var clen = function (cf, cl) {
-    var l = 0;
-    for (var i = 0; i < cl.length; ++i)
-        l += cf[i] * cl[i];
-    return l;
-};
-// writes a fixed block
-// returns the new bit pos
-var wfblk = function (out, pos, dat) {
-    // no need to write 00 as type: TypedArray defaults to 0
-    var s = dat.length;
-    var o = shft(pos + 2);
-    out[o] = s & 255;
-    out[o + 1] = s >>> 8;
-    out[o + 2] = out[o] ^ 255;
-    out[o + 3] = out[o + 1] ^ 255;
-    for (var i = 0; i < s; ++i)
-        out[o + i + 4] = dat[i];
-    return (o + 4 + s) * 8;
-};
-// writes a block
-var wblk = function (dat, out, final, syms, lf, df, eb, li, bs, bl, p) {
-    wbits(out, p++, final);
-    ++lf[256];
-    var _a = hTree(lf, 15), dlt = _a[0], mlb = _a[1];
-    var _b = hTree(df, 15), ddt = _b[0], mdb = _b[1];
-    var _c = lc(dlt), lclt = _c[0], nlc = _c[1];
-    var _d = lc(ddt), lcdt = _d[0], ndc = _d[1];
-    var lcfreq = new u16(19);
-    for (var i = 0; i < lclt.length; ++i)
-        lcfreq[lclt[i] & 31]++;
-    for (var i = 0; i < lcdt.length; ++i)
-        lcfreq[lcdt[i] & 31]++;
-    var _e = hTree(lcfreq, 7), lct = _e[0], mlcb = _e[1];
-    var nlcc = 19;
-    for (; nlcc > 4 && !lct[clim[nlcc - 1]]; --nlcc)
-        ;
-    var flen = (bl + 5) << 3;
-    var ftlen = clen(lf, flt) + clen(df, fdt) + eb;
-    var dtlen = clen(lf, dlt) + clen(df, ddt) + eb + 14 + 3 * nlcc + clen(lcfreq, lct) + (2 * lcfreq[16] + 3 * lcfreq[17] + 7 * lcfreq[18]);
-    if (flen <= ftlen && flen <= dtlen)
-        return wfblk(out, p, dat.subarray(bs, bs + bl));
-    var lm, ll, dm, dl;
-    wbits(out, p, 1 + (dtlen < ftlen)), p += 2;
-    if (dtlen < ftlen) {
-        lm = hMap(dlt, mlb, 0), ll = dlt, dm = hMap(ddt, mdb, 0), dl = ddt;
-        var llm = hMap(lct, mlcb, 0);
-        wbits(out, p, nlc - 257);
-        wbits(out, p + 5, ndc - 1);
-        wbits(out, p + 10, nlcc - 4);
-        p += 14;
-        for (var i = 0; i < nlcc; ++i)
-            wbits(out, p + 3 * i, lct[clim[i]]);
-        p += 3 * nlcc;
-        var lcts = [lclt, lcdt];
-        for (var it = 0; it < 2; ++it) {
-            var clct = lcts[it];
-            for (var i = 0; i < clct.length; ++i) {
-                var len = clct[i] & 31;
-                wbits(out, p, llm[len]), p += lct[len];
-                if (len > 15)
-                    wbits(out, p, (clct[i] >>> 5) & 127), p += clct[i] >>> 12;
-            }
-        }
-    }
-    else {
-        lm = flm, ll = flt, dm = fdm, dl = fdt;
-    }
-    for (var i = 0; i < li; ++i) {
-        if (syms[i] > 255) {
-            var len = (syms[i] >>> 18) & 31;
-            wbits16(out, p, lm[len + 257]), p += ll[len + 257];
-            if (len > 7)
-                wbits(out, p, (syms[i] >>> 23) & 31), p += fleb[len];
-            var dst = syms[i] & 31;
-            wbits16(out, p, dm[dst]), p += dl[dst];
-            if (dst > 3)
-                wbits16(out, p, (syms[i] >>> 5) & 8191), p += fdeb[dst];
-        }
-        else {
-            wbits16(out, p, lm[syms[i]]), p += ll[syms[i]];
-        }
-    }
-    wbits16(out, p, lm[256]);
-    return p + ll[256];
-};
-// deflate options (nice << 13) | chain
-var deo = /*#__PURE__*/ new u32([65540, 131080, 131088, 131104, 262176, 1048704, 1048832, 2114560, 2117632]);
-// empty
-var et = /*#__PURE__*/ new u8(0);
-// compresses data into a raw DEFLATE buffer
-var dflt = function (dat, lvl, plvl, pre, post, lst) {
-    var s = dat.length;
-    var o = new u8(pre + s + 5 * (1 + Math.ceil(s / 7000)) + post);
-    // writing to this writes to the output buffer
-    var w = o.subarray(pre, o.length - post);
-    var pos = 0;
-    if (!lvl || s < 8) {
-        for (var i = 0; i <= s; i += 65535) {
-            // end
-            var e = i + 65535;
-            if (e < s) {
-                // write full block
-                pos = wfblk(w, pos, dat.subarray(i, e));
-            }
-            else {
-                // write final block
-                w[i] = lst;
-                pos = wfblk(w, pos, dat.subarray(i, s));
-            }
-        }
-    }
-    else {
-        var opt = deo[lvl - 1];
-        var n = opt >>> 13, c = opt & 8191;
-        var msk_1 = (1 << plvl) - 1;
-        //    prev 2-byte val map    curr 2-byte val map
-        var prev = new u16(32768), head = new u16(msk_1 + 1);
-        var bs1_1 = Math.ceil(plvl / 3), bs2_1 = 2 * bs1_1;
-        var hsh = function (i) { return (dat[i] ^ (dat[i + 1] << bs1_1) ^ (dat[i + 2] << bs2_1)) & msk_1; };
-        // 24576 is an arbitrary number of maximum symbols per block
-        // 424 buffer for last block
-        var syms = new u32(25000);
-        // length/literal freq   distance freq
-        var lf = new u16(288), df = new u16(32);
-        //  l/lcnt  exbits  index  l/lind  waitdx  bitpos
-        var lc_1 = 0, eb = 0, i = 0, li = 0, wi = 0, bs = 0;
-        for (; i < s; ++i) {
-            // hash value
-            // deopt when i > s - 3 - at end, deopt acceptable
-            var hv = hsh(i);
-            // index mod 32768    previous index mod
-            var imod = i & 32767, pimod = head[hv];
-            prev[imod] = pimod;
-            head[hv] = imod;
-            // We always should modify head and prev, but only add symbols if
-            // this data is not yet processed ("wait" for wait index)
-            if (wi <= i) {
-                // bytes remaining
-                var rem = s - i;
-                if ((lc_1 > 7000 || li > 24576) && rem > 423) {
-                    pos = wblk(dat, w, 0, syms, lf, df, eb, li, bs, i - bs, pos);
-                    li = lc_1 = eb = 0, bs = i;
-                    for (var j = 0; j < 286; ++j)
-                        lf[j] = 0;
-                    for (var j = 0; j < 30; ++j)
-                        df[j] = 0;
-                }
-                //  len    dist   chain
-                var l = 2, d = 0, ch_1 = c, dif = (imod - pimod) & 32767;
-                if (rem > 2 && hv == hsh(i - dif)) {
-                    var maxn = Math.min(n, rem) - 1;
-                    var maxd = Math.min(32767, i);
-                    // max possible length
-                    // not capped at dif because decompressors implement "rolling" index population
-                    var ml = Math.min(258, rem);
-                    while (dif <= maxd && --ch_1 && imod != pimod) {
-                        if (dat[i + l] == dat[i + l - dif]) {
-                            var nl = 0;
-                            for (; nl < ml && dat[i + nl] == dat[i + nl - dif]; ++nl)
-                                ;
-                            if (nl > l) {
-                                l = nl, d = dif;
-                                // break out early when we reach "nice" (we are satisfied enough)
-                                if (nl > maxn)
-                                    break;
-                                // now, find the rarest 2-byte sequence within this
-                                // length of literals and search for that instead.
-                                // Much faster than just using the start
-                                var mmd = Math.min(dif, nl - 2);
-                                var md = 0;
-                                for (var j = 0; j < mmd; ++j) {
-                                    var ti = (i - dif + j + 32768) & 32767;
-                                    var pti = prev[ti];
-                                    var cd = (ti - pti + 32768) & 32767;
-                                    if (cd > md)
-                                        md = cd, pimod = ti;
-                                }
-                            }
-                        }
-                        // check the previous match
-                        imod = pimod, pimod = prev[imod];
-                        dif += (imod - pimod + 32768) & 32767;
-                    }
-                }
-                // d will be nonzero only when a match was found
-                if (d) {
-                    // store both dist and len data in one Uint32
-                    // Make sure this is recognized as a len/dist with 28th bit (2^28)
-                    syms[li++] = 268435456 | (revfl[l] << 18) | revfd[d];
-                    var lin = revfl[l] & 31, din = revfd[d] & 31;
-                    eb += fleb[lin] + fdeb[din];
-                    ++lf[257 + lin];
-                    ++df[din];
-                    wi = i + l;
-                    ++lc_1;
-                }
-                else {
-                    syms[li++] = dat[i];
-                    ++lf[dat[i]];
-                }
-            }
-        }
-        pos = wblk(dat, w, lst, syms, lf, df, eb, li, bs, i - bs, pos);
-        // this is the easiest way to avoid needing to maintain state
-        if (!lst && pos & 7)
-            pos = wfblk(w, pos + 1, et);
-    }
-    return slc(o, 0, pre + shft(pos) + post);
-};
-// CRC32 table
-var crct = /*#__PURE__*/ (function () {
-    var t = new u32(256);
-    for (var i = 0; i < 256; ++i) {
-        var c = i, k = 9;
-        while (--k)
-            c = ((c & 1) && 0xEDB88320) ^ (c >>> 1);
-        t[i] = c;
-    }
-    return t;
-})();
-// CRC32
-var crc = function () {
-    var c = -1;
-    return {
-        p: function (d) {
-            // closures have awful performance
-            var cr = c;
-            for (var i = 0; i < d.length; ++i)
-                cr = crct[(cr & 255) ^ d[i]] ^ (cr >>> 8);
-            c = cr;
-        },
-        d: function () { return ~c; }
-    };
-};
-// deflate with opts
-var dopt = function (dat, opt, pre, post, st) {
-    return dflt(dat, opt.level == null ? 6 : opt.level, opt.mem == null ? Math.ceil(Math.max(8, Math.min(13, Math.log(dat.length))) * 1.5) : (12 + opt.mem), pre, post, !st);
-};
-// Walmart object spread
-var mrg = function (a, b) {
-    var o = {};
-    for (var k in a)
-        o[k] = a[k];
-    for (var k in b)
-        o[k] = b[k];
-    return o;
-};
-// write bytes
-var wbytes = function (d, b, v) {
-    for (; v; ++b)
-        d[b] = v, v >>>= 8;
-};
-/**
- * Compresses data with DEFLATE without any wrapper
- * @param data The data to compress
- * @param opts The compression options
- * @returns The deflated version of the data
- */
-function deflateSync(data, opts) {
-    return dopt(data, opts || {}, 0, 0);
-}
-// flatten a directory structure
-var fltn = function (d, p, t, o) {
-    for (var k in d) {
-        var val = d[k], n = p + k;
-        if (val instanceof u8)
-            t[n] = [val, o];
-        else if (Array.isArray(val))
-            t[n] = [val[0], mrg(o, val[1])];
-        else
-            fltn(val, n + '/', t, o);
-    }
-};
-// text encoder
-var te = typeof TextEncoder != 'undefined' && /*#__PURE__*/ new TextEncoder();
-// text decoder
-var td = typeof TextDecoder != 'undefined' && /*#__PURE__*/ new TextDecoder();
-// text decoder stream
-var tds = 0;
-try {
-    td.decode(et, { stream: true });
-    tds = 1;
-}
-catch (e) { }
-/**
- * Converts a string into a Uint8Array for use with compression/decompression methods
- * @param str The string to encode
- * @param latin1 Whether or not to interpret the data as Latin-1. This should
- *               not need to be true unless decoding a binary string.
- * @returns The string encoded in UTF-8/Latin-1 binary
- */
-function strToU8(str, latin1) {
-    if (latin1) {
-        var ar_1 = new u8(str.length);
-        for (var i = 0; i < str.length; ++i)
-            ar_1[i] = str.charCodeAt(i);
-        return ar_1;
-    }
-    if (te)
-        return te.encode(str);
-    var l = str.length;
-    var ar = new u8(str.length + (str.length >> 1));
-    var ai = 0;
-    var w = function (v) { ar[ai++] = v; };
-    for (var i = 0; i < l; ++i) {
-        if (ai + 5 > ar.length) {
-            var n = new u8(ai + 8 + ((l - i) << 1));
-            n.set(ar);
-            ar = n;
-        }
-        var c = str.charCodeAt(i);
-        if (c < 128 || latin1)
-            w(c);
-        else if (c < 2048)
-            w(192 | (c >> 6)), w(128 | (c & 63));
-        else if (c > 55295 && c < 57344)
-            c = 65536 + (c & 1023 << 10) | (str.charCodeAt(++i) & 1023),
-                w(240 | (c >> 18)), w(128 | ((c >> 12) & 63)), w(128 | ((c >> 6) & 63)), w(128 | (c & 63));
-        else
-            w(224 | (c >> 12)), w(128 | ((c >> 6) & 63)), w(128 | (c & 63));
-    }
-    return slc(ar, 0, ai);
-}
-// extra field length
-var exfl = function (ex) {
-    var le = 0;
-    if (ex) {
-        for (var k in ex) {
-            var l = ex[k].length;
-            if (l > 65535)
-                throw 'extra field too long';
-            le += l + 4;
-        }
-    }
-    return le;
-};
-// write zip header
-var wzh = function (d, b, f, fn, u, c, ce, co) {
-    var fl = fn.length, ex = f.extra, col = co && co.length;
-    var exl = exfl(ex);
-    wbytes(d, b, ce != null ? 0x2014B50 : 0x4034B50), b += 4;
-    if (ce != null)
-        d[b++] = 20, d[b++] = f.os;
-    d[b] = 20, b += 2; // spec compliance? what's that?
-    d[b++] = (f.flag << 1) | (c == null && 8), d[b++] = u && 8;
-    d[b++] = f.compression & 255, d[b++] = f.compression >> 8;
-    var dt = new Date(f.mtime == null ? Date.now() : f.mtime), y = dt.getFullYear() - 1980;
-    if (y < 0 || y > 119)
-        throw 'date not in range 1980-2099';
-    wbytes(d, b, (y << 25) | ((dt.getMonth() + 1) << 21) | (dt.getDate() << 16) | (dt.getHours() << 11) | (dt.getMinutes() << 5) | (dt.getSeconds() >>> 1)), b += 4;
-    if (c != null) {
-        wbytes(d, b, f.crc);
-        wbytes(d, b + 4, c);
-        wbytes(d, b + 8, f.size);
-    }
-    wbytes(d, b + 12, fl);
-    wbytes(d, b + 14, exl), b += 16;
-    if (ce != null) {
-        wbytes(d, b, col);
-        wbytes(d, b + 6, f.attrs);
-        wbytes(d, b + 10, ce), b += 14;
-    }
-    d.set(fn, b);
-    b += fl;
-    if (exl) {
-        for (var k in ex) {
-            var exf = ex[k], l = exf.length;
-            wbytes(d, b, +k);
-            wbytes(d, b + 2, l);
-            d.set(exf, b + 4), b += 4 + l;
-        }
-    }
-    if (col)
-        d.set(co, b), b += col;
-    return b;
-};
-// write zip footer (end of central directory)
-var wzf = function (o, b, c, d, e) {
-    wbytes(o, b, 0x6054B50); // skip disk
-    wbytes(o, b + 8, c);
-    wbytes(o, b + 10, c);
-    wbytes(o, b + 12, d);
-    wbytes(o, b + 16, e);
-};
-/**
- * Synchronously creates a ZIP file. Prefer using `zip` for better performance
- * with more than one file.
- * @param data The directory structure for the ZIP archive
- * @param opts The main options, merged with per-file options
- * @returns The generated ZIP archive
- */
-function zipSync(data, opts) {
-    if (!opts)
-        opts = {};
-    var r = {};
-    var files = [];
-    fltn(data, '', r, opts);
-    var o = 0;
-    var tot = 0;
-    for (var fn in r) {
-        var _a = r[fn], file = _a[0], p = _a[1];
-        var compression = p.level == 0 ? 0 : 8;
-        var f = strToU8(fn), s = f.length;
-        var com = p.comment, m = com && strToU8(com), ms = m && m.length;
-        var exl = exfl(p.extra);
-        if (s > 65535)
-            throw 'filename too long';
-        var d = compression ? deflateSync(file, p) : file, l = d.length;
-        var c = crc();
-        c.p(file);
-        files.push(mrg(p, {
-            size: file.length,
-            crc: c.d(),
-            c: d,
-            f: f,
-            m: m,
-            u: s != fn.length || (m && (com.length != ms)),
-            o: o,
-            compression: compression
-        }));
-        o += 30 + s + exl + l;
-        tot += 76 + 2 * (s + exl) + (ms || 0) + l;
-    }
-    var out = new u8(tot + 22), oe = o, cdl = tot - o;
-    for (var i = 0; i < files.length; ++i) {
-        var f = files[i];
-        wzh(out, f.o, f, f.f, f.u, f.c.length);
-        var badd = 30 + f.f.length + exfl(f.extra);
-        out.set(f.c, f.o + badd);
-        wzh(out, o, f, f.f, f.u, f.c.length, f.o, f.m), o += 16 + badd + (f.m ? f.m.length : 0);
-    }
-    wzf(out, o, files.length, cdl, oe);
-    return out;
-}
-
-class USDZExporter {
-
-	async parse( scene ) {
-
-		const files = {};
-		const modelFileName = 'model.usda';
-
-		// model file should be first in USDZ archive so we init it here
-		files[ modelFileName ] = null;
-
-		let output = buildHeader();
-=======
 const $hotspotMap = Symbol('hotspotMap');
 const $mutationCallback = Symbol('mutationCallback');
 const $observer = Symbol('observer');
@@ -62780,7 +55202,6 @@ class USDZExporter {
 		let output = buildHeader();
 
 		output += buildSceneStart( options );
->>>>>>> Stashed changes
 
 		const materials = {};
 		const textures = {};
@@ -62818,23 +55239,16 @@ class USDZExporter {
 				}
 
 			} else if ( object.isCamera ) {
-<<<<<<< Updated upstream
-				
-=======
 
->>>>>>> Stashed changes
 				output += buildCamera( object );
 
 			}
 
 		} );
 
-<<<<<<< Updated upstream
-=======
 
 		output += buildSceneEnd();
 
->>>>>>> Stashed changes
 		output += buildMaterials( materials, textures );
 
 		files[ modelFileName ] = strToU8( output );
@@ -62850,7 +55264,6 @@ class USDZExporter {
 			const blob = await new Promise( resolve => canvas.toBlob( resolve, isRGBA ? 'image/png' : 'image/jpeg', 1 ) );
 
 			files[ `textures/Texture_${ id }.${ isRGBA ? 'png' : 'jpg' }` ] = new Uint8Array( await blob.arrayBuffer() );
-<<<<<<< Updated upstream
 
 		}
 
@@ -62887,100 +55300,6 @@ class USDZExporter {
 
 }
 
-function imageToCanvas( image, color ) {
-
-	if ( ( typeof HTMLImageElement !== 'undefined' && image instanceof HTMLImageElement ) ||
-		( typeof HTMLCanvasElement !== 'undefined' && image instanceof HTMLCanvasElement ) ||
-		( typeof OffscreenCanvas !== 'undefined' && image instanceof OffscreenCanvas ) ||
-		( typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap ) ) {
-
-		const scale = 1024 / Math.max( image.width, image.height );
-
-		const canvas = document.createElement( 'canvas' );
-		canvas.width = image.width * Math.min( 1, scale );
-		canvas.height = image.height * Math.min( 1, scale );
-
-		const context = canvas.getContext( '2d' );
-		context.drawImage( image, 0, 0, canvas.width, canvas.height );
-
-		if ( color !== undefined ) {
-
-			const hex = parseInt( color, 16 );
-
-			const r = ( hex >> 16 & 255 ) / 255;
-			const g = ( hex >> 8 & 255 ) / 255;
-			const b = ( hex & 255 ) / 255;
-
-			const imagedata = context.getImageData( 0, 0, canvas.width, canvas.height );
-			const data = imagedata.data;
-
-			for ( let i = 0; i < data.length; i += 4 ) {
-
-				data[ i + 0 ] = data[ i + 0 ] * r;
-				data[ i + 1 ] = data[ i + 1 ] * g;
-				data[ i + 2 ] = data[ i + 2 ] * b;
-
-			}
-
-			context.putImageData( imagedata, 0, 0 );
-
-		}
-
-		return canvas;
-=======
-
-		}
-
-		// 64 byte alignment
-		// https://github.com/101arrowz/fflate/issues/39#issuecomment-777263109
-
-		let offset = 0;
-
-		for ( const filename in files ) {
-
-			const file = files[ filename ];
-			const headerSize = 34 + filename.length;
-
-			offset += headerSize;
-
-			const offsetMod64 = offset & 63;
-
-			if ( offsetMod64 !== 4 ) {
-
-				const padLength = 64 - offsetMod64;
-				const padding = new Uint8Array( padLength );
-
-				files[ filename ] = [ file, { extra: { 12345: padding } } ];
-
-			}
-
-			offset = file.length;
-
-		}
-
-		return zipSync( files, { level: 0 } );
->>>>>>> Stashed changes
-
-	}
-
-}
-
-<<<<<<< Updated upstream
-//
-
-const PRECISION = 7;
-
-function buildHeader() {
-
-	return `#usda 1.0
-(
-    customLayerData = {
-        string creator = "Three.js USDZExporter"
-    }
-    metersPerUnit = 1
-    upAxis = "Y"
-)
-=======
 function imageToCanvas( image, color ) {
 
 	if ( ( typeof HTMLImageElement !== 'undefined' && image instanceof HTMLImageElement ) ||
@@ -63025,22 +55344,11 @@ function imageToCanvas( image, color ) {
 	} else {
 
 		throw new Error( 'THREE.USDZExporter: No valid image data found. Unable to process texture.' );
->>>>>>> Stashed changes
 
-`;
-
-}
-
-<<<<<<< Updated upstream
-function buildUSDFileAsString( dataToInsert ) {
-
-	let output = buildHeader();
-	output += dataToInsert;
-	return strToU8( output );
+	}
 
 }
 
-=======
 //
 
 const PRECISION = 7;
@@ -63102,7 +55410,6 @@ function buildUSDFileAsString( dataToInsert ) {
 
 }
 
->>>>>>> Stashed changes
 // Xform
 
 function buildXform( object, geometry, material ) {
@@ -63122,45 +55429,6 @@ function buildXform( object, geometry, material ) {
 {
     matrix4d xformOp:transform = ${ transform }
     uniform token[] xformOpOrder = ["xformOp:transform"]
-<<<<<<< Updated upstream
-
-    rel material:binding = </Materials/Material_${ material.id }>
-}
-
-`;
-
-}
-
-function buildMatrix( matrix ) {
-
-	const array = matrix.elements;
-
-	return `( ${ buildMatrixRow( array, 0 ) }, ${ buildMatrixRow( array, 4 ) }, ${ buildMatrixRow( array, 8 ) }, ${ buildMatrixRow( array, 12 ) } )`;
-
-}
-
-function buildMatrixRow( array, offset ) {
-
-	return `(${ array[ offset + 0 ] }, ${ array[ offset + 1 ] }, ${ array[ offset + 2 ] }, ${ array[ offset + 3 ] })`;
-
-}
-
-// Mesh
-
-function buildMeshObject( geometry ) {
-
-	const mesh = buildMesh( geometry );
-	return `
-def "Geometry"
-{
-  ${mesh}
-}
-`;
-
-}
-
-function buildMesh( geometry ) {
-=======
 
     rel material:binding = </Materials/Material_${ material.id }>
 }
@@ -63218,33 +55486,9 @@ function buildMesh( geometry ) {
         uniform token subdivisionScheme = "none"
     }
 `;
->>>>>>> Stashed changes
-
-	const name = 'Geometry';
-	const attributes = geometry.attributes;
-	const count = attributes.position.count;
-
-<<<<<<< Updated upstream
-	return `
-    def Mesh "${ name }"
-    {
-        int[] faceVertexCounts = [${ buildMeshVertexCount( geometry ) }]
-        int[] faceVertexIndices = [${ buildMeshVertexIndices( geometry ) }]
-        normal3f[] normals = [${ buildVector3Array( attributes.normal, count )}] (
-            interpolation = "vertex"
-        )
-        point3f[] points = [${ buildVector3Array( attributes.position, count )}]
-        float2[] primvars:st = [${ buildVector2Array( attributes.uv, count )}] (
-            interpolation = "vertex"
-        )
-        uniform token subdivisionScheme = "none"
-    }
-`;
 
 }
 
-=======
->>>>>>> Stashed changes
 function buildMeshVertexCount( geometry ) {
 
 	const count = geometry.index !== null ? geometry.index.count : geometry.attributes.position.count;
@@ -63556,477 +55800,28 @@ function buildCamera( camera ) {
 
 	}
 
-<<<<<<< Updated upstream
-	if (camera.isOrthographicCamera) {
-=======
 	if ( camera.isOrthographicCamera ) {
 
->>>>>>> Stashed changes
 		return `def Camera "${name}"
 		{
 			matrix4d xformOp:transform = ${ transform }
 			uniform token[] xformOpOrder = ["xformOp:transform"]
 	
-<<<<<<< Updated upstream
-			float2 clippingRange = (${camera.near}, ${camera.far})
-			float horizontalAperture = ${(Math.abs(camera.left) + Math.abs(camera.right)) * 10}
-			float verticalAperture = ${(Math.abs(camera.top) + Math.abs(camera.bottom)) * 10}
-=======
 			float2 clippingRange = (${ camera.near.toPrecision( PRECISION ) }, ${ camera.far.toPrecision( PRECISION ) })
 			float horizontalAperture = ${ ( ( Math.abs( camera.left ) + Math.abs( camera.right ) ) * 10 ).toPrecision( PRECISION ) }
 			float verticalAperture = ${ ( ( Math.abs( camera.top ) + Math.abs( camera.bottom ) ) * 10 ).toPrecision( PRECISION ) }
->>>>>>> Stashed changes
 			token projection = "orthographic"
 		}
 	
 	`;
-<<<<<<< Updated upstream
-	} else {
-=======
 
 	} else {
 
->>>>>>> Stashed changes
 		return `def Camera "${name}"
 		{
 			matrix4d xformOp:transform = ${ transform }
 			uniform token[] xformOpOrder = ["xformOp:transform"]
 	
-<<<<<<< Updated upstream
-			float2 clippingRange = (${camera.near}, ${camera.far})
-			float focalLength = ${camera.getFocalLength()}
-			float focusDistance = ${camera.focus}
-			float horizontalAperture = ${camera.getFilmWidth()}
-			token projection = "perspective"
-			float verticalAperture = ${camera.getFilmHeight()}
-		}
-	
-	`;
-	}
-
-}
-
-/* @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-/**
- * For our purposes, an enumeration is a fixed set of CSS-expression-compatible
- * names. When serialized, a selected subset of the members may be specified as
- * whitespace-separated strings. An enumeration deserializer is a function that
- * parses a serialized subset of an enumeration and returns any members that are
- * found as a Set.
- *
- * The following example will produce a deserializer for the days of the
- * week:
- *
- * const deserializeDaysOfTheWeek = enumerationDeserializer([
- *   'Monday',
- *   'Tuesday',
- *   'Wednesday',
- *   'Thursday',
- *   'Friday',
- *   'Saturday',
- *   'Sunday'
- * ]);
- */
-const enumerationDeserializer = (allowedNames) => (valueString) => {
-    try {
-        const expressions = parseExpressions(valueString);
-        const names = (expressions.length ? expressions[0].terms : [])
-            .filter((valueNode) => valueNode && valueNode.type === 'ident')
-            .map(valueNode => valueNode.value)
-            .filter(name => allowedNames.indexOf(name) > -1);
-        // NOTE(cdata): IE11 does not support constructing a Set directly from
-        // an iterable, so we need to manually add all the items:
-        const result = new Set();
-        for (const name of names) {
-            result.add(name);
-        }
-        return result;
-    }
-    catch (_error) {
-    }
-    return new Set();
-};
-
-/* @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the 'License');
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an 'AS IS' BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-var __decorate$3 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof undefined === "function") r = undefined(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-let isWebXRBlocked = false;
-let isSceneViewerBlocked = false;
-const noArViewerSigil = '#model-viewer-no-ar-fallback';
-const deserializeARModes = enumerationDeserializer(['quick-look', 'scene-viewer', 'webxr', 'none']);
-const DEFAULT_AR_MODES = 'webxr scene-viewer quick-look';
-const ARMode = {
-    QUICK_LOOK: 'quick-look',
-    SCENE_VIEWER: 'scene-viewer',
-    WEBXR: 'webxr',
-    NONE: 'none'
-};
-const $arButtonContainer = Symbol('arButtonContainer');
-const $enterARWithWebXR = Symbol('enterARWithWebXR');
-const $openSceneViewer = Symbol('openSceneViewer');
-const $openIOSARQuickLook = Symbol('openIOSARQuickLook');
-const $canActivateAR = Symbol('canActivateAR');
-const $arMode = Symbol('arMode');
-const $arModes = Symbol('arModes');
-const $arAnchor = Symbol('arAnchor');
-const $preload = Symbol('preload');
-const $onARButtonContainerClick = Symbol('onARButtonContainerClick');
-const $onARStatus = Symbol('onARStatus');
-const $onARTracking = Symbol('onARTracking');
-const $onARTap = Symbol('onARTap');
-const $selectARMode = Symbol('selectARMode');
-const $triggerLoad = Symbol('triggerLoad');
-const ARMixin = (ModelViewerElement) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
-    class ARModelViewerElement extends ModelViewerElement {
-        constructor() {
-            super(...arguments);
-            this.ar = false;
-            this.arScale = 'auto';
-            this.arPlacement = 'floor';
-            this.arModes = DEFAULT_AR_MODES;
-            this.iosSrc = null;
-            this.xrEnvironment = false;
-            this[_a] = false;
-            // TODO: Add this to the shadow root as part of this mixin's
-            // implementation:
-            this[_b] = this.shadowRoot.querySelector('.ar-button');
-            this[_c] = document.createElement('a');
-            this[_d] = new Set();
-            this[_e] = ARMode.NONE;
-            this[_f] = false;
-            this[_g] = (event) => {
-                event.preventDefault();
-                this.activateAR();
-            };
-            this[_h] = ({ status }) => {
-                if (status === ARStatus.NOT_PRESENTING ||
-                    this[$renderer].arRenderer.presentedScene === this[$scene]) {
-                    this.setAttribute('ar-status', status);
-                    this.dispatchEvent(new CustomEvent('ar-status', { detail: { status } }));
-                    if (status === ARStatus.NOT_PRESENTING) {
-                        this.removeAttribute('ar-tracking');
-                    }
-                    else if (status === ARStatus.SESSION_STARTED) {
-                        this.setAttribute('ar-tracking', ARTracking.TRACKING);
-                    }
-                }
-            };
-            this[_j] = ({ status }) => {
-                this.setAttribute('ar-tracking', status);
-                this.dispatchEvent(new CustomEvent('ar-tracking', { detail: { status } }));
-            };
-            this[_k] = (event) => {
-                if (event.data == '_apple_ar_quicklook_button_tapped') {
-                    this.dispatchEvent(new CustomEvent('quick-look-button-tapped'));
-                }
-            };
-        }
-        get canActivateAR() {
-            return this[$arMode] !== ARMode.NONE;
-        }
-        connectedCallback() {
-            super.connectedCallback();
-            this[$renderer].arRenderer.addEventListener('status', this[$onARStatus]);
-            this.setAttribute('ar-status', ARStatus.NOT_PRESENTING);
-            this[$renderer].arRenderer.addEventListener('tracking', this[$onARTracking]);
-            this[$arAnchor].addEventListener('message', this[$onARTap]);
-        }
-        disconnectedCallback() {
-            super.disconnectedCallback();
-            this[$renderer].arRenderer.removeEventListener('status', this[$onARStatus]);
-            this[$renderer].arRenderer.removeEventListener('tracking', this[$onARTracking]);
-            this[$arAnchor].removeEventListener('message', this[$onARTap]);
-        }
-        update(changedProperties) {
-            super.update(changedProperties);
-            if (changedProperties.has('arScale')) {
-                this[$scene].canScale = this.arScale !== 'fixed';
-            }
-            if (changedProperties.has('arPlacement')) {
-                this[$scene].updateShadow();
-                this[$needsRender]();
-            }
-            if (changedProperties.has('arModes')) {
-                this[$arModes] = deserializeARModes(this.arModes);
-            }
-            if (changedProperties.has('ar') || changedProperties.has('arModes') ||
-                changedProperties.has('src') || changedProperties.has('iosSrc')) {
-                this[$selectARMode]();
-            }
-        }
-        /**
-         * Activates AR. Note that for any mode that is not WebXR-based, this
-         * method most likely has to be called synchronous from a user
-         * interaction handler. Otherwise, attempts to activate modes that
-         * require user interaction will most likely be ignored.
-         */
-        async activateAR() {
-            switch (this[$arMode]) {
-                case ARMode.QUICK_LOOK:
-                    this[$openIOSARQuickLook]();
-                    break;
-                case ARMode.WEBXR:
-                    await this[$enterARWithWebXR]();
-                    break;
-                case ARMode.SCENE_VIEWER:
-                    this[$openSceneViewer]();
-                    break;
-                default:
-                    console.warn('No AR Mode can be activated. This is probably due to missing \
-configuration or device capabilities');
-                    break;
-            }
-        }
-        async [(_a = $canActivateAR, _b = $arButtonContainer, _c = $arAnchor, _d = $arModes, _e = $arMode, _f = $preload, _g = $onARButtonContainerClick, _h = $onARStatus, _j = $onARTracking, _k = $onARTap, $selectARMode)]() {
-            let arMode = ARMode.NONE;
-            if (this.ar) {
-                if (this.src != null) {
-                    for (const value of this[$arModes]) {
-                        if (value === 'webxr' && IS_WEBXR_AR_CANDIDATE && !isWebXRBlocked &&
-                            await this[$renderer].arRenderer.supportsPresentation()) {
-                            arMode = ARMode.WEBXR;
-                            break;
-                        }
-                        if (value === 'scene-viewer' && IS_SCENEVIEWER_CANDIDATE &&
-                            !isSceneViewerBlocked) {
-                            arMode = ARMode.SCENE_VIEWER;
-                            break;
-                        }
-                        if (value === 'quick-look' && IS_AR_QUICKLOOK_CANDIDATE) {
-                            arMode = ARMode.QUICK_LOOK;
-                            break;
-                        }
-                    }
-                }
-                // The presence of ios-src overrides the absence of quick-look
-                // ar-mode.
-                if (arMode === ARMode.NONE && this.iosSrc != null &&
-                    IS_AR_QUICKLOOK_CANDIDATE) {
-                    arMode = ARMode.QUICK_LOOK;
-                }
-            }
-            if (arMode !== ARMode.NONE) {
-                this[$arButtonContainer].classList.add('enabled');
-                this[$arButtonContainer].addEventListener('click', this[$onARButtonContainerClick]);
-            }
-            else if (this[$arButtonContainer].classList.contains('enabled')) {
-                this[$arButtonContainer].removeEventListener('click', this[$onARButtonContainerClick]);
-                this[$arButtonContainer].classList.remove('enabled');
-                // If AR went from working to not, notify the element.
-                const status = ARStatus.FAILED;
-                this.setAttribute('ar-status', status);
-                this.dispatchEvent(new CustomEvent('ar-status', { detail: { status } }));
-            }
-            this[$arMode] = arMode;
-        }
-        async [$enterARWithWebXR]() {
-            console.log('Attempting to present in AR with WebXR...');
-            await this[$triggerLoad]();
-            try {
-                this[$arButtonContainer].removeEventListener('click', this[$onARButtonContainerClick]);
-                const { arRenderer } = this[$renderer];
-                arRenderer.placeOnWall = this.arPlacement === 'wall';
-                await arRenderer.present(this[$scene], this.xrEnvironment);
-            }
-            catch (error) {
-                console.warn('Error while trying to present in AR with WebXR');
-                console.error(error);
-                await this[$renderer].arRenderer.stopPresenting();
-                isWebXRBlocked = true;
-                console.warn('Falling back to next ar-mode');
-                await this[$selectARMode]();
-                this.activateAR();
-            }
-            finally {
-                this[$selectARMode]();
-            }
-        }
-        async [$triggerLoad]() {
-            if (!this.loaded) {
-                this[$preload] = true;
-                this[$updateSource]();
-                await waitForEvent(this, 'load');
-                this[$preload] = false;
-            }
-        }
-        [$shouldAttemptPreload]() {
-            return super[$shouldAttemptPreload]() || this[$preload];
-        }
-        /**
-         * Takes a URL and a title string, and attempts to launch Scene Viewer on
-         * the current device.
-         */
-        [$openSceneViewer]() {
-            const location = self.location.toString();
-            const locationUrl = new URL(location);
-            const modelUrl = new URL(this.src, location);
-            const params = new URLSearchParams(modelUrl.search);
-            locationUrl.hash = noArViewerSigil;
-            // modelUrl can contain title/link/sound etc.
-            params.set('mode', 'ar_preferred');
-            if (!params.has('disable_occlusion')) {
-                params.set('disable_occlusion', 'true');
-            }
-            if (this.arScale === 'fixed') {
-                params.set('resizable', 'false');
-            }
-            if (this.arPlacement === 'wall') {
-                params.set('enable_vertical_placement', 'true');
-            }
-            if (params.has('sound')) {
-                const soundUrl = new URL(params.get('sound'), location);
-                params.set('sound', soundUrl.toString());
-            }
-            if (params.has('link')) {
-                const linkUrl = new URL(params.get('link'), location);
-                params.set('link', linkUrl.toString());
-            }
-            const intent = `intent://arvr.google.com/scene-viewer/1.0?${params.toString() + '&file=' +
-                encodeURIComponent(modelUrl
-                    .toString())}#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(locationUrl.toString())};end;`;
-            const undoHashChange = () => {
-                if (self.location.hash === noArViewerSigil) {
-                    isSceneViewerBlocked = true;
-                    // The new history will be the current URL with a new hash.
-                    // Go back one step so that we reset to the expected URL.
-                    // NOTE(cdata): this should not invoke any browser-level navigation
-                    // because hash-only changes modify the URL in-place without
-                    // navigating:
-                    self.history.back();
-                    console.warn('Error while trying to present in AR with Scene Viewer');
-                    console.warn('Falling back to next ar-mode');
-                    this[$selectARMode]();
-                    // Would be nice to activateAR() here, but webXR fails due to not
-                    // seeing a user activation.
-                }
-            };
-            self.addEventListener('hashchange', undoHashChange, { once: true });
-            this[$arAnchor].setAttribute('href', intent);
-            console.log('Attempting to present in AR with Scene Viewer...');
-            this[$arAnchor].click();
-        }
-        /**
-         * Takes a URL to a USDZ file and sets the appropriate fields so that
-         * Safari iOS can intent to their AR Quick Look.
-         */
-        async [$openIOSARQuickLook]() {
-            const generateUsdz = !this.iosSrc;
-            this[$arButtonContainer].classList.remove('enabled');
-            const objectURL = generateUsdz ? await this.prepareUSDZ() : this.iosSrc;
-            const modelUrl = new URL(objectURL, self.location.toString());
-            if (generateUsdz) {
-                const location = self.location.toString();
-                const locationUrl = new URL(location);
-                const srcUrl = new URL(this.src, locationUrl);
-                if (srcUrl.hash) {
-                    modelUrl.hash = srcUrl.hash;
-                }
-            }
-            if (this.arScale === 'fixed') {
-                if (modelUrl.hash) {
-                    modelUrl.hash += '&';
-                }
-                modelUrl.hash += 'allowsContentScaling=0';
-            }
-            const anchor = this[$arAnchor];
-            anchor.setAttribute('rel', 'ar');
-            const img = document.createElement('img');
-            anchor.appendChild(img);
-            anchor.setAttribute('href', modelUrl.toString());
-            if (generateUsdz) {
-                anchor.setAttribute('download', 'model.usdz');
-            }
-            // attach anchor to shadow DOM to ensure iOS16 ARQL banner click message event propagation 
-            anchor.style.display = 'none';
-            if (!anchor.isConnected)
-                this.shadowRoot.appendChild(anchor);
-            console.log('Attempting to present in AR with Quick Look...');
-            anchor.click();
-            anchor.removeChild(img);
-            if (generateUsdz) {
-                URL.revokeObjectURL(objectURL);
-            }
-            this[$arButtonContainer].classList.add('enabled');
-        }
-        async prepareUSDZ() {
-            const updateSourceProgress = this[$progressTracker].beginActivity();
-            await this[$triggerLoad]();
-            const { model, shadow } = this[$scene];
-            if (model == null) {
-                return '';
-            }
-            let visible = false;
-            // Remove shadow from export
-            if (shadow != null) {
-                visible = shadow.visible;
-                shadow.visible = false;
-            }
-            updateSourceProgress(0.2);
-            const exporter = new USDZExporter();
-            const arraybuffer = await exporter.parse(model);
-            const blob = new Blob([arraybuffer], {
-                type: 'model/vnd.usdz+zip',
-            });
-            const url = URL.createObjectURL(blob);
-            updateSourceProgress(1);
-            if (shadow != null) {
-                shadow.visible = visible;
-            }
-            return url;
-        }
-    }
-    __decorate$3([
-        e$3({ type: Boolean, attribute: 'ar' })
-    ], ARModelViewerElement.prototype, "ar", void 0);
-    __decorate$3([
-        e$3({ type: String, attribute: 'ar-scale' })
-    ], ARModelViewerElement.prototype, "arScale", void 0);
-    __decorate$3([
-        e$3({ type: String, attribute: 'ar-placement' })
-    ], ARModelViewerElement.prototype, "arPlacement", void 0);
-    __decorate$3([
-        e$3({ type: String, attribute: 'ar-modes' })
-    ], ARModelViewerElement.prototype, "arModes", void 0);
-    __decorate$3([
-        e$3({ type: String, attribute: 'ios-src' })
-    ], ARModelViewerElement.prototype, "iosSrc", void 0);
-    __decorate$3([
-        e$3({ type: Boolean, attribute: 'xr-environment' })
-    ], ARModelViewerElement.prototype, "xrEnvironment", void 0);
-    return ARModelViewerElement;
-};
-=======
 			float2 clippingRange = (${ camera.near.toPrecision( PRECISION ) }, ${ camera.far.toPrecision( PRECISION ) })
 			float focalLength = ${ camera.getFocalLength().toPrecision( PRECISION ) }
 			float focusDistance = ${ camera.focus.toPrecision( PRECISION ) }
@@ -64040,7 +55835,6 @@ configuration or device capabilities');
 	}
 
 }
->>>>>>> Stashed changes
 
 /* @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -64056,180 +55850,6 @@ configuration or device capabilities');
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-<<<<<<< Updated upstream
-var _a$1, _b$1, _c$1;
-const $evaluate = Symbol('evaluate');
-const $lastValue = Symbol('lastValue');
-/**
- * An Evaluator is used to derive a computed style from part (or all) of a CSS
- * expression AST. This construct is particularly useful for complex ASTs
- * containing function calls such as calc, var and env. Such styles could be
- * costly to re-evaluate on every frame (and in some cases we may try to do
- * that). The Evaluator construct allows us to mark sub-trees of the AST as
- * constant, so that only the dynamic parts are re-evaluated. It also separates
- * one-time AST preparation work from work that necessarily has to happen upon
- * each evaluation.
- */
-class Evaluator {
-    constructor() {
-        this[_a$1] = null;
-    }
-    /**
-     * An Evaluatable is a NumberNode or an Evaluator that evaluates a NumberNode
-     * as the result of invoking its evaluate method. This is mainly used to
-     * ensure that CSS function nodes are cast to the corresponding Evaluators
-     * that will resolve the result of the function, but is also used to ensure
-     * that a percentage nested at arbitrary depth in the expression will always
-     * be evaluated against the correct basis.
-     */
-    static evaluatableFor(node, basis = ZERO) {
-        if (node instanceof Evaluator) {
-            return node;
-        }
-        if (node.type === 'number') {
-            if (node.unit === '%') {
-                return new PercentageEvaluator(node, basis);
-            }
-            return node;
-        }
-        switch (node.name.value) {
-            case 'calc':
-                return new CalcEvaluator(node, basis);
-            case 'env':
-                return new EnvEvaluator(node);
-        }
-        return ZERO;
-    }
-    /**
-     * If the input is an Evaluator, returns the result of evaluating it.
-     * Otherwise, returns the input.
-     *
-     * This is a helper to aide in resolving a NumberNode without conditionally
-     * checking if the Evaluatable is an Evaluator everywhere.
-     */
-    static evaluate(evaluatable) {
-        if (evaluatable instanceof Evaluator) {
-            return evaluatable.evaluate();
-        }
-        return evaluatable;
-    }
-    /**
-     * If the input is an Evaluator, returns the value of its isConstant property.
-     * Returns true for all other input values.
-     */
-    static isConstant(evaluatable) {
-        if (evaluatable instanceof Evaluator) {
-            return evaluatable.isConstant;
-        }
-        return true;
-    }
-    /**
-     * This method applies a set of structured intrinsic metadata to an evaluated
-     * result from a parsed CSS-like string of expressions. Intrinsics provide
-     * sufficient metadata (e.g., basis values, analogs for keywords) such that
-     * omitted values in the input string can be backfilled, and keywords can be
-     * converted to concrete numbers.
-     *
-     * The result of applying intrinsics is a tuple of NumberNode values whose
-     * units match the units used by the basis of the intrinsics.
-     *
-     * The following is a high-level description of how intrinsics are applied:
-     *
-     *  1. Determine the value of 'auto' for the current term
-     *  2. If there is no corresponding input value for this term, substitute the
-     *     'auto' value.
-     *  3. If the term is an IdentNode, treat it as a keyword and perform the
-     *     appropriate substitution.
-     *  4. If the term is still null, fallback to the 'auto' value
-     *  5. If the term is a percentage, apply it to the basis and return that
-     *     value
-     *  6. Normalize the unit of the term
-     *  7. If the term's unit does not match the basis unit, return the basis
-     *     value
-     *  8. Return the term as is
-     */
-    static applyIntrinsics(evaluated, intrinsics) {
-        const { basis, keywords } = intrinsics;
-        const { auto } = keywords;
-        return basis.map((basisNode, index) => {
-            // Use an auto value if we have it, otherwise the auto value is the basis:
-            const autoSubstituteNode = auto[index] == null ? basisNode : auto[index];
-            // If the evaluated nodes do not have a node at the current
-            // index, fallback to the "auto" substitute right away:
-            let evaluatedNode = evaluated[index] ? evaluated[index] : autoSubstituteNode;
-            // Any ident node is considered a keyword:
-            if (evaluatedNode.type === 'ident') {
-                const keyword = evaluatedNode.value;
-                // Substitute any keywords for concrete values first:
-                if (keyword in keywords) {
-                    evaluatedNode = keywords[keyword][index];
-                }
-            }
-            // If we don't have a NumberNode at this point, fall back to whatever
-            // is specified for auto:
-            if (evaluatedNode == null || evaluatedNode.type === 'ident') {
-                evaluatedNode = autoSubstituteNode;
-            }
-            // For percentages, we always apply the percentage to the basis value:
-            if (evaluatedNode.unit === '%') {
-                return numberNode(evaluatedNode.number / 100 * basisNode.number, basisNode.unit);
-            }
-            // Otherwise, normalize whatever we have:
-            evaluatedNode = normalizeUnit(evaluatedNode, basisNode);
-            // If the normalized units do not match, return the basis as a fallback:
-            if (evaluatedNode.unit !== basisNode.unit) {
-                return basisNode;
-            }
-            // Finally, return the evaluated node with intrinsics applied:
-            return evaluatedNode;
-        });
-    }
-    /**
-     * If true, the Evaluator will only evaluate its AST one time. If false, the
-     * Evaluator will re-evaluate the AST each time that the public evaluate
-     * method is invoked.
-     */
-    get isConstant() {
-        return false;
-    }
-    /**
-     * Evaluate the Evaluator and return the result. If the Evaluator is constant,
-     * the corresponding AST will only be evaluated once, and the result of
-     * evaluating it the first time will be returned on all subsequent
-     * evaluations.
-     */
-    evaluate() {
-        if (!this.isConstant || this[$lastValue] == null) {
-            this[$lastValue] = this[$evaluate]();
-        }
-        return this[$lastValue];
-    }
-}
-_a$1 = $lastValue;
-const $percentage = Symbol('percentage');
-const $basis = Symbol('basis');
-/**
- * A PercentageEvaluator scales a given basis value by a given percentage value.
- * The evaluated result is always considered to be constant.
- */
-class PercentageEvaluator extends Evaluator {
-    constructor(percentage, basis) {
-        super();
-        this[$percentage] = percentage;
-        this[$basis] = basis;
-    }
-    get isConstant() {
-        return true;
-    }
-    [$evaluate]() {
-        return numberNode(this[$percentage].number / 100 * this[$basis].number, this[$basis].unit);
-    }
-}
-const $identNode = Symbol('identNode');
-/**
- * Evaluator for CSS-like env() functions. Currently, only one environment
- * variable is accepted as an argument for such functions: window-scroll-y.
-=======
 /**
  * For our purposes, an enumeration is a fixed set of CSS-expression-compatible
  * names. When serialized, a selected subset of the members may be specified as
@@ -64275,199 +55895,15 @@ const enumerationDeserializer = (allowedNames) => (valueString) => {
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
->>>>>>> Stashed changes
  *
- * The env() Evaluator is explicitly dynamic because it always refers to
- * external state that changes as the user scrolls, so it should always be
- * re-evaluated to ensure we get the most recent value.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Some important notes about this feature include:
- *
- *  - There is no such thing as a "window-scroll-y" CSS environment variable in
- *    any stable browser at the time that this comment is being written.
- *  - The actual CSS env() function accepts a second argument as a fallback for
- *    the case that the specified first argument isn't set; our syntax does not
- *    support this second argument.
- *
- * @see https://developer.mozilla.org/en-US/docs/Web/CSS/env
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an 'AS IS' BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-<<<<<<< Updated upstream
-class EnvEvaluator extends Evaluator {
-    constructor(envFunction) {
-        super();
-        this[_b$1] = null;
-        const identNode = envFunction.arguments.length ? envFunction.arguments[0].terms[0] : null;
-        if (identNode != null && identNode.type === 'ident') {
-            this[$identNode] = identNode;
-        }
-    }
-    get isConstant() {
-        return false;
-    }
-    ;
-    [(_b$1 = $identNode, $evaluate)]() {
-        if (this[$identNode] != null) {
-            switch (this[$identNode].value) {
-                case 'window-scroll-y':
-                    const verticalScrollPosition = window.pageYOffset;
-                    const verticalScrollMax = Math.max(document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight);
-                    const scrollY = verticalScrollPosition /
-                        (verticalScrollMax - window.innerHeight) ||
-                        0;
-                    return { type: 'number', number: scrollY, unit: null };
-            }
-        }
-        return ZERO;
-    }
-}
-const IS_MULTIPLICATION_RE = /[\*\/]/;
-const $evaluator = Symbol('evaluator');
-/**
- * Evaluator for CSS-like calc() functions. Our implementation of calc()
- * evaluation currently support nested function calls, an unlimited number of
- * terms, and all four algebraic operators (+, -, * and /).
- *
- * The Evaluator is marked as constant unless the calc expression contains an
- * internal env expression at any depth, in which case it will be marked as
- * dynamic.
- *
- * @see https://www.w3.org/TR/css-values-3/#calc-syntax
- * @see https://developer.mozilla.org/en-US/docs/Web/CSS/calc
- */
-class CalcEvaluator extends Evaluator {
-    constructor(calcFunction, basis = ZERO) {
-        super();
-        this[_c$1] = null;
-        if (calcFunction.arguments.length !== 1) {
-            return;
-        }
-        const terms = calcFunction.arguments[0].terms.slice();
-        const secondOrderTerms = [];
-        while (terms.length) {
-            const term = terms.shift();
-            if (secondOrderTerms.length > 0) {
-                const previousTerm = secondOrderTerms[secondOrderTerms.length - 1];
-                if (previousTerm.type === 'operator' &&
-                    IS_MULTIPLICATION_RE.test(previousTerm.value)) {
-                    const operator = secondOrderTerms.pop();
-                    const leftValue = secondOrderTerms.pop();
-                    if (leftValue == null) {
-                        return;
-                    }
-                    secondOrderTerms.push(new OperatorEvaluator(operator, Evaluator.evaluatableFor(leftValue, basis), Evaluator.evaluatableFor(term, basis)));
-                    continue;
-                }
-            }
-            secondOrderTerms.push(term.type === 'operator' ? term :
-                Evaluator.evaluatableFor(term, basis));
-        }
-        while (secondOrderTerms.length > 2) {
-            const [left, operator, right] = secondOrderTerms.splice(0, 3);
-            if (operator.type !== 'operator') {
-                return;
-            }
-            secondOrderTerms.unshift(new OperatorEvaluator(operator, Evaluator.evaluatableFor(left, basis), Evaluator.evaluatableFor(right, basis)));
-        }
-        // There should only be one combined evaluator at this point:
-        if (secondOrderTerms.length === 1) {
-            this[$evaluator] = secondOrderTerms[0];
-        }
-    }
-    get isConstant() {
-        return this[$evaluator] == null || Evaluator.isConstant(this[$evaluator]);
-    }
-    [(_c$1 = $evaluator, $evaluate)]() {
-        return this[$evaluator] != null ? Evaluator.evaluate(this[$evaluator]) :
-            ZERO;
-    }
-}
-const $operator = Symbol('operator');
-const $left = Symbol('left');
-const $right = Symbol('right');
-/**
- * An Evaluator for the operators found inside CSS calc() functions.
- * The evaluator accepts an operator and left/right operands. The operands can
- * be any valid expression term typically allowed inside a CSS calc function.
- *
- * As detail of this implementation, the only supported unit types are angles
- * expressed as radians or degrees, and lengths expressed as meters, centimeters
- * or millimeters.
- *
- * @see https://developer.mozilla.org/en-US/docs/Web/CSS/calc
- */
-class OperatorEvaluator extends Evaluator {
-    constructor(operator, left, right) {
-        super();
-        this[$operator] = operator;
-        this[$left] = left;
-        this[$right] = right;
-    }
-    get isConstant() {
-        return Evaluator.isConstant(this[$left]) &&
-            Evaluator.isConstant(this[$right]);
-    }
-    [$evaluate]() {
-        const leftNode = normalizeUnit(Evaluator.evaluate(this[$left]));
-        const rightNode = normalizeUnit(Evaluator.evaluate(this[$right]));
-        const { number: leftValue, unit: leftUnit } = leftNode;
-        const { number: rightValue, unit: rightUnit } = rightNode;
-        // Disallow operations for mismatched normalized units e.g., m and rad:
-        if (rightUnit != null && leftUnit != null && rightUnit != leftUnit) {
-            return ZERO;
-        }
-        // NOTE(cdata): rules for calc type checking are defined here
-        // https://drafts.csswg.org/css-values-3/#calc-type-checking
-        // This is a simplification and may not hold up once we begin to support
-        // additional unit types:
-        const unit = leftUnit || rightUnit;
-        let value;
-        switch (this[$operator].value) {
-            case '+':
-                value = leftValue + rightValue;
-                break;
-            case '-':
-                value = leftValue - rightValue;
-                break;
-            case '/':
-                value = leftValue / rightValue;
-                break;
-            case '*':
-                value = leftValue * rightValue;
-                break;
-            default:
-                return ZERO;
-        }
-        return { type: 'number', number: value, unit };
-    }
-}
-const $evaluatables = Symbol('evaluatables');
-const $intrinsics = Symbol('intrinsics');
-/**
- * A VectorEvaluator evaluates a series of numeric terms that usually represent
- * a data structure such as a multi-dimensional vector or a spherical
- *
- * The form of the evaluator's result is determined by the Intrinsics that are
- * given to it when it is constructed. For example, spherical intrinsics would
- * establish two angle terms and a length term, so the result of evaluating the
- * evaluator that is configured with spherical intrinsics is a three element
- * array where the first two elements represent angles in radians and the third
- * element representing a length in meters.
- */
-class StyleEvaluator extends Evaluator {
-    constructor(expressions, intrinsics) {
-        super();
-        this[$intrinsics] = intrinsics;
-        const firstExpression = expressions[0];
-        const terms = firstExpression != null ? firstExpression.terms : [];
-        this[$evaluatables] =
-            intrinsics.basis.map((basisNode, index) => {
-                const term = terms[index];
-                if (term == null) {
-                    return { type: 'ident', value: 'auto' };
-                }
-                if (term.type === 'ident') {
-                    return term;
-=======
 var __decorate$3 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof undefined === "function") r = undefined(decorators, target, key, desc);
@@ -64628,18 +56064,8 @@ configuration or device capabilities');
                 if (arMode === ARMode.NONE && this.iosSrc != null &&
                     IS_AR_QUICKLOOK_CANDIDATE) {
                     arMode = ARMode.QUICK_LOOK;
->>>>>>> Stashed changes
                 }
-                return Evaluator.evaluatableFor(term, basisNode);
-            });
-    }
-    get isConstant() {
-        for (const evaluatable of this[$evaluatables]) {
-            if (!Evaluator.isConstant(evaluatable)) {
-                return false;
             }
-<<<<<<< Updated upstream
-=======
             if (arMode !== ARMode.NONE) {
                 this[$arButtonContainer].classList.add('enabled');
                 this[$arButtonContainer].addEventListener('click', this[$onARButtonContainerClick]);
@@ -64810,14 +56236,7 @@ configuration or device capabilities');
                 shadow.visible = visible;
             }
             return url;
->>>>>>> Stashed changes
         }
-        return true;
-    }
-    [$evaluate]() {
-        const evaluated = this[$evaluatables].map(evaluatable => Evaluator.evaluate(evaluatable));
-        return Evaluator.applyIntrinsics(evaluated, this[$intrinsics])
-            .map(numberNode => numberNode.number);
     }
     __decorate$3([
         e$3({ type: Boolean, attribute: 'ar' })
@@ -64854,56 +56273,6 @@ configuration or device capabilities');
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-<<<<<<< Updated upstream
-var _a, _b, _c, _d;
-const $instances = Symbol('instances');
-const $activateListener = Symbol('activateListener');
-const $deactivateListener = Symbol('deactivateListener');
-const $notifyInstances = Symbol('notifyInstances');
-const $notify = Symbol('notify');
-const $scrollCallback = Symbol('callback');
-/**
- * This internal helper is intended to work as a reference-counting manager of
- * scroll event listeners. Only one scroll listener is ever registered for all
- * instances of the class, and when the last ScrollObserver "disconnects", that
- * event listener is removed. This spares us from thrashing
- * the {add,remove}EventListener API (the binding cost of these methods has been
- * known to show up in performance analyses) as well as potential memory leaks.
- */
-class ScrollObserver {
-    constructor(callback) {
-        this[$scrollCallback] = callback;
-    }
-    static [$notifyInstances]() {
-        for (const instance of ScrollObserver[$instances]) {
-            instance[$notify]();
-        }
-    }
-    static [(_a = $instances, $activateListener)]() {
-        window.addEventListener('scroll', this[$notifyInstances], { passive: true });
-    }
-    static [$deactivateListener]() {
-        window.removeEventListener('scroll', this[$notifyInstances]);
-    }
-    /**
-     * Listen for scroll events. The configured callback (passed to the
-     * constructor) will be invoked for subsequent global scroll events.
-     */
-    observe() {
-        if (ScrollObserver[$instances].size === 0) {
-            ScrollObserver[$activateListener]();
-        }
-        ScrollObserver[$instances].add(this);
-    }
-    /**
-     * Stop listening for scroll events.
-     */
-    disconnect() {
-        ScrollObserver[$instances].delete(this);
-        if (ScrollObserver[$instances].size === 0) {
-            ScrollObserver[$deactivateListener]();
-        }
-=======
 var _a$1, _b$1, _c$1;
 const $evaluate = Symbol('evaluate');
 const $lastValue = Symbol('lastValue');
@@ -65050,62 +56419,8 @@ class Evaluator {
             this[$lastValue] = this[$evaluate]();
         }
         return this[$lastValue];
->>>>>>> Stashed changes
     }
-    [$notify]() {
-        this[$scrollCallback]();
-    }
-    ;
 }
-<<<<<<< Updated upstream
-ScrollObserver[_a] = new Set();
-const $computeStyleCallback = Symbol('computeStyleCallback');
-const $astWalker = Symbol('astWalker');
-const $dependencies = Symbol('dependencies');
-const $onScroll = Symbol('onScroll');
-/**
- * The StyleEffector is configured with a callback that will be invoked at the
- * optimal time that some array of CSS expression ASTs ought to be evaluated.
- *
- * For example, our CSS-like expression syntax supports usage of the env()
- * function to incorporate the current top-level scroll position into a CSS
- * expression: env(window-scroll-y).
- *
- * This "environment variable" will change dynamically as the user scrolls the
- * page. If an AST contains such a usage of env(), we would have to evaluate the
- * AST on every frame in order to be sure that the computed style stays up to
- * date.
- *
- * The StyleEffector spares us from evaluating the expressions on every frame by
- * correlating specific parts of an AST with observers of the external effects
- * that they refer to (if any). So, if the AST contains env(window-scroll-y),
- * the StyleEffector manages the lifetime of a global scroll event listener and
- * notifies the user at the optimal time to evaluate the computed style.
- */
-class StyleEffector {
-    constructor(callback) {
-        this[_b] = {};
-        this[_c] = new ASTWalker(['function']);
-        this[_d] = () => {
-            this[$computeStyleCallback]({ relatedState: 'window-scroll' });
-        };
-        this[$computeStyleCallback] = callback;
-    }
-    /**
-     * Sets the expressions that govern when the StyleEffector callback will be
-     * invoked.
-     */
-    observeEffectsFor(ast) {
-        const newDependencies = {};
-        const oldDependencies = this[$dependencies];
-        this[$astWalker].walk(ast, functionNode => {
-            const { name } = functionNode;
-            const firstArgument = functionNode.arguments[0];
-            const firstTerm = firstArgument.terms[0];
-            if (name.value !== 'env' || firstTerm == null ||
-                firstTerm.type !== 'ident') {
-                return;
-=======
 _a$1 = $lastValue;
 const $percentage = Symbol('percentage');
 const $basis = Symbol('basis');
@@ -65328,41 +56643,8 @@ class StyleEvaluator extends Evaluator {
         for (const evaluatable of this[$evaluatables]) {
             if (!Evaluator.isConstant(evaluatable)) {
                 return false;
->>>>>>> Stashed changes
             }
-            switch (firstTerm.value) {
-                case 'window-scroll-y':
-                    if (newDependencies['window-scroll'] == null) {
-                        const observer = 'window-scroll' in oldDependencies ?
-                            oldDependencies['window-scroll'] :
-                            new ScrollObserver(this[$onScroll]);
-                        observer.observe();
-                        delete oldDependencies['window-scroll'];
-                        newDependencies['window-scroll'] = observer;
-                    }
-                    break;
-            }
-        });
-        for (const environmentState in oldDependencies) {
-            const observer = oldDependencies[environmentState];
-            observer.disconnect();
         }
-<<<<<<< Updated upstream
-        this[$dependencies] = newDependencies;
-    }
-    /**
-     * Disposes of the StyleEffector by disconnecting all observers of external
-     * effects.
-     */
-    dispose() {
-        for (const environmentState in this[$dependencies]) {
-            const observer = this[$dependencies][environmentState];
-            observer.disconnect();
-        }
-    }
-}
-_b = $dependencies, _c = $astWalker, _d = $onScroll;
-=======
         return true;
     }
     [$evaluate]() {
@@ -65371,7 +56653,6 @@ _b = $dependencies, _c = $astWalker, _d = $onScroll;
             .map(numberNode => numberNode.number);
     }
 }
->>>>>>> Stashed changes
 
 /* @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -65387,111 +56668,6 @@ _b = $dependencies, _c = $astWalker, _d = $onScroll;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-<<<<<<< Updated upstream
-/**
- * The @style decorator is responsible for coordinating the conversion of a
- * CSS-like string property value into numbers that can be applied to
- * lower-level constructs. It also can optionally manage the lifecycle of a
- * StyleEffector which allows automatic updates for styles that use env() or
- * var() functions.
- *
- * The decorator is configured with Intrinsics and the property key for a
- * method that handles updates. The named update handler is invoked with the
- * result of parsing and evaluating the raw property string value. The format of
- * the evaluated result is derived from the basis of the configured Intrinsics,
- * and is always an array of numbers of fixed length.
- *
- * NOTE: This decorator depends on the property updating mechanism defined by
- * UpdatingElement as exported by the lit-element module. That means it *must*
- * be used in conjunction with the @property decorator, or equivalent
- * JavaScript.
- *
- * Supported configurations are:
- *
- *  - `intrinsics`: An Intrinsics struct that describes how to interpret a
- * serialized style attribute. For more detail on intrinsics see
- * ./styles/evaluators.ts
- *  - `updateHandler`: A string or Symbol that is the key of a method to be
- * invoked with the result of parsing and evaluating a serialized style string.
- *  - `observeEffects`: Optional, if set to true then styles that use env() will
- * cause their update handlers to be invoked every time the corresponding
- * environment variable changes (even if the style attribute itself remains
- * static).
- */
-const style = (config) => {
-    const observeEffects = config.observeEffects || false;
-    const getIntrinsics = config.intrinsics instanceof Function ?
-        config.intrinsics :
-        (() => config.intrinsics);
-    return (proto, propertyName) => {
-        const originalUpdated = proto.updated;
-        const originalConnectedCallback = proto.connectedCallback;
-        const originalDisconnectedCallback = proto.disconnectedCallback;
-        const $styleEffector = Symbol(`${propertyName}StyleEffector`);
-        const $styleEvaluator = Symbol(`${propertyName}StyleEvaluator`);
-        const $updateEvaluator = Symbol(`${propertyName}UpdateEvaluator`);
-        const $evaluateAndSync = Symbol(`${propertyName}EvaluateAndSync`);
-        Object.defineProperties(proto, {
-            [$styleEffector]: { value: null, writable: true },
-            [$styleEvaluator]: { value: null, writable: true },
-            [$updateEvaluator]: {
-                value: function () {
-                    const ast = parseExpressions(this[propertyName]);
-                    this[$styleEvaluator] =
-                        new StyleEvaluator(ast, getIntrinsics(this));
-                    if (this[$styleEffector] == null && observeEffects) {
-                        this[$styleEffector] =
-                            new StyleEffector(() => this[$evaluateAndSync]());
-                    }
-                    if (this[$styleEffector] != null) {
-                        this[$styleEffector].observeEffectsFor(ast);
-                    }
-                }
-            },
-            [$evaluateAndSync]: {
-                value: function () {
-                    if (this[$styleEvaluator] == null) {
-                        return;
-                    }
-                    const result = this[$styleEvaluator].evaluate();
-                    // @see https://github.com/microsoft/TypeScript/pull/30769
-                    // @see https://github.com/Microsoft/TypeScript/issues/1863
-                    this[config.updateHandler](result);
-                }
-            },
-            updated: {
-                value: function (changedProperties) {
-                    // Always invoke updates to styles first. This gives a class that
-                    // uses this decorator the opportunity to override the effect, or
-                    // respond to it, in its own implementation of `updated`.
-                    if (changedProperties.has(propertyName)) {
-                        this[$updateEvaluator]();
-                        this[$evaluateAndSync]();
-                    }
-                    originalUpdated.call(this, changedProperties);
-                }
-            },
-            connectedCallback: {
-                value: function () {
-                    originalConnectedCallback.call(this);
-                    this.requestUpdate(propertyName, this[propertyName]);
-                }
-            },
-            disconnectedCallback: {
-                value: function () {
-                    originalDisconnectedCallback.call(this);
-                    if (this[$styleEffector] != null) {
-                        this[$styleEffector].dispose();
-                        this[$styleEffector] = null;
-                    }
-                }
-            }
-        });
-    };
-};
-
-/* @license
-=======
 var _a, _b, _c, _d;
 const $instances = Symbol('instances');
 const $activateListener = Symbol('activateListener');
@@ -65628,7 +56804,6 @@ _b = $dependencies, _c = $astWalker, _d = $onScroll;
 
 /* @license
  * Copyright 2019 Google LLC. All Rights Reserved.
->>>>>>> Stashed changes
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -65641,52 +56816,6 @@ _b = $dependencies, _c = $astWalker, _d = $onScroll;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-<<<<<<< Updated upstream
-const PAN_SENSITIVITY = 0.018;
-const TAP_DISTANCE = 2;
-const TAP_MS = 300;
-const vector2 = new Vector2();
-const vector3 = new Vector3();
-const DEFAULT_OPTIONS = Object.freeze({
-    minimumRadius: 0,
-    maximumRadius: Infinity,
-    minimumPolarAngle: Math.PI / 8,
-    maximumPolarAngle: Math.PI - Math.PI / 8,
-    minimumAzimuthalAngle: -Infinity,
-    maximumAzimuthalAngle: Infinity,
-    minimumFieldOfView: 10,
-    maximumFieldOfView: 45,
-    touchAction: 'none'
-});
-// Constants
-const KEYBOARD_ORBIT_INCREMENT = Math.PI / 8;
-const ZOOM_SENSITIVITY = 0.04;
-// The move size on pan key event
-const PAN_KEY_INCREMENT = 10;
-const ChangeSource = {
-    USER_INTERACTION: 'user-interaction',
-    NONE: 'none',
-    AUTOMATIC: 'automatic'
-};
-/**
- * SmoothControls is a Three.js helper for adding delightful pointer and
- * keyboard-based input to a staged Three.js scene. Its API is very similar to
- * OrbitControls, but it offers more opinionated (subjectively more delightful)
- * defaults, easy extensibility and subjectively better out-of-the-box keyboard
- * support.
- *
- * One important change compared to OrbitControls is that the `update` method
- * of SmoothControls must be invoked on every frame, otherwise the controls
- * will not have an effect.
- *
- * Another notable difference compared to OrbitControls is that SmoothControls
- * does not currently support panning (but probably will in a future revision).
- *
- * Like OrbitControls, SmoothControls assumes that the orientation of the camera
- * has been set in terms of position, rotation and scale, so it is important to
- * ensure that the camera's matrixWorld is in sync before using SmoothControls.
- */
-=======
 /**
  * The @style decorator is responsible for coordinating the conversion of a
  * CSS-like string property value into numbers that can be applied to
@@ -65846,7 +56975,6 @@ const ChangeSource = {
  * has been set in terms of position, rotation and scale, so it is important to
  * ensure that the camera's matrixWorld is in sync before using SmoothControls.
  */
->>>>>>> Stashed changes
 class SmoothControls extends EventDispatcher {
     constructor(camera, element, scene) {
         super();
@@ -65962,12 +57090,9 @@ class SmoothControls extends EventDispatcher {
                 this.changeSource = ChangeSource.USER_INTERACTION;
                 this.onMouseDown(event);
             }
-<<<<<<< Updated upstream
-=======
             if (this.changeSource === ChangeSource.USER_INTERACTION) {
                 this.dispatchEvent({ type: 'user-interaction' });
             }
->>>>>>> Stashed changes
         };
         this.onPointerMove = (event) => {
             const pointer = this.pointers.find((pointer) => pointer.id === event.pointerId);
@@ -66035,10 +57160,7 @@ class SmoothControls extends EventDispatcher {
                 (event.deltaMode == 1 ? 18 : 1) * ZOOM_SENSITIVITY / 30;
             this.userAdjustOrbit(0, 0, deltaZoom);
             event.preventDefault();
-<<<<<<< Updated upstream
-=======
             this.dispatchEvent({ type: 'user-interaction' });
->>>>>>> Stashed changes
         };
         this.onKeyDown = (event) => {
             // We track if the key is actually one we respond to, so as not to
@@ -66051,10 +57173,7 @@ class SmoothControls extends EventDispatcher {
                 this.orbitZoomKeyCodeHandler(event);
             if (relevantKey) {
                 event.preventDefault();
-<<<<<<< Updated upstream
-=======
                 this.dispatchEvent({ type: 'user-interaction' });
->>>>>>> Stashed changes
             }
             else {
                 this.changeSource = changeSource;
@@ -66152,13 +57271,8 @@ class SmoothControls extends EventDispatcher {
      * Sets the near and far planes of the camera.
      */
     updateNearFar(nearPlane, farPlane) {
-<<<<<<< Updated upstream
-        this.camera.near = Math.max(nearPlane, farPlane / 1000);
-        this.camera.far = farPlane;
-=======
         this.camera.far = farPlane === 0 ? 2 : farPlane;
         this.camera.near = Math.max(nearPlane, this.camera.far / 1000);
->>>>>>> Stashed changes
         this.camera.updateProjectionMatrix();
     }
     /**
@@ -66190,12 +57304,9 @@ class SmoothControls extends EventDispatcher {
         if (nextTheta === theta && nextPhi === phi && nextRadius === radius) {
             return false;
         }
-<<<<<<< Updated upstream
-=======
         if (!isFinite(nextTheta) || !isFinite(nextPhi) || !isFinite(nextRadius)) {
             return false;
         }
->>>>>>> Stashed changes
         this.goalSpherical.theta = nextTheta;
         this.goalSpherical.phi = nextPhi;
         this.goalSpherical.radius = nextRadius;
@@ -66265,21 +57376,13 @@ class SmoothControls extends EventDispatcher {
     /**
      * Update controls. In most cases, this will result in the camera
      * interpolating its position and rotation until it lines up with the
-<<<<<<< Updated upstream
-     * designated goal orbital position.
-=======
      * designated goal orbital position. Returns false if the camera did not move.
->>>>>>> Stashed changes
      *
      * Time and delta are measured in milliseconds.
      */
     update(_time, delta) {
         if (this.isStationary()) {
-<<<<<<< Updated upstream
-            return;
-=======
             return false;
->>>>>>> Stashed changes
         }
         const { maximumPolarAngle, maximumRadius } = this._options;
         const dTheta = this.spherical.theta - this.goalSpherical.theta;
@@ -66293,10 +57396,7 @@ class SmoothControls extends EventDispatcher {
         this.spherical.radius = this.radiusDamper.update(this.spherical.radius, this.goalSpherical.radius, delta, maximumRadius);
         this.logFov = this.fovDamper.update(this.logFov, this.goalLogFov, delta, 1);
         this.moveCamera();
-<<<<<<< Updated upstream
-=======
         return true;
->>>>>>> Stashed changes
     }
     updateTouchActionStyle() {
         const { style } = this.element;
@@ -66318,12 +57418,6 @@ class SmoothControls extends EventDispatcher {
             this.goalSpherical.phi === this.spherical.phi &&
             this.goalSpherical.radius === this.spherical.radius &&
             this.goalLogFov === this.logFov;
-<<<<<<< Updated upstream
-    }
-    dispatchChange() {
-        this.dispatchEvent({ type: 'change', source: this.changeSource });
-=======
->>>>>>> Stashed changes
     }
     moveCamera() {
         // Derive the new camera position from the updated spherical:
@@ -66334,21 +57428,9 @@ class SmoothControls extends EventDispatcher {
             this.camera.fov = Math.exp(this.logFov);
             this.camera.updateProjectionMatrix();
         }
-<<<<<<< Updated upstream
-        this.dispatchChange();
     }
     userAdjustOrbit(deltaTheta, deltaPhi, deltaZoom) {
         this.adjustOrbit(deltaTheta * this.orbitSensitivity * this.inputSensitivity, deltaPhi * this.orbitSensitivity * this.inputSensitivity, deltaZoom * this.inputSensitivity);
-        // Always make sure that an initial event is triggered in case there is
-        // contention between user interaction and imperative changes. This initial
-        // event will give external observers that chance to observe that
-        // interaction occurred at all:
-        this.dispatchChange();
-=======
-    }
-    userAdjustOrbit(deltaTheta, deltaPhi, deltaZoom) {
-        this.adjustOrbit(deltaTheta * this.orbitSensitivity * this.inputSensitivity, deltaPhi * this.orbitSensitivity * this.inputSensitivity, deltaZoom * this.inputSensitivity);
->>>>>>> Stashed changes
     }
     // Wraps to between -pi and pi
     wrapAngle(radians) {
@@ -66357,11 +57439,7 @@ class SmoothControls extends EventDispatcher {
         return wrapped * 2 * Math.PI - Math.PI;
     }
     pixelLengthToSphericalAngle(pixelLength) {
-<<<<<<< Updated upstream
-        return 2 * Math.PI * pixelLength / this.element.clientHeight;
-=======
         return 2 * Math.PI * pixelLength / this.scene.height;
->>>>>>> Stashed changes
     }
     twoTouchDistance(touchOne, touchTwo) {
         const { clientX: xOne, clientY: yOne } = touchOne;
@@ -66394,10 +57472,6 @@ class SmoothControls extends EventDispatcher {
         target.add(dxy.applyMatrix3(this.panProjection));
         scene.boundingSphere.clampPoint(target, target);
         scene.setTarget(target.x, target.y, target.z);
-<<<<<<< Updated upstream
-        this.dispatchChange();
-=======
->>>>>>> Stashed changes
     }
     recenter(pointer) {
         if (performance.now() > this.startTime + TAP_MS ||
@@ -66745,20 +57819,14 @@ const $fingerAnimatedContainers = Symbol('fingerAnimatedContainers');
 const $deferInteractionPrompt = Symbol('deferInteractionPrompt');
 const $updateAria = Symbol('updateAria');
 const $updateCameraForRadius = Symbol('updateCameraForRadius');
-<<<<<<< Updated upstream
-=======
 const $cancelPrompts = Symbol('cancelPrompts');
->>>>>>> Stashed changes
 const $onChange = Symbol('onChange');
 const $onPointerChange = Symbol('onPointerChange');
 const $waitingToPromptUser = Symbol('waitingToPromptUser');
 const $userHasInteracted = Symbol('userHasInteracted');
 const $promptElementVisibleTime = Symbol('promptElementVisibleTime');
 const $lastPromptOffset = Symbol('lastPromptOffset');
-<<<<<<< Updated upstream
-=======
 const $cancellationSource = Symbol('cancellationSource');
->>>>>>> Stashed changes
 const $lastSpherical = Symbol('lastSpherical');
 const $jumpCamera = Symbol('jumpCamera');
 const $initialized = Symbol('initialized');
@@ -66771,11 +57839,7 @@ const $syncMaxCameraOrbit = Symbol('syncMaxCameraOrbit');
 const $syncMinFieldOfView = Symbol('syncMinFieldOfView');
 const $syncMaxFieldOfView = Symbol('syncMaxFieldOfView');
 const ControlsMixin = (ModelViewerElement) => {
-<<<<<<< Updated upstream
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
-=======
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
->>>>>>> Stashed changes
     class ControlsModelViewerElement extends ModelViewerElement {
         constructor() {
             super(...arguments);
@@ -66807,16 +57871,6 @@ const ControlsMixin = (ModelViewerElement) => {
             this[_f] = Infinity;
             this[_g] = false;
             this[_h] = false;
-<<<<<<< Updated upstream
-            this[_j] = new SmoothControls(this[$scene].camera, this[$userInputElement], this[$scene]);
-            this[_k] = new Spherical();
-            this[_l] = false;
-            this[_m] = false;
-            this[_o] = false;
-            this[_p] = ({ source }) => {
-                this[$updateAria]();
-                this[$needsRender]();
-=======
             this[_j] = ChangeSource.AUTOMATIC;
             this[_k] = new SmoothControls(this[$scene].camera, this[$userInputElement], this[$scene]);
             this[_l] = new Spherical();
@@ -66826,16 +57880,10 @@ const ControlsMixin = (ModelViewerElement) => {
             this[_q] = () => {
                 const source = this[$controls].changeSource;
                 this[$cancellationSource] = source;
->>>>>>> Stashed changes
                 if (source === ChangeSource.USER_INTERACTION) {
                     this[$userHasInteracted] = true;
                     this[$deferInteractionPrompt]();
                 }
-<<<<<<< Updated upstream
-                this.dispatchEvent(new CustomEvent('camera-change', { detail: { source } }));
-            };
-            this[_q] = (event) => {
-=======
             };
             this[_r] = () => {
                 this[$updateAria]();
@@ -66844,7 +57892,6 @@ const ControlsMixin = (ModelViewerElement) => {
                 this.dispatchEvent(new CustomEvent('camera-change', { detail: { source } }));
             };
             this[_s] = (event) => {
->>>>>>> Stashed changes
                 if (event.type === 'pointer-change-start') {
                     this[$container].classList.add('pointer-tumbling');
                 }
@@ -66898,22 +57945,6 @@ const ControlsMixin = (ModelViewerElement) => {
             this[$waitingToPromptUser] =
                 this.interactionPrompt === InteractionPromptStrategy.AUTO &&
                     this.cameraControls;
-<<<<<<< Updated upstream
-        }
-        zoom(keyPresses) {
-            const event = new WheelEvent('wheel', { deltaY: -30 * keyPresses });
-            this[$userInputElement].dispatchEvent(event);
-        }
-        connectedCallback() {
-            super.connectedCallback();
-            this[$controls].addEventListener('change', this[$onChange]);
-            this[$controls].addEventListener('pointer-change-start', this[$onPointerChange]);
-            this[$controls].addEventListener('pointer-change-end', this[$onPointerChange]);
-        }
-        disconnectedCallback() {
-            super.disconnectedCallback();
-            this[$controls].removeEventListener('change', this[$onChange]);
-=======
         }
         zoom(keyPresses) {
             const event = new WheelEvent('wheel', { deltaY: -30 * keyPresses });
@@ -66928,7 +57959,6 @@ const ControlsMixin = (ModelViewerElement) => {
         disconnectedCallback() {
             super.disconnectedCallback();
             this[$controls].removeEventListener('user-interaction', this[$cancelPrompts]);
->>>>>>> Stashed changes
             this[$controls].removeEventListener('pointer-change-start', this[$onPointerChange]);
             this[$controls].removeEventListener('pointer-change-end', this[$onPointerChange]);
         }
@@ -66948,34 +57978,6 @@ const ControlsMixin = (ModelViewerElement) => {
                     this[$deferInteractionPrompt]();
                 }
                 this[$userInputElement].setAttribute('aria-label', this[$ariaLabel]);
-<<<<<<< Updated upstream
-            }
-            if (changedProperties.has('disableZoom')) {
-                controls.disableZoom = this.disableZoom;
-            }
-            if (changedProperties.has('disablePan')) {
-                controls.enablePan = !this.disablePan;
-            }
-            if (changedProperties.has('disableTap')) {
-                controls.enableTap = !this.disableTap;
-            }
-            if (changedProperties.has('interactionPrompt') ||
-                changedProperties.has('cameraControls') ||
-                changedProperties.has('src')) {
-                if (this.interactionPrompt === InteractionPromptStrategy.AUTO &&
-                    this.cameraControls && !this[$userHasInteracted]) {
-                    this[$waitingToPromptUser] = true;
-                }
-                else {
-                    this[$deferInteractionPrompt]();
-                }
-            }
-            if (changedProperties.has('touchAction')) {
-                const touchAction = this.touchAction;
-                controls.applyOptions({ touchAction });
-                controls.updateTouchActionStyle();
-            }
-=======
             }
             if (changedProperties.has('disableZoom')) {
                 controls.disableZoom = this.disableZoom;
@@ -67007,7 +58009,6 @@ const ControlsMixin = (ModelViewerElement) => {
                 controls.applyOptions({ touchAction });
                 controls.updateTouchActionStyle();
             }
->>>>>>> Stashed changes
             if (changedProperties.has('orbitSensitivity')) {
                 controls.orbitSensitivity = this.orbitSensitivity;
             }
@@ -67019,10 +58020,7 @@ const ControlsMixin = (ModelViewerElement) => {
                 Promise.resolve().then(() => {
                     controls.jumpToGoal();
                     scene.jumpToGoal();
-<<<<<<< Updated upstream
-=======
                     this[$onChange]();
->>>>>>> Stashed changes
                     this[$jumpCamera] = false;
                 });
             }
@@ -67067,32 +58065,6 @@ const ControlsMixin = (ModelViewerElement) => {
                     }
                     else if (type === 'pointerup') {
                         style.opacity = '0';
-<<<<<<< Updated upstream
-                    }
-                    const init = {
-                        pointerId: i - 5678,
-                        pointerType: 'touch',
-                        target: inputElement,
-                        clientX: width * position.x,
-                        clientY: height * position.y,
-                        altKey: true // flag that this is not a user interaction
-                    };
-                    inputElement.dispatchEvent(new PointerEvent(type, init));
-                }
-            };
-            const moveTouches = () => {
-                // cancel interaction if something else moves the camera
-                const { changeSource } = this[$controls];
-                if (changeSource !== ChangeSource.AUTOMATIC) {
-                    for (const fingerElement of this[$fingerAnimatedContainers]) {
-                        fingerElement.style.opacity = '0';
-                    }
-                    dispatchTouches('pointercancel');
-                    this.dispatchEvent(new CustomEvent('interact-stopped', { detail: { source: changeSource } }));
-                    document.removeEventListener('visibilitychange', onVisibilityChange);
-                    return;
-                }
-=======
                     }
                     const init = {
                         pointerId: i - 5678,
@@ -67119,7 +58091,6 @@ const ControlsMixin = (ModelViewerElement) => {
                     document.removeEventListener('visibilitychange', onVisibilityChange);
                     return;
                 }
->>>>>>> Stashed changes
                 const time = Math.min(1, (performance.now() - startTime) / duration);
                 for (const [i, position] of positions.entries()) {
                     position.x = xy[i].x(time);
@@ -67131,11 +58102,7 @@ const ControlsMixin = (ModelViewerElement) => {
                 }
                 else {
                     dispatchTouches('pointerup');
-<<<<<<< Updated upstream
-                    this.dispatchEvent(new CustomEvent('interact-stopped', { detail: { source: changeSource } }));
-=======
                     this.dispatchEvent(new CustomEvent('interact-stopped', { detail: { source: ChangeSource.AUTOMATIC } }));
->>>>>>> Stashed changes
                     document.removeEventListener('visibilitychange', onVisibilityChange);
                 }
             };
@@ -67150,14 +58117,6 @@ const ControlsMixin = (ModelViewerElement) => {
             };
             document.addEventListener('visibilitychange', onVisibilityChange);
             dispatchTouches('pointerdown');
-<<<<<<< Updated upstream
-            requestAnimationFrame(moveTouches);
-        }
-        [(_a = $promptElement, _b = $promptAnimatedContainer, _c = $fingerAnimatedContainers, _d = $panElement, _e = $lastPromptOffset, _f = $promptElementVisibleTime, _g = $userHasInteracted, _h = $waitingToPromptUser, _j = $controls, _k = $lastSpherical, _l = $jumpCamera, _m = $initialized, _o = $maintainThetaPhi, $syncFieldOfView)](style) {
-            const scene = this[$scene];
-            scene.framedFoVDeg = style[0] * 180 / Math.PI;
-            this[$controls].setFieldOfView(scene.adjustedFoV(scene.framedFoVDeg));
-=======
             this[$cancellationSource] = ChangeSource.AUTOMATIC;
             requestAnimationFrame(moveTouches);
         }
@@ -67168,7 +58127,6 @@ const ControlsMixin = (ModelViewerElement) => {
             controls.changeSource = ChangeSource.NONE;
             controls.setFieldOfView(scene.adjustedFoV(scene.framedFoVDeg));
             this[$cancelPrompts]();
->>>>>>> Stashed changes
         }
         [$syncCameraOrbit](style) {
             const controls = this[$controls];
@@ -67180,10 +58138,7 @@ const ControlsMixin = (ModelViewerElement) => {
             }
             controls.changeSource = ChangeSource.NONE;
             controls.setOrbit(style[0], style[1], style[2]);
-<<<<<<< Updated upstream
-=======
             this[$cancelPrompts]();
->>>>>>> Stashed changes
         }
         [$syncMinCameraOrbit](style) {
             this[$controls].applyOptions({
@@ -67218,10 +58173,7 @@ const ControlsMixin = (ModelViewerElement) => {
             }
             this[$controls].changeSource = ChangeSource.NONE;
             this[$renderer].arRenderer.updateTarget();
-<<<<<<< Updated upstream
-=======
             this[$cancelPrompts]();
->>>>>>> Stashed changes
         }
         [$tick](time, delta) {
             super[$tick](time, delta);
@@ -67256,16 +58208,10 @@ const ControlsMixin = (ModelViewerElement) => {
                     this[$lastPromptOffset] = offset;
                 }
             }
-<<<<<<< Updated upstream
-            controls.update(time, delta);
-            if (scene.updateTarget(delta)) {
-                this[$onChange]({ type: 'change', source: controls.changeSource });
-=======
             const cameraMoved = controls.update(time, delta);
             const targetMoved = scene.updateTarget(delta);
             if (cameraMoved || targetMoved) {
                 this[$onChange]();
->>>>>>> Stashed changes
             }
         }
         [$deferInteractionPrompt]() {
@@ -67273,64 +58219,6 @@ const ControlsMixin = (ModelViewerElement) => {
             this[$waitingToPromptUser] = false;
             this[$promptElement].classList.remove('visible');
             this[$promptElementVisibleTime] = Infinity;
-<<<<<<< Updated upstream
-        }
-        /**
-         * Updates the camera's near and far planes to enclose the scene when
-         * orbiting at the supplied radius.
-         */
-        [$updateCameraForRadius](radius) {
-            const maximumRadius = Math.max(this[$scene].boundingSphere.radius, radius);
-            const near = 0;
-            const far = 2 * maximumRadius;
-            this[$controls].updateNearFar(near, far);
-        }
-        [$updateAria]() {
-            const { theta, phi } = this[$controls].getCameraSpherical(this[$lastSpherical]);
-            const azimuthalQuadrant = (4 + Math.floor(((theta % TAU) + QUARTER_PI) / HALF_PI)) % 4;
-            const polarTrient = Math.floor(phi / THIRD_PI);
-            const azimuthalQuadrantLabel = AZIMUTHAL_QUADRANT_LABELS[azimuthalQuadrant];
-            const polarTrientLabel = POLAR_TRIENT_LABELS[polarTrient];
-            this[$updateStatus](`View from stage ${polarTrientLabel}${azimuthalQuadrantLabel}`);
-        }
-        get [$ariaLabel]() {
-            return super[$ariaLabel] +
-                (this.cameraControls ? INTERACTION_PROMPT : '');
-        }
-        async [$onResize](event) {
-            const controls = this[$controls];
-            const scene = this[$scene];
-            const oldFramedFoV = scene.adjustedFoV(scene.framedFoVDeg);
-            // The super of $onResize may update the scene's adjustedFoV, so we
-            // compare the before and after to calculate the proper zoom.
-            super[$onResize](event);
-            const fovRatio = scene.adjustedFoV(scene.framedFoVDeg) / oldFramedFoV;
-            const fov = controls.getFieldOfView() * (isFinite(fovRatio) ? fovRatio : 1);
-            controls.updateAspect(this[$scene].aspect);
-            this.requestUpdate('maxFieldOfView', this.maxFieldOfView);
-            await this.updateComplete;
-            this[$controls].setFieldOfView(fov);
-            this.jumpCameraToGoal();
-        }
-        [$onModelLoad]() {
-            super[$onModelLoad]();
-            if (this[$initialized]) {
-                this[$maintainThetaPhi] = true;
-            }
-            else {
-                this[$initialized] = true;
-            }
-            this.requestUpdate('maxFieldOfView', this.maxFieldOfView);
-            this.requestUpdate('fieldOfView', this.fieldOfView);
-            this.requestUpdate('minCameraOrbit', this.minCameraOrbit);
-            this.requestUpdate('maxCameraOrbit', this.maxCameraOrbit);
-            this.requestUpdate('cameraOrbit', this.cameraOrbit);
-            this.requestUpdate('cameraTarget', this.cameraTarget);
-            this.jumpCameraToGoal();
-        }
-    }
-    _p = $onChange, _q = $onPointerChange;
-=======
         }
         /**
          * Updates the camera's near and far planes to enclose the scene when
@@ -67387,7 +58275,6 @@ const ControlsMixin = (ModelViewerElement) => {
         }
     }
     _q = $cancelPrompts, _r = $onChange, _s = $onPointerChange;
->>>>>>> Stashed changes
     __decorate$2([
         e$3({ type: Boolean, attribute: 'camera-controls' })
     ], ControlsModelViewerElement.prototype, "cameraControls", void 0);
@@ -67493,10 +58380,7 @@ var __decorate$1 = (undefined && undefined.__decorate) || function (decorators, 
 const PROGRESS_BAR_UPDATE_THRESHOLD = 100;
 const DEFAULT_DRACO_DECODER_LOCATION = 'https://www.gstatic.com/draco/versioned/decoders/1.4.1/';
 const DEFAULT_KTX2_TRANSCODER_LOCATION = 'https://www.gstatic.com/basis-universal/versioned/2021-04-15-ba1c3e4/';
-<<<<<<< Updated upstream
-=======
 const DEFAULT_LOTTIE_LOADER_LOCATION = 'https://cdn.jsdelivr.net/npm/three@0.148.0/examples/jsm/loaders/LottieLoader.js';
->>>>>>> Stashed changes
 const RevealStrategy = {
     AUTO: 'auto',
     MANUAL: 'manual'
@@ -67648,12 +58532,9 @@ const LoadingMixin = (ModelViewerElement) => {
             if (ModelViewerElement.meshoptDecoderLocation) {
                 CachingGLTFLoader.setMeshoptDecoderLocation(ModelViewerElement.meshoptDecoderLocation);
             }
-<<<<<<< Updated upstream
-=======
             const lottieLoaderLocation = ModelViewerElement.lottieLoaderLocation ||
                 DEFAULT_LOTTIE_LOADER_LOCATION;
             Renderer.singleton.textureUtils.lottieLoaderUrl = lottieLoaderLocation;
->>>>>>> Stashed changes
         }
         static set dracoDecoderLocation(value) {
             CachingGLTFLoader.setDRACODecoderLocation(value);
@@ -67672,15 +58553,12 @@ const LoadingMixin = (ModelViewerElement) => {
         }
         static get meshoptDecoderLocation() {
             return CachingGLTFLoader.getMeshoptDecoderLocation();
-<<<<<<< Updated upstream
-=======
         }
         static set lottieLoaderLocation(value) {
             Renderer.singleton.textureUtils.lottieLoaderUrl = value;
         }
         static get lottieLoaderLocation() {
             return Renderer.singleton.textureUtils.lottieLoaderUrl;
->>>>>>> Stashed changes
         }
         /**
          * If provided, the callback will be passed each resource URL before a
@@ -67736,13 +58614,9 @@ const LoadingMixin = (ModelViewerElement) => {
         }
         connectedCallback() {
             super.connectedCallback();
-<<<<<<< Updated upstream
-            this.showPoster();
-=======
             if (!this.loaded) {
                 this.showPoster();
             }
->>>>>>> Stashed changes
             this[$progressTracker].addEventListener('progress', this[$onProgress]);
         }
         disconnectedCallback() {

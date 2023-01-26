@@ -8,16 +8,16 @@
 
 ## 開発方法
 
-1. `npm install`で必要なパッケージをダウンロードする
+1. `yarn install`で必要なパッケージをダウンロードする
 2. src/のファイルを編集(index.html はテスト用の html ファイル)
-3. `npm run watch`で test/にテスト用のファイルを出力し、`npm run test`でサーバーを起動して検証
-4. `npm run build`で dist/にビルド
+3. `yarn watch`で test/にテスト用のファイルを出力し、`yarn test`でサーバーを起動して検証
+4. `yarn build`で dist/にビルド
 
 ## 便利コマンド
 
-- `npm run test`
+- `yarn test`
   - 検証用の HTML(./index.html)のサーバーを立ててくれるよ
-- `npm run watch`
+- `yarn watch`
   - src/に変更があったら自動でビルド(development)
 
 ## 備考

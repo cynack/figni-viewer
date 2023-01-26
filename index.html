@@ -30,7 +30,7 @@
           normal="0 1 0"
         ></span>
         <!-- positionがない場合は"0 0 0"を指定した場合と同義、targetがない場合はpositionの値が使用される -->
-        <span slot="hotspot-test2" orbit="-45deg 90deg 0.5m"
+        <span slot="hotspot-test2" orbit="-45deg 90deg 0.5m" fov="12deg"
           >テスト2<img
             src="https://admin.figni.io//sample/suitcase/caption_2.png"
             width="10px"
@@ -122,6 +122,7 @@
       <button onclick="viewer.openTipsPanel('drag')">
         openTipsPanel('drag')
       </button>
+      <button onclick="viewer.openTipsPanel('ar')">openTipsPanel('ar')</button>
       <button onclick="viewer.closeTipsPanel()">closeTipsPanel</button>
       <button onclick="viewer.openHelpPanel('top')">
         openHelpPanel('top')

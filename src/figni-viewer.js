@@ -29,6 +29,7 @@ import {
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
 } from './svg'
+import { getChildText, isEmptyOrSpaces } from './utils'
 
 const OBSERBED_ATTRIBUTES = [
   'item-id',
@@ -40,6 +41,7 @@ const OBSERBED_ATTRIBUTES = [
 const SETTINGS = {
   DEFAULT_CAMERA_TARGET: 'auto auto auto',
   DEFAULT_CAMERA_ORBIT: '0deg 75deg 105%',
+  DEFAULT_CAMERA_FOV: 'auto',
   DEFAULT_HOTSPOT_POSITION: '0m 0m 0m',
   DEFAULT_HOTSPOT_NORMAL: '0m 1m 0m',
   DEFAULT_PANEL_PLACE: 'left middle',
@@ -53,6 +55,7 @@ const HELP = {
 }
 const TIPS = {
   DRAG: 'drag',
+  AR: 'ar',
 }
 
 export default class FigniViewerElement extends HTMLElement {
@@ -87,7 +90,9 @@ export default class FigniViewerElement extends HTMLElement {
   #tipsHideCallback = null
   #toggleStates = {}
 
-  #ABTEST = {}
+  #ABTEST = {
+    HIGHLIGHT_NUMBER: false,
+  }
 
   get itemId() {
     return this.getAttribute('item-id')
@@ -135,6 +140,14 @@ export default class FigniViewerElement extends HTMLElement {
 
   set orbit(value) {
     this.setAttribute('orbit', value)
+  }
+
+  get fov() {
+    return this.getAttribute('fov') || SETTINGS.DEFAULT_CAMERA_FOV
+  }
+
+  set fov(value) {
+    this.setAttribute('fov', value)
   }
 
   get state() {
@@ -202,13 +215,13 @@ export default class FigniViewerElement extends HTMLElement {
     })
 
     // AB TEST
-    // if (Math.random() > 0.5) {
-    //   this.#ABTEST['ABテスト名'] = true
-    //   this.base.registerABTestResult('abtest-name', true)
-    // } else {
-    //   this.#ABTEST['ABテスト名'] = false
-    //   this.base.registerABTestResult('abtest-name', false)
-    // }
+    if (Math.random() > 0.5) {
+      this.#ABTEST.HIGHLIGHT_NUMBER = true
+      this.base.registerABTestResult('highlight-number', true)
+    } else {
+      this.#ABTEST.HIGHLIGHT_NUMBER = false
+      this.base.registerABTestResult('highlight-number', false)
+    }
 
     // Figni Help Panel
     this.#showHelpPanel()
@@ -221,10 +234,13 @@ export default class FigniViewerElement extends HTMLElement {
       this.#hotspots.push(this.base.appendChild(hotspot))
     })
     await this.base.updateComplete
+    this.#hotspots = Array.from(new Set(this.#hotspots))
     this.#hotspots.forEach((hotspot) => {
-      this.#modifyHotspot(hotspot)
+      if (!hotspot.classList.contains('figni-viewer-hotspot')) {
+        this.#modifyHotspot(hotspot)
+      }
     })
-    this.addEventListener('load', () => {
+    this.addEventListener('model-visibility', () => {
       setTimeout(() => {
         this.#enableAllHotspots()
       }, 100)
@@ -306,12 +322,27 @@ export default class FigniViewerElement extends HTMLElement {
   }
 
   /**
+   * カメラの垂直方向の視野を設定する
+   * @param {string} fov 角度("deg", "rad", etc.)
+   */
+  setCameraFov(fov) {
+    if (this.base.fieldOfView !== fov) {
+      this.#showInitCameraButton()
+    }
+    this.#setCameraFov(fov)
+  }
+
+  #setCameraFov(fov) {
+    this.base.setFieldOfView(fov)
+  }
+
+  /**
    * カメラ位置を初期位置に戻す
    */
   resetCameraTargetAndOrbit() {
     this.setCameraTarget(this.target)
     this.setCameraOrbit(this.orbit)
-    this.base.setFieldOfView('auto')
+    this.setCameraFov(this.fov)
     this.#showTemporaryHidedHotspot()
     this.#hideInitCameraButton()
   }
@@ -674,20 +705,46 @@ export default class FigniViewerElement extends HTMLElement {
   openTipsPanel(tips, delay = 6000) {
     this.closeTipsPanel()
     this.closeHelpPanel()
-    this.#helpButton.innerHTML = `${SVG_HELP_ICON}`
-    this.#tipsPanel.classList.remove('figni-viewer-tips-panel-hidden')
     let text = null
     let animation = null
     let help = HELP.TOP
+    let style = ''
+    let minimizeHelpButton = true
     switch (tips) {
       case TIPS.DRAG: {
         text = 'ドラッグするとコンテンツを回転できます'
         animation = CONTENT_OPERATION_ANIMATION
         help = HELP.CONTENT
+        style = {
+          top: '0.75em',
+          right: '0.75em',
+          'transform-origin': 'top right',
+        }
+        minimizeHelpButton = true
+        break
+      }
+      case TIPS.AR: {
+        text = '目の前に実物大の商品を表示できます'
+        animation = HOW_TO_AR_ANIMATION
+        help = HELP.AR
+        style = {
+          bottom: '3.75em',
+          left: '0.75em',
+          'transform-origin': 'bottom left',
+        }
+        minimizeHelpButton = false
         break
       }
     }
     if (text && animation) {
+      if (minimizeHelpButton) {
+        this.#helpButton.innerHTML = `${SVG_HELP_ICON}`
+      }
+      for (const key in style) {
+        if (style.hasOwnProperty(key)) {
+          this.#tipsPanel.style[key] = style[key]
+        }
+      }
       this.#tipsPanel.querySelector('.figni-viewer-tips-panel-text').innerHTML =
         text
       const animationElement = this.#tipsPanel.querySelector(
@@ -709,7 +766,14 @@ export default class FigniViewerElement extends HTMLElement {
           once: true,
         }
       )
+      this.#tipsPanel.classList.remove('figni-viewer-tips-panel-hidden')
     }
+  }
+
+  // TODO: TIPSごとに関数分ける
+  // TODO: ARではARボタンのテキストをなくしてボタンを丸くする
+  openDragTipsPanel() {
+    this.#helpButton.innerHTML = `${SVG_HELP_ICON}`
   }
 
   closeTipsPanel() {
@@ -852,10 +916,25 @@ export default class FigniViewerElement extends HTMLElement {
   }
 
   count = 1
-
   #modifyHotspot(hotspot) {
     hotspot.classList.add('figni-viewer-hotspot')
     hotspot.classList.add('figni-viewer-hotspot-highlight')
+
+    // AB TEST
+    if (this.#ABTEST.HIGHLIGHT_NUMBER) {
+      if (isEmptyOrSpaces(getChildText(hotspot))) {
+        let html = ''
+        Array.from(hotspot.childNodes).forEach((child) => {
+          if (child.nodeType !== Node.TEXT_NODE) {
+            html += child.outerHTML
+          }
+        })
+        hotspot.innerHTML =
+          String.fromCharCode(
+            (this.count++).toString().charCodeAt(0) + 0xfee0
+          ) + html
+      }
+    }
 
     hotspot.setAttribute(
       'position',
@@ -882,6 +961,7 @@ export default class FigniViewerElement extends HTMLElement {
     const isCloseup =
       hotspot.getAttribute('target') != null ||
       hotspot.getAttribute('orbit') != null ||
+      hotspot.getAttribute('fov') != null ||
       hotspot.getAttribute('closeup') == ''
     const isVisible = hotspot.getAttribute('to-state') != null
     const isToggle = hotspot.getAttribute('toggle-clip') != null
@@ -974,16 +1054,19 @@ export default class FigniViewerElement extends HTMLElement {
             const target =
               hotspot.getAttribute('target') ||
               hotspot.getAttribute('position') ||
-              SETTINGS.DEFAULT_HOTSPOT_POSITION
+              this.target
             const orbit = hotspot.getAttribute('orbit') || this.orbit
+            const fov = hotspot.getAttribute('fov') || this.fov
             if (
               this.base.cameraTarget === target &&
-              this.base.cameraOrbit === orbit
+              this.base.cameraOrbit === orbit &&
+              this.base.fieldOfView === fov
             ) {
               this.resetCameraTargetAndOrbit()
             } else {
               this.#setCameraTarget(target)
               this.#setCameraOrbit(orbit)
+              this.#setCameraFov(fov)
               this.#temporaryHideHotspot(name, hotspot)
             }
           }
@@ -1003,7 +1086,7 @@ export default class FigniViewerElement extends HTMLElement {
 
     const panels = hotspot.querySelectorAll('[slot^="panel-"]')
     this.#panels.push(...Array.from(panels))
-    this.#panels.forEach((panel) => {
+    panels.forEach((panel) => {
       this.#modifyPanel(panel)
     })
     hotspot.addEventListener('click', (e) => {
@@ -1129,7 +1212,8 @@ export default class FigniViewerElement extends HTMLElement {
     }
 
     const name = panel.getAttribute('slot').replace(/^panel-/, '')
-    new ClassWatcher(
+    delete panel.classWatcher
+    panel.classWatcher = new ClassWatcher(
       panel,
       'figni-viewer-panel-hide',
       (p) => {
@@ -1310,9 +1394,9 @@ export default class FigniViewerElement extends HTMLElement {
           `${Math.ceil(p * 100)}%`
         )
       })
-      this.addEventListener('load', () => {
+      this.addEventListener('model-visibility', () => {
         this.#hideLoadingPanel()
-        this.openTipsPanel(TIPS.DRAG)
+        this.openTipsPanel(TIPS.AR)
       })
     } else {
       this.#loadingPanel.style.display = ''

@@ -29,7 +29,7 @@ const ctx = await esbuild.context({
   minify: true,
   color: true,
   sourcemap: true,
-  outfile: 'dist/figni-viewer.min.js',
+  outfile: 'test/figni-viewer.min.js',
   define: {
     VERSION: JSON.stringify(process.env.VERSION || ''),
     API_BASE: JSON.stringify('https://api.stg.figni.io/api'),

@@ -29,11 +29,14 @@ const ctx = await esbuild.context({
   minify: true,
   color: true,
   sourcemap: true,
-  outfile: 'test/figni-viewer.min.js',
+  outfile: 'test/js/figni-viewer.min.js',
   define: {
     VERSION: JSON.stringify(process.env.VERSION || ''),
     API_BASE: JSON.stringify('https://api.stg.figni.io/api'),
     WEBSOCKET_BASE: JSON.stringify('wss://api.stg.figni.io/ws'),
+    TRANSLATIONS_FILE: JSON.stringify(
+      'https://storage.googleapis.com/cynack/figni/viewer/translations.yml'
+    ),
   },
   plugins: [
     sassPlugin({ type: 'style' }),

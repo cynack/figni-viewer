@@ -132,4 +132,5 @@ dist
 # pnpm
 .pnpm-store
 
-test
+# build for test
+/test/js

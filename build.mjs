@@ -10,6 +10,9 @@ const options = {
     VERSION: JSON.stringify(process.env.VERSION || ''),
     API_BASE: JSON.stringify('https://api.figni.io/api'),
     WEBSOCKET_BASE: JSON.stringify('wss://api.figni.io/ws'),
+    TRANSLATIONS_FILE: JSON.stringify(
+      'https://storage.googleapis.com/cynack/figni/viewer/translations.yml'
+    ),
   },
   plugins: [sassPlugin({ type: 'style' })],
 }

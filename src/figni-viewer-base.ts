@@ -9,11 +9,13 @@ import {
 // These are defined in esbuild define plugin
 declare const API_BASE: string
 declare const VERSION: string
+declare const WEBSOCKET_BASE: string
 
 export default class FigniViewerBaseElement extends ModelViewerElement {
   constructor() {
     super()
 
+    // model-viewer settings
     this.loading = 'lazy'
     this.cameraControls = true
     this.ar = true
@@ -34,7 +36,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     token: string,
     modelTag: string = '',
     options: LoadModelOptions = { tags: [], staging: false }
-  ) {
+  ): Promise<void> {
     if (itemId && token) {
       const { tags, staging } = options
       const host = staging ? 'https://api.stg.figni.io/api' : API_BASE
@@ -51,7 +53,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         })
         .json()
       if (res.length === 0) {
-        throw new ReferenceError('there is no model')
+        throw new ReferenceError('NoModelFound')
       }
       const glb = res.find((model) => model.format === 'glb')
       if (glb) {
@@ -72,7 +74,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       }
       this.addEventListener('progress', progress)
     } else {
-      throw new ReferenceError('itemId and token are required')
+      throw new ReferenceError('EmptyItemIdOrToken')
     }
   }
 

@@ -3,6 +3,11 @@
   "version": "1.7.0",
   "description": "Web module for easy introduction of 3D/AR to websites",
   "main": "index.js",
+  "files": [
+    "README.md",
+    "LICENSE",
+    "dist"
+  ],
   "scripts": {
     "build": "node build.mjs",
     "watch": "node watch.mjs",

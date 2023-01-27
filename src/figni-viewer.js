@@ -240,7 +240,7 @@ export default class FigniViewerElement extends HTMLElement {
         this.#modifyHotspot(hotspot)
       }
     })
-    this.addEventListener('model-visibility', () => {
+    this.addEventListener('load', () => {
       setTimeout(() => {
         this.#enableAllHotspots()
       }, 100)
@@ -353,6 +353,7 @@ export default class FigniViewerElement extends HTMLElement {
   async #loadModel() {
     this.#hideErrorPanel()
     this.#hideLoadingPanel()
+    this.closeHelpPanel()
     this.#disableAllHotspots()
     try {
       this.#showLoadingPanel()
@@ -682,19 +683,22 @@ export default class FigniViewerElement extends HTMLElement {
    * ヘルプページを閉じる。
    */
   closeHelpPanel() {
-    this.#closeAllPanels()
-    this.resetCameraTargetAndOrbit()
-    this.#helpPanelBase.classList.add('figni-viewer-help-panel-hidden')
-    while (this.#helpPanelBase.firstChild) {
-      this.#helpPanelBase.firstChild.remove()
+    if (this.#helpPanelBase) {
+      this.#closeAllPanels()
+      this.resetCameraTargetAndOrbit()
+      this.#helpPanelBase.classList.add('figni-viewer-help-panel-hidden')
+      while (this.#helpPanelBase.firstChild) {
+        this.#helpPanelBase.firstChild.remove()
+      }
+      if (this.#openedHelpPages.length > 0) {
+        this.base.endMesureHelpPage(
+          this.#openedHelpPages[this.#openedHelpPages.length - 1].name
+        )
+      }
+      this.#openedHelpPages = []
+      this.#helpButton &&
+        (this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`)
     }
-    if (this.#openedHelpPages.length > 0) {
-      this.base.endMesureHelpPage(
-        this.#openedHelpPages[this.#openedHelpPages.length - 1].name
-      )
-    }
-    this.#openedHelpPages = []
-    this.#helpButton.innerHTML = `${SVG_HELP_ICON}<span>使い方</span>`
   }
 
   /**
@@ -1394,7 +1398,7 @@ export default class FigniViewerElement extends HTMLElement {
           `${Math.ceil(p * 100)}%`
         )
       })
-      this.addEventListener('model-visibility', () => {
+      this.addEventListener('load', () => {
         this.#hideLoadingPanel()
         this.openTipsPanel(TIPS.AR)
       })

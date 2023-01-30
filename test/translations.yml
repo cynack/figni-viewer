@@ -1,0 +1,4 @@
+ja:
+  error:
+    NoModelFound: モデルが見つかりませんでした
+    EmptyItemIdOrToken: 商品IDまたはトークンが設定されていません

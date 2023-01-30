@@ -19,6 +19,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   #helpPageViewCount = {}
   #abtest = {}
   #events = {}
+  #customData = {}
 
   async connectedCallback() {
     super.connectedCallback()
@@ -326,7 +327,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     }
   }
 
-  async #initializeWebSocket(itemId, token, tag = [], isStaging = false) {
+  async #initializeWebSocket(itemId, token, tags = [], isStaging = false) {
     if (this.#websocket) {
       this.#websocket.close()
     }
@@ -410,7 +411,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
           this.#websocket.send(
             JSON.stringify({
               item_id: itemId,
-              tag: tag,
+              tag: tags,
               client_token: token,
               client_version: VERSION,
               stay_time: this.#stayTime,
@@ -431,6 +432,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
               abtest: this.#abtest,
               help_page_view: this.#helpPageViewCount,
               panel_view: this.#panelViewCount,
+              custom_data: this.#customData,
             })
           )
         } else {

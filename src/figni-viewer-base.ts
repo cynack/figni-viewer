@@ -67,7 +67,6 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       }
 
       const progress = (event: ModelViewerProgressEvent) => {
-        console.log(event.detail.totalProgress)
         if (event.detail.totalProgress === 1) {
           this.removeEventListener('progress', progress)
         }

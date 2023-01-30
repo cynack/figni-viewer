@@ -6,11 +6,17 @@
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
     "github.copilot",
-    "wakatime.vscode-wakatime"
+    "wakatime.vscode-wakatime",
+    "stylelint.vscode-stylelint"
   ],
   "settings": {
+    "stylelint.validate": ["scss"],
+    "scss.validate": false,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.stylelint": true
+    }
   },
   "remoteUser": "node"
 }

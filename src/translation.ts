@@ -11,7 +11,9 @@ i18n.locale = navigator.language.slice(0, 2)
 i18n.enableFallback = true
 
 export async function setupTranslation(): Promise<void> {
-  i18n.store(yaml.load(await ky.get(path.join(TRANSLATIONS_FILE)).text()))
+  const json = yaml.load(await ky.get(path.join(TRANSLATIONS_FILE)).text())
+  console.log(json)
+  i18n.store(json)
 }
 
 export function translate(key: string): string {

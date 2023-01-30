@@ -1,4 +1,13 @@
 ja:
+  button:
+    reload: 再読み込み
   error:
     NoModelFound: モデルが見つかりませんでした
     EmptyItemIdOrToken: 商品IDまたはトークンが設定されていません
+
+en:
+  button:
+    reload: Reload
+  error:
+    NoModelFound: No model found
+    EmptyItemIdOrToken: Item ID or token is not set

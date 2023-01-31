@@ -18,8 +18,9 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "test": "http-server test -p 9100",
-    "build": "node build.mjs",
-    "watch": "node watch.mjs"
+    "build": "node script/build.mjs",
+    "watch": "node script/watch.mjs",
+    "analyze": "node script/analyze.mjs && esbuild-visualizer --filename analyze.html"
   },
   "repository": {
     "type": "git",
@@ -40,6 +41,7 @@
   "devDependencies": {
     "esbuild": "^0.17.5",
     "esbuild-sass-plugin": "^2.4.5",
+    "esbuild-visualizer": "^0.4.0",
     "eslint": "^8.33.0",
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-import": "^2.27.5",

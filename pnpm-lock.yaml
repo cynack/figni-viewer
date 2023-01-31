@@ -6,7 +6,6 @@ specifiers:
   '@babel/polyfill': ^7.12.1
   '@babel/preset-env': ^7.17.10
   '@babel/runtime': ^7.17.9
-  axios: ^0.24.0
   babel-loader: ^8.2.5
   css-loader: ^6.7.1
   eslint: ^8.15.0
@@ -14,6 +13,7 @@ specifiers:
   eslint-config-prettier: ^8.5.0
   html-webpack-plugin: ^5.5.0
   http-server: ^14.1.0
+  ky: ^0.33.2
   lottie-web: ^5.9.4
   postcss: ^8.4.21
   prettier: ^2.6.2
@@ -34,7 +34,7 @@ specifiers:
 
 dependencies:
   '@babel/runtime': 7.20.13
-  axios: 0.24.0
+  ky: 0.33.2
   lottie-web: 5.10.2
   qrcode: 1.5.1
   values.js: 2.1.1
@@ -1780,14 +1780,6 @@ packages:
       lodash: 4.17.21
     dev: true
 
-  /axios/0.24.0:
-    resolution: {integrity: sha512-Q6cWsys88HoPgAaFAVUb0WpPk0O8iTeisR9IMqy9G8AbO4NlpVknrnQS03zzF9PGAWgO3cgletO3VjV/P7VztA==}
-    dependencies:
-      follow-redirects: 1.15.2
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
   /babel-loader/8.3.0_la66t7xldg4uecmyawueag5wkm:
     resolution: {integrity: sha512-H8SvsMF+m9t15HNLMipppzkC+Y2Yq+v3SonZyU70RBL/h1gxPkH08Ot8pEE9Z4Kd+czyWJClmFS8qzIP9OZ04Q==}
     engines: {node: '>= 8.9'}
@@ -2769,6 +2761,7 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
+    dev: true
 
   /forwarded/0.2.0:
     resolution: {integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==}
@@ -3369,6 +3362,11 @@ packages:
   /known-css-properties/0.26.0:
     resolution: {integrity: sha512-5FZRzrZzNTBruuurWpvZnvP9pum+fe0HcK8z/ooo+U+Hmp4vtbyp1/QDsqmufirXy4egGzbaH/y2uCZf+6W5Kg==}
     dev: true
+
+  /ky/0.33.2:
+    resolution: {integrity: sha512-f6oS2rKUcPu5FzdqCDbFpmzis/JlqFZw8uIHm/jf8Kc3vtnW+VDhuashOAKyBZv8bFiZFZUMNxTC0JtahEvujA==}
+    engines: {node: '>=14.16'}
+    dev: false
 
   /levn/0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}

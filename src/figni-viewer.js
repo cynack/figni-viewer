@@ -162,7 +162,7 @@ export default class FigniViewerElement extends HTMLElement {
     return this.getAttribute('enable-pan') === ''
   }
 
-  get isStaging() {
+  get staging() {
     return this.getAttribute('staging') === ''
   }
 
@@ -357,13 +357,10 @@ export default class FigniViewerElement extends HTMLElement {
     this.#disableAllHotspots()
     try {
       this.#showLoadingPanel()
-      await this.base.loadModel(
-        this.itemId,
-        this.token,
-        this.modelTag,
-        this.tag,
-        this.isStaging
-      )
+      await this.base.loadModel(this.itemId, this.token, this.modelTag, {
+        tags: this.tag,
+        staging: this.staging,
+      })
     } catch (e) {
       this.#hideLoadingPanel()
       this.#showErrorPanel(getError(e))

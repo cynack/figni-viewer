@@ -1,4 +1,4 @@
-import axios from 'axios'
+import ky from 'ky'
 import { endMesure, getElapsedTime, getSumTime, startMesure } from './mesure'
 import { ModelViewerElement } from './model-viewer'
 
@@ -46,36 +46,39 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
    * @param {string} itemId アイテムID
    * @param {string} token トークン
    * @param {string} modelTag モデルのタグ
-   * @param {string[]} tag タグの配列
-   * @param {boolean} isStaging stagig 環境向けか
+   * @param {{tags: string[], staging: boolean}} options オプション
    */
-  async loadModel(itemId, token, modelTag = null, tag = [], isStaging = false) {
+  async loadModel(
+    itemId,
+    token,
+    modelTag = null,
+    options = { tags: [], staging: false }
+  ) {
     if (itemId && token) {
-      const tagStr = modelTag ? `?tag=${modelTag}` : ''
-      let apiBase = API_BASE
-      if (isStaging) {
-        apiBase = 'https://api.stg.figni.io/api'
-      }
-      const res = await axios.get(
-        `${apiBase}/item/${itemId}/model_search${tagStr}`,
-        {
+      const { tags = [], staging = false } = options
+      const host = staging ? 'https://api.stg.figni.io/api' : API_BASE
+      const url = `${host}/item/${itemId}/model_search${
+        modelTag ? `?tag=${modelTag}` : ''
+      }`
+      const res = await ky
+        .get(url, {
           headers: {
             accept: 'application/json',
             'X-Figni-Client-Token': token,
             'X-Figni-Client-Version': VERSION,
           },
-        }
-      )
-      if (res.data.length === 0) {
+        })
+        .json()
+      if (res.length === 0) {
         throw new Error('ErrNoModelFound')
       }
-      const glb = res.data.filter((item) => item.format == 'glb')
-      if (glb.length > 0) {
-        this.src = glb[0].url
+      const glb = res.find((model) => model.format === 'glb')
+      if (glb) {
+        this.src = glb.url
       }
-      const usdz = res.data.filter((item) => item.format == 'usdz')
-      if (usdz.length > 0) {
-        this.iosSrc = usdz[0].url
+      const usdz = res.find((model) => model.format === 'usdz')
+      if (usdz) {
+        this.iosSrc = usdz.url
       } else {
         this.iosSrc = ''
       }
@@ -89,7 +92,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         }
       })
 
-      this.#initializeWebSocket(itemId, token, tag, isStaging)
+      this.#initializeWebSocket(itemId, token, tags, staging)
     } else {
       throw new ReferenceError('ErrNotSetItemIdOrClientToken')
     }
@@ -374,26 +377,24 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     }
   }
 
-  async #initializeWebSocket(itemId, token, tags = [], isStaging = false) {
+  async #initializeWebSocket(itemId, token, tags = [], staging = false) {
     if (this.#websocket) {
       this.#websocket.close()
     }
 
-    let apiBase = API_BASE
-    if (isStaging) {
-      apiBase = 'https://api.stg.figni.io/api'
-    }
-    const { data } = await axios.get(`${apiBase}/config`, {
-      headers: { 'X-Figni-Client-Token': token },
-    })
+    const host = staging ? 'https://api.stg.figni.io/api' : API_BASE
+    const url = `${host}/config`
+    const res = await ky
+      .get(url, {
+        headers: { 'X-Figni-Client-Token': token },
+      })
+      .json()
 
-    const canAnalytics = data?.analytics === true
+    const canAnalytics = res?.analytics === true
     if (canAnalytics) {
-      let websocketBase = WEBSOCKET_BASE
-      if (isStaging) {
-        websocketBase = 'wss://api.stg.figni.io/ws'
-      }
-      this.#websocket = new WebSocket(websocketBase)
+      this.#websocket = new WebSocket(
+        staging ? 'wss://api.stg.figni.io/ws' : WEBSOCKET_BASE
+      )
 
       startMesure('stay-time')
       startMesure('initial-model-view-time')

@@ -122,3 +122,7 @@ dist
 
 # build for test
 /test/js
+
+# analyzer
+metadata.json
+stats.html

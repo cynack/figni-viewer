@@ -14,6 +14,7 @@
     "3d"
   ],
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "test": "http-server ./test -p 9100",
     "build": "webpack --mode=production --node-env=production",
     "build:dev": "webpack --mode=production --node-env=development",
@@ -44,6 +45,7 @@
     "eslint-config-prettier": "^8.5.0",
     "html-webpack-plugin": "^5.5.0",
     "http-server": "^14.1.0",
+    "postcss": "^8.4.21",
     "prettier": "^2.6.2",
     "sass": "^1.51.0",
     "sass-loader": "^12.6.0",

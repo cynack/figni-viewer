@@ -1,27 +1,25 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@babel/runtime': ^7.17.9
   esbuild: ^0.17.5
   esbuild-sass-plugin: ^2.4.5
-  eslint: ^8.15.0
+  eslint: ^8.33.0
   eslint-config-prettier: ^8.6.0
   eslint-plugin-import: ^2.27.5
   eslint-plugin-prettier: ^4.2.1
-  http-server: ^14.1.0
+  http-server: ^14.1.1
   ky: ^0.33.2
-  lottie-web: ^5.9.4
+  lottie-web: ^5.10.2
   postcss: ^8.4.21
-  prettier: ^2.6.2
-  qrcode: ^1.5.0
-  stylelint: ^14.8.2
-  stylelint-config-prettier: ^9.0.3
+  prettier: ^2.8.3
+  qrcode: ^1.5.1
+  stylelint: ^14.16.1
+  stylelint-config-prettier: ^9.0.4
   stylelint-config-recess-order: ^3.1.0
   stylelint-config-standard-scss: ^6.1.0
   values.js: ^2.1.1
 
 dependencies:
-  '@babel/runtime': 7.20.13
   ky: 0.33.2
   lottie-web: 5.10.2
   qrcode: 1.5.1
@@ -64,13 +62,6 @@ packages:
       chalk: 2.4.2
       js-tokens: 4.0.0
     dev: true
-
-  /@babel/runtime/7.20.13:
-    resolution: {integrity: sha512-gt3PKXs0DBoL9xCvOIIZ2NEqAGZqHjAnmVbfQtB620V0uReIQutpel14KcneZuer7UioY8ALKZ7iocavvzTNFA==}
-    engines: {node: '>=6.9.0'}
-    dependencies:
-      regenerator-runtime: 0.13.11
-    dev: false
 
   /@csstools/selector-specificity/2.1.1_wajs5nedgkikc5pcuwett7legi:
     resolution: {integrity: sha512-jwx+WCqszn53YHOfvFMJJRd/B2GqkCBt+1MJSG6o5/s8+ytHMvDZXsJgUEWLk12UnLd7HYKac4BYU5i/Ron1Cw==}
@@ -2355,10 +2346,6 @@ packages:
       indent-string: 4.0.0
       strip-indent: 3.0.0
     dev: true
-
-  /regenerator-runtime/0.13.11:
-    resolution: {integrity: sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==}
-    dev: false
 
   /regexp.prototype.flags/1.4.3:
     resolution: {integrity: sha512-fjggEOO3slI6Wvgjwflkc4NFRCTZAu5CnNfBd5qOMYhWdn67nJBBu34/TkD++eeFmd8C9r9jfXJ27+nSiRkSUA==}

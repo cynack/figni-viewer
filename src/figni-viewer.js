@@ -2002,4 +2002,18 @@ export default class FigniViewerElement extends HTMLElement {
       this.#tempHidedHotspot = null
     }
   }
+
+  /**
+   * WebSocketでサーバーに送信するデータを変更または追加する
+   * @param {string} key キー
+   * @param {any} value 値
+   * @param {"set"|"add"|"sub"|"delete"} action 操作
+   */
+  updateCustomData(key, value, action) {
+    try {
+      this.base.updateCustomData(key, value, action)
+    } catch (e) {
+      console.error(e)
+    }
+  }
 }

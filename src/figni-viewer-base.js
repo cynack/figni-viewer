@@ -224,6 +224,53 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   }
 
   /**
+   * WebSocketでサーバーに送信するデータを変更または追加する
+   * @param {string} key キー
+   * @param {any} value 値
+   * @param {"set"|"add"|"sub"|"delete"} action 操作
+   */
+  updateCustomData(key, value, action) {
+    try {
+      switch (action) {
+        case 'set': {
+          this.#customData[key] = value
+          break
+        }
+        case 'add': {
+          if (key in this.#customData) {
+            if (['number', 'string'].includes(typeof this.#customData[key])) {
+              this.#customData[key] += value
+            } else if (Array.isArray(this.#customData[key])) {
+              this.#customData[key].push(value)
+            } else {
+              this.#customData[key] = value
+            }
+          } else {
+            this.#customData[key] = value
+          }
+          break
+        }
+        case 'sub': {
+          if (key in this.#customData) {
+            if (['number'].includes(typeof this.#customData[key])) {
+              this.#customData[key] -= value
+            } else if (Array.isArray(this.#customData[key])) {
+              this.#customData[key].pop()
+            }
+          }
+          break
+        }
+        case 'delete': {
+          delete this.#customData[key]
+          break
+        }
+      }
+    } catch (e) {
+      throw new Error(`Failed to update custom data: ${e.message}`)
+    }
+  }
+
+  /**
    * ABテストの結果を設定する
    * @param {string} testName テストの名前
    * @param {string|number} result 結果

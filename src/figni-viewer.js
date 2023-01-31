@@ -29,7 +29,6 @@ import {
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
 } from './svg'
-import { getChildText, isEmptyOrSpaces } from './utils'
 
 const OBSERBED_ATTRIBUTES = [
   'item-id',
@@ -90,9 +89,7 @@ export default class FigniViewerElement extends HTMLElement {
   #tipsHideCallback = null
   #toggleStates = {}
 
-  #ABTEST = {
-    HIGHLIGHT_NUMBER: false,
-  }
+  #ABTEST = {}
 
   get itemId() {
     return this.getAttribute('item-id')
@@ -213,15 +210,6 @@ export default class FigniViewerElement extends HTMLElement {
         }
       }
     })
-
-    // AB TEST
-    if (Math.random() > 0.5) {
-      this.#ABTEST.HIGHLIGHT_NUMBER = true
-      this.base.registerABTestResult('highlight-number', true)
-    } else {
-      this.#ABTEST.HIGHLIGHT_NUMBER = false
-      this.base.registerABTestResult('highlight-number', false)
-    }
 
     // Figni Help Panel
     this.#showHelpPanel()
@@ -920,22 +908,6 @@ export default class FigniViewerElement extends HTMLElement {
   #modifyHotspot(hotspot) {
     hotspot.classList.add('figni-viewer-hotspot')
     hotspot.classList.add('figni-viewer-hotspot-highlight')
-
-    // AB TEST
-    if (this.#ABTEST.HIGHLIGHT_NUMBER) {
-      if (isEmptyOrSpaces(getChildText(hotspot))) {
-        let html = ''
-        Array.from(hotspot.childNodes).forEach((child) => {
-          if (child.nodeType !== Node.TEXT_NODE) {
-            html += child.outerHTML
-          }
-        })
-        hotspot.innerHTML =
-          String.fromCharCode(
-            (this.count++).toString().charCodeAt(0) + 0xfee0
-          ) + html
-      }
-    }
 
     hotspot.setAttribute(
       'position',

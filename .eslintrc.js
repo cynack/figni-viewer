@@ -1,17 +1,14 @@
 module.exports = {
-  'env': {
-    'browser': true,
-    'es2021': true,
+  env: {
+    browser: true,
+    es2021: true,
   },
-  'extends': [
-    'google',
-    'prettier',
-  ],
-  'parserOptions': {
-    'ecmaVersion': 13,
-    'sourceType': 'module',
+  extends: ['eslint:recommended', 'prettier'],
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
   },
-  'rules': {
+  rules: {
     'require-jsdoc': 0,
   },
-};
+}

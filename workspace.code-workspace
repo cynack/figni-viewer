@@ -5,11 +5,13 @@
     }
   ],
   "settings": {
+    "stylelint.validate": [
+      "scss"
+    ],
+    "scss.validate": false,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
-    "editor.formatOnType": true,
     "editor.codeActionsOnSave": [
-      "source.organizeImports",
       "source.fixAll.eslint",
       "source.fixAll.stylelint"
     ],

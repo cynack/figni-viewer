@@ -19,6 +19,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   #helpPageViewCount = {}
   #abtest = {}
   #events = {}
+  #customData = {}
 
   async connectedCallback() {
     super.connectedCallback()
@@ -223,6 +224,53 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   }
 
   /**
+   * WebSocketでサーバーに送信するデータを変更または追加する
+   * @param {string} key キー
+   * @param {any} value 値
+   * @param {"set"|"add"|"sub"|"delete"} action 操作
+   */
+  updateCustomData(key, value, action) {
+    try {
+      switch (action) {
+        case 'set': {
+          this.#customData[key] = value
+          break
+        }
+        case 'add': {
+          if (key in this.#customData) {
+            if (['number', 'string'].includes(typeof this.#customData[key])) {
+              this.#customData[key] += value
+            } else if (Array.isArray(this.#customData[key])) {
+              this.#customData[key].push(value)
+            } else {
+              this.#customData[key] = value
+            }
+          } else {
+            this.#customData[key] = value
+          }
+          break
+        }
+        case 'sub': {
+          if (key in this.#customData) {
+            if (['number'].includes(typeof this.#customData[key])) {
+              this.#customData[key] -= value
+            } else if (Array.isArray(this.#customData[key])) {
+              this.#customData[key].pop()
+            }
+          }
+          break
+        }
+        case 'delete': {
+          delete this.#customData[key]
+          break
+        }
+      }
+    } catch (e) {
+      throw new Error(`Failed to update custom data: ${e.message}`)
+    }
+  }
+
+  /**
    * ABテストの結果を設定する
    * @param {string} testName テストの名前
    * @param {string|number} result 結果
@@ -326,7 +374,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
     }
   }
 
-  async #initializeWebSocket(itemId, token, tag = [], isStaging = false) {
+  async #initializeWebSocket(itemId, token, tags = [], isStaging = false) {
     if (this.#websocket) {
       this.#websocket.close()
     }
@@ -405,12 +453,13 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         endMesure('interaction-time')
       })
 
+      this.#customData.tags = tags
+
       const sender = setInterval(() => {
         if (this.#websocket.readyState === WebSocket.OPEN) {
           this.#websocket.send(
             JSON.stringify({
               item_id: itemId,
-              tag: tag,
               client_token: token,
               client_version: VERSION,
               stay_time: this.#stayTime,
@@ -431,6 +480,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
               abtest: this.#abtest,
               help_page_view: this.#helpPageViewCount,
               panel_view: this.#panelViewCount,
+              custom_data: this.#customData,
             })
           )
         } else {

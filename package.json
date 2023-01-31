@@ -5,6 +5,8 @@
   "main": "./dist/figni-viewer.min.js",
   "files": [
     "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
     "dist"
   ],
   "keywords": [
@@ -15,13 +17,9 @@
   ],
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "test": "http-server ./test -p 9100",
-    "build": "webpack --mode=production --node-env=production",
-    "build:dev": "webpack --mode=production --node-env=development",
-    "build:prod": "webpack --mode=production --node-env=production",
-    "lint": "npx eslint --fix src",
-    "watch": "webpack --watch",
-    "serve": "webpack serve"
+    "test": "http-server test -p 9100",
+    "build": "node build.mjs",
+    "watch": "node watch.mjs"
   },
   "repository": {
     "type": "git",
@@ -33,37 +31,26 @@
     "url": "https://github.com/cynack/figni-viewer/issues"
   },
   "homepage": "https://github.com/cynack/figni-viewer#readme",
-  "devDependencies": {
-    "@babel/core": "^7.17.10",
-    "@babel/plugin-transform-runtime": "^7.17.10",
-    "@babel/polyfill": "^7.12.1",
-    "@babel/preset-env": "^7.17.10",
-    "babel-loader": "^8.2.5",
-    "css-loader": "^6.7.1",
-    "eslint": "^8.15.0",
-    "eslint-config-prettier": "^8.6.0",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-prettier": "^4.2.1",
-    "html-webpack-plugin": "^5.5.0",
-    "http-server": "^14.1.0",
-    "postcss": "^8.4.21",
-    "prettier": "^2.6.2",
-    "sass": "^1.51.0",
-    "sass-loader": "^12.6.0",
-    "style-loader": "^3.3.1",
-    "stylelint": "^14.8.2",
-    "stylelint-config-prettier": "^9.0.3",
-    "stylelint-config-recess-order": "^3.1.0",
-    "stylelint-config-standard-scss": "^6.1.0",
-    "webpack": "^5.72.1",
-    "webpack-cli": "^4.9.2",
-    "webpack-dev-server": "^4.9.0"
-  },
   "dependencies": {
     "@babel/runtime": "^7.17.9",
     "ky": "^0.33.2",
     "lottie-web": "^5.9.4",
     "qrcode": "^1.5.0",
     "values.js": "^2.1.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.17.5",
+    "esbuild-sass-plugin": "^2.4.5",
+    "eslint": "^8.15.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-prettier": "^4.2.1",
+    "http-server": "^14.1.0",
+    "postcss": "^8.4.21",
+    "prettier": "^2.6.2",
+    "stylelint": "^14.8.2",
+    "stylelint-config-prettier": "^9.0.3",
+    "stylelint-config-recess-order": "^3.1.0",
+    "stylelint-config-standard-scss": "^6.1.0"
   }
 }

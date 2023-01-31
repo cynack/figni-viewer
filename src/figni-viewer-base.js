@@ -406,12 +406,13 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         endMesure('interaction-time')
       })
 
+      this.#customData.tags = tags
+
       const sender = setInterval(() => {
         if (this.#websocket.readyState === WebSocket.OPEN) {
           this.#websocket.send(
             JSON.stringify({
               item_id: itemId,
-              tag: tags,
               client_token: token,
               client_version: VERSION,
               stay_time: this.#stayTime,

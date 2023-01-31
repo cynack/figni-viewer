@@ -146,6 +146,7 @@
       <button onclick="errorModelTag()">errorModelTag</button>
       <input type="text" id="modelTag" value="" />
       <button onclick="modelTagChange()">modelTagChange</button>
+      <button onclick="testCustomData()">testCustomData</button>
     </div>
     <script defer>
       let i = 0
@@ -166,6 +167,20 @@
       function modelTagChange() {
         const modelTag = document.getElementById('modelTag').value
         viewer.modelTag = modelTag
+      }
+      function testCustomData() {
+        viewer.updateCustomData('string', 'string', 'set')
+        viewer.updateCustomData('string', 'string', 'add')
+        viewer.updateCustomData('string', 'string', 'sub')
+        viewer.updateCustomData('test', 'string', 'add')
+        viewer.updateCustomData('test', 'string', 'delete')
+        viewer.updateCustomData('number', 0, 'add')
+        viewer.updateCustomData('number', 10, 'sub')
+        viewer.updateCustomData('array', ['a', 'b', 'c'], 'add')
+        viewer.updateCustomData('array', [], 'sub')
+        viewer.updateCustomData('object', { o: 'o' }, 'set')
+        viewer.updateCustomData('object', '', 'delete')
+        viewer.updateCustomData('dekete', '', 'delete')
       }
     </script>
     <style>

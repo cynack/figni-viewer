@@ -70,7 +70,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         })
         .json()
       if (res.length === 0) {
-        throw new Error('ErrNoModelFound')
+        throw new Error('NoModelFound')
       }
       const glb = res.find((model) => model.format === 'glb')
       if (glb) {
@@ -94,7 +94,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
 
       this.#initializeWebSocket(itemId, token, tags, staging)
     } else {
-      throw new ReferenceError('ErrNotSetItemIdOrClientToken')
+      throw new ReferenceError('NotSetItemIdOrClientToken')
     }
   }
 

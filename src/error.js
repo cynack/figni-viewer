@@ -3,9 +3,10 @@
  * @param {Object} err エラーオブジェクト
  * @return {{message: string, code: string}} エラーオブジェクト
  */
-export function getError(err) {
-  if (err.response && err.response.data) {
-    switch (err.response.data.error) {
+export async function getError(err) {
+  if (err.name === 'HTTPError') {
+    const error = (await err.response.json()).error
+    switch (error) {
       case 'ErrItemNotFound': {
         return {
           message: '商品が見つかりませんでした',
@@ -31,8 +32,7 @@ export function getError(err) {
         }
       }
     }
-  }
-  if (err.message) {
+  } else if (err.message) {
     switch (err.message) {
       case 'ErrNotSetItemIdOrClientToken': {
         return {

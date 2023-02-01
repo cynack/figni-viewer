@@ -15,6 +15,9 @@
       "source.fixAll.eslint",
       "source.fixAll.stylelint"
     ],
-    "files.eol": "\n"
+    "files.eol": "\n",
+    "[scss]": {
+      "editor.defaultFormatter": "stylelint.vscode-stylelint"
+    }
   }
 }

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - 自由なカメラ移動をサポートする属性`enable-pan`を追加
 - カスタムデータをログサーバーに送る関数`updateCustomData()`を追加
+- ブラウザの表示言語にあわせてテキストを変更する機能を追加
 
 ### Changed
 

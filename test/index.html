@@ -147,6 +147,7 @@
       <input type="text" id="modelTag" value="" />
       <button onclick="modelTagChange()">modelTagChange</button>
       <button onclick="testCustomData()">testCustomData</button>
+      <button onclick="changeLanguage()">changeLanguage</button>
     </div>
     <script defer>
       let i = 0
@@ -181,6 +182,9 @@
         viewer.updateCustomData('object', { o: 'o' }, 'set')
         viewer.updateCustomData('object', '', 'delete')
         viewer.updateCustomData('dekete', '', 'delete')
+      }
+      function changeLanguage() {
+        viewer.test()
       }
     </script>
     <style>

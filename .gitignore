@@ -122,6 +122,7 @@ dist
 
 # build for test
 /test/js
+/test/assets
 
 # analyzer
 metadata.json

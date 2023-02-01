@@ -512,19 +512,13 @@ figni-viewer {
   color: var(--figni-viewer-error);
 }
 
-.figni-viewer-error-code {
-  margin-bottom: 2em;
-  font-family: var(--figni-viewer-font);
-  font-size: 0.75em;
-  color: var(--figni-viewer-error);
-}
-
 .figni-viewer-error-reload-button {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 8em;
   height: 2em;
+  margin-top: 1em;
   font-size: 0.75em;
   font-weight: 700;
   color: #fff;

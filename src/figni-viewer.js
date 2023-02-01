@@ -12,8 +12,7 @@ import {
   ROTATE_AR_CONTENT_ANIMATION,
 } from './animation'
 import { ClassWatcher } from './class-watcher'
-import { getError } from './error'
-import './style.scss'
+import error from './error'
 import {
   SVG_AR_BUTTON,
   SVG_CLOSE_ICON,
@@ -29,6 +28,7 @@ import {
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_OFF,
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
 } from './svg'
+import { translate } from './translation'
 
 const OBSERBED_ATTRIBUTES = [
   'item-id',
@@ -351,7 +351,7 @@ export default class FigniViewerElement extends HTMLElement {
       })
     } catch (e) {
       this.#hideLoadingPanel()
-      this.#showErrorPanel(getError(e))
+      this.#showErrorPanel(await error(e))
     }
   }
 
@@ -1387,9 +1387,9 @@ export default class FigniViewerElement extends HTMLElement {
 
   /**
    * エラー画面を表示する
-   * @param {{message: string, code: string}} obj エラーオブジェクト
+   * @param {string} message エラーメッセージ
    */
-  #showErrorPanel(obj) {
+  #showErrorPanel(message) {
     if (!this.#errorPanel) {
       this.#errorPanel = document.createElement('div')
       this.#errorPanel.classList.add('figni-viewer-error-panel')
@@ -1398,15 +1398,11 @@ export default class FigniViewerElement extends HTMLElement {
       icon.classList.add('figni-viewer-error-icon')
       this.#errorPanel.appendChild(icon)
       const errorText = document.createElement('span')
-      errorText.innerText = obj.message
+      errorText.innerText = message
       errorText.classList.add('figni-viewer-error-text')
       this.#errorPanel.appendChild(errorText)
-      const errorCode = document.createElement('span')
-      errorCode.innerText = obj.code
-      errorCode.classList.add('figni-viewer-error-code')
-      this.#errorPanel.appendChild(errorCode)
       const reloadButton = document.createElement('span')
-      reloadButton.innerText = '再読み込み'
+      reloadButton.innerText = translate('button.reload')
       reloadButton.classList.add('figni-viewer-error-reload-button')
       reloadButton.addEventListener('click', () => {
         this.base.loadModel(this.itemId, this.token, this.modelTag)
@@ -1415,9 +1411,7 @@ export default class FigniViewerElement extends HTMLElement {
       this.appendChild(this.#errorPanel)
     } else {
       this.#errorPanel.querySelector('.figni-viewer-error-text').innerText =
-        obj.message
-      this.#errorPanel.querySelector('.figni-viewer-error-code').innerText =
-        obj.code
+        message
       this.#errorPanel.style.display = ''
     }
   }

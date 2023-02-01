@@ -13,8 +13,8 @@ export const LOADING_ANIMATION = {
       ddd: 0,
       ind: 1,
       ty: 4,
-      nm: '.tap_effect',
-      cl: 'tap_effect',
+      nm: '.tap-effect',
+      cl: 'tap-effect',
       sr: 1,
       ks: {
         o: { a: 0, k: 100, ix: 11 },
@@ -1250,8 +1250,8 @@ export const LOADING_ANIMATION = {
       ddd: 0,
       ind: 3,
       ty: 4,
-      nm: '.tap_fb',
-      cl: 'tap_fb',
+      nm: '.tap-fb',
+      cl: 'tap-fb',
       parent: 2,
       sr: 0.75,
       ks: {

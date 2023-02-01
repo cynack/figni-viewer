@@ -1,51 +1,56 @@
-@use 'sass:math';
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Spartan:wght@700&display=swap');
+@use "sass:math";
+@import "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Spartan:wght@700&display=swap";
 
 figni-viewer {
   --poster-color: transparent;
+
   display: flex;
-  background-color: var(--figni-viewer-background);
-  overflow: hidden;
   height: 480px;
   min-height: 320px;
+  overflow: hidden;
   font-size: 16px !important;
+  background-color: var(--figni-viewer-background);
+
   * {
-    font-size: 1em;
     font-family: var(--figni-viewer-font);
+    font-size: 1em;
     color: var(--figni-viewer-text);
   }
+
   figni-viewer-base {
     flex: 1;
     flex-direction: column;
-    height: 100%;
     width: 0;
-    min-height: 1px;
     min-width: 1px;
+    height: 100%;
+    min-height: 1px;
   }
+
   --figni-viewer-primary: #ff733b;
   --figni-viewer-secondary: #3b5eff;
   --figni-viewer-prompt-hand: #ffce3b;
   --figni-viewer-error: #ff3f3b;
   --figni-viewer-text: #222428;
   --figni-viewer-background: #f6f6f6;
-  --figni-viewer-font: 'Noto Sans JP', sans-serif;
+  --figni-viewer-font: "Noto Sans JP", sans-serif;
 }
 
 .figni-viewer-hotspot {
-  display: block;
+  position: relative;
   box-sizing: border-box;
+  display: block;
   min-width: 1.75em;
   min-height: 1.75em;
   padding: 0.25em 0.5em;
-  border-radius: 1em;
-  border: none;
-  background-color: var(--figni-viewer-primary);
   font-size: 0.75em;
-  color: white;
-  position: relative;
   line-height: 1.5;
-  --min-hotspot-opacity: 0;
+  color: white;
+  background-color: var(--figni-viewer-primary);
+  border: none;
+  border-radius: 1em;
   -webkit-tap-highlight-color: transparent;
+
+  --min-hotspot-opacity: 0;
 }
 
 .figni-viewer-hotspot-none {
@@ -54,9 +59,10 @@ figni-viewer {
 
 @keyframes highlight-hotspot {
   0% {
-    box-shadow: 0 0 0 0em var(--figni-viewer-primary);
+    box-shadow: 0 0 0 0 var(--figni-viewer-primary);
     opacity: 0.4;
   }
+
   100% {
     box-shadow: 0 0 0 1em var(--figni-viewer-primary);
     opacity: 0;
@@ -64,18 +70,18 @@ figni-viewer {
 }
 
 .figni-viewer-hotspot::before {
-  content: '';
-  display: block;
   position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 2.5em;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  -webkit-tap-highlight-color: transparent;
+  display: block;
+  width: 100%;
+  height: 100%;
+  content: "";
+  border-radius: 2.5em;
   box-shadow: 0 0 0 0.4em var(--figni-viewer-primary);
   opacity: 0.2;
+  transform: translate(-50%, -50%);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .figni-viewer-hotspot-highlight::before {
@@ -84,22 +90,22 @@ figni-viewer {
 }
 
 .figni-viewer-hotspot::after {
-  content: '';
-  display: block;
   position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
   width: calc(100% + 2em);
   height: calc(100% + 2em);
   cursor: pointer;
+  content: "";
   border-radius: 2.5em;
-  top: 50%;
-  left: 50%;
   transform: translate(-50%, -50%);
   -webkit-tap-highlight-color: transparent;
 }
 
 .figni-viewer-hotspot-hide {
-  opacity: 0;
   pointer-events: none;
+  opacity: 0;
 }
 
 .figni-viewer-hotspot-no-normal {
@@ -109,6 +115,7 @@ figni-viewer {
 .figni-viewer-hotspot-close-button {
   width: 0.75em;
   height: 1.25em;
+
   svg {
     position: absolute;
     top: 50%;
@@ -118,14 +125,14 @@ figni-viewer {
 }
 
 .figni-viewer-panel {
-  width: 240px;
-  background-color: white;
-  border-radius: 0.5em;
-  overflow-y: auto;
-  text-align: left;
   position: absolute;
   z-index: 1000;
+  width: 240px;
+  overflow-y: auto;
   font-size: 12px;
+  text-align: left;
+  background-color: white;
+  border-radius: 0.5em;
 }
 
 .figni-viewer-panel > {
@@ -141,20 +148,20 @@ figni-viewer {
   h5,
   h6,
   strong {
+    margin: 0.5em;
     font-weight: 700;
     color: var(--figni-viewer-text);
-    margin: 0.5em;
   }
 
   p,
   i {
-    color: var(--figni-viewer-gray-shade-30);
     margin: 0.5em;
+    color: var(--figni-viewer-gray-shade-30);
   }
 
   a {
-    color: var(--figni-viewer-secondary);
     margin: 0.5em;
+    color: var(--figni-viewer-secondary);
   }
 
   img {
@@ -166,13 +173,13 @@ figni-viewer {
     width: calc(100% - 1em);
     padding: 0.5em;
     margin: 0.5em;
-    background-color: var(--figni-viewer-secondary);
-    border-radius: 0.25em;
-    border: none;
-    cursor: pointer;
-    color: white;
-    transition: 0.3s ease-out all;
     font-size: 0.875em;
+    color: white;
+    cursor: pointer;
+    background-color: var(--figni-viewer-secondary);
+    border: none;
+    border-radius: 0.25em;
+    transition: 0.3s ease-out all;
   }
 }
 
@@ -225,28 +232,28 @@ figni-viewer {
 }
 
 .figni-viewer-panel-place-right-bottom {
-  bottom: 0;
   right: 0;
+  bottom: 0;
   transform: translateX(100%) translateY(100%);
 }
 
 .figni-viewer-init-camera-button {
   position: absolute;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 2.5em;
-  height: 2.5em;
   top: 0.5em;
   left: 0.5em;
-  border-radius: 0.5em;
-  border: none;
-  color: white;
-  background-color: var(--figni-viewer-error);
   z-index: 9995;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5em;
+  height: 2.5em;
+  color: white;
+  cursor: pointer;
+  background-color: var(--figni-viewer-error);
+  border: none;
+  border-radius: 0.5em;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
   -webkit-tap-highlight-color: transparent;
-  cursor: pointer;
 }
 
 .figni-viewer-init-camera-button svg {
@@ -256,65 +263,71 @@ figni-viewer {
 
 .figni-viewer-ar-button {
   position: absolute;
+  bottom: 0.5em;
+  left: 0.5em;
+  z-index: 9998;
   display: flex;
   align-items: center;
   justify-content: center;
   height: 2.5em;
-  left: 0.5em;
-  bottom: 0.5em;
+  padding: 0 1.25em;
+  font-weight: bold;
+  cursor: pointer;
   background-color: var(--figni-viewer-primary);
   border: none;
   border-radius: 2em;
-  padding: 0 1.25em;
-  font-weight: bold;
-  z-index: 9998;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
   -webkit-tap-highlight-color: transparent;
-  cursor: pointer;
+
   svg {
     width: 0.875em;
     height: 0.875em;
+
     path {
       fill: white;
     }
   }
+
   span {
     display: block;
-    color: white;
-    font-size: 12px;
-    font-family: var(--figni-viewer-font);
-    font-weight: bold;
     margin-bottom: 0.1em;
     margin-left: 0.3em;
+    font-family: var(--figni-viewer-font);
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
   }
 }
 
 .figni-viewer-toggle-visible-hotspot-button {
   position: absolute;
+  bottom: 0.5em;
+  left: 0.5em;
+  z-index: 9996;
   display: block;
   align-items: center;
   justify-content: center;
   width: 2.5em;
   height: 2.5em;
   padding: 0;
-  left: 0.5em;
-  bottom: 0.5em;
   white-space: nowrap;
-  border-radius: 50%;
-  border: none;
+  cursor: pointer;
   background-color: white;
-  z-index: 9996;
+  border: none;
+  border-radius: 50%;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
   -webkit-tap-highlight-color: transparent;
-  cursor: pointer;
+
   svg {
-    width: 1.25em;
-    height: 1.25em;
+    position: absolute;
     top: 50%;
     left: 50%;
-    position: absolute;
-    transform: translateX(-50%) translateY(-50%) translateX(-0.1px)
+    width: 1.25em;
+    height: 1.25em;
+    transform:
+      translateX(-50%) translateY(-50%) translateX(-0.1px)
       translateY(-0.1px);
+
     path {
       fill: var(--figni-viewer-gray-shade-50);
     }
@@ -322,27 +335,27 @@ figni-viewer {
 }
 
 .figni-viewer-panel-hide {
-  opacity: 0;
   display: none;
+  opacity: 0;
 }
 
 .figni-viewer-download-screenshot-button {
   position: absolute;
+  bottom: 0.5em;
+  left: 0.5em;
+  z-index: 9997;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 2.5em;
   height: 2.5em;
   padding: 0;
-  left: 0.5em;
-  bottom: 0.5em;
   white-space: nowrap;
-  border-radius: 50%;
-  border: none;
-  background-color: white;
-  z-index: 9997;
-  transition: 0.1s ease-out all;
   cursor: pointer;
+  background-color: white;
+  border: none;
+  border-radius: 50%;
+  transition: 0.1s ease-out all;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -354,16 +367,16 @@ figni-viewer {
 
 .figni-viewer-loading-panel {
   position: relative;
+  z-index: 9999;
+  box-sizing: border-box;
   display: flex;
   flex: 0 1 100%;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 2em;
-  background-color: var(--figni-viewer-background);
-  box-sizing: border-box;
-  z-index: 9999;
   pointer-events: none;
+  background-color: var(--figni-viewer-background);
   transition: opacity 0.3s ease-out;
 }
 
@@ -371,25 +384,31 @@ figni-viewer {
   position: relative;
   width: 100%;
   height: 100%;
+
   .grid path {
     fill: var(--figni-viewer-gray-shade-20);
   }
+
   .cube path {
     stroke: var(--figni-viewer-gray-shade-20);
   }
-  .tap_fb path {
+
+  .tap-fb path {
     fill: var(--figni-viewer-gray-shade-50);
   }
+
   .hand path {
     fill: var(--figni-viewer-gray-shade-30);
   }
-  .tap_effect path {
+
+  .tap-effect path {
     fill: var(--figni-viewer-gray-shade-30);
   }
+
   @media not all and (min-resolution: 0.001dpcm) {
     @supports (-webkit-appearance: none) {
       svg {
-        height: -webkit-fill-available !important;
+        height: fill-available !important;
       }
     }
   }
@@ -399,37 +418,39 @@ figni-viewer {
   position: absolute;
   bottom: 2em;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   padding: 0.3em 1em;
+  overflow: hidden;
   background-color: white;
   border-radius: 1.5em;
-  overflow: hidden;
   transition: all 0.5s cubic-bezier(0, 1, 0.3, 1);
 }
 
 .figni-viewer-loading-progress-bar::before {
-  content: '';
-  display: block;
   position: absolute;
-  width: 102%;
-  height: 102%;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  background: linear-gradient(
-    90deg,
-    var(--figni-viewer-primary) 0%,
-    var(--figni-viewer-primary) var(--figni-viewer-progress, 0%),
-    #ffffff var(--figni-viewer-progress, 0%),
-    #ffffff 100%
-  );
+  display: block;
+  width: 102%;
+  height: 102%;
+  content: "";
+  background:
+    linear-gradient(
+      90deg,
+      var(--figni-viewer-primary) 0%,
+      var(--figni-viewer-primary) var(--figni-viewer-progress, 0%),
+      #fff var(--figni-viewer-progress, 0%),
+      #fff 100%
+    );
   opacity: 0.1;
+  transform: translate(-50%, -50%);
 }
 
 .figni-viewer-loading-animation-ring {
-  margin-bottom: 0.1em;
   margin-right: 0.5em;
+  margin-bottom: 0.1em;
+
   .ring path {
     stroke: var(--figni-viewer-primary);
   }
@@ -441,37 +462,37 @@ figni-viewer {
 }
 
 .figni-viewer-loading-text {
-  color: var(--figni-viewer-primary);
+  margin-bottom: 2px;
   font-family: var(--figni-viewer-font);
   font-size: 0.75em;
   font-weight: 700;
-  margin-bottom: 2px;
+  color: var(--figni-viewer-primary);
 }
 
 @keyframes animation-text-blinking {
   0% {
     opacity: 1;
   }
+
   50% {
     opacity: 0;
   }
+
   100% {
     opacity: 1;
   }
 }
 
 .figni-viewer-error-panel {
+  z-index: 9999;
+  box-sizing: border-box;
   display: flex;
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: 100%;
+  flex: 0 0 100%;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 2em;
   background-color: var(--figni-viewer-background);
-  box-sizing: border-box;
-  z-index: 9999;
   transition: opacity 0.3s ease-out;
 }
 
@@ -485,51 +506,53 @@ figni-viewer {
 }
 
 .figni-viewer-error-text {
-  color: var(--figni-viewer-error);
+  margin-bottom: 0.5em;
   font-family: var(--figni-viewer-font);
   font-weight: 700;
-  margin-bottom: 0.5em;
+  color: var(--figni-viewer-error);
 }
 
 .figni-viewer-error-code {
-  color: var(--figni-viewer-error);
+  margin-bottom: 2em;
   font-family: var(--figni-viewer-font);
   font-size: 0.75em;
-  margin-bottom: 2em;
+  color: var(--figni-viewer-error);
 }
 
 .figni-viewer-error-reload-button {
-  cursor: pointer;
   display: flex;
-  justify-content: center;
   align-items: center;
-  color: #ffffff;
-  background-color: var(--figni-viewer-primary);
+  justify-content: center;
   width: 8em;
   height: 2em;
-  border-radius: 1em;
   font-size: 0.75em;
   font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  background-color: var(--figni-viewer-primary);
+  border-radius: 1em;
 }
 
 .figni-viewer-interaction-cursor {
   position: absolute;
   width: 0;
   height: 0;
-  opacity: 0;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  background-color: var(--figni-viewer-gray-shade-50);
   pointer-events: none;
+  background-color: var(--figni-viewer-gray-shade-50);
+  border-radius: 50%;
   mix-blend-mode: difference;
+  opacity: 0;
   transition: opacity 0.2s ease-out, width 0.2s ease-out, height 0.2s ease-out;
+  transform: translate(-50%, -50%);
 }
 
 .figni-viewer-interaction-prompt {
   width: 5em;
+
   circle.d {
     fill: var(--figni-viewer-gray-shade-50);
   }
+
   path.e {
     fill: var(--figni-viewer-prompt-hand);
   }
@@ -539,9 +562,9 @@ figni-viewer {
   position: absolute;
   top: 0;
   left: 0;
+  z-index: 9999;
   width: 100%;
   height: 100%;
-  z-index: 9999;
   transition: all 0.1s ease-out;
 }
 
@@ -559,31 +582,32 @@ figni-viewer {
 
 .figni-viewer-qrcode-panel {
   position: absolute;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  border-radius: 0.5em;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 1.5em;
-  padding-bottom: 1em;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   width: 12.5em;
   height: 15em;
-  z-index: 9999;
-  background-color: #ffffff;
+  padding: 1.5em;
+  padding-bottom: 1em;
+  background-color: #fff;
+  border-radius: 0.5em;
+  transform: translate(-50%, -50%);
   animation: animation-qrcode-panel 0.2s ease-out 1;
 }
 
 @keyframes animation-qrcode-panel {
   0% {
-    transform: translate(-50%, -50%) scale(0.95);
     opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
   }
+
   100% {
-    transform: translate(-50%, -50%) scale(1);
     opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
@@ -609,91 +633,88 @@ figni-viewer {
   width: 100%;
 }
 
-.figni-viewer-qrcode-panel > svg {
-  flex: 1;
-  width: 100%;
-}
-
 .figni-viewer-help-button {
   position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  z-index: 9998;
   display: flex;
   align-items: center;
   justify-content: center;
   height: 1.5em;
   padding: 0 0.5em;
-  right: 0.5em;
-  top: 0.5em;
-  background-color: #ffffff;
+  font-weight: bold;
+  cursor: pointer;
+  background-color: #fff;
   border: none;
   border-radius: 1.25em;
-  font-weight: bold;
-  z-index: 9998;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
   -webkit-tap-highlight-color: transparent;
-  cursor: pointer;
 }
 
 .figni-viewer-help-button::before {
-  content: '';
   position: absolute;
-  height: calc(100% + 2em);
-  width: calc(100% + 2em);
   top: 50%;
   left: 50%;
+  width: calc(100% + 2em);
+  height: calc(100% + 2em);
+  content: "";
   transform: translate(-50%, -50%);
 }
 
 .figni-viewer-help-button span {
   display: block;
-  color: var(--figni-viewer-primary);
-  font-size: 0.75em;
+  margin-bottom: 1px;
+  margin-left: 0.25em;
   font-family: var(--figni-viewer-font);
+  font-size: 0.75em;
   font-weight: bold;
   line-height: 1;
-  margin-left: 0.25em;
-  margin-bottom: 1px;
+  color: var(--figni-viewer-primary);
 }
 
 .figni-viewer-tips-panel {
   position: absolute;
+  z-index: 9997;
   display: flex;
   flex-direction: row;
+  cursor: pointer;
+  background-color: #fff;
   border-radius: 0.5em;
-  background-color: #ffffff;
-  z-index: 9997;
   transition: 0.5s cubic-bezier(0.65, 0.05, 0.36, 1) transform;
   transform: scale(1);
-  cursor: pointer;
 }
 
 .figni-viewer-tips-panel-hidden {
-  transform: scale(0);
   pointer-events: none;
+  transform: scale(0);
 }
 
 .figni-viewer-tips-panel-content {
-  width: 8em;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  width: 8em;
   padding: 0.75em;
 }
 
 .figni-viewer-tips-panel-text {
-  color: var(--figni-viewer-primary);
+  margin: 0;
+  font-family: var(--figni-viewer-font);
   font-size: 0.5em;
   font-weight: 700;
-  font-family: var(--figni-viewer-font);
-  margin: 0;
+  color: var(--figni-viewer-primary);
 }
 
 .figni-viewer-tips-panel-animation {
-  height: 4em;
   width: 4em;
+  height: 4em;
   border-left: 1px solid var(--figni-viewer-gray-shade-10);
+
   .cube path {
     stroke: var(--figni-viewer-primary);
   }
+
   .hand path {
     fill: var(--figni-viewer-prompt-hand);
   }
@@ -701,17 +722,18 @@ figni-viewer {
 
 .figni-viewer-help-panel {
   position: relative;
+  z-index: 9999;
   width: 160px;
   height: 100%;
-  z-index: 9999;
-  background-color: #ffffff;
+  background-color: #fff;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
+
   h3 {
-    color: var(--figni-viewer-primary);
-    font-size: 1.25em;
-    font-weight: 700;
     margin: 0;
     margin-bottom: 1em;
+    font-size: 1.25em;
+    font-weight: 700;
+    color: var(--figni-viewer-primary);
   }
 }
 
@@ -721,10 +743,10 @@ figni-viewer {
 
 .figni-viewer-help-page-base {
   position: absolute;
-  overflow-x: hidden;
-  overflow-y: scroll;
   width: 160px;
   height: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
   background-color: white;
   transition: 1s cubic-bezier(0, 1, 0.3, 1) all;
 }
@@ -759,9 +781,10 @@ figni-viewer {
   width: 100%;
   height: 5em;
   margin-bottom: 0.3em;
-  border-radius: 0.25em;
-  background-color: #f6f6f6;
   overflow: hidden;
+  background-color: #f6f6f6;
+  border-radius: 0.25em;
+
   .hand path {
     fill: var(--figni-viewer-prompt-hand);
   }
@@ -774,55 +797,39 @@ figni-viewer {
 
 .figni-viewer-help-page-btn-title-holder {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+
   h4 {
-    color: var(--figni-viewer-text);
+    margin: 0;
     font-size: 0.75em;
     font-weight: 700;
-    margin: 0;
+    color: var(--figni-viewer-text);
     opacity: 0.5;
-  }
-  span svg {
-    path {
-      fill: var(--figni-viewer-primary);
-    }
-    circle {
-      fill: var(--figni-viewer-primary);
-      fill-opacity: 0.1;
-    }
   }
 }
 
 .figni-viewer-help-page-unknown-btn {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 1em;
   cursor: pointer;
+
   h4 {
-    color: var(--figni-viewer-primary);
-    font-size: 0.75em;
-    font-weight: 700;
     margin: 0;
     margin-left: 0.5em;
-  }
-  span svg {
-    rect {
-      fill: var(--figni-viewer-primary);
-      fill-opacity: 0.1;
-    }
-    path {
-      fill: var(--figni-viewer-primary);
-    }
+    font-size: 0.75em;
+    font-weight: 700;
+    color: var(--figni-viewer-primary);
   }
 }
 
 .figni-viewer-help-page-footer small {
-  color: #787d93;
-  font-size: 0.75em;
-  font-family: 'Noto Sans JP', sans-serif;
   margin: 0;
+  font-family: "Noto Sans JP", sans-serif;
+  font-size: 0.75em;
+  color: #787d93;
 }
 
 .figni-viewer-help-page-item {
@@ -840,9 +847,10 @@ figni-viewer {
   justify-content: center;
   width: 100%;
   margin-bottom: 0.5em;
-  border-radius: 0.25em;
-  background-color: #f6f6f6;
   overflow: hidden;
+  background-color: #f6f6f6;
+  border-radius: 0.25em;
+
   .hand path {
     fill: var(--figni-viewer-prompt-hand);
   }
@@ -851,68 +859,69 @@ figni-viewer {
 .figni-viewer-help-page-item-step {
   display: block;
   margin-bottom: 0.125em;
-  color: var(--figni-viewer-text);
   font-size: 0.6em;
   font-weight: 700;
+  color: var(--figni-viewer-text);
   opacity: 0.5;
 }
 
 .figni-viewer-help-page-item-title {
-  color: var(--figni-viewer-text);
+  margin: 0 0 0.5em;
   font-size: 0.875em;
   font-weight: 700;
-  margin: 0 0 0.5em 0;
+  color: var(--figni-viewer-text);
 }
 
 .figni-viewer-help-page-item-description {
-  color: var(--figni-viewer-text);
-  font-size: 0.75em;
   margin: 0;
+  font-size: 0.75em;
+  color: var(--figni-viewer-text);
 }
 
 .figni-viewer-help-page-item-back-btn {
   position: sticky;
+  bottom: 0.5em;
+  left: 0.5em;
   display: flex;
   align-items: center;
   justify-content: center;
-  bottom: 0.5em;
-  left: 0.5em;
-  margin-right: auto;
   padding: 0.2em 0.5em;
-  border-radius: 1em;
-  box-shadow: 0 0.5em 1.5em -0.5em #222222;
+  margin-right: auto;
   overflow: hidden;
-  background-color: var(--figni-viewer-primary-tint-95);
   cursor: pointer;
+  background-color: var(--figni-viewer-primary-tint-95);
+  border-radius: 1em;
+  box-shadow: 0 0.5em 1.5em -0.5em #222;
+
   svg {
-    margin-right: 0.25em;
     margin-top: 0.1em;
-    path {
-      fill: var(--figni-viewer-primary);
-    }
+    margin-right: 0.25em;
   }
+
   span {
-    color: var(--figni-viewer-primary);
+    margin-bottom: 0.1em;
     font-size: 0.875em;
     font-weight: 700;
-    margin-bottom: 0.1em;
+    color: var(--figni-viewer-primary);
   }
 }
 
 .figni-viewer-help-page-item-footer {
   display: flex;
+  gap: 0.3em;
   align-items: center;
   justify-content: center;
   width: 100%;
   padding: 0.1em 0.25em;
   margin-bottom: 0.5em;
-  border-radius: 2em;
-  gap: 0.3em;
   background-color: #f6f6f6;
+  border-radius: 2em;
+
   small {
     font-size: 0.625em;
     opacity: 0.5;
   }
+
   a {
     width: 3em;
     margin-top: 0.1em;

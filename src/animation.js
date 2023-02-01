@@ -3325,7 +3325,7 @@ export const CONTENT_OPERATION_ANIMATION = {
   ],
   markers: [],
 }
-export const CAPTION_TAP_ANIMATION = {
+export const HIGHLIGHT_TAP_ANIMATION = {
   v: '5.9.1',
   fr: 29.9700012207031,
   ip: 0,

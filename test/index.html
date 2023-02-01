@@ -15,7 +15,7 @@
       <h1>テストページ</h1>
       <figni-viewer
         id="viewer"
-        item-id="esUI25hXa"
+        item-id="esUI25hX"
         token="ZRZYCb22MFWG7ha4"
         tag="test"
         state="neutral"
@@ -147,6 +147,7 @@
       <input type="text" id="modelTag" value="" />
       <button onclick="modelTagChange()">modelTagChange</button>
       <button onclick="testCustomData()">testCustomData</button>
+      <button onclick="changeLanguage()">changeLanguage</button>
     </div>
     <script defer>
       let i = 0
@@ -181,6 +182,9 @@
         viewer.updateCustomData('object', { o: 'o' }, 'set')
         viewer.updateCustomData('object', '', 'delete')
         viewer.updateCustomData('dekete', '', 'delete')
+      }
+      function changeLanguage() {
+        viewer.test()
       }
     </script>
     <style>

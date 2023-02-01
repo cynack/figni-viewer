@@ -290,8 +290,8 @@ figni-viewer {
 
   span {
     display: block;
-    margin-bottom: 0.1em;
-    margin-left: 0.3em;
+    margin-bottom: 0.15em;
+    margin-left: 0.5em;
     font-family: var(--figni-viewer-font);
     font-size: 12px;
     font-weight: bold;
@@ -807,7 +807,7 @@ figni-viewer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1em;
+  margin-bottom: 2em;
   cursor: pointer;
 
   h4 {

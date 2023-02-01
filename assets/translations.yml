@@ -1,1 +1,133 @@
 ja:
+  reload: 再読み込み
+  loading: 3Dモデルを読み込み中...
+  ar:
+    button: 実物大で見る
+    qrcode:
+      title: 実物大で見る
+      text: この機能はスマートフォンでのみ利用可能です(一部端末除く)。スマートフォンで下記QRコードを読み取ると閲覧できます。
+  help:
+    button: 使い方
+    title: 使い方一覧
+    pages:
+      content:
+        title: コンテンツの操作
+        step1:
+          title: 指を置いてモデルを回転させる
+          text: ビューワー内をドラッグすると、薄い円が表示されます。その状態で指を動かすと、コンテンツを回転することができます。画面をスクロールしてしまう場合、一度左右に動かしてから上下に動かすことでコンテンツを回転させることができます。
+        step2:
+          title: コンテンツをピンチして拡大縮小する
+          text: 二本指で広げるようにドラッグすると、コンテンツを拡大して見ることができます。縮小したい場合は、逆に二本指で縮めるようにドラッグしてください。
+      highlight:
+        title: ハイライトの操作
+        step1:
+          title: エフェクトが出ている点をタップする
+          text: コンテンツの各所にあるエフェクトが出ている点をタップすると、その点をよく見たり、説明を閲覧したり、その部位の動作などを見るたりすることができます。
+        step2:
+          title: 左下のボタンでコンテンツの位置をリセットする
+          text: 元の位置・角度にコンテンツを戻したい場合は、左下のボタンをタップして下さい。
+      ar:
+        title: 実物大で見る
+        step1:
+          title: \"実物大で見る"ボタンをタップ
+          text: 左下の"実物大で見る"をタップすると、スマートフォンのカメラ映像を通してコンテンツを実物大で見ることができます。
+        step2:
+          title: スマホを動かしながらできる限り多くの床面をカメラに映す
+          text: カメラであたりを見回すようにして 、できる限り多くの床面をカメラに映します。カメラが空間を認識すると、自然とコンテンツが現れます。
+        step3:
+          title: コンテンツをドラッグして移動させる
+          text: 一本指でコンテンツをドラッグすると、コンテンツを移動させることができます。
+        step4:
+          title: 二本指でコンテンツを回転させる
+          text: 二本指でコンテンツをドラッグして回転させると、コンテンツの向きを回転させることができます。
+      unknown:
+        title: 上手くいかない場合はこちら
+        step1:
+          title: コンテンツを回転させようとするとスクロールしてしまう
+          text: コンテンツを上下に動かしたい場合は、はじめに左右に動かしてから上下に動かしてください。
+        step2:
+          title: 実物大コンテンツを表示できない
+          text: 明るく広い場所で機能を使用してください。また、床面をカメラに映す際に遮るものがないか確認してください。
+        step3:
+          title: 表示がおかしくなってしまう
+          text: 一度機能を終了し、"実物大で見る"ボタンからもう一度機能を起動してください。
+    back: 戻る
+  tips:
+    drag: ドラッグするとコンテンツを回転できます
+    ar: 目の前に実物大の商品を表示できます
+  error:
+    ItemNotFound: 商品が見つかりませんでした
+    InvalidClientToken: トークンが無効です
+    QuotaLimitReached: APIの使用制限に達しました
+    Forbidden: アクセスが拒否されました
+    NotSetItemIdOrClientToken: 商品IDまたはトークンが設定されていません
+    NoModelFound: モデルが見つかりませんでした
+    FailedToGenerateQRCode: QRコードの生成に失敗しました
+    Unknown: エラーが発生しました
+
+en:
+  reload: Reload
+  loading: Loading 3D model...
+  ar:
+    button: View in AR
+    qrcode:
+      title: View in AR
+      text: This feature is only available on smartphones (excluding some devices). You can view it by scanning the QR code below with your smartphone.
+  help:
+    button: How to use
+    title: How to use
+    pages:
+      content:
+        title: 3D model controls
+        step1:
+          title: Rotate the model by placing your finger
+          text: If you drag inside the viewer, a thin circle will appear. In that state, you can rotate the content by moving your finger. If the screen scrolls, you can rotate the content by first moving it left and right and then up and down.
+        step2:
+          title: Pinch to zoom in and out
+          text: If you drag two fingers apart, you can zoom in on the content. If you want to zoom out, drag two fingers together.
+      highlight:
+        title: Highlight controls
+        step1:
+          title: Tap the point where the effect is displayed
+          text: You can tap the point where the effect is displayed in each part of the content to see it better, view the description, or see the action of that part.
+        step2:
+          title: Reset the position of the content with the button in the lower left
+          text: If you want to return the content to its original position and angle, tap the button in the lower left.
+      ar:
+        title: View in AR
+        step1:
+          title: Tap the "View in AR" button
+          text: By tapping the "View in AR" button in the lower left, you can view the content in AR by using the camera image of your smartphone.
+        step2:
+          title: Move the smartphone as much as possible while looking around with the camera
+          text: Look around with the camera as much as possible while moving the smartphone, and as much as possible, the floor surface is reflected in the camera. When the camera recognizes the space, the content will appear naturally.
+        step3:
+          title: Drag the content to move it
+          text: By dragging the content with one finger, you can move the content.
+        step4:
+          title: Rotate the content by dragging with two fingers
+          text: By dragging the content with two fingers and rotating it, you can rotate the direction of the content.
+      unknown:
+        title: If it doesn't work
+        step1:
+          title: If you try to rotate the content but it scrolls
+          text: If you want to move the content up and down, first move it left and right and then up and down.
+        step2:
+          title: If you can't display a full-size content
+          text: Please use the function in a bright and wide place. Also, check if there is anything that blocks the floor surface when reflecting the floor surface to the camera.
+        step3:
+          title: If the display is strange
+          text: Once you have finished using the function, restart the function from the "View in AR" button.
+    back: Back
+  tips:
+    drag: Drag to rotate the 3D model.
+    ar: A full-size product can be displayed in front of you.
+  error:
+    ItemNotFound: Item not found
+    InvalidClientToken: Invalid token
+    QuotaLimitReached: API quota limit reached
+    Forbidden: Access denied
+    NotSetItemIdOrClientToken: Item ID or token is not set
+    NoModelFound: Model not found
+    FailedToGenerateQRCode: Failed to generate QR code
+    Unknown: An error occurred

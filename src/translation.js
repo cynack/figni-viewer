@@ -6,7 +6,6 @@ import path from '../assets/translations.yml'
 const i18n = new I18n()
 i18n.defaultLocale = 'ja'
 i18n.locale = navigator.language.slice(0, 2)
-i18n.locale = 'en'
 i18n.enableFallback = true
 
 export async function setup() {

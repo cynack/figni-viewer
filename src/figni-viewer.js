@@ -633,6 +633,10 @@ export default class FigniViewerElement extends HTMLElement {
       this.base.startMesureHelpPage(page)
       openPage.scrollTop = 0
       this.#helpPanelBase.appendChild(openPage)
+      openPage.querySelectorAll('dotlottie-player').forEach(async (player) => {
+        await player.updateComplete
+        player.firstUpdated()
+      })
       this.#openedHelpPages.push({
         name: page,
         page: openPage,

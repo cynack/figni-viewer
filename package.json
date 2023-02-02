@@ -16,7 +16,6 @@
     "3d"
   ],
   "scripts": {
-    "preinstall": "npx only-allow pnpm",
     "test": "http-server test -p 9100",
     "build": "node script/build.mjs",
     "watch": "node script/watch.mjs",

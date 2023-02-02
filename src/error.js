@@ -1,4 +1,4 @@
-import { translate } from './translation'
+import { has, translate } from './translation'
 
 /**
  * エラー処理
@@ -22,9 +22,9 @@ export default async function (err) {
         return translate('error.Forbidden')
       }
     }
-  } else if (err.message) {
+  } else if (err.message && has(`error.${err.message}`)) {
     return translate(`error.${err.message}`)
   }
   console.error(err)
-  return { message: 'エラーが発生しました', code: 'ERR_UNKNOWN' }
+  return `${translate('error.Unknown')}: ${err.message}`
 }

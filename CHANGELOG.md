@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- アニメーションの描画を Lottie から dotLottie に変更
+
 ### Deprecated
 
 ### Removed

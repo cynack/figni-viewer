@@ -39,6 +39,7 @@ const ctx = await esbuild.context({
   },
   loader: {
     '.yml': 'file',
+    '.lottie': 'file',
   },
   assetNames: 'assets/[name]-[hash]',
   plugins: [

@@ -11,6 +11,7 @@ const options = {
   outdir: 'dist',
   loader: {
     '.yml': 'file',
+    '.lottie': 'file',
   },
   assetNames: 'assets/[name]-[hash]',
   define: {

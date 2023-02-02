@@ -13,7 +13,6 @@ specifiers:
   i18n-js: ^4.2.2
   js-yaml: ^4.1.0
   ky: ^0.33.2
-  lottie-web: ^5.10.2
   postcss: ^8.4.21
   prettier: ^2.8.3
   qrcode: ^1.5.1
@@ -28,7 +27,6 @@ dependencies:
   i18n-js: 4.2.2
   js-yaml: 4.1.0
   ky: 0.33.2
-  lottie-web: 5.10.2
   qrcode: 1.5.1
   values.js: 2.1.1
 

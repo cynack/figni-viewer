@@ -1,4 +1,3 @@
-import Lottie from 'lottie-web/build/player/lottie_light'
 import QRCode from 'qrcode'
 import Values from 'values.js'
 import {

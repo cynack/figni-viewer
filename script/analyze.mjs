@@ -3,17 +3,14 @@ import esbuild from 'esbuild'
 import { sassPlugin } from 'esbuild-sass-plugin'
 
 const options = {
-  entryPoints: {
-    'figni-viewer.min': 'src/index.js',
-  },
+  entryPoints: ['src/index.js'],
+  outfile: 'dist/figni-viewer.min.js',
   bundle: true,
   minify: true,
-  outdir: 'dist',
   loader: {
-    '.yml': 'file',
-    '.lottie': 'file',
+    '.yml': 'text',
+    '.json': 'text',
   },
-  assetNames: 'assets/[name]-[hash]',
   define: {
     VERSION: JSON.stringify(process.env.VERSION || ''),
     API_BASE: JSON.stringify('https://api.figni.io/api'),

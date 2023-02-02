@@ -385,6 +385,26 @@ figni-viewer {
   width: 100%;
   height: 100%;
 
+  .grid path {
+    fill: var(--figni-viewer-gray-shade-20);
+  }
+
+  .cube path {
+    stroke: var(--figni-viewer-gray-shade-20);
+  }
+
+  .tap-fb path {
+    fill: var(--figni-viewer-gray-shade-50);
+  }
+
+  .hand path {
+    fill: var(--figni-viewer-gray-shade-30);
+  }
+
+  .tap-effect path {
+    fill: var(--figni-viewer-gray-shade-30);
+  }
+
   @media not all and (min-resolution: 0.001dpcm) {
     @supports (-webkit-appearance: none) {
       svg {
@@ -432,6 +452,10 @@ figni-viewer {
   height: 1em;
   margin-right: 0.5em;
   margin-bottom: 0.1em;
+
+  .ring path {
+    stroke: var(--figni-viewer-primary);
+  }
 }
 
 .figni-viewer-loading-animation-ring svg {
@@ -683,6 +707,14 @@ figni-viewer {
   width: 4em;
   height: 4em;
   border-left: 1px solid var(--figni-viewer-gray-shade-10);
+
+  .cube path {
+    stroke: var(--figni-viewer-primary);
+  }
+
+  .hand path {
+    fill: var(--figni-viewer-prompt-hand);
+  }
 }
 
 .figni-viewer-help-panel {
@@ -749,6 +781,10 @@ figni-viewer {
   overflow: hidden;
   background-color: #f6f6f6;
   border-radius: 0.25em;
+
+  .hand path {
+    fill: var(--figni-viewer-prompt-hand);
+  }
 }
 
 .figni-viewer-help-page-animation-holder svg {
@@ -811,6 +847,10 @@ figni-viewer {
   overflow: hidden;
   background-color: #f6f6f6;
   border-radius: 0.25em;
+
+  .hand path {
+    fill: var(--figni-viewer-prompt-hand);
+  }
 }
 
 .figni-viewer-help-page-item-step {

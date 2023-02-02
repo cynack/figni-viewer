@@ -24,24 +24,21 @@ const errorLog = (errors) => {
 }
 
 const ctx = await esbuild.context({
-  entryPoints: {
-    'js/figni-viewer.min': 'src/index.js',
-  },
+  entryPoints: ['src/index.js'],
+  outfile: 'test/js/figni-viewer.min.js',
   bundle: true,
   minify: true,
   color: true,
   sourcemap: true,
-  outdir: 'test',
   define: {
     VERSION: JSON.stringify(process.env.VERSION || ''),
     API_BASE: JSON.stringify('https://api.stg.figni.io/api'),
     WEBSOCKET_BASE: JSON.stringify('wss://api.stg.figni.io/ws'),
   },
   loader: {
-    '.yml': 'file',
-    '.lottie': 'file',
+    '.yml': 'text',
+    '.json': 'text',
   },
-  assetNames: 'assets/[name]-[hash]',
   plugins: [
     sassPlugin({ type: 'style' }),
     {

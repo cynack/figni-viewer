@@ -1,17 +1,17 @@
-import loadingAnimationPath from '../assets/lottie/loading-animation.lottie'
-import loadingCirclePath from '../assets/lottie/loading-circle.lottie'
-import ThreeDControlPath from '../assets/lottie/3d-control.lottie'
-import ThreeDHighlightPath from '../assets/lottie/3d-highlight.lottie'
-import ThreeDZoomPath from '../assets/lottie/3d-zoom.lottie'
-import ArControlPath from '../assets/lottie/ar-control.lottie'
-import ArRotatePath from '../assets/lottie/ar-rotate.lottie'
-import ArScanPath from '../assets/lottie/ar-scan.lottie'
+import loadingAnimation from '../assets/lottie/loading-animation.json'
+import loadingCircle from '../assets/lottie/loading-circle.json'
+import ThreeDControl from '../assets/lottie/3d-control.json'
+import ThreeDHighlight from '../assets/lottie/3d-highlight.json'
+import ThreeDZoom from '../assets/lottie/3d-zoom.json'
+import ArControl from '../assets/lottie/ar-control.json'
+import ArRotate from '../assets/lottie/ar-rotate.json'
+import ArScan from '../assets/lottie/ar-scan.json'
 
-export const LOADING_ANIMATION = loadingAnimationPath
-export const LOADING_CIRCLE = loadingCirclePath
-export const THREED_CONTROL = ThreeDControlPath
-export const THREED_HIGHLIGHT = ThreeDHighlightPath
-export const THREED_ZOOM = ThreeDZoomPath
-export const AR_CONTROL = ArControlPath
-export const AR_ROTATE = ArRotatePath
-export const AR_SCAN = ArScanPath
+export const LOADING_ANIMATION = JSON.parse(loadingAnimation)
+export const LOADING_CIRCLE = JSON.parse(loadingCircle)
+export const THREED_CONTROL = JSON.parse(ThreeDControl)
+export const THREED_HIGHLIGHT = JSON.parse(ThreeDHighlight)
+export const THREED_ZOOM = JSON.parse(ThreeDZoom)
+export const AR_CONTROL = JSON.parse(ArControl)
+export const AR_ROTATE = JSON.parse(ArRotate)
+export const AR_SCAN = JSON.parse(ArScan)

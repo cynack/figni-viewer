@@ -1,3 +1,4 @@
+import Lottie from 'lottie-web/build/player/lottie_light'
 import QRCode from 'qrcode'
 import Values from 'values.js'
 import {
@@ -28,7 +29,6 @@ import {
   SVG_TOGGLE_VISIBLE_HOTSPOT_BUTTON_ON,
 } from './svg'
 import { setup, translate } from './translation'
-import { addLottiePlayer } from './utils'
 
 const OBSERBED_ATTRIBUTES = [
   'item-id',
@@ -633,10 +633,6 @@ export default class FigniViewerElement extends HTMLElement {
       this.base.startMesureHelpPage(page)
       openPage.scrollTop = 0
       this.#helpPanelBase.appendChild(openPage)
-      openPage.querySelectorAll('dotlottie-player').forEach(async (player) => {
-        await player.updateComplete
-        player.firstUpdated()
-      })
       this.#openedHelpPages.push({
         name: page,
         page: openPage,
@@ -733,16 +729,13 @@ export default class FigniViewerElement extends HTMLElement {
         '.figni-viewer-tips-panel-animation'
       )
       animationElement.innerHTML = ''
-      const style = document.createElement('style')
-      style.innerHTML = `
-        .cube path {
-          stroke: var(--figni-viewer-primary);
-        }
-        .hand path {
-          fill: var(--figni-viewer-prompt-hand);
-        }
-      `
-      addLottiePlayer(animation, animationElement, style)
+      Lottie.loadAnimation({
+        container: animationElement,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        animationData: animation,
+      })
       this.#tipsHideCallback = setTimeout(() => this.closeTipsPanel(), delay)
       this.#tipsPanel.addEventListener(
         'click',
@@ -1332,25 +1325,13 @@ export default class FigniViewerElement extends HTMLElement {
       // ローディングアニメ
       const loadingAnimation = document.createElement('div')
       loadingAnimation.classList.add('figni-viewer-loading-animation')
-      const style = document.createElement('style')
-      style.innerHTML = `
-        .grid path {
-          fill: var(--figni-viewer-gray-shade-20);
-        }
-        .cube path {
-          stroke: var(--figni-viewer-gray-shade-20);
-        }
-        .tap-fb path {
-          fill: var(--figni-viewer-gray-shade-50);
-        }
-        .hand path {
-          fill: var(--figni-viewer-gray-shade-30);
-        }
-        .tap-effect path {
-          fill: var(--figni-viewer-gray-shade-30);
-        }
-      `
-      addLottiePlayer(LOADING_ANIMATION, loadingAnimation, style)
+      Lottie.loadAnimation({
+        container: loadingAnimation,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        animationData: LOADING_ANIMATION,
+      })
       this.#loadingPanel.appendChild(loadingAnimation)
       // プログレスバー
       const loadingProgressBar = document.createElement('span')
@@ -1358,13 +1339,13 @@ export default class FigniViewerElement extends HTMLElement {
       this.#loadingPanel.appendChild(loadingProgressBar)
       const loadingIcon = document.createElement('span')
       loadingIcon.classList.add('figni-viewer-loading-animation-ring')
-      const style_ = document.createElement('style')
-      style_.innerHTML = `
-        .ring path {
-          stroke: var(--figni-viewer-primary);
-        }
-      `
-      addLottiePlayer(LOADING_CIRCLE, loadingIcon, style_)
+      Lottie.loadAnimation({
+        container: loadingIcon,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        animationData: LOADING_CIRCLE,
+      })
       loadingProgressBar.appendChild(loadingIcon)
       const loadingText = document.createElement('span')
       loadingText.innerText = translate('loading')
@@ -1554,14 +1535,13 @@ export default class FigniViewerElement extends HTMLElement {
         const animationHolder = document.createElement('div')
         animationHolder.classList.add('figni-viewer-help-page-animation-holder')
         helpBtn.appendChild(animationHolder)
-        // アニメーションを追加
-        const style = document.createElement('style')
-        style.innerHTML = `
-          .hand path {
-            fill: var(--figni-viewer-prompt-hand);
-          }
-        `
-        addLottiePlayer(animation, animationHolder, style)
+        Lottie.loadAnimation({
+          container: animationHolder,
+          renderer: 'svg',
+          loop: true,
+          autoplay: true,
+          animationData: animation,
+        })
         // タイトルのホルダーを追加
         const titleHolder = document.createElement('div')
         titleHolder.classList.add('figni-viewer-help-page-btn-title-holder')
@@ -1637,14 +1617,13 @@ export default class FigniViewerElement extends HTMLElement {
         'figni-viewer-help-page-item-animation-holder'
       )
       item.appendChild(animationHolder)
-      // アニメーションを追加
-      const style = document.createElement('style')
-      style.innerHTML = `
-        .hand path {
-          fill: var(--figni-viewer-prompt-hand);
-        }
-      `
-      addLottiePlayer(animation, animationHolder, style)
+      Lottie.loadAnimation({
+        container: animationHolder,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        animationData: animation,
+      })
     }
     // stepを追加
     const step = document.createElement('span')

@@ -1,6 +1,6 @@
 ja:
   reload: 再読み込み
-  loading: 3Dモデルを読み込み中...
+  loading: "3Dモデルを読み込み中..."
   ar:
     button: 実物大で見る
     qrcode:

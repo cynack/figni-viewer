@@ -28,6 +28,8 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           VERSION: ${{ github.sha }}
+          API_BASE: "https://api.figni.io/api"
+          WEBSOCKET_BASE: "wss://api.figni.io/ws"
       - name: slack notification on success
         if: ${{ success() }}
         uses: rtCamp/action-slack-notify@v2

@@ -12,8 +12,8 @@ const options = {
   },
   define: {
     VERSION: JSON.stringify(process.env.VERSION || ''),
-    API_BASE: JSON.stringify('https://api.figni.io/api'),
-    WEBSOCKET_BASE: JSON.stringify('wss://api.figni.io/ws'),
+    API_BASE: JSON.stringify(process.env.API_BASE || ''),
+    WEBSOCKET_BASE: JSON.stringify(process.env.WEBSOCKET_BASE || ''),
   },
   plugins: [sassPlugin({ type: 'style' })],
 }

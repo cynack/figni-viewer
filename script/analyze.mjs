@@ -13,11 +13,8 @@ const options = {
   },
   define: {
     VERSION: JSON.stringify(process.env.VERSION || ''),
-    API_BASE: JSON.stringify('https://api.figni.io/api'),
-    WEBSOCKET_BASE: JSON.stringify('wss://api.figni.io/ws'),
-    TRANSLATIONS_FILE: JSON.stringify(
-      'https://storage.googleapis.com/cynack/figni/viewer/translations.yml'
-    ),
+    API_BASE: JSON.stringify(process.env.API_BASE || ''),
+    WEBSOCKET_BASE: JSON.stringify(process.env.WEBSOCKET_BASE || ''),
   },
   plugins: [sassPlugin({ type: 'style' })],
   metafile: true,

@@ -448,10 +448,10 @@ figni-viewer {
 }
 
 .figni-viewer-loading-animation-ring {
-  width: 1em;
-  height: 1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-right: 0.5em;
-  margin-bottom: 0.1em;
 
   .ring path {
     stroke: var(--figni-viewer-primary);

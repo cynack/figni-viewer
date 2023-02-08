@@ -170,6 +170,20 @@ export default class FigniViewerElement extends HTMLElement {
   constructor() {
     super()
 
+    this.addEventListener('camera-change', (e) => {
+      if (this.#tempHidedHotspot) {
+        if (!this.#clickableHotspot(this.#tempHidedHotspot.target)) {
+          this.#showInitCameraButton()
+        } else {
+          this.#hideInitCameraButton()
+        }
+      }
+    })
+  }
+
+  async connectedCallback() {
+    this.#completedInitialModelLoad = false
+
     if (!this.base) {
       this.#figniViewerBase = document.createElement('figni-viewer-base')
       // イベントの登録
@@ -197,30 +211,26 @@ export default class FigniViewerElement extends HTMLElement {
       this.appendChild(this.base)
     }
 
-    this.addEventListener('camera-change', (e) => {
-      if (this.#tempHidedHotspot) {
-        if (!this.#clickableHotspot(this.#tempHidedHotspot.target)) {
-          this.#showInitCameraButton()
-        } else {
-          this.#hideInitCameraButton()
-        }
-      }
-    })
-  }
-
-  async connectedCallback() {
-    this.#completedInitialModelLoad = false
-
     // Hotspot
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach(async (node) => {
+            if (node.slot && node.slot.startsWith('hotspot-')) {
+              if (!node.classList.contains('figni-viewer-hotspot')) {
+                this.base.appendChild(node)
+                await this.base.updateComplete
+                this.#modifyHotspot(node)
+                this.#hotspots.push(node)
+              }
+            }
+          })
+        }
+      })
+    })
+    observer.observe(this, { childList: true, subtree: true })
     this.querySelectorAll('[slot^="hotspot-"]').forEach((hotspot) => {
       this.#hotspots.push(this.base.appendChild(hotspot))
-    })
-    await this.base.updateComplete
-    this.#hotspots = Array.from(new Set(this.#hotspots))
-    this.#hotspots.forEach((hotspot) => {
-      if (!hotspot.classList.contains('figni-viewer-hotspot')) {
-        this.#modifyHotspot(hotspot)
-      }
     })
     this.addEventListener('load', () => {
       setTimeout(() => {
@@ -580,6 +590,7 @@ export default class FigniViewerElement extends HTMLElement {
     }
 
     await this.base.updateComplete
+
     this.#modifyHotspot(hotspot)
     this.updateState(this.state)
   }

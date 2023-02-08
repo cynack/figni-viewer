@@ -31,7 +31,7 @@ const ctx = await esbuild.context({
   color: true,
   sourcemap: true,
   define: {
-    VERSION: JSON.stringify(process.env.VERSION || ''),
+    VERSION: JSON.stringify('development'),
     API_BASE: JSON.stringify('https://api.stg.figni.io/api'),
     WEBSOCKET_BASE: JSON.stringify('wss://api.stg.figni.io/ws'),
   },

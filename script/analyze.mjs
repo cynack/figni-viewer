@@ -12,9 +12,9 @@ const options = {
     '.json': 'text',
   },
   define: {
-    VERSION: JSON.stringify(process.env.VERSION || ''),
-    API_BASE: JSON.stringify(process.env.API_BASE || ''),
-    WEBSOCKET_BASE: JSON.stringify(process.env.WEBSOCKET_BASE || ''),
+    VERSION: JSON.stringify('development'),
+    API_BASE: JSON.stringify('https://api.stg.figni.io/api'),
+    WEBSOCKET_BASE: JSON.stringify('wss://api.stg.figni.io/ws'),
   },
   plugins: [sassPlugin({ type: 'style' })],
   metafile: true,

@@ -9,6 +9,9 @@ const SETTINGS = {
 }
 
 export default class FigniViewerBaseElement extends ModelViewerElement {
+  // element
+  #style
+
   // analytics data
   #websocket
   #arCount = 0
@@ -26,8 +29,9 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
 
     this.#setupModelViewer()
 
-    const style = document.createElement('style')
-    style.textContent = `
+    if (!this.#style) {
+      this.#style = document.createElement('style')
+      this.#style.textContent = `
       :not(style[outline="none"]) {
         outline: none !important;
       }
@@ -38,7 +42,8 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
         display: none;
       }
     `
-    this.appendChild(style)
+      this.appendChild(this.#style)
+    }
   }
 
   /**

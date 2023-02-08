@@ -11,19 +11,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- 自由なカメラ移動をサポートする属性`enable-pan`を追加
-- カスタムデータをログサーバーに送る関数`updateCustomData()`を追加
-- ブラウザの表示言語にあわせてテキストを変更する機能を追加
-
 ### Changed
-
-- アニメーションの描画を Lottie から dotLottie に変更
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+## [1.7.1] - 2023-02-08
+
+### Added
+
+- 自由なカメラ移動をサポートする属性`enable-pan`を追加
+- カスタムデータをログサーバーに送る関数`updateCustomData()`を追加
+- ブラウザの表示言語にあわせてテキストを変更する機能を追加
+
+### Fixed
+
+- 軽微な修正
 
 ## [1.7.0] - 2022-11-07
 

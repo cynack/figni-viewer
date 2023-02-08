@@ -221,16 +221,18 @@ export default class FigniViewerElement extends HTMLElement {
                 this.base.appendChild(node)
                 await this.base.updateComplete
                 this.#modifyHotspot(node)
-                this.#hotspots.push(node)
+                if (this.#hotspots.findIndex((h) => h === node) === -1) {
+                  this.#hotspots.push(node)
+                }
               }
             }
           })
         }
       })
     })
-    observer.observe(this, { childList: true, subtree: true })
+    observer.observe(this, { childList: true })
     this.querySelectorAll('[slot^="hotspot-"]').forEach((hotspot) => {
-      this.#hotspots.push(this.base.appendChild(hotspot))
+      this.#hotspots.push(this.appendChild(hotspot))
     })
     this.addEventListener('load', () => {
       setTimeout(() => {

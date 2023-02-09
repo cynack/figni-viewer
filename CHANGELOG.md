@@ -479,7 +479,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - キャプションの表示非表示を変化させる`to-state`属性を追加
 - キャプションの表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.7.0...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.7.1...HEAD
+[1.7.1]: https://github.com/cynack/figni-viewer/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/cynack/figni-viewer/compare/v1.6.11...v1.7.0
 [1.6.11]: https://github.com/cynack/figni-viewer/compare/v1.6.10...v1.6.11
 [1.6.10]: https://github.com/cynack/figni-viewer/compare/v1.6.9...v1.6.10

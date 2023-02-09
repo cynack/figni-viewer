@@ -24,7 +24,7 @@ jobs:
         run: |
           npm install pnpm
           pnpm install
-          pnpm run build
+          pnpm build
           pnpm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

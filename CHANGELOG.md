@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- model-viewer をアップデート([8c14189](https://github.com/google/model-viewer/commit/8c14189c8c5e721339c6cf491a16476b66817928))
+
 ### Deprecated
 
 ### Removed

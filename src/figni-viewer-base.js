@@ -1,6 +1,6 @@
 import ky from 'ky'
 import { endMesure, getElapsedTime, getSumTime, startMesure } from './mesure'
-import { ModelViewerElement } from './model-viewer'
+import { ModelViewerElement } from './model-viewer.min.js'
 
 const VIEW_THRESHOLD = 0.7
 const SETTINGS = {
@@ -41,7 +41,7 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       ::part(default-ar-button) {
         display: none;
       }
-    `
+      `
       this.appendChild(this.#style)
     }
   }

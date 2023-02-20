@@ -13,13 +13,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-- model-viewer をアップデート([8c14189](https://github.com/google/model-viewer/commit/8c14189c8c5e721339c6cf491a16476b66817928))
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+## [1.7.2] - 2023-02-20
+
+### Changed
+
+- model-viewer をアップデート([8c14189](https://github.com/google/model-viewer/commit/8c14189c8c5e721339c6cf491a16476b66817928))
 
 ## [1.7.1] - 2023-02-08
 
@@ -481,7 +485,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - キャプションの表示非表示を変化させる`to-state`属性を追加
 - キャプションの表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.7.1...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.7.2...HEAD
+[1.7.2]: https://github.com/cynack/figni-viewer/compare/v1.7.1...v1.7.2
 [1.7.1]: https://github.com/cynack/figni-viewer/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/cynack/figni-viewer/compare/v1.6.11...v1.7.0
 [1.6.11]: https://github.com/cynack/figni-viewer/compare/v1.6.10...v1.6.11

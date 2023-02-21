@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- `item-id`と`token`から 3D モデルの URL を取得できる関数を追加しました。
+
 ### Changed
 
 ### Deprecated

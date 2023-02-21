@@ -170,7 +170,7 @@ export default class FigniViewerElement extends HTMLElement {
   constructor() {
     super()
 
-    this.addEventListener('camera-change', (e) => {
+    this.addEventListener('camera-change', () => {
       if (this.#tempHidedHotspot) {
         if (!this.#clickableHotspot(this.#tempHidedHotspot.target)) {
           this.#showInitCameraButton()
@@ -847,7 +847,7 @@ export default class FigniViewerElement extends HTMLElement {
         delete this.#interactionCursors[e.pointerId]
       }
     })
-    window.addEventListener('scroll', (e) => {
+    window.addEventListener('scroll', () => {
       Object.keys(this.#interactionCursors).forEach((key) => {
         this.#deleteCursor(this.#interactionCursors[key])
         delete this.#interactionCursors[key]
@@ -1193,10 +1193,10 @@ export default class FigniViewerElement extends HTMLElement {
     panel.classWatcher = new ClassWatcher(
       panel,
       'figni-viewer-panel-hide',
-      (p) => {
+      () => {
         this.base.endMesurePanel(name)
       },
-      (p) => {
+      () => {
         this.base.startMesurePanel(name)
       }
     )

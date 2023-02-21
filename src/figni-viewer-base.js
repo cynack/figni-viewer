@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import ky from 'ky'
 import { endMesure, getElapsedTime, getSumTime, startMesure } from './mesure'
 import { ModelViewerElement } from './model-viewer.min.js'
@@ -47,20 +48,15 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
   }
 
   /**
-   * アイテムIDとトークン(とタグ)から3DモデルのURLを取得して model-viewer にセットする
-   * @param {string} itemId アイテムID
+   * 商品ID、トークンおよびタグから3DモデルのURLを取得する
+   * @param {string} itemId 商品ID
    * @param {string} token トークン
-   * @param {string} modelTag モデルのタグ
-   * @param {{tags: string[], staging: boolean}} options オプション
+   * @param {string} modelTag モデルタグ
+   * @param {boolean} staging stg向けか
+   * @returns {Promise<{glb: string, usdz: string}>} 3DモデルのURL
    */
-  async loadModel(
-    itemId,
-    token,
-    modelTag = null,
-    options = { tags: [], staging: false }
-  ) {
+  async fetchModelUrl(itemId, token, modelTag = null, staging = false) {
     if (itemId && token) {
-      const { tags = [], staging = false } = options
       const host = staging ? 'https://api.stg.figni.io/api' : API_BASE
       const url = `${host}/item/${itemId}/model_search${
         modelTag ? `?tag=${modelTag}` : ''
@@ -77,30 +73,55 @@ export default class FigniViewerBaseElement extends ModelViewerElement {
       if (res.length === 0) {
         throw new Error('NoModelFound')
       }
+      const ret = { glb: '', usdz: '' }
       const glb = res.find((model) => model.format === 'glb')
       if (glb) {
-        this.src = glb.url
+        ret.glb = glb.url
       }
       const usdz = res.find((model) => model.format === 'usdz')
       if (usdz) {
-        this.iosSrc = usdz.url
-      } else {
-        this.iosSrc = ''
+        ret.usdz = usdz.url
       }
-
-      this.#unregisterEventListener()
-
-      const id = this.#registerEventListener('progress', (e) => {
-        if (e.detail.totalProgress == 1) {
-          endMesure('initial-model-view-time')
-          this.#unregisterEventListener(id)
-        }
-      })
-
-      this.#initializeWebSocket(itemId, token, tags, staging)
+      return ret
     } else {
       throw new ReferenceError('NotSetItemIdOrClientToken')
     }
+  }
+
+  /**
+   * アイテムIDとトークン(とタグ)から3DモデルのURLを取得して model-viewer にセットする
+   * @param {string} itemId アイテムID
+   * @param {string} token トークン
+   * @param {string} modelTag モデルのタグ
+   * @param {{tags: string[], staging: boolean}} options オプション
+   */
+  async loadModel(
+    itemId,
+    token,
+    modelTag = null,
+    options = { tags: [], staging: false }
+  ) {
+    const { tags = [], staging = false } = options
+    const urls = await this.fetchModelUrl(itemId, token, modelTag, staging)
+    if (urls.glb) {
+      this.src = urls.glb
+    }
+    if (urls.usdz) {
+      this.iosSrc = urls.usdz
+    } else {
+      this.iosSrc = ''
+    }
+
+    this.#unregisterEventListener()
+
+    const id = this.#registerEventListener('progress', (e) => {
+      if (e.detail.totalProgress == 1) {
+        endMesure('initial-model-view-time')
+        this.#unregisterEventListener(id)
+      }
+    })
+
+    this.#initializeWebSocket(itemId, token, tags, staging)
   }
 
   /**

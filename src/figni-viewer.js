@@ -232,7 +232,9 @@ export default class FigniViewerElement extends HTMLElement {
     })
     observer.observe(this, { childList: true })
     this.querySelectorAll('[slot^="hotspot-"]').forEach((hotspot) => {
-      this.#hotspots.push(this.appendChild(hotspot))
+      if (hotspot.parentNode !== this.base) {
+        this.#hotspots.push(this.appendChild(hotspot))
+      }
     })
     this.addEventListener('load', () => {
       setTimeout(() => {

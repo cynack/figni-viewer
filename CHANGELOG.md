@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- `item-id`と`token`から 3D モデルの URL を取得できる関数を追加しました。
-
 ### Changed
 
 ### Deprecated
@@ -21,11 +19,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [1.7.3] - 2023-02-24
+
+### Added
+
+- `item-id`と`token`から 3D モデルの URL を取得できる関数を追加
+
+### Fixed
+
+- ハイライト周りの処理に関して軽微な修正
+
 ## [1.7.2] - 2023-02-20
 
 ### Changed
 
-- model-viewer をアップデート([8c14189](https://github.com/google/model-viewer/commit/8c14189c8c5e721339c6cf491a16476b66817928))
+- model-viewer をアップデート([8c14189](https://github.com/google/model-viewer/tree/8c14189c8c5e721339c6cf491a16476b66817928))
 
 ## [1.7.1] - 2023-02-08
 
@@ -487,7 +495,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - キャプションの表示非表示を変化させる`to-state`属性を追加
 - キャプションの表示非表示を決定する`visible`属性を追加
 
-[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.7.2...HEAD
+[unreleased]: https://github.com/cynack/figni-viewer/compare/v1.7.3...HEAD
+[1.7.3]: https://github.com/cynack/figni-viewer/compare/v1.7.2...v1.7.3
 [1.7.2]: https://github.com/cynack/figni-viewer/compare/v1.7.1...v1.7.2
 [1.7.1]: https://github.com/cynack/figni-viewer/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/cynack/figni-viewer/compare/v1.6.11...v1.7.0
